@@ -8,15 +8,15 @@
 ## Source And Package
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
-- Current source commit reviewed: `1a9988d`
-- Package source commit: `1a9988d`
+- Current source commit reviewed: `f5bf83c`
+- Package source commit: `f5bf83c`
 - Package: `artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip`
-- Size: `593,363` bytes
-- SHA256: `75adb54db49c14724f94b79afbb7fb712d6ccca8e7f62314d5e6dff591c18f01`
+- Size: `593,460` bytes
+- SHA256: `397e78135cd11c3c7b1f32e52f65dbc45828c5b2b7b67d28e08022b48c9f3ca0`
 - Files / checksums / profiles / licenses: `40 / 39 / 9 / 4`
 - Runtime: Microsoft .NET 8 Desktop Runtime x64
 
-The ZIP was rebuilt from a clean `1a9988d` worktree with .NET SDK `8.0.427`,
+The ZIP was rebuilt from a clean `f5bf83c` worktree with .NET SDK `8.0.427`,
 matching the pinned CI toolchain. Later documentation-only commits do not change
 the packaged runtime files.
 
@@ -123,7 +123,7 @@ docs/assets/bilibili-cover-2026-11-10.png
 - The supervised full AC -> battery -> AC policy transition still needs a human
   operator and explicit confirmation phrase.
 - At least one second AMD laptop still needs read-only compatibility evidence.
-- Any runtime or packaging change after `1a9988d` requires a new clean package,
+- Any runtime or packaging change after `f5bf83c` requires a new clean package,
   SHA256, and release evidence.
 - Project owner must review final video voice, pacing, claims, and cover.
 - GitHub tag/release, Bilibili login/upload, and public publication require
