@@ -184,6 +184,24 @@ public sealed class PlatformProfileTests
     }
 
     [Fact]
+    public void RepositoryProfiles_CoverEveryKnownRyzenAdjFamilyExactlyOnce()
+    {
+        IReadOnlyList<PlatformProfile> profiles = ProfileRepository.LoadDirectory(
+            Path.Combine(AppContext.BaseDirectory, "profiles"));
+
+        int[] coveredFamilies = profiles
+            .SelectMany(profile => profile.CpuFamilyPatterns)
+            .Where(pattern => pattern.StartsWith("ryzenadj:", StringComparison.OrdinalIgnoreCase))
+            .Select(pattern => int.Parse(
+                pattern["ryzenadj:".Length..],
+                System.Globalization.CultureInfo.InvariantCulture))
+            .OrderBy(family => family)
+            .ToArray();
+
+        Assert.Equal(Enumerable.Range(0, 16), coveredFamilies);
+    }
+
+    [Fact]
     public void LoadDirectory_RejectsDuplicateProfileIds()
     {
         string directory = Path.Combine(

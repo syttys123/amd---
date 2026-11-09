@@ -541,6 +541,8 @@ third_party/
   exclude process IDs, worker/log directories, and recent logs while redacting
   absolute Windows and UNC paths. Regression coverage parses the exported JSON
   and verifies private fields and path values are absent.
+- Added compatibility-matrix tests that require every RyzenAdj family `0-15` to
+  map to exactly one shipped profile and verify every known family display name.
 
 Development screenshot:
 

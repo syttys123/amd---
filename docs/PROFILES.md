@@ -44,15 +44,20 @@ that have no device-level validation in this project:
 
 | Profile | RyzenAdj families |
 |---|---|
-| `ryzenadj-legacy` | Raven, Picasso, Dali, Van Gogh |
-| `ryzenadj-renoir-cezanne` | Renoir, Cezanne, Lucienne |
-| `ryzenadj-rembrandt-phoenix` | Rembrandt, Phoenix |
-| `ryzenadj-mendocino` | Mendocino |
-| `ryzenadj-dragon-fire` | Dragon Range, Fire Range |
-| `ryzenadj-krackan-strix` | Krackan Point, Strix Point |
-| `ryzenadj-strix-halo` | Strix Halo |
+| `ryzenadj-legacy` | `0` Raven, `1` Picasso, `4` Dali, `6` Van Gogh |
+| `ryzenadj-renoir-cezanne` | `2` Renoir, `3` Cezanne, `5` Lucienne |
+| `ryzenadj-rembrandt-phoenix` | `7` Rembrandt, `9` Phoenix |
+| `ryzenadj-mendocino` | `8` Mendocino |
+| `ryzenadj-dragon-fire` | `11` Dragon Range, `15` Fire Range |
+| `ryzenadj-krackan-strix` | `12` Krackan Point, `13` Strix Point |
+| `ryzenadj-strix-halo` | `14` Strix Halo |
 
 These profiles only constrain presets and target ranges. They do not prove
 that a laptop supports writes, that its PM table is correct, or that firmware
 will accept a requested value.
+
+The test suite requires every RyzenAdj family identifier from `0` through `15`
+to appear exactly once across the shipped profile set. Adding support for a new
+family therefore requires an explicit profile and test update rather than
+silently falling into an unrelated generation.
 
