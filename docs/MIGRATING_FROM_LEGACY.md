@@ -52,6 +52,10 @@ The expected task state is `Disabled`. Reboot Windows next. The reboot:
 - Releases the old hardware owner and driver state.
 - Resets temporary RyzenAdj power limits to the BIOS or vendor defaults.
 
+Verified on the development laptop: rebooting with the task still enabled
+restarted `RyzenPower.exe`, the hidden task child, and the legacy hardware-owner
+mutex immediately at logon. Disabling the task before reboot is required.
+
 After reboot, verify that `Local\RyzenAdjPowerWorker` is absent and that no
 `RyzenPower`, `ryzenadj`, or legacy scheduled task is running before starting
 the new GUI.

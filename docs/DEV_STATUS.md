@@ -261,6 +261,16 @@ third_party/
   automatically.
 - Rebuilt the portable package from clean commit `cba9c91` with the complete
   fail-closed worker behavior.
+- Isolated-installed the current package without startup or shell integration,
+  confirmed the migration script, migration guide, release checklist, and all
+  three license files were present, then uninstalled it successfully.
+- Re-verified every staged `SHA256SUMS.txt` entry and the outer ZIP SHA256 after
+  the final package contents were staged.
+- Rebooted the development laptop for driver-state recovery. The enabled
+  `\AMD\RyzenAdjWatch` logon trigger immediately restarted the legacy
+  `RyzenPower` GUI and hidden worker, and `Local\RyzenAdjPowerWorker` was present
+  again before the new GUI started. This confirms the task must be disabled
+  before reboot for migration.
 - Attempted an elevated restart of both `WinRing0_1_2_0` and `inpoutx64` with
   no RyzenAdj process running. Both services returned to `Running`, but the
   legacy `ryzenadj.exe --info` still hung in the SMU polling loop. Service
