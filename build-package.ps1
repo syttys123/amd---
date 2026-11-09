@@ -43,6 +43,7 @@ dotnet publish (Join-Path $root "src\AmdMobilePower.Gui\AmdMobilePower.Gui.cspro
     -c $Configuration `
     -r win-x64 `
     --self-contained true `
+    -p:NuGetAudit=false `
     -p:Version=$Version `
     -o (Join-Path $publishRoot "gui")
 if ($LASTEXITCODE -ne 0) {
@@ -53,6 +54,7 @@ dotnet publish (Join-Path $root "src\AmdMobilePower.Worker\AmdMobilePower.Worker
     -c $Configuration `
     -r win-x64 `
     --self-contained true `
+    -p:NuGetAudit=false `
     -p:Version=$Version `
     -o (Join-Path $publishRoot "worker")
 if ($LASTEXITCODE -ne 0) {
