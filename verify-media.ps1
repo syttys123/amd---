@@ -66,6 +66,40 @@ function Get-ImageDimensions {
     }
 }
 
+function Get-ImageLumaMetrics {
+    param([string]$Path)
+
+    $bitmap = [Drawing.Bitmap]::new($Path)
+    try {
+        $samples = 0
+        $sum = 0.0
+        $sumSquares = 0.0
+        $nonDark = 0
+        for ($y = 0; $y -lt $bitmap.Height; $y += 4) {
+            for ($x = 0; $x -lt $bitmap.Width; $x += 4) {
+                $color = $bitmap.GetPixel($x, $y)
+                $luma = (0.2126 * $color.R) + (0.7152 * $color.G) + (0.0722 * $color.B)
+                $sum += $luma
+                $sumSquares += $luma * $luma
+                if ($luma -gt 40) {
+                    $nonDark++
+                }
+                $samples++
+            }
+        }
+        $mean = $sum / $samples
+        $variance = ($sumSquares / $samples) - ($mean * $mean)
+        return [pscustomobject]@{
+            MeanLuma = $mean
+            LumaStdDev = [Math]::Sqrt([Math]::Max(0.0, $variance))
+            NonDarkRatio = $nonDark / $samples
+        }
+    }
+    finally {
+        $bitmap.Dispose()
+    }
+}
+
 $resolvedVideoPath = Resolve-ProjectPath $VideoPath
 $resolvedManifestPath = Resolve-ProjectPath $ManifestPath
 $resolvedEvidencePath = Resolve-ProjectPath $EvidencePath
@@ -182,6 +216,21 @@ Assert-Equal "cover height" $coverDimensions.Height $evidence.reviewAssets.cover
 Assert-Equal "contact sheet width" $contactSheetDimensions.Width $evidence.reviewAssets.contactSheetWidth
 Assert-Equal "contact sheet height" $contactSheetDimensions.Height $evidence.reviewAssets.contactSheetHeight
 
+$launchCoverPath = Resolve-ProjectPath $evidence.bilibiliCover.path
+Assert-FileHash "Bilibili cover" $launchCoverPath $evidence.bilibiliCover.sha256
+$launchCoverInfo = Get-Item -LiteralPath $launchCoverPath
+Assert-Equal "Bilibili cover size" $launchCoverInfo.Length $evidence.bilibiliCover.sizeBytes
+$launchCoverDimensions = Get-ImageDimensions $launchCoverPath
+Assert-Equal "Bilibili cover width" $launchCoverDimensions.Width $evidence.bilibiliCover.width
+Assert-Equal "Bilibili cover height" $launchCoverDimensions.Height $evidence.bilibiliCover.height
+$launchCoverRendererPath = Resolve-ProjectPath $evidence.bilibiliCover.renderer
+Assert-FileHash "Bilibili cover renderer" $launchCoverRendererPath $evidence.bilibiliCover.rendererSha256
+$launchCoverMetrics = Get-ImageLumaMetrics $launchCoverPath
+Assert-Condition ($launchCoverMetrics.LumaStdDev -ge 20) "Bilibili cover has too little visual variation."
+Assert-Condition (
+    $launchCoverMetrics.NonDarkRatio -ge 0.05 -and $launchCoverMetrics.NonDarkRatio -le 0.95
+) "Bilibili cover appears blank or overexposed."
+
 [pscustomobject]@{
     Status = $manifest.status
     Video = $resolvedVideoPath
@@ -197,5 +246,6 @@ Assert-Equal "contact sheet height" $contactSheetDimensions.Height $evidence.rev
     FullDecode = "PASS"
     EvidenceHashes = "PASS"
     ReviewAssets = "PASS"
+    BilibiliCover = "PASS"
     Verification = "PASS"
 } | Format-List

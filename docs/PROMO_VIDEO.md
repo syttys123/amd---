@@ -14,6 +14,10 @@ stereo audio, Chinese narration, and simplified-Chinese captions. It is marked
 
 ![Seven-scene review contact sheet](assets/promo-draft-contact-sheet-2026-11-10.png)
 
+Bilibili 1146x717 cover:
+
+![Bilibili launch cover](assets/bilibili-cover-2026-11-10.png)
+
 Local render:
 
 ```text
@@ -40,7 +44,16 @@ Verify the local MP4 and every committed review/source hash without rerendering:
 
 The verifier checks the manifest, evidence, SHA256, codecs, dimensions, frame
 rate, duration, full decode, mean/peak audio levels, captions, storyboard,
-renderer, cover, and contact-sheet assets.
+renderer, video cover, contact sheet, and the 1146x717 Bilibili cover.
+
+Regenerate the Bilibili cover:
+
+```powershell
+.\render-launch-cover.ps1
+```
+
+The cover uses the verified clean-package screenshot, application icon, and
+reviewed launch copy. Rendering fails if the main text exceeds its safe width.
 
 ## Render
 

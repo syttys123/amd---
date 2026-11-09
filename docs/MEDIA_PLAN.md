@@ -106,6 +106,8 @@ Narration:
 - `assets/diagnostics-export-2026-11-10.png` - captured save dialog crop
 - `assets/tray-menu-clean-package-2026-11-10.png` - captured and reproducible
   with `verify-tray-menu.ps1`
+- `assets/bilibili-cover-2026-11-10.png` - generated at 1146x717 from the
+  verified clean-package screenshot and reviewed cover copy
 
 See `UI_SCREENSHOT_EVIDENCE.md` for dimensions, hashes, safety boundaries, and
 remaining captures.

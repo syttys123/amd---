@@ -58,6 +58,7 @@
 - [x] Project introduction is fact-checked against current package evidence.
 - [x] Promo video draft is rendered and machine-verified.
       Evidence: `PROMO_VIDEO.md` and `docs/evidence/media/promo-draft-2026-11-10.json`.
+- [x] Bilibili 1146x717 cover is generated and machine-verified.
 - [ ] Project owner reviews the final video voice, pacing, claims, and cover.
 - [ ] Bilibili title, description, cover, and tags are reviewed.
 

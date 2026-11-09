@@ -38,6 +38,16 @@
     "contactSheetWidth": 1920,
     "contactSheetHeight": 640
   },
+  "bilibiliCover": {
+    "path": "docs/assets/bilibili-cover-2026-11-10.png",
+    "sha256": "37dd6ea5f670ac70ff8c5b730139dd51a46eaba58b708e3180b1f3e47eead1dd",
+    "sizeBytes": 148519,
+    "width": 1146,
+    "height": 717,
+    "renderer": "render-launch-cover.ps1",
+    "rendererSha256": "a4c6aaa2283840c135208c753823ba163f80df9a8f312157c6a944f15fcb3d57",
+    "textSafeWidth": "PASS"
+  },
   "verification": {
     "ffmpegFullDecode": "PASS",
     "textSafeWidth": "PASS",
