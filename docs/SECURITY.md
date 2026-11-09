@@ -50,6 +50,10 @@ The GUI treats a hardware-read timeout as a terminal worker fault for the
 current application session. It stops the unresponsive worker and does not
 automatically relaunch it, preventing a crash/restart loop.
 
+The same startup deadline applies while the worker is beginning to listen on
+its named pipe. A worker that hangs before accepting commands is also stopped
+and enters the terminal fault state.
+
 ## Write Validation
 
 When write controls are explicitly enabled, the worker:

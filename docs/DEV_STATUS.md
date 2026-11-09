@@ -183,6 +183,8 @@ third_party/
     `01ba3ba41ba0a84f36ad6ff74b07ba8196de4bb0e30f4958dfcf977b1d126b23`
   - Source commit: `0276c5b`
   - Working tree at build time: clean
+  - Rebuild status: stale because the worker-startup fail-closed fix landed after
+    this package was built
 - Verified first install, overwrite upgrade, and uninstall against an isolated
   `artifacts/test-install` directory without changing shell integration.
 - Re-verified isolated install and uninstall with the license-bearing package;
@@ -256,6 +258,9 @@ third_party/
   while the GUI stayed responsive with the recovery message.
 - Added a Core regression test confirming that named-pipe request cancellation
   becomes an explicit `TimeoutException` for the GUI recovery path.
+- Extended fail-closed handling to worker startup: if the process does not begin
+  listening within the startup deadline, the GUI stops it and does not retry
+  automatically.
 - Attempted an elevated restart of both `WinRing0_1_2_0` and `inpoutx64` with
   no RyzenAdj process running. Both services returned to `Running`, but the
   legacy `ryzenadj.exe --info` still hung in the SMU polling loop. Service
