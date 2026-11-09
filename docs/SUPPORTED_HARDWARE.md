@@ -10,6 +10,20 @@ experimental development platform and conservative detection profiles:
 | AMD Ryzen 7 8845HS | `hawk-point-8845hs` | Read-only capability and telemetry probe passed | Experimental |
 | Unknown AMD mobile CPU | `default` | Capability-dependent detection only | Unverified |
 
+## RyzenAdj Family Detection Versus Project Support
+
+The pinned RyzenAdj commit contains code paths for these CPU families:
+
+- Raven, Picasso, Renoir, Cezanne, Dali, Lucienne.
+- Vangogh, Rembrandt, Mendocino.
+- Phoenix, Hawk Point.
+- Dragon Range, Krackan Point, Strix Point, Strix Halo, Fire Range.
+
+This means RyzenAdj may recognize a processor family and expose some fields. It
+does **not** mean AMD Mobile Power has verified the laptop, its BIOS/EC behavior,
+its PM table, or its STAPM/PPT writes. Device-level evidence remains limited to
+the 8845HS entry above.
+
 Current development laptop:
 
 - MECHREVO WUJIE15 PRO
