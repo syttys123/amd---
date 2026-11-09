@@ -187,6 +187,8 @@ third_party/
   `artifacts/test-install` directory without changing shell integration.
 - Re-verified isolated install and uninstall with the license-bearing package;
   all three third-party license files were present after installation.
+- Re-hashed every file listed in the staged `SHA256SUMS.txt`; all entries match,
+  and the ZIP hash matches its adjacent `.sha256` file.
 - Added CI-side portable package generation with uploaded ZIP and SHA256
   artifacts on pushes.
 - Made `build-ryzenadj.ps1` detect Visual Studio 2019/2022/2026 automatically;
