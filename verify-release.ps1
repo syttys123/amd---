@@ -2,7 +2,8 @@ param(
     [string]$Version = "0.1.3-dev",
     [string]$Configuration = "Release",
     [switch]$FrameworkDependent,
-    [switch]$AllowDirty
+    [switch]$AllowDirty,
+    [switch]$VerifyShellIntegration
 )
 
 $ErrorActionPreference = "Stop"
@@ -208,6 +209,13 @@ try {
         throw "Uninstall left the verification directory behind."
     }
 
+    $shellIntegration = "Not requested"
+    if ($VerifyShellIntegration) {
+        & (Join-Path $root "verify-shell-integration.ps1") `
+            -PackageDirectory $stage
+        $shellIntegration = "PASS"
+    }
+
     [pscustomobject]@{
         Package = $zipPath
         SHA256 = $zipHash
@@ -217,6 +225,7 @@ try {
         Checksums = $checksumLines.Count
         Profiles = $profiles.Count
         Licenses = $licenses.Count
+        ShellIntegration = $shellIntegration
         Verification = "PASS"
     } | Format-List
 }

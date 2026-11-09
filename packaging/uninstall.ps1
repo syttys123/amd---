@@ -6,6 +6,24 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Invoke-ScheduledTaskCommand {
+    param([string[]]$Arguments)
+
+    $previousErrorAction = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "SilentlyContinue"
+        $output = & schtasks.exe @Arguments 2>&1
+        return [pscustomobject]@{
+            ExitCode = $LASTEXITCODE
+            Output = ($output -join "`n")
+        }
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorAction
+        $global:LASTEXITCODE = 0
+    }
+}
+
 $resolvedInstallDirectory = [IO.Path]::GetFullPath($InstallDirectory).TrimEnd(
     [IO.Path]::DirectorySeparatorChar)
 if ($resolvedInstallDirectory -eq [IO.Path]::GetPathRoot($resolvedInstallDirectory)) {
@@ -29,7 +47,20 @@ Get-Process -Name "AmdMobilePower", "AmdMobilePower.Worker" -ErrorAction Silentl
     Stop-Process -Force
 
 if (-not $NoShellIntegration) {
-    & schtasks.exe /Delete /TN "AmdMobilePower" /F 2>$null | Out-Null
+    $taskQuery = Invoke-ScheduledTaskCommand -Arguments @(
+        "/Query",
+        "/TN", "AmdMobilePower"
+    )
+    if ($taskQuery.ExitCode -eq 0) {
+        $taskRemoval = Invoke-ScheduledTaskCommand -Arguments @(
+            "/Delete",
+            "/TN", "AmdMobilePower",
+            "/F"
+        )
+        if ($taskRemoval.ExitCode -ne 0) {
+            Write-Warning "Scheduled task removal failed; continuing with the remaining cleanup."
+        }
+    }
 
     $shortcutPath = Join-Path (
         [Environment]::GetFolderPath("ApplicationData")

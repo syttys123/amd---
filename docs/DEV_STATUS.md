@@ -487,6 +487,16 @@ third_party/
 - Reconciled the hardware matrix with current 10 W, 12 W, 25 W, and 45 W
   request/read-back evidence. Firmware-clamped STAPM values are documented
   separately from Fast/Slow transport failures and restore behavior.
+- Removed the compact-mode gray `--` placeholder beside `目标功耗`; the live
+  summary now reads `动态上限 ... · 电源/电池`.
+- Fixed three installer defects found by current-user integration testing:
+  scheduled-task permission failures now reset the native exit code before the
+  Startup-folder fallback, task-not-found checks no longer make uninstall fail,
+  and registry uninstall commands now preserve a custom install directory.
+- Added `verify-shell-integration.ps1` and the optional
+  `verify-release.ps1 -VerifyShellIntegration` gate. It verifies the Start menu
+  shortcut, uninstall entry, custom-directory uninstall command, and either the
+  logon task or the Startup-folder fallback, then cleans every created artifact.
 
 Development screenshot:
 

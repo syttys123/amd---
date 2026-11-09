@@ -21,15 +21,31 @@ dotnet build AmdMobilePower.sln -c Release
 dotnet test AmdMobilePower.sln -c Release
 ```
 
-Run the complete local release gate, including package integrity and isolated
-install/overwrite/uninstall checks:
+Run the complete local release gate, including package integrity, isolated
+install/overwrite/uninstall checks, and current-user shell integration:
 
 ```powershell
-.\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent
+.\verify-release.ps1 `
+  -Version 0.1.3-dev `
+  -FrameworkDependent `
+  -VerifyShellIntegration
 ```
 
 The verifier refuses a dirty worktree. Use `-AllowDirty` only for local
-diagnostics; a dirty result is not release evidence.
+diagnostics; a dirty result is not release evidence. Omit
+`-VerifyShellIntegration` on a machine where the fixed Start menu or uninstall
+entry already exists; that mode only runs the isolated install checks.
+
+Run the shell-integration gate by itself:
+
+```powershell
+.\verify-shell-integration.ps1
+```
+
+It refuses to overwrite existing shell integration, creates the normal Start
+menu shortcut and uninstall entry, verifies either the logon task or its
+Startup-folder fallback, then uninstalls and confirms that the install
+directory, shortcuts, registry entry, and task were removed.
 
 ## Build RyzenAdj
 

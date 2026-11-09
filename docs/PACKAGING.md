@@ -11,12 +11,17 @@ Build a self-contained Windows x64 portable package from a clean source tree:
 For the full release gate, use:
 
 ```powershell
-.\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent
+.\verify-release.ps1 `
+  -Version 0.1.3-dev `
+  -FrameworkDependent `
+  -VerifyShellIntegration
 ```
 
 The verifier checks build, tests, formatting, package metadata and checksums,
 license files, profile count, machine-state exclusion, and isolated
-install/overwrite/uninstall behavior.
+install/overwrite/uninstall behavior. `-VerifyShellIntegration` additionally
+checks the Start menu shortcut, current-user uninstall entry, custom-directory
+uninstall command, and either the logon task or Startup-folder fallback.
 
 Build the small framework-dependent variant:
 
@@ -190,6 +195,18 @@ Test uninstall from the package:
   -InstallDirectory D:\amd-mobile-power\artifacts\test-install `
   -NoShellIntegration
 ```
+
+Verify the complete current-user shell integration on a clean test host:
+
+```powershell
+.\verify-shell-integration.ps1 `
+  -PackageDirectory artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite
+```
+
+The script refuses to start if `AMD Mobile Power` shortcuts or the uninstall
+entry already exist. It uses a unique directory below `artifacts\verify`,
+verifies installation and fallback behavior, then removes every artifact it
+created.
 
 The verified local development package uses SHA256:
 

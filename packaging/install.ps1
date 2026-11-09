@@ -7,6 +7,24 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Invoke-ScheduledTaskCommand {
+    param([string[]]$Arguments)
+
+    $previousErrorAction = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "SilentlyContinue"
+        $output = & schtasks.exe @Arguments 2>&1
+        return [pscustomobject]@{
+            ExitCode = $LASTEXITCODE
+            Output = ($output -join "`n")
+        }
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorAction
+        $global:LASTEXITCODE = 0
+    }
+}
+
 $sourceDirectory = $PSScriptRoot.TrimEnd([IO.Path]::DirectorySeparatorChar)
 $sourceExecutable = Join-Path $sourceDirectory "AmdMobilePower.exe"
 if (-not (Test-Path -LiteralPath $sourceExecutable)) {
@@ -65,8 +83,16 @@ if (-not $NoShellIntegration) {
 
     if (-not $NoStartup) {
         $taskCommand = "`"$installedExecutable`" --tray"
-        & schtasks.exe /Create /TN "AmdMobilePower" /SC ONLOGON /TR $taskCommand /RL LIMITED /F | Out-Null
-        if ($LASTEXITCODE -ne 0) {
+        $taskRegistration = Invoke-ScheduledTaskCommand -Arguments @(
+            "/Create",
+            "/TN", "AmdMobilePower",
+            "/SC", "ONLOGON",
+            "/TR", $taskCommand,
+            "/RL", "LIMITED",
+            "/F"
+        )
+        if ($taskRegistration.ExitCode -ne 0) {
+            Write-Warning "Scheduled task registration failed; using a Startup folder shortcut."
             $startupShortcut = Join-Path (
                 [Environment]::GetFolderPath("Startup")
             ) "AMD Mobile Power.lnk"
@@ -100,7 +126,8 @@ if (-not $NoShellIntegration) {
     Set-ItemProperty -Path $uninstallKey -Name NoModify -Value 1 -Type DWord
     Set-ItemProperty -Path $uninstallKey -Name NoRepair -Value 1 -Type DWord
     Set-ItemProperty -Path $uninstallKey -Name UninstallString -Value (
-        "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$installedUninstaller`""
+        "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$installedUninstaller`" " +
+        "-InstallDirectory `"$resolvedInstallDirectory`""
     )
 }
 

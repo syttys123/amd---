@@ -39,7 +39,9 @@
 - [x] ZIP SHA256 and source commit are recorded.
 - [x] `SHA256SUMS.txt` verifies every staged file.
 - [x] First install, overwrite upgrade, and uninstall pass in an isolated path.
-- [ ] Start menu, uninstall entry, and logon task behavior are verified.
+- [x] Start menu, uninstall entry, and logon startup behavior are verified.
+      Evidence: `verify-shell-integration.ps1` passed; this host denied task
+      registration, so the Startup-folder fallback path was exercised.
 - [x] No machine-specific diagnostics, logs, or user data are included.
 
 ## Documentation And Media
