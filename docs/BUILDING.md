@@ -41,4 +41,8 @@ artifacts/ryzenadj-runtime/
 The worker build automatically copies the staged RyzenAdj runtime and profile
 JSON files into its output directory when they exist.
 
+`build-ryzenadj.ps1` uses `vswhere` to locate the installed Visual Studio C++
+toolchain and selects the matching CMake generator for Visual Studio 2019,
+2022, or 2026.
+
 Build output is intentionally ignored by Git.

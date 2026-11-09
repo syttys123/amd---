@@ -48,7 +48,7 @@
 - [x] Installer with scheduled-task setup.
 - [x] Upgrade and uninstall flow.
 - [ ] Version metadata and embedded icons.
-- [ ] GitHub Actions release artifacts.
+- [x] GitHub Actions release artifacts.
 
 ## M6: Release Documentation
 

@@ -79,7 +79,7 @@ Test uninstall from the package:
 The verified local development package uses SHA256:
 
 ```text
-3cef4471fe94233330018c8e58c8bc5b652abdb9ac14bb3b4328c78ffc944cd9
+ed58addb7bb67dc9a095b8fba6337755dd198adb91b681de7ede612f35d21274
 ```
 
 Rebuilds may produce a different hash because embedded timestamps can change.

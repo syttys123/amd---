@@ -172,11 +172,17 @@ third_party/
   8845HS platform and telemetry data.
 - Current local package:
   - Path: `artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip`
-  - Size: 106,634,113 bytes
+  - Size: 106,634,120 bytes
   - SHA256:
-    `3cef4471fe94233330018c8e58c8bc5b652abdb9ac14bb3b4328c78ffc944cd9`
+    `ed58addb7bb67dc9a095b8fba6337755dd198adb91b681de7ede612f35d21274`
+  - Source commit: `5f844eb`
+  - Working tree at build time: clean
 - Verified first install, overwrite upgrade, and uninstall against an isolated
   `artifacts/test-install` directory without changing shell integration.
+- Added CI-side portable package generation with uploaded ZIP and SHA256
+  artifacts on pushes.
+- Made `build-ryzenadj.ps1` detect Visual Studio 2019/2022/2026 automatically;
+  the VS 2026 local rebuild path was reverified.
 - Added `exportDiagnostics` over the named pipe.
 - Diagnostics include platform capability, profile match, telemetry, worker/OS
   architecture, executable directory, and SHA256 values for four RyzenAdj
