@@ -83,10 +83,16 @@ Copy-Item -LiteralPath (Join-Path $root "docs\THIRD_PARTY_NOTICES.md") `
     -Destination (Join-Path $stage "THIRD_PARTY_NOTICES.md") -Force
 Copy-Item -LiteralPath (Join-Path $root "packaging\portable-README.txt") `
     -Destination (Join-Path $stage "README.txt") -Force
+Copy-Item -LiteralPath (Join-Path $root "docs\MIGRATING_FROM_LEGACY.md") `
+    -Destination (Join-Path $stage "MIGRATING-FROM-LEGACY.md") -Force
+Copy-Item -LiteralPath (Join-Path $root "docs\RELEASE_CHECKLIST.md") `
+    -Destination (Join-Path $stage "RELEASE-CHECKLIST.md") -Force
 Copy-Item -LiteralPath (Join-Path $root "packaging\install.ps1") `
     -Destination (Join-Path $stage "install.ps1") -Force
 Copy-Item -LiteralPath (Join-Path $root "packaging\uninstall.ps1") `
     -Destination (Join-Path $stage "uninstall.ps1") -Force
+Copy-Item -LiteralPath (Join-Path $root "packaging\migrate-legacy-owner.ps1") `
+    -Destination (Join-Path $stage "migrate-legacy-owner.ps1") -Force
 
 $commit = (& git -C $root rev-parse HEAD).Trim()
 $statusText = (& git -C $root status --porcelain | Out-String).Trim()

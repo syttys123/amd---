@@ -23,6 +23,9 @@ AmdMobilePower.exe
 assets/
 install.ps1
 uninstall.ps1
+migrate-legacy-owner.ps1
+MIGRATING-FROM-LEGACY.md
+RELEASE-CHECKLIST.md
 worker/
   AmdMobilePower.Worker.exe
   libryzenadj.dll
