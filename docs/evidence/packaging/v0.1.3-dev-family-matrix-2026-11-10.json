@@ -1,20 +1,21 @@
 {
   "schemaVersion": 1,
   "evidenceType": "clean-release-verification",
-  "generatedAt": "2026-11-10T06:55:24.551+08:00",
-  "sourceCommit": "625839532f507748c6a21d2b63b5b82aa48fb789",
+  "generatedAt": "2026-11-10T07:04:26.414+08:00",
+  "sourceCommit": "1a9988d70da831177435ce0ba7785ff0861fb81a",
   "workingTree": "Clean",
   "verificationCommand": ".\\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent -VerifyShellIntegration -VerifyTrayMenu -VerifyTrayExit -VerifyDiagnostics",
   "package": {
     "name": "amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
-    "sizeBytes": 593474,
-    "sha256": "209faac93698bc71952f48c95568f2c6b19a570e1f1e4038b31c52ae40a2f3fd",
+    "sizeBytes": 593363,
+    "sha256": "75adb54db49c14724f94b79afbb7fb712d6ccca8e7f62314d5e6dff591c18f01",
     "files": 40,
     "checksums": 39,
     "profiles": 9,
     "licenses": 4
   },
   "build": {
+    "sdkVersion": "8.0.427",
     "configuration": "Release",
     "frameworkDependent": true,
     "warnings": 0,
@@ -41,8 +42,8 @@
     "trayMenuItems": 11,
     "trayMenuHorizontalGap": 0,
     "trayGracefulExit": "PASS",
-    "trayNotificationText": "AMD Mobile Power AMD Mobile Power | 电池 | 16.6 W",
-    "trayScreenshotSha256": "6de728c989f4c7945de4aa7b1d76a2ac98d169563955988450554f9ff3f41a3e"
+    "trayNotificationText": "AMD Mobile Power AMD Mobile Power | 电池 | 9.3 W",
+    "trayScreenshotSha256": "fbfee5e0caee49d92ee6a3eaebb76a890520f911eae155e7e27177e4f64c31b2"
   },
   "diagnostics": {
     "collectionStatus": "PASS",

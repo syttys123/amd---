@@ -73,10 +73,10 @@
 
 ## M7: Public Launch
 
-- [ ] Release candidate validation.
-- [ ] Finalize Chinese project introduction.
-- [ ] Feature screenshots and terminal-free demo recording.
-- [ ] Promotional video script and rendered video.
+- [x] Release candidate validation with a clean local release gate.
+- [x] Finalize Chinese project introduction for review.
+- [x] Feature screenshots and terminal-free demo recording.
+- [x] Promotional video script and rendered draft.
 - [ ] GitHub release.
 - [ ] Bilibili upload and description.
 

@@ -70,7 +70,7 @@ Failure:
 | `getHealth` | implemented | no |
 | `getCapabilities` | implemented; requires the opt-in hardware adapter | probe only |
 | `getSnapshot` | implemented; requires the opt-in hardware adapter | read only |
-| `applyTarget` | implemented; mock-tested, hardware smoke pending | read/write |
+| `applyTarget` | implemented; unit-tested and supervised hardware read-back verified | read/write |
 | `getPowerPolicy` | implemented | no |
 | `setPowerPolicy` | implemented; requires worker write flag | read/write |
 | `refreshTelemetry` | reserved | yes |

@@ -6,8 +6,10 @@ AMD Mobile Power changes firmware-facing CPU power limits through RyzenAdj and
 low-level Windows driver interfaces. Incorrect values can cause overheating,
 instability, shutdowns, battery wear, data loss, or hardware damage.
 
-Public releases are blocked until the third-party driver redistribution review
-is resolved. Development packages are not production-ready.
+The engineering redistribution review is recorded in `LICENSING_REVIEW.md`, and
+the release package includes the reviewed license texts. Public release still
+requires the remaining hardware evidence and project-owner approval; this review
+is not legal advice.
 
 ## Default Read-Only Mode
 

@@ -540,9 +540,10 @@ third_party/
   and requires graceful protocol shutdown. Release verification can exercise
   this path with `-VerifyDiagnostics`.
 - Rebuilt the clean Lite package after upgrading the test toolchain and adding
-  the dependency vulnerability gate. The package is 593,474 bytes with SHA256
-  `209faac93698bc71952f48c95568f2c6b19a570e1f1e4038b31c52ae40a2f3fd`,
-  built from commit `6258395`, and contains 40 files with 39 checksum entries.
+  the dependency vulnerability gate. The package is 593,363 bytes with SHA256
+  `75adb54db49c14724f94b79afbb7fb712d6ccca8e7f62314d5e6dff591c18f01`,
+  built from commit `1a9988d` with .NET SDK `8.0.427`, and contains 40 files
+  with 39 checksum entries.
   The full local gate passed with 0 build warnings, 65/65 tests, shell
   integration, tray-menu placement, graceful tray exit, and read-only
   diagnostics collection. Direct and transitive dependency audit covered all
