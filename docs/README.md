@@ -17,6 +17,7 @@ conflict, prefer the first applicable source in this order:
 |---|---|
 | `DEV_STATUS.md` | Authoritative implemented state and next concrete task |
 | `INSTALLATION.md` | Development package, install, upgrade, removal, and recovery |
+| `MIGRATING_FROM_LEGACY.md` | Safe transition from the old RyzenPower task and worker |
 | `SUPPORTED_HARDWARE.md` | Current compatibility scope and evidence limits |
 | `COMPATIBILITY_REPORT_TEMPLATE.md` | Public hardware-evidence report format |
 | `SECURITY.md` | Hardware-write, driver, privilege, and data-safety model |

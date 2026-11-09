@@ -89,16 +89,19 @@ the RyzenAdj hardware interface. Exit that tool before retrying. Do not run two
 RyzenAdj-based owners concurrently.
 
 If the message names `RyzenAdjPowerWorker` or `RyzenAdjWatch`, closing the old
-GUI was not enough: the legacy logon task still has a hidden worker. Stop the
-task before retrying:
+GUI was not enough: the legacy logon task still has a hidden worker. Do not
+assume a task stop has ended that child. For migration, use:
 
 ```powershell
+Disable-ScheduledTask -TaskName "RyzenAdjWatch" -TaskPath "\AMD\"
 Stop-ScheduledTask -TaskName "RyzenAdjWatch" -TaskPath "\AMD\"
 ```
 
-Stopping a task changes the legacy tool's behavior. Preserve its directory and
-configuration, and restore the task explicitly if you need to return to the old
-deployment.
+Then reboot and verify the legacy mutex is absent before opening the new GUI.
+Preserve `C:\RyzenAdj` and restore the task explicitly if you need to return to
+the old deployment. See `MIGRATING_FROM_LEGACY.md`; a simple task stop can leave
+the hidden child alive, while force-killing that child can leave the driver/SMU
+state broken.
 
 ### Security software blocks the driver
 

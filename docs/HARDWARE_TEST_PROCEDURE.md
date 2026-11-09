@@ -15,6 +15,8 @@ part of CI and must not be run by an unattended maintenance task.
   the visible GUI does not stop its hidden worker.
 - Confirm `Local\RyzenAdjPowerWorker` is no longer held before starting the new
   worker.
+- For migration, disable the legacy logon task and reboot instead of
+  force-terminating the hidden worker. See `MIGRATING_FROM_LEGACY.md`.
 - Confirm `getSnapshot` reports a supported platform and valid
   STAPM/Fast/Slow limits.
 - Keep the stable deployment at `C:\RyzenAdj` unchanged until the test passes.
@@ -50,7 +52,8 @@ Stop testing and restore the previous deployment if:
 
 - The machine becomes unstable or unexpectedly shuts down.
 - RyzenAdj reports `Unable to get MP1 SMU Obj`, especially after an owning
-  process was force-terminated. Reboot before any further hardware access.
+  process was force-terminated, or `ryzenadj.exe --info` hangs in SMU polling.
+  Reboot before any further hardware access.
 - A read-back is missing or non-finite.
 - A write reports success but an effective limit rises above the request.
 - Automatic restore fails or cannot be verified.
