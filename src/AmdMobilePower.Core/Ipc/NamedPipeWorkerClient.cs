@@ -6,7 +6,7 @@ using AmdMobilePower.Core.Models;
 
 namespace AmdMobilePower.Core.Ipc;
 
-public sealed class NamedPipeWorkerClient
+public sealed class NamedPipeWorkerClient : IWorkerClient
 {
     private readonly string _pipeName;
 

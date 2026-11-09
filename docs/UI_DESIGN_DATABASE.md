@@ -588,7 +588,7 @@ Hero 右侧建议列宽：
     `11.7-12.0W`。
   - 测试电源为 USB-C 充电宝；系统仍将其报告为外接电源。
 - `dotnet build AmdMobilePower.sln -c Release`：0 警告、0 错误。
-- `dotnet test AmdMobilePower.sln -c Release --no-build`：57/57 通过。
+- `dotnet test AmdMobilePower.sln -c Release --no-build`：59/59 通过。
 
 ### 12.3 仍待验证
 

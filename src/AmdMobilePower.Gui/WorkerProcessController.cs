@@ -8,18 +8,52 @@ namespace AmdMobilePower.Gui;
 
 internal sealed class WorkerProcessController : IAsyncDisposable
 {
-    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(3);
-    private static readonly TimeSpan ApplyTimeout = TimeSpan.FromSeconds(8);
-    private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan DefaultRequestTimeout = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan DefaultApplyTimeout = TimeSpan.FromSeconds(8);
+    private static readonly TimeSpan DefaultStartupTimeout = TimeSpan.FromSeconds(12);
 
-    private readonly NamedPipeWorkerClient _client = new();
+    private readonly IWorkerClient _client;
     private readonly bool _allowHardwareWrites;
-    private Process? _workerProcess;
+    private readonly TimeSpan _requestTimeout;
+    private readonly TimeSpan _applyTimeout;
+    private readonly TimeSpan _startupTimeout;
+    private readonly Func<HardwareProcessConflict?> _findHardwareConflict;
+    private readonly Func<string> _locateWorkerExecutable;
+    private readonly Func<ProcessStartInfo, IWorkerProcess> _startWorkerProcess;
+    private IWorkerProcess? _workerProcess;
     private string? _hardwareFault;
 
     public WorkerProcessController(bool allowHardwareWrites)
+        : this(
+            allowHardwareWrites,
+            new NamedPipeWorkerClient(),
+            DefaultRequestTimeout,
+            DefaultApplyTimeout,
+            DefaultStartupTimeout,
+            HardwareConflictDetector.FindKnownHardwareOwner,
+            LocateDefaultWorkerExecutable,
+            StartSystemWorkerProcess)
     {
+    }
+
+    internal WorkerProcessController(
+        bool allowHardwareWrites,
+        IWorkerClient client,
+        TimeSpan requestTimeout,
+        TimeSpan applyTimeout,
+        TimeSpan startupTimeout,
+        Func<HardwareProcessConflict?> findHardwareConflict,
+        Func<string> locateWorkerExecutable,
+        Func<ProcessStartInfo, IWorkerProcess> startWorkerProcess)
+    {
+        _client = client;
         _allowHardwareWrites = allowHardwareWrites;
+        _requestTimeout = requestTimeout;
+        _applyTimeout = applyTimeout;
+        _startupTimeout = startupTimeout;
+        _findHardwareConflict = findHardwareConflict;
+        _locateWorkerExecutable = locateWorkerExecutable;
+        _startWorkerProcess = startWorkerProcess;
     }
 
     public async Task<WorkerSnapshot> GetSnapshotAsync(CancellationToken cancellationToken)
@@ -28,7 +62,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         try
         {
             return await _client
-                .GetSnapshotAsync(RequestTimeout, cancellationToken)
+                .GetSnapshotAsync(_requestTimeout, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (Exception error) when (ShouldTryStartingWorker(error, cancellationToken))
@@ -46,7 +80,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
                 try
                 {
                     return await _client
-                        .GetSnapshotAsync(RequestTimeout, cancellationToken)
+                        .GetSnapshotAsync(_requestTimeout, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (Exception retryError) when (ShouldTryStartingWorker(retryError, cancellationToken))
@@ -58,7 +92,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
             try
             {
                 return await _client
-                    .GetSnapshotAsync(RequestTimeout, cancellationToken)
+                    .GetSnapshotAsync(_requestTimeout, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (TimeoutException timeoutError)
@@ -85,14 +119,14 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         try
         {
             return await _client
-                .ApplyTargetAsync(target, ApplyTimeout, cancellationToken)
+                .ApplyTargetAsync(target, _applyTimeout, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (Exception error) when (ShouldTryStartingWorker(error, cancellationToken))
         {
             await EnsureWorkerStartedAsync(cancellationToken).ConfigureAwait(false);
             return await _client
-                .ApplyTargetAsync(target, ApplyTimeout, cancellationToken)
+                .ApplyTargetAsync(target, _applyTimeout, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
@@ -104,14 +138,14 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         try
         {
             return await _client
-                .ExportDiagnosticsAsync(RequestTimeout, cancellationToken)
+                .ExportDiagnosticsAsync(_requestTimeout, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (Exception error) when (ShouldTryStartingWorker(error, cancellationToken))
         {
             await EnsureWorkerStartedAsync(cancellationToken).ConfigureAwait(false);
             return await _client
-                .ExportDiagnosticsAsync(RequestTimeout, cancellationToken)
+                .ExportDiagnosticsAsync(_requestTimeout, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
@@ -119,7 +153,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
     public Task<PowerPolicyState> GetPowerPolicyAsync(CancellationToken cancellationToken)
     {
         ThrowIfHardwareFaulted();
-        return _client.GetPowerPolicyAsync(RequestTimeout, cancellationToken);
+        return _client.GetPowerPolicyAsync(_requestTimeout, cancellationToken);
     }
 
     public Task<PowerPolicyState> SetPowerPolicyAsync(
@@ -127,7 +161,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         CancellationToken cancellationToken)
     {
         ThrowIfHardwareFaulted();
-        return _client.SetPowerPolicyAsync(settings, RequestTimeout, cancellationToken);
+        return _client.SetPowerPolicyAsync(settings, _requestTimeout, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
@@ -137,7 +171,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
 
     private async Task StopWorkerProcessAsync()
     {
-        Process? process = Interlocked.Exchange(ref _workerProcess, null);
+        IWorkerProcess? process = Interlocked.Exchange(ref _workerProcess, null);
         if (process is null)
         {
             return;
@@ -182,14 +216,14 @@ internal sealed class WorkerProcessController : IAsyncDisposable
             return;
         }
 
-        HardwareProcessConflict? conflict = HardwareConflictDetector.FindKnownHardwareOwner();
+        HardwareProcessConflict? conflict = _findHardwareConflict();
         if (conflict is not null)
         {
             throw new InvalidOperationException(
                 $"检测到 {FormatHardwareOwner(conflict)} 正在占用 RyzenAdj，请先退出旧版工具或停止对应计划任务。");
         }
 
-        string executablePath = LocateWorkerExecutable();
+        string executablePath = _locateWorkerExecutable();
         ProcessStartInfo startInfo = new()
         {
             FileName = executablePath,
@@ -202,8 +236,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
                 : "--enable-hardware"
         };
 
-        _workerProcess = Process.Start(startInfo)
-            ?? throw new InvalidOperationException("无法启动 AMD Mobile Power worker。");
+        _workerProcess = _startWorkerProcess(startInfo);
         await WaitForWorkerOrFaultAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -223,7 +256,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
 
     private async Task WaitForWorkerAsync(CancellationToken cancellationToken)
     {
-        DateTimeOffset deadline = DateTimeOffset.UtcNow + StartupTimeout;
+        DateTimeOffset deadline = DateTimeOffset.UtcNow + _startupTimeout;
         Exception? lastError = null;
         while (DateTimeOffset.UtcNow < deadline)
         {
@@ -255,7 +288,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
             error is IOException or TimeoutException or OperationCanceledException;
     }
 
-    private static string LocateWorkerExecutable()
+    private static string LocateDefaultWorkerExecutable()
     {
         string baseDirectory = AppContext.BaseDirectory;
         string devRelease = Path.GetFullPath(
@@ -297,6 +330,13 @@ internal sealed class WorkerProcessController : IAsyncDisposable
                 candidates[0]);
     }
 
+    private static IWorkerProcess StartSystemWorkerProcess(ProcessStartInfo startInfo)
+    {
+        Process process = Process.Start(startInfo)
+            ?? throw new InvalidOperationException("无法启动 AMD Mobile Power worker。");
+        return new SystemWorkerProcess(process);
+    }
+
     private static string FormatHardwareOwner(HardwareProcessConflict conflict)
     {
         if (conflict.ScheduledTaskPath is { } taskPath)
@@ -307,5 +347,41 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         return conflict.ProcessId is { } processId
             ? $"{conflict.ProcessName} (PID {processId})"
             : conflict.ProcessName;
+    }
+}
+
+internal interface IWorkerProcess : IDisposable
+{
+    bool HasExited { get; }
+
+    void Kill(bool entireProcessTree);
+
+    Task WaitForExitAsync(CancellationToken cancellationToken = default);
+}
+
+internal sealed class SystemWorkerProcess : IWorkerProcess
+{
+    private readonly Process _process;
+
+    public SystemWorkerProcess(Process process)
+    {
+        _process = process;
+    }
+
+    public bool HasExited => _process.HasExited;
+
+    public void Kill(bool entireProcessTree)
+    {
+        _process.Kill(entireProcessTree);
+    }
+
+    public Task WaitForExitAsync(CancellationToken cancellationToken = default)
+    {
+        return _process.WaitForExitAsync(cancellationToken);
+    }
+
+    public void Dispose()
+    {
+        _process.Dispose();
     }
 }

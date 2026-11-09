@@ -33,7 +33,7 @@ not authoritative.
 - Baseline commit `f9d1be5` was pushed to `origin/main`.
 - The intended project name is `amd-mobile-power`. The GitHub repository still
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
-- The current Release build has 57 passing tests across Core and Worker.
+- The current Release build has 59 passing tests across Core, Worker, and GUI.
 - A real hardware read-only probe against the development laptop succeeded.
 - The repository GUI now reads through the named pipe and updates every second.
 - The GUI defaults to read-only; hardware writes require the explicit
@@ -467,6 +467,10 @@ third_party/
   for the legacy worker mutex, all three known process owners, all four running
   scheduled tasks, precedence, and the no-conflict case. The suite increased
   from 47 to 57 passing tests.
+- Added an injectable worker-process boundary and GUI tests for hardware-read
+  timeouts and worker-start timeouts. Both paths stop the worker once, enter
+  locked fail-closed state, and refuse later refreshes without restarting it.
+  The suite increased from 57 to 59 passing tests.
 
 Development screenshot:
 

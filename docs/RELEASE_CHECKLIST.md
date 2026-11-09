@@ -28,7 +28,7 @@
       changes it.
 - [x] Hardware-write flags and warning text are reviewed.
 - [x] Conflict detection covers legacy process, mutex, and scheduled-task owners.
-- [ ] Hardware-timeout fail-closed behavior is verified.
+- [x] Hardware-timeout fail-closed behavior is verified.
 - [x] RyzenAdj, InpOut32, and WinRing0 notices are present in the ZIP.
 - [ ] Driver security behavior is documented on the supported Windows version.
 
