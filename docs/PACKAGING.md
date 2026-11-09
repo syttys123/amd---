@@ -86,10 +86,10 @@ Current `0.1.3-dev` integration candidate:
 artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
 ```
 
-- Size: 580,527 bytes.
+- Size: 580,672 bytes.
 - SHA256:
-  `6757a3ed82552c1575686834339cb10ff01f6a79b84d4b9f0d59f5a1404470e9`.
-- Source commit: `12ba613`.
+  `d404c1826ac5763db8ad0d4f7078ca89f53b570a5b5e5c4c3a0c0837e1e0e700`.
+- Source commit: `5a23d67`.
 - Working tree at build time: clean.
 - Framework-dependent and requires the Microsoft .NET 8 Desktop Runtime x64.
 - All 38 staged SHA256 entries verified across 39 files.

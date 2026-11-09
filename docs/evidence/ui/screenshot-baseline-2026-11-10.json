@@ -15,10 +15,10 @@
     "main-dashboard-clean-package-2026-11-10.png": {
       "width": 718,
       "height": 547,
-      "sha256": "1d30c4955b11c427653e8e9194c1d6b86184160af4e483f40f70b8e128ee4f39",
+      "sha256": "e5379a896266817071d8314f216e04710189b5b9c003884fe4eaa504479ed869",
       "state": "clean package, healthy read-only worker",
       "powerLine": "external power",
-      "packageSha256": "6757a3ed82552c1575686834339cb10ff01f6a79b84d4b9f0d59f5a1404470e9",
+      "packageSha256": "d404c1826ac5763db8ad0d4f7078ca89f53b570a5b5e5c4c3a0c0837e1e0e700",
       "targetLeftArtifactPixels": 0,
       "visibleBoundaryViolations": 0
     },

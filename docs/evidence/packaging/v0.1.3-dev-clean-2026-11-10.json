@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-11-10T04:11:12+08:00",
+  "capturedAt": "2026-11-10T04:20:56+08:00",
   "version": "0.1.3-dev",
   "package": {
     "path": "artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
-    "sizeBytes": 580527,
-    "sha256": "6757a3ed82552c1575686834339cb10ff01f6a79b84d4b9f0d59f5a1404470e9",
+    "sizeBytes": 580672,
+    "sha256": "d404c1826ac5763db8ad0d4f7078ca89f53b570a5b5e5c4c3a0c0837e1e0e700",
     "frameworkDependent": true
   },
   "source": {
-    "commit": "12ba6137c66a1814b8aeb9714bf27e02b386ff84",
+    "commit": "5a23d67de57d294d4fe6ee07419a45d9a8d40d97",
     "workingTree": "Clean"
   },
   "contents": {
@@ -22,7 +22,7 @@
     "releaseGate": "PASS",
     "buildWarnings": 0,
     "buildErrors": 0,
-    "testsPassed": 59,
+    "testsPassed": 61,
     "testsFailed": 0,
     "format": "PASS",
     "isolatedInstallOverwriteUninstall": "PASS",
