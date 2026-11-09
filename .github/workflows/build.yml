@@ -18,7 +18,10 @@ jobs:
         shell: pwsh
         run: |
           $version = "0.1.0-" + $env:GITHUB_SHA.Substring(0, 7)
-          .\verify-release.ps1 -Version $version -VerifyShellIntegration
+          .\verify-release.ps1 `
+            -Version $version `
+            -VerifyShellIntegration `
+            -VerifyDiagnostics
       - name: Upload portable package
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4

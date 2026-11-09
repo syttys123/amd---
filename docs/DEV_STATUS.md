@@ -521,6 +521,11 @@ third_party/
   falling back to process termination.
 - Added `verify-power-policy.ps1` with a read-only preflight mode and an
   explicitly confirmed AC/battery baseline, transition, and restore workflow.
+- Added `collect-diagnostics.ps1` for compatibility reports from a portable
+  package without opening the GUI. It starts only the hidden read-only worker,
+  uses an isolated pipe, writes a whitelisted and path-sanitized JSON report,
+  and requires graceful protocol shutdown. Release verification can exercise
+  this path with `-VerifyDiagnostics`.
 
 Development screenshot:
 

@@ -25,6 +25,8 @@ thin-and-light laptops.
 - Read-back verification, firmware-clamp reporting, and write restoration.
 - Diagnostics export with platform, telemetry, process architecture,
   runtime-file hashes, and recent GUI/worker log excerpts.
+- Packaged read-only diagnostics collector for compatibility reports; it uses a
+  sanitized field whitelist, never enables write controls, and never uploads.
 - Lightweight daily GUI and worker logs with seven-day retention.
 - Self-contained Windows x64 portable ZIP and current-user install/uninstall
   scripts.

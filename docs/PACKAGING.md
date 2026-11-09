@@ -16,7 +16,8 @@ For the full release gate, use:
   -FrameworkDependent `
   -VerifyShellIntegration `
   -VerifyTrayMenu `
-  -VerifyTrayExit
+  -VerifyTrayExit `
+  -VerifyDiagnostics
 ```
 
 The verifier checks build, tests, formatting, package metadata and checksums,
@@ -28,6 +29,9 @@ uninstall command, and either the logon task or Startup-folder fallback.
 interactive desktop; its runtime screenshot stays under `artifacts/verify`.
 `-VerifyTrayExit` also invokes the menu's Exit action and requires both GUI and
 worker processes to disappear within eight seconds.
+`-VerifyDiagnostics` runs the packaged collector against the packaged worker,
+requires a schema-1 JSON report, read-only mode, graceful worker shutdown, and
+the absence of local paths, process IDs, log excerpts, and account data.
 
 Build the small framework-dependent variant:
 
@@ -145,6 +149,7 @@ Package layout:
 ```text
 AmdMobilePower.exe
 assets/
+collect-diagnostics.ps1
 install.ps1
 uninstall.ps1
 migrate-legacy-owner.ps1
@@ -172,6 +177,27 @@ The default package is self-contained and does not require a separate .NET
 runtime installation. The `-FrameworkDependent` Lite package requires the
 Microsoft .NET 8 Desktop Runtime x64 and appends that requirement to
 `README.txt`.
+
+## Read-Only Compatibility Collection
+
+The portable package includes `collect-diagnostics.ps1`, allowing a tester to
+produce a compatibility report without opening the GUI:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\collect-diagnostics.ps1
+```
+
+The collector starts the packaged worker hidden with `--enable-hardware` only.
+It never passes `--enable-write-controls`, exports the worker's read-only
+diagnostics through an isolated named pipe, and requests a graceful shutdown.
+The JSON file is written to the desktop by default or to an explicit
+`-OutputPath`.
+
+The collector uses a field whitelist and recursively replaces known user,
+package, temporary, drive, and network paths before writing JSON. It excludes
+worker process IDs, executable/log directories, recent logs, and pipe names.
+It does not connect to the network or upload the report. Inspect the JSON before
+attaching it to a compatibility issue.
 
 ## User Installation
 

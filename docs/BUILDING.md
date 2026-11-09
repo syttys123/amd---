@@ -29,7 +29,8 @@ install/overwrite/uninstall checks, and current-user shell integration:
   -Version 0.1.3-dev `
   -FrameworkDependent `
   -VerifyShellIntegration `
-  -VerifyTrayMenu
+  -VerifyTrayMenu `
+  -VerifyDiagnostics
 ```
 
 The verifier refuses a dirty worktree. Use `-AllowDirty` only for local
@@ -37,6 +38,9 @@ diagnostics; a dirty result is not release evidence. Omit
 `-VerifyShellIntegration` on a machine where the fixed Start menu or uninstall
 entry already exists. `-VerifyTrayMenu` requires an interactive desktop and
 writes its runtime screenshot under `artifacts/verify`, not into tracked media.
+`-VerifyDiagnostics` launches the packaged worker in read-only mode, exports a
+sanitized compatibility report through the packaged collector, and requires
+graceful shutdown.
 
 Run the shell-integration gate by itself:
 

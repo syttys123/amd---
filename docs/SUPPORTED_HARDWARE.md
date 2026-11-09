@@ -94,7 +94,10 @@ and the result is recorded in `HARDWARE_MATRIX.md`.
 
 ## Adding A Platform
 
-1. Export diagnostics on the target device.
+1. From the extracted portable package, run
+   `powershell -ExecutionPolicy Bypass -File .\collect-diagnostics.ps1`.
+   This starts a hidden read-only worker and writes a sanitized JSON report
+   without enabling power-limit writes.
 2. Record CPU, BIOS, SMU interface, PM table, power-line state, and firmware
    limits.
 3. Add or update a conservative profile under `profiles/`.

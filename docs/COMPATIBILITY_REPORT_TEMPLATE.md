@@ -4,6 +4,16 @@ Submit public reports through the repository issue form. Remove account names,
 personal paths, serial numbers, and unrelated desktop content before attaching
 diagnostics.
 
+Generate the read-only report from the extracted portable package:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\collect-diagnostics.ps1
+```
+
+The collector does not enable power-limit writes, does not upload data, and
+uses a field whitelist plus path sanitization. Review the JSON before attaching
+it publicly.
+
 ## Device
 
 - Vendor and model:
@@ -43,6 +53,9 @@ diagnostics.
 - Worker executable SHA256:
 - Packaged read-only diagnostic export attached: yes / no
 - Diagnostics JSON attached: yes / no
+- `collectionStatus` is `PASS`: yes / no
+- Worker write controls were disabled: yes / no
+- Graceful worker shutdown reported: yes / no
 - Runtime-file hashes included: yes / no
 - GUI/worker log excerpts included: yes / no
 - Log directory:

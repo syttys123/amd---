@@ -42,6 +42,10 @@
 - [x] Start menu, uninstall entry, and logon startup behavior are verified.
       Evidence: `verify-shell-integration.ps1` passed; this host denied task
       registration, so the Startup-folder fallback path was exercised.
+- [x] Packaged read-only compatibility collector produces sanitized JSON and
+      closes its worker through the shutdown protocol.
+      Evidence: `verify-release.ps1 -VerifyDiagnostics`; PowerShell 5.1 and 7
+      host-side smoke tests.
 - [x] No machine-specific diagnostics, logs, or user data are included.
 
 ## Documentation And Media

@@ -25,6 +25,14 @@ AMD Mobile Power
   自包含包不要求目标电脑单独安装 .NET 8。
   轻量版需要 Microsoft .NET 8 Desktop Runtime x64，详见文末附加说明。
 
+兼容性诊断:
+  在解压目录打开 PowerShell，运行:
+    powershell -ExecutionPolicy Bypass -File .\collect-diagnostics.ps1
+  collector 会隐藏启动打包的 worker，只启用硬件读取，不启用功耗写入，
+  在桌面生成 amd-mobile-power-diagnostics-*.json 后通过协议关闭 worker。
+  输出不包含账号名、PID、序列号、最近日志或本机绝对路径，也不会联网上传。
+  人工检查 JSON 后，可附到 GitHub 的兼容性问题中。
+
 安全提示:
   RyzenAdj 使用底层 Windows 驱动接口。部分安全软件可能拦截或卸载驱动。
   RyzenAdj（LGPL-3.0/GPL-3.0）、InpOut32 和 WinRing0 的许可文本

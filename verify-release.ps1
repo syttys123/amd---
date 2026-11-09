@@ -5,7 +5,8 @@ param(
     [switch]$AllowDirty,
     [switch]$VerifyShellIntegration,
     [switch]$VerifyTrayMenu,
-    [switch]$VerifyTrayExit
+    [switch]$VerifyTrayExit,
+    [switch]$VerifyDiagnostics
 )
 
 $ErrorActionPreference = "Stop"
@@ -82,6 +83,7 @@ try {
         "THIRD_PARTY_NOTICES.md",
         "install.ps1",
         "uninstall.ps1",
+        "collect-diagnostics.ps1",
         "worker\AmdMobilePower.Worker.exe",
         "worker\libryzenadj.dll",
         "worker\inpoutx64.dll",
@@ -233,6 +235,75 @@ try {
         $trayMenu = "PASS"
     }
 
+    $diagnostics = "Not requested"
+    $diagnosticsPath = $null
+    if ($VerifyDiagnostics) {
+        $verifyDirectory = Join-Path $artifacts "verify"
+        New-Item -ItemType Directory -Path $verifyDirectory -Force | Out-Null
+        $diagnosticsPath = Join-Path (
+            $verifyDirectory
+        ) ("diagnostics-" + [Guid]::NewGuid().ToString("N") + ".json")
+
+        & (Join-Path $stage "collect-diagnostics.ps1") `
+            -OutputPath $diagnosticsPath
+        if ($LASTEXITCODE -ne 0) {
+            throw "Read-only diagnostics collection failed with exit code $LASTEXITCODE."
+        }
+        if (-not (Test-Path -LiteralPath $diagnosticsPath)) {
+            throw "Read-only diagnostics output is missing."
+        }
+
+        $diagnosticsRaw = Get-Content -LiteralPath $diagnosticsPath -Raw
+        $diagnosticsReport = $diagnosticsRaw | ConvertFrom-Json
+        if ($diagnosticsReport.schemaVersion -ne 1) {
+            throw "Diagnostics schemaVersion is not 1."
+        }
+        if ($diagnosticsReport.collectionStatus -ne "PASS") {
+            throw "Diagnostics collectionStatus is not PASS."
+        }
+        if ($diagnosticsReport.worker.version -ne $Version) {
+            throw "Diagnostics worker version $($diagnosticsReport.worker.version) does not match $Version."
+        }
+        if (-not $diagnosticsReport.worker.hardwareAdapterConfigured) {
+            throw "Diagnostics did not configure the hardware adapter."
+        }
+        if ($diagnosticsReport.worker.writeControlsEnabled) {
+            throw "Diagnostics unexpectedly enabled hardware writes."
+        }
+        if ($diagnosticsReport.cleanup.shutdownProtocol -ne "PASS") {
+            throw "Diagnostics worker did not use the graceful shutdown protocol."
+        }
+        foreach ($privacyFlag in @(
+            "localPathsIncluded",
+            "processIdIncluded",
+            "accountNamesIncluded",
+            "serialNumbersIncluded",
+            "recentLogsIncluded",
+            "networkUploadPerformed"
+        )) {
+            if ($diagnosticsReport.privacy.$privacyFlag) {
+                throw "Diagnostics privacy flag $privacyFlag must be false."
+            }
+        }
+        foreach ($forbiddenField in @(
+            "processId",
+            "workerDirectory",
+            "diagnosticLogDirectory",
+            "recentWorkerLogLines",
+            "recentGuiLogLines",
+            "pipeName"
+        )) {
+            if ($diagnosticsRaw -match ('"' + $forbiddenField + '"')) {
+                throw "Diagnostics unexpectedly contains field $forbiddenField."
+            }
+        }
+        if ($diagnosticsRaw -match '(?i)[A-Z]:\\' -or
+            $diagnosticsRaw.Contains('\\\\')) {
+            throw "Diagnostics unexpectedly contains an absolute local path."
+        }
+        $diagnostics = "PASS"
+    }
+
     [pscustomobject]@{
         Package = $zipPath
         SHA256 = $zipHash
@@ -246,6 +317,8 @@ try {
         TrayMenu = $trayMenu
         TrayExit = if ($VerifyTrayExit) { "PASS" } else { "Not requested" }
         TrayMenuScreenshot = $trayMenuScreenshot
+        Diagnostics = $diagnostics
+        DiagnosticsReport = $diagnosticsPath
         Verification = "PASS"
     } | Format-List
 }

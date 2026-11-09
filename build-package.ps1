@@ -106,6 +106,8 @@ Copy-Item -LiteralPath (Join-Path $root "packaging\uninstall.ps1") `
     -Destination (Join-Path $stage "uninstall.ps1") -Force
 Copy-Item -LiteralPath (Join-Path $root "packaging\migrate-legacy-owner.ps1") `
     -Destination (Join-Path $stage "migrate-legacy-owner.ps1") -Force
+Copy-Item -LiteralPath (Join-Path $root "packaging\collect-diagnostics.ps1") `
+    -Destination (Join-Path $stage "collect-diagnostics.ps1") -Force
 
 $commit = (& git -C $root rev-parse HEAD).Trim()
 $statusText = (& git -C $root status --porcelain --ignore-submodules=dirty | Out-String).Trim()
