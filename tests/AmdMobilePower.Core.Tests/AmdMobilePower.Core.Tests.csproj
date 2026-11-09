@@ -24,4 +24,10 @@
     <ProjectReference Include="..\..\src\AmdMobilePower.Core\AmdMobilePower.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\..\profiles\*.json"
+             Link="profiles\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

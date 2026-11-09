@@ -33,7 +33,7 @@ not authoritative.
 - Baseline commit `f9d1be5` was pushed to `origin/main`.
 - The intended project name is `amd-mobile-power`. The GitHub repository still
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
-- The current Release build has 59 passing tests across Core, Worker, and GUI.
+- The current Release build has 61 passing tests across Core, Worker, and GUI.
 - A real hardware read-only probe against the development laptop succeeded.
 - The repository GUI now reads through the named pipe and updates every second.
 - The GUI defaults to read-only; hardware writes require the explicit
@@ -497,6 +497,10 @@ third_party/
   `verify-release.ps1 -VerifyShellIntegration` gate. It verifies the Start menu
   shortcut, uninstall entry, custom-directory uninstall command, and either the
   logon task or the Startup-folder fallback, then cleans every created artifact.
+- Hardened profile loading against duplicate IDs and added regression coverage
+  that loads every shipped profile, confirms the default profile matches an
+  unknown AMD CPU, and rejects case-insensitive duplicate IDs. The suite
+  increased from 59 to 61 passing tests.
 
 Development screenshot:
 

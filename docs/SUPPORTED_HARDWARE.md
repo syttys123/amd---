@@ -98,7 +98,9 @@ and the result is recorded in `HARDWARE_MATRIX.md`.
 2. Record CPU, BIOS, SMU interface, PM table, power-line state, and firmware
    limits.
 3. Add or update a conservative profile under `profiles/`.
-4. Run tests and verify profile matching.
+4. Run tests and verify profile matching. The test suite loads every shipped
+   profile, rejects duplicate IDs, and confirms that an unknown AMD CPU reaches
+   the conservative default profile.
 5. Perform only the supervised no-change write procedure.
 6. Add the evidence and residual risks to `HARDWARE_MATRIX.md`.
 

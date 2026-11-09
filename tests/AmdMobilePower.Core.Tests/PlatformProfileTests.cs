@@ -164,5 +164,65 @@ public sealed class PlatformProfileTests
 
         Assert.Throws<InvalidDataException>(() => ProfileRepository.Parse(json));
     }
+
+    [Fact]
+    public void RepositoryProfiles_LoadWithUniqueIdsAndUnknownCpuFallsBack()
+    {
+        IReadOnlyList<PlatformProfile> profiles = ProfileRepository.LoadDirectory(
+            Path.Combine(AppContext.BaseDirectory, "profiles"));
+
+        Assert.True(profiles.Count >= 9);
+        Assert.Contains(profiles, profile => profile.Id == "default");
+
+        CpuPlatformInfo unknown = new()
+        {
+            ProcessorName = "AMD Ryzen AI 9 HX 999",
+            RyzenAdjFamily = 999
+        };
+
+        Assert.Equal("default", ProfileRepository.FindBestMatch(profiles, unknown)?.Id);
+    }
+
+    [Fact]
+    public void LoadDirectory_RejectsDuplicateProfileIds()
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            "amd-mobile-power-profile-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            const string first = """
+                {
+                  "id": "duplicate",
+                  "displayName": "First",
+                  "minimumWatts": 5,
+                  "maximumWatts": 45,
+                  "defaultWatts": 15
+                }
+                """;
+            const string second = """
+                {
+                  "id": "DUPLICATE",
+                  "displayName": "Second",
+                  "minimumWatts": 5,
+                  "maximumWatts": 45,
+                  "defaultWatts": 15
+                }
+                """;
+            File.WriteAllText(Path.Combine(directory, "first.json"), first);
+            File.WriteAllText(Path.Combine(directory, "second.json"), second);
+
+            InvalidDataException error = Assert.Throws<InvalidDataException>(
+                () => ProfileRepository.LoadDirectory(directory));
+
+            Assert.Contains("Duplicate profile id", error.Message);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
 }
 

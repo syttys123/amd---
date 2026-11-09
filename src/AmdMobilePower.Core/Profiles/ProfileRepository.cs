@@ -23,11 +23,20 @@ public static class ProfileRepository
             return Array.Empty<PlatformProfile>();
         }
 
-        return Directory
+        PlatformProfile[] profiles = Directory
             .EnumerateFiles(path, "*.json", SearchOption.TopDirectoryOnly)
             .OrderBy(file => file, StringComparer.OrdinalIgnoreCase)
             .Select(file => Parse(File.ReadAllText(file)))
             .ToArray();
+        HashSet<string> ids = new(StringComparer.OrdinalIgnoreCase);
+        foreach (PlatformProfile profile in profiles)
+        {
+            if (!ids.Add(profile.Id))
+            {
+                throw new InvalidDataException($"Duplicate profile id '{profile.Id}'.");
+            }
+        }
+        return profiles;
     }
 
     public static PlatformProfile? FindBestMatch(
