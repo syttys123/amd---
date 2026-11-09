@@ -271,6 +271,9 @@ third_party/
   `RyzenPower` GUI and hidden worker, and `Local\RyzenAdjPowerWorker` was present
   again before the new GUI started. This confirms the task must be disabled
   before reboot for migration.
+- Ran `packaging/migrate-legacy-owner.ps1 -Apply` after that reboot. The task
+  state changed to `Disabled`; the old GUI and hidden worker still existed in
+  the current session and require one final reboot to clear.
 - Attempted an elevated restart of both `WinRing0_1_2_0` and `inpoutx64` with
   no RyzenAdj process running. Both services returned to `Running`, but the
   legacy `ryzenadj.exe --info` still hung in the SMU polling loop. Service

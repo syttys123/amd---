@@ -56,6 +56,10 @@ Verified on the development laptop: rebooting with the task still enabled
 restarted `RyzenPower.exe`, the hidden task child, and the legacy hardware-owner
 mutex immediately at logon. Disabling the task before reboot is required.
 
+The migration helper was then applied successfully: `RyzenAdjWatch` changed to
+`Disabled`. Processes started before the change still require a final reboot to
+clear their hardware ownership.
+
 After reboot, verify that `Local\RyzenAdjPowerWorker` is absent and that no
 `RyzenPower`, `ryzenadj`, or legacy scheduled task is running before starting
 the new GUI.
