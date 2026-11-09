@@ -57,6 +57,7 @@ Markdown document records the decisions that apply to AMD Mobile Power.
 | `LICENSING_REVIEW.md` | Engineering redistribution review and release license gates |
 | `ROADMAP.md` | Milestones and release gates |
 | `RELEASE_CHECKLIST.md` | Final publication checklist |
+| `RELEASE_CANDIDATE_ZH.md` | Consolidated package, evidence, media, and open-gate review |
 | `INTRODUCTION_ZH.md` | Chinese project introduction draft |
 | `MEDIA_PLAN.md` | Screenshot, video, and Bilibili preparation plan |
 | `PROMO_VIDEO.md` | Current video draft, render command, hashes, and media verification |

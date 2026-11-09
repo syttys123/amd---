@@ -67,6 +67,8 @@
 
 ## Final Publication
 
+- [x] Consolidated release-candidate evidence dossier exists.
+      Evidence: `RELEASE_CANDIDATE_ZH.md`.
 - [x] Draft GitHub release notes and Bilibili publication copy are prepared.
       Evidence: `LAUNCH_COPY_ZH.md`; publication still requires human approval.
 - [ ] GitHub release tag and asset list are reviewed.

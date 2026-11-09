@@ -82,6 +82,8 @@ runtime details.
 - `docs/HARDWARE_TEST_PROCEDURE.md` defines the supervised write-test gate.
 - `docs/LAUNCH_COPY_ZH.md` contains the review-only GitHub and Bilibili launch
   copy. It is not approval to publish.
+- `docs/RELEASE_CANDIDATE_ZH.md` consolidates the current package, evidence,
+  media, launch copy, and remaining publication gates.
 
 ## Development
 
