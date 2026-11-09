@@ -39,8 +39,8 @@ not authoritative.
 - The GUI defaults to read-only; hardware writes require the explicit
   `--enable-write-controls` development flag.
 - A self-contained Windows x64 portable ZIP now builds reproducibly.
-- The current development package predates the current commit and must be
-  rebuilt before any release-candidate validation.
+- The current development package was rebuilt from clean commit `b48c011` and
+  includes the hidden-legacy-worker conflict detection.
 
 ## Development Workflow
 
@@ -177,13 +177,11 @@ third_party/
   8845HS platform and telemetry data.
 - Current local package:
   - Path: `artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip`
-  - Size: 106,634,120 bytes
+  - Size: 106,638,810 bytes
   - SHA256:
-    `ed58addb7bb67dc9a095b8fba6337755dd198adb91b681de7ede612f35d21274`
-  - Source commit: `5f844eb`
+    `848765166a062de5501c0fe0df2271c1b219658a4305958e7e5a1372fb02a637`
+  - Source commit: `b48c011`
   - Working tree at build time: clean
-  - Relationship to current head: stale by one commit; rebuild required before
-    claims about the current CI build
 - Verified first install, overwrite upgrade, and uninstall against an isolated
   `artifacts/test-install` directory without changing shell integration.
 - Added CI-side portable package generation with uploaded ZIP and SHA256
@@ -225,6 +223,9 @@ third_party/
   old process-name-only check missed it and a read-only probe crashed natively.
 - Added a Core regression test for legacy-worker mutex detection. The suite now
   has 36 passing tests: 13 Core and 23 Worker.
+- Made portable publishing independent of the NuGet vulnerability endpoint by
+  disabling NuGet Audit inside the package build.
+- Rebuilt the portable package from clean commit `b48c011`.
 
 Development screenshot:
 
@@ -237,8 +238,6 @@ Development screenshot:
 - Runtime-verify close-to-tray and tray-icon behavior through a manual desktop
   pass.
 - Resolve WinRing0/inpout redistribution licensing before public binary release.
-- Rebuild the release-candidate package from the current clean commit and record
-  the resulting hash.
 - Add more AMD generation profiles and verify a second physical laptop when
   available.
 - Complete release screenshots, project introduction, and promotional media.
