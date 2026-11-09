@@ -16,6 +16,8 @@ public sealed class HardwareConflictDetectorTests
             HardwareConflictDetector.FindKnownHardwareOwner();
 
         Assert.NotNull(conflict);
-        Assert.Equal("RyzenAdjPowerWorker", conflict.ProcessName);
+        Assert.Contains(
+            conflict.ProcessName,
+            new[] { "RyzenAdjPowerWorker", "RyzenAdjWatch" });
     }
 }

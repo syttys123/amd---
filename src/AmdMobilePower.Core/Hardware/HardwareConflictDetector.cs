@@ -66,7 +66,8 @@ public static class HardwareConflictDetector
         try
         {
             using Mutex mutex = Mutex.OpenExisting(LegacyWorkerMutexName);
-            return new HardwareProcessConflict("RyzenAdjPowerWorker", null);
+            return FindRunningScheduledTaskOwner()
+                ?? new HardwareProcessConflict("RyzenAdjPowerWorker", null);
         }
         catch (WaitHandleCannotBeOpenedException)
         {
