@@ -13,6 +13,8 @@ Machine-readable evidence:
 | Preset editor | `assets/preset-editor-2026-11-10.png` | 12/25/45 W inputs, save/cancel controls, zero visible boundary violations, cancelled without saving |
 | Legacy hardware conflict | `assets/worker-conflict-2026-11-10.png` | `旧版 RyzenAdj 正在占用，退出后再试`, zero worker processes, zero visible boundary violations |
 | Diagnostics export | `assets/diagnostics-export-2026-11-10.png` | Generic diagnostics filename, save type, save/cancel bottom crop; address bar and personal path excluded |
+| Clean-package dashboard | `assets/main-dashboard-clean-package-2026-11-10.png` | Packaged read-only GUI connected to its bundled worker, `动态上限 12.0 W · 电源`, zero visible boundary violations |
+| Tray context menu | `assets/tray-menu-clean-package-2026-11-10.png` | `verify-tray-menu.ps1` found the real hidden-tray icon, opened the upward menu, read 11 items, captured the visible bounds, and closed without invoking an action |
 
 All screenshots were captured on the development laptop at 125% scaling.
 Coordinates were checked with UI Automation using the root window rectangle, not
@@ -31,13 +33,14 @@ Runtime layout checks also passed for compact and advanced mode:
 - The conflict capture used a temporary `Local\RyzenAdjPowerWorker` mutex and
   did not start a hardware worker.
 - The diagnostics save dialog was cancelled; no diagnostics JSON was written.
+- The tray menu was closed with Escape; no tray action or power-limit write was invoked.
+- The tray screenshot can be reproduced with `verify-tray-menu.ps1` on an
+  interactive Windows desktop.
 - No security controls, driver services, or hardware limits were changed.
 
 ## Remaining Captures
 
-- A real tray context-menu screenshot.
 - A dashboard captured while the laptop is actually on battery power.
-- Final package screenshots after the current UI changes are committed and the
-  Lite package is rebuilt from that clean commit.
 
-The release checklist remains open until those three items are complete.
+The release checklist remains open until the real battery-power capture and its
+controlled policy test are complete.

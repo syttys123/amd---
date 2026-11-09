@@ -213,6 +213,18 @@ entry already exist. It uses a unique directory below `artifacts\verify`,
 verifies installation and fallback behavior, then removes every artifact it
 created.
 
+Regenerate the tray-menu release screenshot on an interactive Windows desktop:
+
+```powershell
+.\verify-tray-menu.ps1 `
+  -PackageDirectory artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite
+```
+
+The verifier locates the real hidden-tray icon, checks the tooltip, opens the
+upward context menu, validates all primary actions and three editable presets,
+enforces screen bounds, captures the screenshot, and closes the menu without
+clicking a power action.
+
 The verified local development package uses SHA256:
 
 ```text

@@ -49,7 +49,7 @@
 - [x] README status and feature list match the package.
 - [x] Installation and recovery guide is current.
 - [x] Supported-hardware wording does not claim universal support.
-- [ ] Healthy dashboard, preset, conflict, diagnostics, and tray screenshots
+- [x] Healthy dashboard, preset, conflict, diagnostics, and tray screenshots
       exist.
 - [ ] Project introduction is reviewed.
 - [ ] Promo video is rendered and reviewed.

@@ -22,6 +22,30 @@
       "targetLeftArtifactPixels": 0,
       "visibleBoundaryViolations": 0
     },
+    "tray-menu-clean-package-2026-11-10.png": {
+      "width": 280,
+      "height": 382,
+      "sha256": "c62da7a18e25e9525839c57dee0fff6d561e18a20a85c98726f675b446d292ae",
+      "state": "clean package tray context menu",
+      "notificationText": "AMD Mobile Power | 电源 | 11.4 W",
+      "trayIconBounds": "2116,1433,2166,1483",
+      "menuDirection": "up",
+      "menuWindowBounds": "1907,1135,2141,1443",
+      "menuItems": [
+        "当前：电源 · 11.4 W",
+        "打开 AMD Mobile Power",
+        "刷新状态",
+        "界面模式",
+        "窗口置顶",
+        "导出诊断...",
+        "12 W",
+        "25 W",
+        "45 W",
+        "隐藏到托盘",
+        "退出"
+      ],
+      "visibleBoundaryViolations": 0
+    },
     "preset-editor-2026-11-10.png": {
       "width": 394,
       "height": 331,
@@ -58,12 +82,13 @@
     }
   },
   "missing": [
-    "tray context menu screenshot",
     "real battery-power dashboard screenshot"
   ],
   "limitations": [
     "The conflict state used a temporary legacy mutex and did not start a hardware worker.",
     "The diagnostics save dialog was cancelled; no diagnostics file was written.",
+    "The tray menu was opened on a real hidden-tray icon and closed with Escape; no menu action was invoked.",
+    "The tray verifier requires an interactive Windows desktop and is not part of headless CI.",
     "The current external-power state cannot distinguish a USB-C power bank from a wall adapter."
   ]
 }

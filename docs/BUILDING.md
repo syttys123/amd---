@@ -47,6 +47,18 @@ menu shortcut and uninstall entry, verifies either the logon task or its
 Startup-folder fallback, then uninstalls and confirms that the install
 directory, shortcuts, registry entry, and task were removed.
 
+Run the interactive tray-menu media gate:
+
+```powershell
+.\verify-tray-menu.ps1
+```
+
+It verifies the real hidden-tray icon, opens the context menu, checks all
+primary actions and three editable presets, validates the upward placement
+against the screen bounds, captures the media asset, closes the menu without
+invoking an action, and stops only the processes it started. This check needs
+an interactive Windows desktop and is not part of headless CI.
+
 ## Build RyzenAdj
 
 ```powershell

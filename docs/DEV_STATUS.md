@@ -482,8 +482,8 @@ third_party/
   entry, and fixed compact mode to hide the advanced footer instead of leaving
   its controls in a zero-height layout row.
 - Captured healthy external-power, preset-editor, legacy-conflict,
-  diagnostics-save, and clean-package states with zero visible boundary
-  violations. Tray-menu and real-battery screenshots remain open.
+  diagnostics-save, clean-package, and tray-menu states with zero visible
+  boundary violations. The real-battery screenshot remains open.
 - Reconciled the hardware matrix with current 10 W, 12 W, 25 W, and 45 W
   request/read-back evidence. Firmware-clamped STAPM values are documented
   separately from Fast/Slow transport failures and restore behavior.
@@ -501,6 +501,9 @@ third_party/
   that loads every shipped profile, confirms the default profile matches an
   unknown AMD CPU, and rejects case-insensitive duplicate IDs. The suite
   increased from 59 to 61 passing tests.
+- Added `verify-tray-menu.ps1`, which locates the real hidden-tray icon,
+  validates its live power tooltip and 11-item upward context menu, captures
+  the release screenshot, and closes without invoking an action.
 
 Development screenshot:
 
