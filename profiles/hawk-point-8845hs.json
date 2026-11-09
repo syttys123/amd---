@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "hawk-point-8845hs",
+  "displayName": "Hawk Point 8845HS development profile",
+  "cpuFamilyPatterns": [
+    "*"
+  ],
+  "processorNamePatterns": [
+    "*8845HS*"
+  ],
+  "pmTablePatterns": [
+    "4c0009"
+  ],
+  "minimumWatts": 5,
+  "maximumWatts": 60,
+  "defaultWatts": 25,
+  "supportsStapm": true,
+  "supportsFast": true,
+  "supportsSlow": true,
+  "notes": [
+    "Experimental profile from the development laptop.",
+    "The current firmware profile clamps sustained STAPM to 25W even after a 45W write."
+  ]
+}
+

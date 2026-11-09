@@ -36,6 +36,7 @@ See:
 - `docs/ROADMAP.md` for milestones.
 - `docs/ARCHITECTURE.md` for component boundaries.
 - `docs/IPC.md` for the GUI-to-worker protocol.
+- `docs/PROFILES.md` for platform capability profiles.
 - `AGENTS.md` for maintenance rules.
 
 ## License

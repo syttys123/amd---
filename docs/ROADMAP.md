@@ -13,7 +13,7 @@
 - [x] Define named pipe commands and responses.
 - [x] Define telemetry models.
 - [x] Add validation and unit tests.
-- [ ] Add profile schema.
+- [x] Add profile schema.
 
 ## M2: Privileged Worker
 

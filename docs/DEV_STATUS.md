@@ -117,18 +117,22 @@ third_party/
 - Added a worker server with a no-hardware `getHealth` endpoint.
 - Added integration tests for health responses and unsupported commands.
 - Full Release build remains at zero warnings and errors.
-- Test suite now includes nine passing tests across Core and Worker.
+- Added CPU platform, power-capability, read-back, and hardware-adapter
+  contracts.
+- Added wildcard-based platform profiles with conservative default and 8845HS
+  development profiles.
+- Test suite now includes twelve passing tests across Core and Worker.
 
 ## In Progress
 
 - Add named pipe request/response contracts and capability models.
-- Add platform capability and profile schemas.
 - Decide how RyzenAdj source and licensed binaries will be vendored.
 
 ## Next Concrete Task
 
-Define capability and profile schemas, then add a hardware adapter interface
-that can be mocked without loading RyzenAdj.
+Add a mock hardware adapter and a worker `getCapabilities` endpoint so profile
+selection and unsupported-platform behavior can be exercised end to end without
+loading RyzenAdj.
 
 ## Known Risks
 

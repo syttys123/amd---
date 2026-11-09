@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "default",
+  "displayName": "Default AMD mobile profile",
+  "cpuFamilyPatterns": [
+    "*"
+  ],
+  "processorNamePatterns": [
+    "*AMD*"
+  ],
+  "pmTablePatterns": [],
+  "minimumWatts": 5,
+  "maximumWatts": 45,
+  "defaultWatts": 15,
+  "supportsStapm": true,
+  "supportsFast": true,
+  "supportsSlow": true,
+  "notes": [
+    "Conservative fallback until a verified platform profile is added."
+  ]
+}
+

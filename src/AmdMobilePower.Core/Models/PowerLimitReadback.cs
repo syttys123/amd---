@@ -1,0 +1,18 @@
+namespace AmdMobilePower.Core.Models;
+
+public sealed record PowerLimitReadback(
+    PowerLimitKind Kind,
+    int RequestedWatts,
+    double? EffectiveWatts,
+    int DriverResultCode);
+
+public sealed record PowerLimitApplicationResult(
+    PowerLimitTarget Target,
+    IReadOnlyList<PowerLimitReadback> Readbacks)
+{
+    public bool HasFirmwareClamp =>
+        Readbacks.Any(readback =>
+            readback.EffectiveWatts is { } effective &&
+            effective < readback.RequestedWatts - 0.5);
+}
+
