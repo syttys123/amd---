@@ -11,6 +11,10 @@ part of CI and must not be run by an unattended maintenance task.
 - Exit the legacy `RyzenPower` or `ryzenadj` process before starting the new
   worker. Concurrent hardware owners can trigger an access violation in the
   native driver.
+- Stop legacy scheduled tasks, including `\AMD\RyzenAdjWatch`, because stopping
+  the visible GUI does not stop its hidden worker.
+- Confirm `Local\RyzenAdjPowerWorker` is no longer held before starting the new
+  worker.
 - Confirm `getSnapshot` reports a supported platform and valid
   STAPM/Fast/Slow limits.
 - Keep the stable deployment at `C:\RyzenAdj` unchanged until the test passes.

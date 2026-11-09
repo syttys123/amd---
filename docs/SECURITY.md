@@ -27,11 +27,16 @@ writable capabilities.
 The worker:
 
 - Detects known owners including `RyzenPower`, `ryzenadj`, and AMD Ryzen Master.
+- Detects the legacy `Local\RyzenAdjPowerWorker` mutex used by the PowerShell
+  worker.
+- Detects running legacy scheduled tasks including `\AMD\RyzenAdjWatch`,
+  `\AMD\RyzenAdj`, `\AMD\RyzenAdjApply`, and `\AMD\RyzenAdjToggle`.
 - Acquires `Local\AmdMobilePower.HardwareOwner.v1`.
 - Refuses to start when another known owner or AMD Mobile Power worker exists.
 
 Do not bypass this protection. Concurrent RyzenAdj owners have caused an
-uncatchable native access violation during development.
+uncatchable native access violation during development. Closing the legacy GUI
+is not sufficient when its logon task still has a hidden worker running.
 
 ## Write Validation
 

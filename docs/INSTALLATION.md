@@ -88,6 +88,18 @@ The GUI reports a process such as `RyzenPower` when another tool already owns
 the RyzenAdj hardware interface. Exit that tool before retrying. Do not run two
 RyzenAdj-based owners concurrently.
 
+If the message names `RyzenAdjPowerWorker` or `RyzenAdjWatch`, closing the old
+GUI was not enough: the legacy logon task still has a hidden worker. Stop the
+task before retrying:
+
+```powershell
+Stop-ScheduledTask -TaskName "RyzenAdjWatch" -TaskPath "\AMD\"
+```
+
+Stopping a task changes the legacy tool's behavior. Preserve its directory and
+configuration, and restore the task explicitly if you need to return to the old
+deployment.
+
 ### Security software blocks the driver
 
 RyzenAdj requires low-level Windows driver access. Security software may block

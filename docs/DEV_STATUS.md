@@ -218,6 +218,13 @@ third_party/
 - Renamed live STAPM, PPT Fast, PPT Slow, and temperature captions to
   "实际 / 上限" so requested targets cannot be mistaken for current firmware
   limits.
+- Expanded hardware-owner detection to cover the legacy
+  `Local\RyzenAdjPowerWorker` mutex and running `\AMD\RyzenAdj*` scheduled tasks.
+- Confirmed on the development laptop that closing `RyzenPower.exe` left
+  `\AMD\RyzenAdjWatch` running with an elevated hidden PowerShell worker; the
+  old process-name-only check missed it and a read-only probe crashed natively.
+- Added a Core regression test for legacy-worker mutex detection. The suite now
+  has 36 passing tests: 13 Core and 23 Worker.
 
 Development screenshot:
 
