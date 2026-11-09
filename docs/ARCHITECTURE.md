@@ -88,7 +88,9 @@ Current installed and portable mode:
 RyzenAdj profiles are read from `worker\profiles` in packaged builds. The
 current implementation has no persistent worker config or ProgramData
 directory. GUI and worker diagnostic logs are local rolling daily files and are
-included as recent excerpts in exported diagnostics.
+not included in GUI or portable-collector compatibility exports. The worker's
+local diagnostic response may contain paths and recent logs for in-process
+support, but public exports use a field whitelist and path redaction.
 
 Future service or machine-wide deployment may use:
 

@@ -57,7 +57,8 @@ it publicly.
 - Worker write controls were disabled: yes / no
 - Graceful worker shutdown reported: yes / no
 - Runtime-file hashes included: yes / no
-- GUI/worker log excerpts included: yes / no
+- GUI/worker log excerpts included: no for standard GUI/collector exports;
+  explain any manually added excerpts
 - Log directory:
 - Sensitive information reviewed and removed: yes / no
 

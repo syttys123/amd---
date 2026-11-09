@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using AmdMobilePower.Core.Contracts;
 using AmdMobilePower.Core.Diagnostics;
@@ -2349,11 +2348,7 @@ internal sealed class MainForm : Form
             WorkerDiagnostics diagnostics = await _worker
                 .ExportDiagnosticsAsync(_lifetime.Token)
                 .ConfigureAwait(true);
-            JsonSerializerOptions options = new(WorkerProtocol.JsonOptions)
-            {
-                WriteIndented = true
-            };
-            string json = JsonSerializer.Serialize(diagnostics, options);
+            string json = PublicDiagnosticsReport.Serialize(diagnostics);
             await File.WriteAllTextAsync(dialog.FileName, json, _lifetime.Token)
                 .ConfigureAwait(true);
             ShowStatus($"诊断已导出：{dialog.FileName}", StatusKind.Normal);

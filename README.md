@@ -23,8 +23,9 @@ thin-and-light laptops.
 - Editable 12 W, 25 W, and 45 W quick presets.
 - Optional battery/AC policy controls, disabled in read-only mode.
 - Read-back verification, firmware-clamp reporting, and write restoration.
-- Diagnostics export with platform, telemetry, process architecture,
-  runtime-file hashes, and recent GUI/worker log excerpts.
+- Sanitized diagnostics export with platform, telemetry, process architecture,
+  runtime-file hashes, and no local paths, process IDs, log directories, or
+  recent log excerpts.
 - Packaged read-only diagnostics collector for compatibility reports; it uses a
   sanitized field whitelist, never enables write controls, and never uploads.
 - Lightweight daily GUI and worker logs with seven-day retention.

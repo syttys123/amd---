@@ -103,13 +103,15 @@ driver service with highest privileges. The GUI and worker remain non-elevated.
   `%LocalAppData%\AmdMobilePower\diagnostics` by default.
 - GUI and worker lifecycle/error logs are stored under
   `%LocalAppData%\AmdMobilePower\logs` with daily files and seven-day retention.
-- Diagnostics include hardware capability, telemetry, OS/process architecture,
-  executable directory, runtime-file hashes, log directory, and recent log
-  excerpts.
+- GUI and portable-collector diagnostics include hardware capability,
+  telemetry, OS/process architecture, and runtime-file hashes.
+- Public diagnostic exports exclude executable/log directories, process IDs,
+  account names, and recent log excerpts. Known paths and remaining absolute
+  Windows/UNC paths are replaced with privacy tokens.
 - Diagnostics do not include credentials or provider secrets.
 
-Review diagnostics before attaching them to a public issue. Device names, paths,
-and firmware versions may still be sensitive.
+Review diagnostics before attaching them to a public issue. Device names and
+firmware versions may still be sensitive even after path redaction.
 
 ## Driver And License Risk
 

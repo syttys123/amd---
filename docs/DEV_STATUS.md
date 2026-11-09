@@ -536,6 +536,11 @@ third_party/
   diagnostics collection. PowerShell 5.1 and PowerShell 7 both produced a
   `PASS` diagnostic report with no local drive paths or forbidden process/log
   fields.
+- Replaced the GUI's raw diagnostics serialization with the shared
+  `PublicDiagnosticsReport` whitelist. The GUI and portable collector now
+  exclude process IDs, worker/log directories, and recent logs while redacting
+  absolute Windows and UNC paths. Regression coverage parses the exported JSON
+  and verifies private fields and path values are absent.
 
 Development screenshot:
 
