@@ -96,10 +96,10 @@ Current `0.1.3-dev` integration candidate:
 artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
 ```
 
-- Size: 586,394 bytes.
+- Size: 593,334 bytes.
 - SHA256:
-  `e0c254ee7e2531ea63e79a176d852aa1c7aed3c8a2e339ff7d3c5f45db47f592`.
-- Source commit: `4f963e8`.
+  `d9f73ff16d69ad6ab20beffed46d26b0488e2295cef3ddd3a8b71736c85c4dbb`.
+- Source commit: `1732ac0`.
 - Working tree at build time: clean.
 - Framework-dependent and requires the Microsoft .NET 8 Desktop Runtime x64.
 - All 39 staged SHA256 entries verified across 40 files.
@@ -107,6 +107,8 @@ artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
   generation family profiles.
 - Includes `collect-diagnostics.ps1`, which exports a read-only compatibility
   report without opening the GUI.
+- GUI diagnostics now use the same field whitelist and path-redaction boundary
+  instead of serializing raw worker paths and log excerpts.
 - Isolated first install, overwrite, and uninstall passed under `artifacts`.
 - Start menu shortcut, current-user uninstall entry, custom-directory uninstall
   command, and Startup-folder fallback creation/removal passed.
@@ -123,6 +125,8 @@ artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
   `collectionStatus=PASS`, no drive paths, no process IDs, no worker/log
   directories, no recent logs, and `shutdownProtocol=PASS`. The same collector
   passed under Windows PowerShell 5.1 and PowerShell 7.
+- The full local gate passed with 63/63 tests after adding a regression that
+  parses GUI diagnostic JSON and rejects private fields or absolute local paths.
 - GUI and worker both report product version `0.1.3-dev` and file version
   `0.1.3.0`.
 
@@ -271,10 +275,10 @@ GUI/worker teardown.
 The current verified local development package uses SHA256:
 
 ```text
-e0c254ee7e2531ea63e79a176d852aa1c7aed3c8a2e339ff7d3c5f45db47f592
+d9f73ff16d69ad6ab20beffed46d26b0488e2295cef3ddd3a8b71736c85c4dbb
 ```
 
-It was built from clean commit `4f963e8`.
+It was built from clean commit `1732ac0`.
 
 Rebuilds may produce a different hash because embedded timestamps can change.
 Always use the hash generated with the current build.

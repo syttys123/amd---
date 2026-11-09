@@ -527,11 +527,11 @@ third_party/
   uses an isolated pipe, writes a whitelisted and path-sanitized JSON report,
   and requires graceful protocol shutdown. Release verification can exercise
   this path with `-VerifyDiagnostics`.
-- Rebuilt the clean Lite package after integrating the collector. The package
-  is 586,394 bytes with SHA256
-  `e0c254ee7e2531ea63e79a176d852aa1c7aed3c8a2e339ff7d3c5f45db47f592`,
-  built from commit `4f963e8`, and contains 40 files with 39 checksum entries.
-  The full local gate passed with 0 build warnings, 62/62 tests, shell
+- Rebuilt the clean Lite package after integrating the sanitized GUI export.
+  The package is 593,334 bytes with SHA256
+  `d9f73ff16d69ad6ab20beffed46d26b0488e2295cef3ddd3a8b71736c85c4dbb`,
+  built from commit `1732ac0`, and contains 40 files with 39 checksum entries.
+  The full local gate passed with 0 build warnings, 63/63 tests, shell
   integration, tray-menu placement, graceful tray exit, and read-only
   diagnostics collection. PowerShell 5.1 and PowerShell 7 both produced a
   `PASS` diagnostic report with no local drive paths or forbidden process/log

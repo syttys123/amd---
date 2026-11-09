@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "clean-release-verification",
+  "generatedAt": "2026-11-10T06:25:30.749+08:00",
+  "sourceCommit": "1732ac042764f22a7f42085fd4c8af4c1cda994b",
+  "workingTree": "Clean",
+  "verificationCommand": ".\\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent -VerifyShellIntegration -VerifyTrayMenu -VerifyTrayExit -VerifyDiagnostics",
+  "package": {
+    "name": "amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
+    "sizeBytes": 593334,
+    "sha256": "d9f73ff16d69ad6ab20beffed46d26b0488e2295cef3ddd3a8b71736c85c4dbb",
+    "files": 40,
+    "checksums": 39,
+    "profiles": 9,
+    "licenses": 4
+  },
+  "build": {
+    "configuration": "Release",
+    "frameworkDependent": true,
+    "warnings": 0,
+    "errors": 0,
+    "testsPassed": 63,
+    "testsFailed": 0
+  },
+  "runtimeChecks": {
+    "isolatedInstallOverwriteUninstall": "PASS",
+    "shellIntegration": "PASS",
+    "startupFallback": "Startup-folder shortcut",
+    "trayMenu": "PASS",
+    "trayMenuDirection": "up",
+    "trayMenuItems": 11,
+    "trayMenuHorizontalGap": 0,
+    "trayGracefulExit": "PASS",
+    "trayScreenshotSha256": "dd22a5cd942f83b1455a5816a15128a59fb89d7bf01183830ec16d6e2c80699b"
+  },
+  "publicGuiDiagnostics": {
+    "fieldWhitelist": true,
+    "pathRedaction": true,
+    "processIdExcluded": true,
+    "workerDirectoryExcluded": true,
+    "logDirectoryExcluded": true,
+    "recentLogsExcluded": true,
+    "pipeNameExcluded": true,
+    "regressionTest": "PASS"
+  },
+  "diagnostics": {
+    "collectionStatus": "PASS",
+    "workerVersion": "0.1.3-dev",
+    "platformSupported": true,
+    "matchedProfile": "hawk-point-8845hs",
+    "profiles": 9,
+    "runtimeFiles": 5,
+    "hardwareAdapterConfigured": true,
+    "writeControlsEnabled": false,
+    "shutdownProtocol": "PASS",
+    "localDrivePathIncluded": false,
+    "forbiddenProcessOrLogFieldsIncluded": false,
+    "powerLine": "ac",
+    "stapmLimitWatts": 12.000000953674316,
+    "fastLimitWatts": 12.000000953674316,
+    "slowLimitWatts": 12.000000953674316
+  }
+}
