@@ -122,6 +122,8 @@ with a compatible build. The bundled InpOut32 and WinRing0 terms are recorded in
 This is an engineering redistribution review, not a legal opinion. WinRing0
 remains old kernel driver software and may be blocked or unloaded by Windows
 security software; license compliance does not establish runtime safety.
+Current host, signature, Defender, and service evidence is recorded in
+`WINDOWS_DRIVER_SECURITY.md`.
 
 ## Public-Release Gate
 

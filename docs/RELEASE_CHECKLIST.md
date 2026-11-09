@@ -30,7 +30,8 @@
 - [x] Conflict detection covers legacy process, mutex, and scheduled-task owners.
 - [x] Hardware-timeout fail-closed behavior is verified.
 - [x] RyzenAdj, InpOut32, and WinRing0 notices are present in the ZIP.
-- [ ] Driver security behavior is documented on the supported Windows version.
+- [x] Driver security behavior is documented on the supported Windows version.
+      Evidence: `docs/WINDOWS_DRIVER_SECURITY.md`.
 
 ## Package Verification
 

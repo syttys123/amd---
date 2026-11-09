@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-10T03:10:00+08:00",
+  "host": {
+    "productName": "Windows 10 Pro for Workstations",
+    "displayVersion": "26H2",
+    "build": "26300.9711",
+    "editionId": "ProfessionalWorkstation",
+    "architecture": "AMD64"
+  },
+  "security": {
+    "antivirusProvider": "Windows Defender",
+    "antivirusEnabled": true,
+    "realTimeProtectionEnabled": true,
+    "signatureVersion": "1.463.210.0"
+  },
+  "binaries": {
+    "WinRing0x64.sys": {
+      "version": "1.2.0.5",
+      "sha256": "11bd2c9f9e2397c9a16e0990e4ed2cf0679498fe0fd418a3dfdac60b5c160ee5",
+      "signatureStatus": "Valid",
+      "signatureTimestamped": true
+    },
+    "WinRing0x64.dll": {
+      "version": "1.3.0.18",
+      "sha256": "a746fd5728e7485f741cc330a279674bc8590b1b8007d8614046c49f58698485"
+    },
+    "inpoutx64.dll": {
+      "version": "1.5.0.0",
+      "sha256": "5f27ed4d5cd58a1ee23deeb802e09e73f3a1d884ce2135f6e827f67b171269e7"
+    }
+  },
+  "driverState": {
+    "serviceName": "WinRing0_1_2_0",
+    "serviceStatus": "Running",
+    "startType": "Manual",
+    "scheduledTaskPath": "\\AmdMobilePower\\StartWinRing0",
+    "scheduledTaskState": "Ready"
+  },
+  "runtimeVerification": {
+    "defaultReadOnlyGuiConnected": true,
+    "packagedWorkerConnected": true,
+    "activeLimitWatts": 12,
+    "telemetryReadSuccessfully": true
+  },
+  "limitations": [
+    "This is the development laptop, not a clean Windows VM baseline.",
+    "No third-party endpoint-protection product was tested in this capture.",
+    "Signature validity does not establish runtime safety.",
+    "No driver or security-setting changes were made during this review."
+  ]
+}

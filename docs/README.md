@@ -21,6 +21,7 @@ conflict, prefer the first applicable source in this order:
 | `SUPPORTED_HARDWARE.md` | Current compatibility scope and evidence limits |
 | `COMPATIBILITY_REPORT_TEMPLATE.md` | Public hardware-evidence report format |
 | `SECURITY.md` | Hardware-write, driver, privilege, and data-safety model |
+| `WINDOWS_DRIVER_SECURITY.md` | Current Windows, Defender, WinRing0, and signature evidence |
 | `HARDWARE_MATRIX.md` | Device-level evidence |
 | `HARDWARE_TEST_PROCEDURE.md` | Supervised first-write validation procedure |
 

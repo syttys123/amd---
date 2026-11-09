@@ -471,6 +471,10 @@ third_party/
   timeouts and worker-start timeouts. Both paths stop the worker once, enter
   locked fail-closed state, and refuse later refreshes without restarting it.
   The suite increased from 57 to 59 passing tests.
+- Recorded the current Windows build `26300.9711`, Windows Defender real-time
+  protection, WinRing0 signature/service state, binary hashes, and packaged
+  read-only telemetry evidence in `WINDOWS_DRIVER_SECURITY.md`. Clean-VM and
+  third-party endpoint-protection validation remain open.
 
 Development screenshot:
 
