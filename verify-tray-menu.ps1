@@ -317,6 +317,11 @@ try {
     if (-not $shell) {
         throw "Windows taskbar is unavailable."
     }
+    $shellElement =
+        [System.Windows.Automation.AutomationElement]::FromHandle($shell.Handle)
+    $shellBounds = $shellElement.Current.BoundingRectangle
+    $screenWidth = [Math]::Max($screenWidth, [int]$shellBounds.Right)
+    $screenHeight = [Math]::Max($screenHeight, [int]$shellBounds.Bottom)
     $notify = Get-TrayNotifyWindow -ShellHandle $shell.Handle
     $overflowX = [int]$notify.Rect.Left + 11
     $overflowY = [int](($notify.Rect.Top + $notify.Rect.Bottom) / 2)
@@ -329,6 +334,7 @@ try {
     }
     $overflow = $null
     $appTrayButton = $null
+    $trayBounds = $null
     for ($attempt = 1; $attempt -le 3 -and -not $appTrayButton; $attempt++) {
         [AmdTrayNative]::keybd_event(
             [AmdTrayNative]::Escape, 0, 0, [UIntPtr]::Zero)
@@ -349,7 +355,13 @@ try {
         }
         try {
             $overflow = Wait-ForOverflowWindow
-            $appTrayButton = Wait-ForAppTrayButton -OverflowHandle $overflow.Handle
+            $candidateButton = Wait-ForAppTrayButton -OverflowHandle $overflow.Handle
+            $candidateBounds = $candidateButton.Current.BoundingRectangle
+            if ($candidateBounds.Width -le 0 -or $candidateBounds.Height -le 0) {
+                throw "AMD Mobile Power tray icon has no clickable bounds."
+            }
+            $appTrayButton = $candidateButton
+            $trayBounds = $candidateBounds
         }
         catch {
             if ($attempt -eq 3) {
@@ -357,8 +369,10 @@ try {
             }
         }
     }
-    $trayBounds = $appTrayButton.Current.BoundingRectangle
-    if ($trayBounds.Width -le 0 -or $trayBounds.Height -le 0) {
+    if (-not $appTrayButton -or
+        -not $trayBounds -or
+        $trayBounds.Width -le 0 -or
+        $trayBounds.Height -le 0) {
         throw "AMD Mobile Power tray icon has no clickable bounds."
     }
     $trayX = [int]($trayBounds.Left + ($trayBounds.Width / 2))
@@ -427,7 +441,9 @@ try {
         $menuRect.Right -le $screenWidth -and
         $menuRect.Bottom -le $screenHeight
     if (-not $insideScreen) {
-        throw "Tray menu extends outside the screen."
+        throw "Tray menu extends outside the screen: menu=$(
+            $menuRect.Left),$($menuRect.Top),$($menuRect.Right),$($menuRect.Bottom); screen=$(
+            $screenWidth)x$($screenHeight)."
     }
     if ($menuRect.Top -ge $trayBounds.Top) {
         throw "Tray menu did not open upward from the hidden-tray icon."

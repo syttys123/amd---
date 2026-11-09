@@ -14,7 +14,8 @@ For the full release gate, use:
 .\verify-release.ps1 `
   -Version 0.1.3-dev `
   -FrameworkDependent `
-  -VerifyShellIntegration
+  -VerifyShellIntegration `
+  -VerifyTrayMenu
 ```
 
 The verifier checks build, tests, formatting, package metadata and checksums,
@@ -22,6 +23,8 @@ license files, profile count, machine-state exclusion, and isolated
 install/overwrite/uninstall behavior. `-VerifyShellIntegration` additionally
 checks the Start menu shortcut, current-user uninstall entry, custom-directory
 uninstall command, and either the logon task or Startup-folder fallback.
+`-VerifyTrayMenu` additionally checks the real tray icon and context menu on an
+interactive desktop; its runtime screenshot stays under `artifacts/verify`.
 
 Build the small framework-dependent variant:
 

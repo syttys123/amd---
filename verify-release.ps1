@@ -3,7 +3,8 @@ param(
     [string]$Configuration = "Release",
     [switch]$FrameworkDependent,
     [switch]$AllowDirty,
-    [switch]$VerifyShellIntegration
+    [switch]$VerifyShellIntegration,
+    [switch]$VerifyTrayMenu
 )
 
 $ErrorActionPreference = "Stop"
@@ -216,6 +217,20 @@ try {
         $shellIntegration = "PASS"
     }
 
+    $trayMenu = "Not requested"
+    $trayMenuScreenshot = $null
+    if ($VerifyTrayMenu) {
+        $trayVerifyDirectory = Join-Path $artifacts "verify"
+        New-Item -ItemType Directory -Path $trayVerifyDirectory -Force | Out-Null
+        $trayMenuScreenshot = Join-Path (
+            $trayVerifyDirectory
+        ) ("tray-menu-" + [Guid]::NewGuid().ToString("N") + ".png")
+        & (Join-Path $root "verify-tray-menu.ps1") `
+            -PackageDirectory $stage `
+            -ScreenshotPath $trayMenuScreenshot
+        $trayMenu = "PASS"
+    }
+
     [pscustomobject]@{
         Package = $zipPath
         SHA256 = $zipHash
@@ -226,6 +241,8 @@ try {
         Profiles = $profiles.Count
         Licenses = $licenses.Count
         ShellIntegration = $shellIntegration
+        TrayMenu = $trayMenu
+        TrayMenuScreenshot = $trayMenuScreenshot
         Verification = "PASS"
     } | Format-List
 }

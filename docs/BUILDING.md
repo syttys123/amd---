@@ -28,13 +28,15 @@ install/overwrite/uninstall checks, and current-user shell integration:
 .\verify-release.ps1 `
   -Version 0.1.3-dev `
   -FrameworkDependent `
-  -VerifyShellIntegration
+  -VerifyShellIntegration `
+  -VerifyTrayMenu
 ```
 
 The verifier refuses a dirty worktree. Use `-AllowDirty` only for local
 diagnostics; a dirty result is not release evidence. Omit
 `-VerifyShellIntegration` on a machine where the fixed Start menu or uninstall
-entry already exists; that mode only runs the isolated install checks.
+entry already exists. `-VerifyTrayMenu` requires an interactive desktop and
+writes its runtime screenshot under `artifacts/verify`, not into tracked media.
 
 Run the shell-integration gate by itself:
 

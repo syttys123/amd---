@@ -504,6 +504,9 @@ third_party/
 - Added `verify-tray-menu.ps1`, which locates the real hidden-tray icon,
   validates its live power tooltip and 11-item upward context menu, captures
   the release screenshot, and closes without invoking an action.
+- Added `verify-release.ps1 -VerifyTrayMenu`; runtime screenshots are written
+  under ignored `artifacts/verify` so an interactive media check does not dirty
+  the release worktree.
 
 Development screenshot:
 
