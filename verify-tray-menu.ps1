@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$PackageDirectory = "artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite",
     [string]$ScreenshotPath = "docs\assets\tray-menu-clean-package-2026-11-10.png",
     [switch]$VerifyGracefulExit
@@ -206,7 +206,9 @@ function Invoke-MouseClick {
 }
 
 function Wait-ForOverflowWindow {
-    $deadline = [DateTime]::UtcNow.AddSeconds(3)
+    param([int]$TimeoutMilliseconds = 3000)
+
+    $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
     while ([DateTime]::UtcNow -lt $deadline) {
         $window = Get-NativeWindows |
             Where-Object {
@@ -377,19 +379,43 @@ try {
             [AmdTrayNative]::Escape, 0, 2, [UIntPtr]::Zero)
         Start-Sleep -Milliseconds 350
 
+        $overflowCandidates = New-Object System.Collections.Generic.List[object]
         if ($showHiddenBounds -and
             $showHiddenBounds.Width -gt 0 -and
             $showHiddenBounds.Height -gt 0) {
-            Invoke-MouseClick `
-                -X ([int]($showHiddenBounds.Left + ($showHiddenBounds.Width / 2))) `
-                -Y ([int]($showHiddenBounds.Top + ($showHiddenBounds.Height / 2))) `
-                -RightButton $false
+            $overflowCandidates.Add([pscustomobject]@{
+                X = [int]($showHiddenBounds.Left + ($showHiddenBounds.Width / 2))
+                Y = [int]($showHiddenBounds.Top + ($showHiddenBounds.Height / 2))
+            })
         }
-        else {
-            Invoke-MouseClick -X $overflowX -Y $overflowY -RightButton $false
+
+        $notifyWidth = [int]($notify.Rect.Right - $notify.Rect.Left)
+        $scanLimit = [Math]::Min(160, $notifyWidth - 6)
+        for ($offset = 6; $offset -le $scanLimit; $offset += 8) {
+            $overflowCandidates.Add([pscustomobject]@{
+                X = [int]$notify.Rect.Left + $offset
+                Y = $overflowY
+            })
+        }
+
+        foreach ($candidate in $overflowCandidates) {
+            [AmdTrayNative]::keybd_event(
+                [AmdTrayNative]::Escape, 0, 0, [UIntPtr]::Zero)
+            [AmdTrayNative]::keybd_event(
+                [AmdTrayNative]::Escape, 0, 2, [UIntPtr]::Zero)
+            Start-Sleep -Milliseconds 120
+            Invoke-MouseClick -X $candidate.X -Y $candidate.Y -RightButton $false
+            try {
+                $overflow = Wait-ForOverflowWindow -TimeoutMilliseconds 700
+                break
+            }
+            catch {
+            }
         }
         try {
-            $overflow = Wait-ForOverflowWindow
+            if (-not $overflow) {
+                $overflow = Wait-ForOverflowWindow -TimeoutMilliseconds 2000
+            }
             $candidateButton = Wait-ForAppTrayButton -OverflowHandle $overflow.Handle
             $candidateBounds = $candidateButton.Current.BoundingRectangle
             if ($candidateBounds.Width -le 0 -or $candidateBounds.Height -le 0) {
