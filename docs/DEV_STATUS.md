@@ -226,6 +226,10 @@ third_party/
 - Made portable publishing independent of the NuGet vulnerability endpoint by
   disabling NuGet Audit inside the package build.
 - Rebuilt the portable package from clean commit `b48c011`.
+- Completed redistribution review for the bundled InpOut32 and WinRing0 files:
+  the official InpOut binary hash matches and includes MIT terms; WinRing0 uses
+  the OpenLibSys two-clause BSD terms.
+- Added complete license texts under `third_party/licenses/`.
 
 Development screenshot:
 
@@ -237,7 +241,9 @@ Development screenshot:
 - Confirm no worker process remains after the hardware test.
 - Runtime-verify close-to-tray and tray-icon behavior through a manual desktop
   pass.
-- Resolve WinRing0/inpout redistribution licensing before public binary release.
+- Verify WinRing0 behavior under a clean Windows security baseline and document
+  any driver-blocking failures.
+- Rebuild the portable package with the newly bundled license texts.
 - Add more AMD generation profiles and verify a second physical laptop when
   available.
 - Complete release screenshots, project introduction, and promotional media.

@@ -72,7 +72,6 @@ dotnet test AmdMobilePower.sln -c Release
 ## License
 
 Original project code is licensed under the MIT License. Third-party components
-retain their own licenses. Public binary publication remains blocked until the
-Windows driver redistribution review in `docs/THIRD_PARTY_NOTICES.md` is
-complete.
+retain their own licenses. Development packages include the reviewed RyzenAdj,
+InpOut32, and WinRing0 license texts. See `docs/THIRD_PARTY_NOTICES.md`.
 

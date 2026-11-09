@@ -93,7 +93,7 @@ A locally generated package is not a public release. Do not publish the ZIP
 until:
 
 - The controlled hardware write test passes.
-- WinRing0 and inpout redistribution terms are resolved.
+- The bundled third-party license files match `THIRD_PARTY_NOTICES.md`.
 - Portable startup, tray lifecycle, worker startup, upgrade, and uninstall are
   verified.
 - The release artifact is rebuilt from the current clean commit.

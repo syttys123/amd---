@@ -56,7 +56,7 @@
 - [x] Installation and recovery guide.
 - [x] Supported hardware guide.
 - [x] Security and driver warning.
-- [ ] Third-party notices.
+- [x] Third-party notices.
 
 ## M7: Public Launch
 
