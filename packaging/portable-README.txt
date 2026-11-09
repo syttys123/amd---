@@ -4,6 +4,10 @@ AMD Mobile Power
 启动:
   双击 AmdMobilePower.exe
 
+安装:
+  右键 install.ps1，选择“使用 PowerShell 运行”。
+  默认安装到 %LocalAppData%\Programs\AmdMobilePower，并创建登录计划任务。
+
 当前开发版默认是只读模式，仅显示平台能力、实时功耗、功耗上限和温度。
 写入控件需要显式启动参数 --enable-write-controls，并应在受控硬件测试通过后使用。
 

@@ -45,8 +45,8 @@
 ## M5: Packaging
 
 - [x] Portable ZIP build.
-- [ ] Installer with scheduled-task setup.
-- [ ] Upgrade and uninstall flow.
+- [x] Installer with scheduled-task setup.
+- [x] Upgrade and uninstall flow.
 - [ ] Version metadata and embedded icons.
 - [ ] GitHub Actions release artifacts.
 

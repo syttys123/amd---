@@ -21,6 +21,8 @@ Package layout:
 ```text
 AmdMobilePower.exe
 assets/
+install.ps1
+uninstall.ps1
 worker/
   AmdMobilePower.Worker.exe
   libryzenadj.dll
@@ -38,10 +40,46 @@ SHA256SUMS.txt
 The package is self-contained and does not require a separate .NET runtime
 installation.
 
+## User Installation
+
+Run `install.ps1` from the extracted portable package:
+
+```powershell
+.\install.ps1
+```
+
+The default installation:
+
+- Copies the application to
+  `%LocalAppData%\Programs\AmdMobilePower`.
+- Creates a current-user logon scheduled task for `--tray`.
+- Falls back to a Startup shortcut if the scheduled task cannot be created.
+- Creates an AMD Mobile Power Start menu shortcut.
+- Registers an uninstall entry under the current user.
+- Preserves `%LocalAppData%\AmdMobilePower\ui-state.json` during upgrades.
+
+Test an install without changing startup entries or launching the application:
+
+```powershell
+.\install.ps1 `
+  -InstallDirectory D:\amd-mobile-power\artifacts\test-install `
+  -NoStartup `
+  -NoLaunch `
+  -NoShellIntegration
+```
+
+Test uninstall from the package:
+
+```powershell
+.\uninstall.ps1 `
+  -InstallDirectory D:\amd-mobile-power\artifacts\test-install `
+  -NoShellIntegration
+```
+
 The verified local development package uses SHA256:
 
 ```text
-95cfc09a908a691764f6872db6ce471fdf77e5750490c2bfb2dd58094b7730d1
+3cef4471fe94233330018c8e58c8bc5b652abdb9ac14bb3b4328c78ffc944cd9
 ```
 
 Rebuilds may produce a different hash because embedded timestamps can change.

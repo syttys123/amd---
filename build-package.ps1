@@ -77,12 +77,23 @@ Copy-Item -LiteralPath (Join-Path $root "docs\THIRD_PARTY_NOTICES.md") `
     -Destination (Join-Path $stage "THIRD_PARTY_NOTICES.md") -Force
 Copy-Item -LiteralPath (Join-Path $root "packaging\portable-README.txt") `
     -Destination (Join-Path $stage "README.txt") -Force
+Copy-Item -LiteralPath (Join-Path $root "packaging\install.ps1") `
+    -Destination (Join-Path $stage "install.ps1") -Force
+Copy-Item -LiteralPath (Join-Path $root "packaging\uninstall.ps1") `
+    -Destination (Join-Path $stage "uninstall.ps1") -Force
 
 $commit = (& git -C $root rev-parse HEAD).Trim()
+$workingTree = if ((& git -C $root status --porcelain).Trim()) {
+    "Dirty"
+}
+else {
+    "Clean"
+}
 @(
     "Name=$packageName"
     "Version=$Version"
     "Commit=$commit"
+    "WorkingTree=$workingTree"
     "Configuration=$Configuration"
     "SelfContained=true"
     "BuiltAt=$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz')"
