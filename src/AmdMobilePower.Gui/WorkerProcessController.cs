@@ -178,7 +178,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
     {
         if (_workerProcess is { HasExited: false })
         {
-            await WaitForWorkerAsync(cancellationToken).ConfigureAwait(false);
+            await WaitForWorkerOrFaultAsync(cancellationToken).ConfigureAwait(false);
             return;
         }
 
@@ -204,7 +204,21 @@ internal sealed class WorkerProcessController : IAsyncDisposable
 
         _workerProcess = Process.Start(startInfo)
             ?? throw new InvalidOperationException("无法启动 AMD Mobile Power worker。");
-        await WaitForWorkerAsync(cancellationToken).ConfigureAwait(false);
+        await WaitForWorkerOrFaultAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task WaitForWorkerOrFaultAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await WaitForWorkerAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception error) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw await EnterHardwareFaultAsync(
+                "worker 未能在规定时间内开始监听硬件，已停止自动重启。请重启 Windows 后再打开程序。",
+                error).ConfigureAwait(false);
+        }
     }
 
     private async Task WaitForWorkerAsync(CancellationToken cancellationToken)
