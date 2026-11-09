@@ -503,7 +503,7 @@ third_party/
   the Windows build workflow. Windows PowerShell 5.1 and PowerShell 7 both
   complete the six-project audit.
 - Verified the solution with an isolated .NET SDK `8.0.427`: restore, Release
-  build, 68 tests, formatting, and dependency audit pass with zero warnings.
+  build, 71 tests, formatting, and dependency audit pass with zero warnings.
   The CI workflow now pins this tested SDK patch instead of tracking `8.0.x`.
 - Fixed three installer defects found by current-user integration testing:
   scheduled-task permission failures now reset the native exit code before the
