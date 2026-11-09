@@ -470,6 +470,10 @@ Development screenshot:
 
 ## In Progress
 
+- GitHub Actions jobs currently fail before the first step because the
+  repository account has failed recent payments or needs a higher spending
+  limit. This is external account state, not a source failure. The local
+  `verify-release.ps1` gate passes.
 - Verify WinRing0 behavior under a clean Windows security baseline and document
   any driver-blocking failures.
 - Add more AMD generation profiles and verify a second physical laptop when

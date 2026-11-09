@@ -14,17 +14,11 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - name: Restore
-        run: dotnet restore AmdMobilePower.sln
-      - name: Build
-        run: dotnet build AmdMobilePower.sln -c Release --no-restore
-      - name: Test
-        run: dotnet test AmdMobilePower.sln -c Release --no-build
-      - name: Build RyzenAdj and portable package
+      - name: Verify release gates and build package
         shell: pwsh
         run: |
           $version = "0.1.0-" + $env:GITHUB_SHA.Substring(0, 7)
-          .\build-package.ps1 -Version $version
+          .\verify-release.ps1 -Version $version
       - name: Upload portable package
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4

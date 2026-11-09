@@ -21,6 +21,16 @@ dotnet build AmdMobilePower.sln -c Release
 dotnet test AmdMobilePower.sln -c Release
 ```
 
+Run the complete local release gate, including package integrity and isolated
+install/overwrite/uninstall checks:
+
+```powershell
+.\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent
+```
+
+The verifier refuses a dirty worktree. Use `-AllowDirty` only for local
+diagnostics; a dirty result is not release evidence.
+
 ## Build RyzenAdj
 
 ```powershell

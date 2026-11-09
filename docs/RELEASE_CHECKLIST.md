@@ -8,6 +8,8 @@
 - [x] `dotnet format AmdMobilePower.sln --verify-no-changes` passes.
 - [x] Pinned RyzenAdj submodule commit is recorded.
 - [ ] CI build for the release commit passes.
+      Current blocker: GitHub Actions reports an account billing/spending-limit
+      failure before the job starts. Local `verify-release.ps1` passes.
 
 ## Hardware Evidence
 

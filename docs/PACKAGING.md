@@ -8,6 +8,16 @@ Build a self-contained Windows x64 portable package from a clean source tree:
 .\build-package.ps1 -Version 0.1.0
 ```
 
+For the full release gate, use:
+
+```powershell
+.\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent
+```
+
+The verifier checks build, tests, formatting, package metadata and checksums,
+license files, profile count, machine-state exclusion, and isolated
+install/overwrite/uninstall behavior.
+
 Build the small framework-dependent variant:
 
 ```powershell

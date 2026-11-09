@@ -108,7 +108,7 @@ Copy-Item -LiteralPath (Join-Path $root "packaging\migrate-legacy-owner.ps1") `
     -Destination (Join-Path $stage "migrate-legacy-owner.ps1") -Force
 
 $commit = (& git -C $root rev-parse HEAD).Trim()
-$statusText = (& git -C $root status --porcelain | Out-String).Trim()
+$statusText = (& git -C $root status --porcelain --ignore-submodules=dirty | Out-String).Trim()
 $workingTree = if ($statusText) {
     "Dirty"
 }
