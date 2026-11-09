@@ -73,7 +73,7 @@ Failure:
 | `applyTarget` | implemented; mock-tested, hardware smoke pending | read/write |
 | `refreshTelemetry` | reserved | yes |
 | `setPresets` | reserved | no |
-| `exportDiagnostics` | reserved | read-only |
+| `exportDiagnostics` | implemented | read-only |
 | `restartWorker` | reserved | no |
 | `shutdown` | reserved | no |
 

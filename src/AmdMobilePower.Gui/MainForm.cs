@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using AmdMobilePower.Core.Contracts;
 using AmdMobilePower.Core.Models;
 using AmdMobilePower.Gui.Ui;
@@ -609,6 +610,10 @@ internal sealed class MainForm : Form
         ToolStripMenuItem refreshItem = new("刷新状态");
         refreshItem.Click += async delegate { await RefreshSnapshotAsync(manual: true); };
         _trayMenu.Items.Add(refreshItem);
+
+        ToolStripMenuItem diagnosticsItem = new("导出诊断...");
+        diagnosticsItem.Click += async delegate { await ExportDiagnosticsAsync(); };
+        _trayMenu.Items.Add(diagnosticsItem);
         _trayMenu.Items.Add(new ToolStripSeparator());
 
         for (int index = 0; index < _presets.Length; index++)
@@ -837,6 +842,47 @@ internal sealed class MainForm : Form
             SetApplyEnabled(
                 _writeControlsEnabled &&
                 _lastSnapshot?.Platform.IsSupported == true);
+        }
+    }
+
+    private async Task ExportDiagnosticsAsync()
+    {
+        string defaultDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "AmdMobilePower",
+            "diagnostics");
+        Directory.CreateDirectory(defaultDirectory);
+        using SaveFileDialog dialog = new()
+        {
+            Title = "导出 AMD Mobile Power 诊断",
+            Filter = "JSON 文件 (*.json)|*.json|所有文件 (*.*)|*.*",
+            AddExtension = true,
+            DefaultExt = "json",
+            FileName = $"amd-mobile-power-diagnostics-{DateTime.Now:yyyyMMdd-HHmmss}.json",
+            InitialDirectory = defaultDirectory
+        };
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+
+        try
+        {
+            WorkerDiagnostics diagnostics = await _worker
+                .ExportDiagnosticsAsync(_lifetime.Token)
+                .ConfigureAwait(true);
+            JsonSerializerOptions options = new(WorkerProtocol.JsonOptions)
+            {
+                WriteIndented = true
+            };
+            string json = JsonSerializer.Serialize(diagnostics, options);
+            await File.WriteAllTextAsync(dialog.FileName, json, _lifetime.Token)
+                .ConfigureAwait(true);
+            ShowStatus($"诊断已导出：{dialog.FileName}", StatusKind.Normal);
+        }
+        catch (Exception error)
+        {
+            ShowStatus("导出诊断失败：" + error.Message, StatusKind.Error);
         }
     }
 

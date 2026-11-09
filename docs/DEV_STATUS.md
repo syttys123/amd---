@@ -30,7 +30,7 @@ not authoritative.
 - Baseline commit `f9d1be5` was pushed to `origin/main`.
 - The intended project name is `amd-mobile-power`. The GitHub repository still
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
-- The current Release build has 31 passing tests across Core and Worker.
+- The current Release build has 33 passing tests across Core and Worker.
 - A real hardware read-only probe against the development laptop succeeded.
 - The repository GUI now reads through the named pipe and updates every second.
 - The GUI defaults to read-only; hardware writes require the explicit
@@ -175,6 +175,12 @@ third_party/
   - Size: 106,609,061 bytes
   - SHA256:
     `95cfc09a908a691764f6872db6ce471fdf77e5750490c2bfb2dd58094b7730d1`
+- Added `exportDiagnostics` over the named pipe.
+- Diagnostics include platform capability, profile match, telemetry, worker/OS
+  architecture, executable directory, and SHA256 values for four RyzenAdj
+  runtime files.
+- Verified a real diagnostics export on the 8845HS with all four runtime files
+  present and hashed.
 
 Development screenshot:
 

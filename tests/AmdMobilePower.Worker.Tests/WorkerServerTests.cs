@@ -304,6 +304,67 @@ public sealed class WorkerServerTests
         await serverTask;
     }
 
+    [Fact]
+    public async Task ExportDiagnostics_WithAdapter_ReturnsPlatformAndTelemetry()
+    {
+        string pipeName = CreatePipeName();
+        FakeRyzenPowerAdapter adapter = new();
+        PlatformProfile profile = ProfileRepository.Parse(
+            """
+            {
+              "id": "hawk-point-8845hs",
+              "displayName": "8845HS",
+              "processorNamePatterns": ["*8845HS*"],
+              "pmTablePatterns": ["4c0009"],
+              "minimumWatts": 5,
+              "maximumWatts": 60,
+              "defaultWatts": 25
+            }
+            """);
+        using CancellationTokenSource shutdown = new(TimeSpan.FromSeconds(10));
+        using WorkerServer server = new(
+            pipeName,
+            startedAt: null,
+            adapter: adapter,
+            profiles: [profile]);
+        Task serverTask = server.RunAsync(shutdown.Token);
+
+        NamedPipeWorkerClient client = new(pipeName);
+        WorkerDiagnostics diagnostics = await client.ExportDiagnosticsAsync(
+            TimeSpan.FromSeconds(5));
+
+        Assert.NotNull(diagnostics.Platform);
+        Assert.Equal("AMD Ryzen 7 8845HS", diagnostics.Platform.Cpu.ProcessorName);
+        Assert.Equal("hawk-point-8845hs", diagnostics.MatchedProfile?.Id);
+        Assert.Equal(18.5, diagnostics.Telemetry?.StapmLimitWatts);
+        Assert.Equal(4, diagnostics.RuntimeFiles.Count);
+
+        shutdown.Cancel();
+        await serverTask;
+    }
+
+    [Fact]
+    public async Task ExportDiagnostics_WithoutAdapter_StillReturnsBasicReport()
+    {
+        string pipeName = CreatePipeName();
+        using CancellationTokenSource shutdown = new(TimeSpan.FromSeconds(10));
+        using WorkerServer server = new(pipeName);
+        Task serverTask = server.RunAsync(shutdown.Token);
+
+        NamedPipeWorkerClient client = new(pipeName);
+        WorkerDiagnostics diagnostics = await client.ExportDiagnosticsAsync(
+            TimeSpan.FromSeconds(5));
+
+        Assert.Null(diagnostics.Platform);
+        Assert.Null(diagnostics.Telemetry);
+        Assert.Contains(
+            diagnostics.Notes,
+            note => note.Contains("No hardware adapter", StringComparison.Ordinal));
+
+        shutdown.Cancel();
+        await serverTask;
+    }
+
     private static string CreatePipeName()
     {
         return "AmdMobilePower.Tests." + Guid.NewGuid().ToString("N");

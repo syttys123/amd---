@@ -39,7 +39,7 @@
 - [ ] Add detection profiles for supported AMD mobile generations.
 - [ ] Create a hardware matrix with verified, experimental, and unsupported
   states.
-- [ ] Add a diagnostics export that contains no secrets.
+- [x] Add a diagnostics export that contains no secrets.
 - [ ] Test at least two physical AMD laptops when available.
 
 ## M5: Packaging

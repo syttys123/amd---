@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using AmdMobilePower.Core.Contracts;
@@ -163,6 +165,12 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         if (request.Command == WorkerCommand.ApplyTarget)
         {
             return await CreateApplyTargetResponseAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        if (request.Command == WorkerCommand.ExportDiagnostics)
+        {
+            return await CreateDiagnosticsResponseAsync(request.RequestId, cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -331,6 +339,100 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         }
 
         return null;
+    }
+
+    private async Task<WorkerResponse> CreateDiagnosticsResponseAsync(
+        string requestId,
+        CancellationToken cancellationToken)
+    {
+        using Process process = Process.GetCurrentProcess();
+        PlatformCapability? platform = null;
+        TelemetrySnapshot? telemetry = null;
+        PlatformProfile? profile = null;
+        List<string> notes = new(4);
+
+        if (_adapter is null)
+        {
+            notes.Add("No hardware adapter is configured.");
+        }
+        else
+        {
+            try
+            {
+                platform = await _adapter.ProbeAsync(cancellationToken).ConfigureAwait(false);
+                _hardwareInitialized = platform.IsSupported;
+                profile = ProfileRepository.FindBestMatch(_profiles, platform.Cpu);
+                if (platform.IsSupported)
+                {
+                    telemetry = await _adapter
+                        .RefreshTelemetryAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else if (!string.IsNullOrWhiteSpace(platform.UnsupportedReason))
+                {
+                    notes.Add(platform.UnsupportedReason);
+                }
+            }
+            catch (Exception error)
+            {
+                notes.Add($"Hardware diagnostics failed: {error.Message}");
+            }
+        }
+
+        string[] runtimeFiles =
+        [
+            "libryzenadj.dll",
+            "WinRing0x64.dll",
+            "WinRing0x64.sys",
+            "inpoutx64.dll"
+        ];
+        IReadOnlyList<RuntimeFileDiagnostic> fileDiagnostics =
+            runtimeFiles.Select(InspectRuntimeFile).ToArray();
+
+        WorkerDiagnostics diagnostics = new(
+            GeneratedAt: DateTimeOffset.Now,
+            WorkerVersion: _workerVersion,
+            ProcessId: process.Id,
+            ProcessArchitecture: RuntimeInformation.ProcessArchitecture.ToString(),
+            OperatingSystem: RuntimeInformation.OSDescription,
+            WorkerDirectory: AppContext.BaseDirectory,
+            ProfileCount: _profiles.Count,
+            Platform: platform,
+            MatchedProfile: profile,
+            Telemetry: telemetry,
+            RuntimeFiles: fileDiagnostics,
+            Notes: notes);
+        return WorkerProtocol.CreateSuccess(requestId, diagnostics);
+    }
+
+    private static RuntimeFileDiagnostic InspectRuntimeFile(string fileName)
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, fileName);
+        try
+        {
+            if (!File.Exists(path))
+            {
+                return new RuntimeFileDiagnostic(fileName, false, null, null, null);
+            }
+
+            using FileStream stream = File.OpenRead(path);
+            string sha256 = Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
+            return new RuntimeFileDiagnostic(
+                fileName,
+                true,
+                stream.Length,
+                sha256,
+                null);
+        }
+        catch (Exception error)
+        {
+            return new RuntimeFileDiagnostic(
+                fileName,
+                false,
+                null,
+                null,
+                error.Message);
+        }
     }
 }
 

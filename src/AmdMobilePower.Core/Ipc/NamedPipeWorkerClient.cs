@@ -112,6 +112,29 @@ public sealed class NamedPipeWorkerClient
             ?? throw new InvalidOperationException("Worker returned an invalid application payload.");
     }
 
+    public async Task<WorkerDiagnostics> ExportDiagnosticsAsync(
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
+    {
+        WorkerResponse response = await SendAsync(
+            new WorkerRequest
+            {
+                RequestId = Guid.NewGuid().ToString("N"),
+                Command = WorkerCommand.ExportDiagnostics
+            },
+            timeout,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!response.Success || response.Payload is not { } payload)
+        {
+            string message = response.Error?.Message ?? "Worker returned no diagnostics payload.";
+            throw new InvalidOperationException(message);
+        }
+
+        return payload.Deserialize<WorkerDiagnostics>(WorkerProtocol.JsonOptions)
+            ?? throw new InvalidOperationException("Worker returned an invalid diagnostics payload.");
+    }
+
     public async Task<WorkerResponse> SendAsync(
         WorkerRequest request,
         TimeSpan timeout,

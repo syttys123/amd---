@@ -64,6 +64,24 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         }
     }
 
+    public async Task<WorkerDiagnostics> ExportDiagnosticsAsync(
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _client
+                .ExportDiagnosticsAsync(RequestTimeout, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (Exception error) when (ShouldTryStartingWorker(error, cancellationToken))
+        {
+            await EnsureWorkerStartedAsync(cancellationToken).ConfigureAwait(false);
+            return await _client
+                .ExportDiagnosticsAsync(RequestTimeout, cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         Process? process = Interlocked.Exchange(ref _workerProcess, null);
