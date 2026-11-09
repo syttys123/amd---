@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-11-10T03:27:00+08:00",
+  "capturedAt": "2026-11-10T04:57:35+08:00",
   "displayScale": 1.25,
   "screenshots": {
     "main-dashboard-external-power-2026-11-10.png": {
@@ -15,10 +15,10 @@
     "main-dashboard-clean-package-2026-11-10.png": {
       "width": 718,
       "height": 547,
-      "sha256": "e5379a896266817071d8314f216e04710189b5b9c003884fe4eaa504479ed869",
+      "sha256": "576286421275c07b6b143d0e873382527bcd9a82e68adb8d800ba181fc293fca",
       "state": "clean package, healthy read-only worker",
       "powerLine": "external power",
-      "packageSha256": "d404c1826ac5763db8ad0d4f7078ca89f53b570a5b5e5c4c3a0c0837e1e0e700",
+      "packageSha256": "17c0ade0a1f52f96bd80b8929f58705d71cfa88caab3b78ceb1824b7f3dbc447",
       "targetLeftArtifactPixels": 0,
       "visibleBoundaryViolations": 0
     },
