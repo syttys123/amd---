@@ -59,6 +59,7 @@ Markdown document records the decisions that apply to AMD Mobile Power.
 | `RELEASE_CHECKLIST.md` | Final publication checklist |
 | `INTRODUCTION_ZH.md` | Chinese project introduction draft |
 | `MEDIA_PLAN.md` | Screenshot, video, and Bilibili preparation plan |
+| `LAUNCH_COPY_ZH.md` | Review-only GitHub release and Bilibili publication copy |
 
 ## Status Rules
 

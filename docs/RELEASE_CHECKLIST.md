@@ -61,6 +61,8 @@
 
 ## Final Publication
 
+- [x] Draft GitHub release notes and Bilibili publication copy are prepared.
+      Evidence: `LAUNCH_COPY_ZH.md`; publication still requires human approval.
 - [ ] GitHub release tag and asset list are reviewed.
 - [ ] Release notes include safety limits and known risks.
 - [ ] Bilibili upload uses an authenticated human-operated session.

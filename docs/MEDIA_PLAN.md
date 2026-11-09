@@ -161,3 +161,7 @@ Current draft status: rendered at 71.9 seconds in 1920x1080 with Chinese
 narration and captions. Cover and contact-sheet review assets are committed;
 the MP4 remains under ignored `artifacts/media`. Project-owner review is still
 pending.
+
+Review-ready GitHub Release and Bilibili title, description, tag, pinned-comment,
+and cover-text drafts are kept in `LAUNCH_COPY_ZH.md`. That document is marked
+`DRAFT_FOR_HUMAN_REVIEW` and is not authorization to publish.

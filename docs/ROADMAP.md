@@ -48,6 +48,8 @@
 - [x] Create a hardware matrix with verified, experimental, and unsupported
   states.
 - [x] Add a diagnostics export that contains no secrets.
+- [x] Add a packaged read-only collector that creates a sanitized compatibility
+  report without opening the GUI.
 - [ ] Test at least two physical AMD laptops when available.
 
 ## M5: Packaging

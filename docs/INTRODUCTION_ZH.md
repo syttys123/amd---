@@ -30,6 +30,8 @@ RyzenAdj 的底层能力整理成更安全、更清晰、可维护的原生桌�
 - 写入或回读失败时尝试恢复上一组三项限制。
 - 导出 CPU 家族、SMU、PM Table、profile、运行文件哈希等兼容性诊断，不包含账号或
   Provider 密钥。
+- 便携包提供无需打开 GUI 的只读诊断收集器，使用字段白名单和路径脱敏生成兼容性
+  JSON，不启用功耗写入，也不会联网上传。
 - 提供自包含或轻量 .NET 依赖两种 Windows x64 便携包，以及当前用户安装、升级和
   卸载脚本。
 - 配置 GitHub Actions 构建、测试、RyzenAdj 编译和 ZIP/SHA256 工件流程；本地发布
@@ -64,4 +66,5 @@ RyzenAdj 的底层能力整理成更安全、更清晰、可维护的原生桌�
 - `SUPPORTED_HARDWARE.md`：兼容范围和证据等级。
 - `SECURITY.md`：硬件、驱动和进程安全边界。
 - `MEDIA_PLAN.md`：宣传视频和发布素材计划。
+- `LAUNCH_COPY_ZH.md`：待人工审阅的 GitHub Release 与 B 站发布文案。
 - `RELEASE_CHECKLIST.md`：公开发布检查表。
