@@ -286,9 +286,15 @@ function Get-MenuWindow {
 function Stop-PackageProcesses {
     Get-Process -Name "AmdMobilePower", "AmdMobilePower.Worker" -ErrorAction SilentlyContinue |
         Where-Object {
-            $_.Path -and $_.Path.StartsWith(
-                $packagePath + [IO.Path]::DirectorySeparatorChar,
-                [StringComparison]::OrdinalIgnoreCase)
+            try {
+                $processPath = $_.Path
+                $processPath -and $processPath.StartsWith(
+                    $packagePath + [IO.Path]::DirectorySeparatorChar,
+                    [StringComparison]::OrdinalIgnoreCase)
+            }
+            catch {
+                $false
+            }
         } |
         Stop-Process -Force
 }
@@ -299,9 +305,15 @@ function Wait-PackageProcessesStopped {
         $remaining = @(
             Get-Process -Name "AmdMobilePower", "AmdMobilePower.Worker" -ErrorAction SilentlyContinue |
                 Where-Object {
-                    $_.Path -and $_.Path.StartsWith(
-                        $packagePath + [IO.Path]::DirectorySeparatorChar,
-                        [StringComparison]::OrdinalIgnoreCase)
+                    try {
+                        $processPath = $_.Path
+                        $processPath -and $processPath.StartsWith(
+                            $packagePath + [IO.Path]::DirectorySeparatorChar,
+                            [StringComparison]::OrdinalIgnoreCase)
+                    }
+                    catch {
+                        $false
+                    }
                 }
         )
         if ($remaining.Count -eq 0) {
@@ -484,6 +496,18 @@ try {
     if ($menuRect.Top -ge $trayBounds.Top) {
         throw "Tray menu did not open upward from the hidden-tray icon."
     }
+    $horizontalGap = if ($menuRect.Right -lt $trayBounds.Left) {
+        [int]($trayBounds.Left - $menuRect.Right)
+    }
+    elseif ($menuRect.Left -gt $trayBounds.Right) {
+        [int]($menuRect.Left - $trayBounds.Right)
+    }
+    else {
+        0
+    }
+    if ($horizontalGap -gt 80) {
+        throw "Tray menu is not anchored near the notification icon; gap=$horizontalGap px."
+    }
 
     $cropX = [Math]::Max(0, $menuRect.Left - 18)
     $cropY = [Math]::Max(0, $menuRect.Top - 22)
@@ -537,6 +561,7 @@ try {
                 [int]$trayBounds.Bottom
         )
         MenuDirection = "up"
+        MenuHorizontalGap = $horizontalGap
         MenuBounds = (
             "{0},{1},{2},{3}" -f
                 $menuRect.Left,

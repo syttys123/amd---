@@ -509,6 +509,9 @@ third_party/
   the release worktree.
 - Extended the tray verifier with opt-in `-VerifyGracefulExit`, which invokes
   the real Exit menu item and requires both packaged processes to disappear.
+- Hardened the tray verifier against transient process-exit property failures
+  and false menu captures by requiring the context menu to open upward and
+  remain horizontally anchored to the notification icon.
 - Implemented the versioned `shutdown` worker command with a
   response-before-exit test; GUI teardown now tries graceful shutdown before
   falling back to process termination.

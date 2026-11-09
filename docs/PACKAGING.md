@@ -229,9 +229,10 @@ Regenerate the tray-menu release screenshot on an interactive Windows desktop:
 
 The verifier locates the real hidden-tray icon, checks the tooltip, opens the
 upward context menu, validates all primary actions and three editable presets,
-enforces screen bounds, captures the screenshot, and closes the menu without
-clicking a power action. With `-VerifyGracefulExit`, it invokes `退出` after the
-screenshot and verifies clean GUI/worker teardown.
+enforces screen bounds and horizontal tray anchoring, captures the screenshot,
+and closes the menu without clicking a power action. With
+`-VerifyGracefulExit`, it invokes `退出` after the screenshot and verifies clean
+GUI/worker teardown.
 
 The verified local development package uses SHA256:
 
