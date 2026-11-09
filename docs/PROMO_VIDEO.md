@@ -32,6 +32,16 @@ artifacts/media/amd-mobile-power-promo-draft-2026-11-10/
 Machine-readable evidence:
 `docs/evidence/media/promo-draft-2026-11-10.json`.
 
+Verify the local MP4 and every committed review/source hash without rerendering:
+
+```powershell
+.\verify-media.ps1
+```
+
+The verifier checks the manifest, evidence, SHA256, codecs, dimensions, frame
+rate, duration, full decode, mean/peak audio levels, captions, storyboard,
+renderer, cover, and contact-sheet assets.
+
 ## Render
 
 ```powershell

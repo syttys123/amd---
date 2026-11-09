@@ -56,7 +56,9 @@
 - [x] Healthy dashboard, preset, conflict, diagnostics, and tray screenshots
       exist.
 - [x] Project introduction is fact-checked against current package evidence.
-- [ ] Promo video is rendered and reviewed.
+- [x] Promo video draft is rendered and machine-verified.
+      Evidence: `PROMO_VIDEO.md` and `docs/evidence/media/promo-draft-2026-11-10.json`.
+- [ ] Project owner reviews the final video voice, pacing, claims, and cover.
 - [ ] Bilibili title, description, cover, and tags are reviewed.
 
 ## Final Publication

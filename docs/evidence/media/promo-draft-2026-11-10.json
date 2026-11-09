@@ -31,8 +31,12 @@
   "reviewAssets": {
     "cover": "docs/assets/promo-draft-cover-2026-11-10.png",
     "coverSha256": "75d489248a16740095b79c5c58d44ac4547b74183b1b12f44a5eae675b6002a5",
+    "coverWidth": 1920,
+    "coverHeight": 1080,
     "contactSheet": "docs/assets/promo-draft-contact-sheet-2026-11-10.png",
-    "contactSheetSha256": "dd69f971c8b3e87ae9521596588d2e12273eace00eacee2816340cf7eac892c2"
+    "contactSheetSha256": "dd69f971c8b3e87ae9521596588d2e12273eace00eacee2816340cf7eac892c2",
+    "contactSheetWidth": 1920,
+    "contactSheetHeight": 640
   },
   "verification": {
     "ffmpegFullDecode": "PASS",
