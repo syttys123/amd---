@@ -18,9 +18,9 @@
       `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-2026-11-10.json`.
 - [x] No hardware owner remains after the test.
 - [ ] Battery and AC policy behavior is verified on real hardware.
-- [ ] Firmware clamps are documented rather than treated as transport failures.
+- [x] Firmware clamps are documented rather than treated as transport failures.
 - [ ] At least one second AMD platform has read-only evidence.
-- [ ] `HARDWARE_MATRIX.md` matches the tested release.
+- [x] `HARDWARE_MATRIX.md` matches the tested release.
 
 ## Safety And Licensing
 

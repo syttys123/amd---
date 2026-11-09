@@ -13,7 +13,25 @@ behavior.
 
 | Device | CPU | BIOS | AC result | Battery result | Status | Notes |
 |---|---|---|---|---|---|---|
-| MECHREVO WUJIE15 PRO | Ryzen 7 8845HS | `T153_HPT_V05` | Read-only snapshot: limits 25/45/45 W; values 25.00/25.39/24.95 W. Earlier writes verified 25/25/25 W; a 45 W request read back 25/45/45 W. | Pending controlled validation | Experimental | Windows 11 build 26300; SMU 15; PM table `4c0009`; firmware clamps sustained STAPM in the current quiet-mode profile |
+| MECHREVO WUJIE15 PRO | Ryzen 7 8845HS | `T153_HPT_V05` | Write/read-back evidence: 10/10/10 W, 12/12/12 W, and earlier 25/25/25 W. A 45 W request read back as 25/45/45 W. Latest clean-package read-only snapshot held required limits at 12/12/12 W. | Pending controlled validation | Experimental | Windows build 26300; SMU 15; PM table `4c0009`; firmware can clamp or dynamically manage STAPM while Fast/Slow remain the required package cap |
+
+## Firmware Clamp Interpretation
+
+The required write contract treats PPT Fast and PPT Slow as the enforceable
+package-power ceiling. STAPM can be firmware-managed and is displayed separately:
+
+- A 45 W request may read back as STAPM 25 W with Fast/Slow 45 W. This is a
+  firmware clamp, not a transport failure.
+- After a lower request, STAPM may remain dynamic near 25-30 W in the balanced
+  BIOS profile while measured package power stays near the requested ceiling
+  and Fast/Slow read back at 12 W.
+- For Fast/Slow, a read-back above the request is invalid. Depending on the
+  write mode, a lower competent-firmware value can be reported as clamped.
+- STAPM driver errors or unavailable read-back are surfaced as warnings rather
+  than silently treated as a successful exact write.
+- The package-level result records `restoreAttempted`, `firmwareClamp`, and
+  `stapmWarning` separately so an operator can distinguish transport, firmware,
+  and restore behavior.
 
 Additional balanced-profile test on 2026-11-09:
 

@@ -46,6 +46,10 @@ request can hold live package power near 12 W with Fast/Slow at 12 W. The GUI
 therefore treats Fast/Slow as required and shows STAPM separately as a
 firmware-managed diagnostic/control value.
 
+This distinction is recorded in `HARDWARE_MATRIX.md`: a lower STAPM read-back
+is a firmware clamp/dynamic-management observation, while a Fast/Slow value
+above the request remains an invalid write result.
+
 ## Supported Parameters
 
 The initial scope is limited to:

@@ -481,6 +481,9 @@ third_party/
 - Captured healthy external-power, preset-editor, legacy-conflict, and
   diagnostics-save states with zero visible boundary violations. Tray-menu and
   real-battery screenshots remain open.
+- Reconciled the hardware matrix with current 10 W, 12 W, 25 W, and 45 W
+  request/read-back evidence. Firmware-clamped STAPM values are documented
+  separately from Fast/Slow transport failures and restore behavior.
 
 Development screenshot:
 
