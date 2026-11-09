@@ -54,6 +54,19 @@ writes its runtime screenshot under `artifacts/verify`, not into tracked media.
 sanitized compatibility report through the packaged collector, and requires
 graceful shutdown.
 
+Prepare a local, upload-review-only bundle after the package and media gates
+pass:
+
+```powershell
+.\prepare-release-review.ps1
+```
+
+The command requires a clean worktree, verifies the package hash and embedded
+source commit, rejects runtime-sensitive changes made after that commit, reruns
+the media gate, copies the ZIP, video, cover, captions, launch copy, security,
+installation, and notice documents into `artifacts/release-review`, then writes
+a manifest and complete SHA256 list. It performs no login or network upload.
+
 Run the shell-integration gate by itself:
 
 ```powershell

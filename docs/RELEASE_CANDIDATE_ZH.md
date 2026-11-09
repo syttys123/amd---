@@ -42,6 +42,11 @@ Evidence:
 Machine-local release evidence lives under `artifacts/verify` and is intentionally
 not committed.
 
+Generate the no-upload human-review bundle with
+`.\prepare-release-review.ps1`. It writes the ZIP, video, cover, captions,
+launch copy, safety documents, manifest, and SHA256 list under
+`artifacts/release-review`.
+
 ## Hardware Evidence
 
 ### Verified write/read-back

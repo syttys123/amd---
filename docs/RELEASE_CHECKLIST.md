@@ -64,6 +64,9 @@
 - [x] Promo video draft is rendered and machine-verified.
       Evidence: `PROMO_VIDEO.md` and `docs/evidence/media/promo-draft-2026-11-10.json`.
 - [x] Bilibili 1146x717 cover is generated and machine-verified.
+- [x] Local release-review bundle validates package, video, cover, and runtime
+      drift, then writes complete SHA256 evidence without login or upload.
+      Evidence: `prepare-release-review.ps1`; PowerShell 5.1 and 7 passed.
 - [ ] Project owner reviews the final video voice, pacing, claims, and cover.
 - [ ] Bilibili title, description, cover, and tags are reviewed.
 

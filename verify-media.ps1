@@ -112,8 +112,10 @@ $ffmpeg = (Get-Command ffmpeg -ErrorAction Stop).Source
 $ffprobe = (Get-Command ffprobe -ErrorAction Stop).Source
 Add-Type -AssemblyName System.Drawing
 
-$manifest = Get-Content -LiteralPath $resolvedManifestPath -Raw | ConvertFrom-Json
-$evidence = Get-Content -LiteralPath $resolvedEvidencePath -Raw | ConvertFrom-Json
+$manifest = Get-Content -LiteralPath $resolvedManifestPath -Raw -Encoding UTF8 |
+    ConvertFrom-Json
+$evidence = Get-Content -LiteralPath $resolvedEvidencePath -Raw -Encoding UTF8 |
+    ConvertFrom-Json
 Assert-Condition (-not [string]::IsNullOrWhiteSpace($manifest.status)) "Manifest status is empty."
 Assert-Equal "manifest status" $manifest.status $evidence.status
 
@@ -159,22 +161,32 @@ Assert-Equal "frame rate" $videoStream.r_frame_rate $manifest.output.frameRate
 Assert-Equal "sample rate" $audioStream.sample_rate $manifest.output.sampleRate
 Assert-Equal "audio channels" $audioStream.channels $manifest.output.channels
 
-& $ffmpeg `
-    -v error `
-    -i $resolvedVideoPath `
-    -f null `
-    NUL 2>&1 | Out-Null
-if ($LASTEXITCODE -ne 0) {
+$previousErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+try {
+    & $ffmpeg `
+        -v error `
+        -i $resolvedVideoPath `
+        -f null `
+        NUL 2>&1 | Out-Null
+    $decodeExitCode = $LASTEXITCODE
+
+    $volumeOutput = & $ffmpeg `
+        -hide_banner `
+        -i $resolvedVideoPath `
+        -af volumedetect `
+        -f null `
+        NUL 2>&1
+    $volumeExitCode = $LASTEXITCODE
+}
+finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+}
+if ($decodeExitCode -ne 0) {
     throw "Full FFmpeg decode failed."
 }
 
-$volumeOutput = & $ffmpeg `
-    -hide_banner `
-    -i $resolvedVideoPath `
-    -af volumedetect `
-    -f null `
-    NUL 2>&1
-if ($LASTEXITCODE -ne 0) {
+if ($volumeExitCode -ne 0) {
     throw "FFmpeg volume analysis failed."
 }
 $volumeText = $volumeOutput | Out-String

@@ -295,5 +295,19 @@ until:
 - The release artifact is rebuilt from the current clean commit.
 - The release artifact hash, source commit, and clean/dirty state are recorded.
 
-The current local `v0.1.0` package was built from clean commit `cba9c91` and is
-useful for development testing. It is not a public release.
+Prepare the local human-review bundle after the package and media gates pass:
+
+```powershell
+.\prepare-release-review.ps1
+```
+
+The bundle is written under `artifacts\release-review\<version>-<head>` and
+contains the portable ZIP, video, Bilibili cover, captions, launch copy, safety
+documents, a release-review manifest, and `SHA256SUMS.txt`. The script refuses a
+dirty worktree, a mismatched ZIP sidecar, a package commit outside the current
+branch, runtime-sensitive changes after the package commit, or a failed media
+gate. It never logs in or uploads.
+
+The `v0.1.0` packages are retained as historical development artifacts. The
+current `v0.1.3-dev` candidate is recorded above. None of these files is a public
+release until the remaining human gates are explicitly approved.

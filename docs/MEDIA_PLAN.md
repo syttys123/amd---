@@ -168,3 +168,8 @@ pending.
 Review-ready GitHub Release and Bilibili title, description, tag, pinned-comment,
 and cover-text drafts are kept in `LAUNCH_COPY_ZH.md`. That document is marked
 `DRAFT_FOR_HUMAN_REVIEW` and is not authorization to publish.
+
+`prepare-release-review.ps1` gathers the reviewed package, MP4, captions,
+Bilibili cover, launch copy, and safety documents into a local
+`artifacts/release-review` bundle with a manifest and complete SHA256 list. It
+does not log in or upload.

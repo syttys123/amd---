@@ -550,6 +550,14 @@ third_party/
   six projects with zero advisories. PowerShell 5.1 and PowerShell 7 both
   produced a `PASS` diagnostic report with no local drive paths or forbidden
   process/log fields.
+- Added `prepare-release-review.ps1`, a no-upload review bundle generator. It
+  validates the package sidecar and embedded commit, rejects runtime-sensitive
+  drift after the package source commit, reruns the full media gate, copies
+  release and Bilibili assets, and emits a JSON manifest plus complete SHA256
+  list under ignored `artifacts/release-review`. Both Windows PowerShell 5.1
+  and PowerShell 7 pass. The media verifier now reads UTF-8 JSON explicitly and
+  captures FFmpeg stderr without treating successful diagnostics as a failure
+  on PowerShell 5.1.
 - Replaced the GUI's raw diagnostics serialization with the shared
   `PublicDiagnosticsReport` whitelist. The GUI and portable collector now
   exclude process IDs, worker/log directories, and recent logs while redacting
