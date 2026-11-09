@@ -86,16 +86,21 @@ Current `0.1.3-dev` integration candidate:
 artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
 ```
 
-- Size: 564,349 bytes.
+- Size: 580,527 bytes.
 - SHA256:
-  `d6c1046a30505d76f2777018d8f572ef73fe8e85658035a7ae053c4e11f800eb`.
-- Source commit: `4c4462a`.
-- Working tree at build time: dirty; this is not release evidence.
+  `6757a3ed82552c1575686834339cb10ff01f6a79b84d4b9f0d59f5a1404470e9`.
+- Source commit: `12ba613`.
+- Working tree at build time: clean.
 - Framework-dependent and requires the Microsoft .NET 8 Desktop Runtime x64.
-- All 37 staged SHA256 entries verified.
+- All 38 staged SHA256 entries verified across 39 files.
 - Includes nine conservative profiles, including seven unverified multi-
   generation family profiles.
-- Isolated install and uninstall passed under `artifacts`.
+- Isolated first install, overwrite, and uninstall passed under `artifacts`.
+- Start menu shortcut, current-user uninstall entry, custom-directory uninstall
+  command, and Startup-folder fallback creation/removal passed.
+- The clean package itself launched in read-only mode, connected to its bundled
+  worker, reported `动态上限 12.0 W · 电源`, and produced zero visible boundary
+  violations.
 - Packed read-only startup passed and launched the packed worker.
 - Packed diagnostics export reported schema 1, protocol 1, `Hawk Point`,
   `hawk-point-8845hs`, nine profiles, five runtime-file hashes, hardware

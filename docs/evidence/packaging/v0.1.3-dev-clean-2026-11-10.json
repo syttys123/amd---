@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-10T04:11:12+08:00",
+  "version": "0.1.3-dev",
+  "package": {
+    "path": "artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
+    "sizeBytes": 580527,
+    "sha256": "6757a3ed82552c1575686834339cb10ff01f6a79b84d4b9f0d59f5a1404470e9",
+    "frameworkDependent": true
+  },
+  "source": {
+    "commit": "12ba6137c66a1814b8aeb9714bf27e02b386ff84",
+    "workingTree": "Clean"
+  },
+  "contents": {
+    "files": 39,
+    "checksums": 38,
+    "profiles": 9,
+    "licenses": 4
+  },
+  "verification": {
+    "releaseGate": "PASS",
+    "buildWarnings": 0,
+    "buildErrors": 0,
+    "testsPassed": 59,
+    "testsFailed": 0,
+    "format": "PASS",
+    "isolatedInstallOverwriteUninstall": "PASS",
+    "shellIntegration": {
+      "result": "PASS",
+      "startMenuShortcut": "Created and removed",
+      "uninstallEntry": "Created and removed",
+      "customDirectoryUninstallCommand": "Verified",
+      "logonBehavior": "Startup shortcut fallback created and removed"
+    }
+  },
+  "limitations": [
+    "The current host denied scheduled-task registration, so the Startup-folder fallback was exercised instead of task creation.",
+    "GitHub Actions remains blocked by repository billing state and did not execute the workflow."
+  ]
+}

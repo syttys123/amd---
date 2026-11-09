@@ -10,7 +10,7 @@ thin-and-light laptops.
 > tests and a packaged 12 W no-change write gate passed on the development laptop
 > on 2026-11-10.
 
-![AMD Mobile Power read-only external-power dashboard](docs/assets/main-dashboard-external-power-2026-11-10.png)
+![AMD Mobile Power read-only external-power dashboard](docs/assets/main-dashboard-clean-package-2026-11-10.png)
 
 ## Current Features
 

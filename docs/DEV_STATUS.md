@@ -481,9 +481,9 @@ third_party/
 - Added a visible `导出诊断` action to advanced mode while retaining the tray
   entry, and fixed compact mode to hide the advanced footer instead of leaving
   its controls in a zero-height layout row.
-- Captured healthy external-power, preset-editor, legacy-conflict, and
-  diagnostics-save states with zero visible boundary violations. Tray-menu and
-  real-battery screenshots remain open.
+- Captured healthy external-power, preset-editor, legacy-conflict,
+  diagnostics-save, and clean-package states with zero visible boundary
+  violations. Tray-menu and real-battery screenshots remain open.
 - Reconciled the hardware matrix with current 10 W, 12 W, 25 W, and 45 W
   request/read-back evidence. Firmware-clamped STAPM values are documented
   separately from Fast/Slow transport failures and restore behavior.
