@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-11-10T04:56:22+08:00",
+  "capturedAt": "2026-11-10T05:09:15+08:00",
   "version": "0.1.3-dev",
   "package": {
     "path": "artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
-    "sizeBytes": 580685,
-    "sha256": "17c0ade0a1f52f96bd80b8929f58705d71cfa88caab3b78ceb1824b7f3dbc447",
+    "sizeBytes": 581661,
+    "sha256": "92b469a504f9668cba6f2f9fe28357625fa9a6b622266d24474cab99e1efcfb2",
     "frameworkDependent": true
   },
   "source": {
-    "commit": "1a03d4106feec955f17105cae2e7b020a10e9685",
+    "commit": "8cc9d123167d10da15ab1c4a16f566630767c3c7",
     "workingTree": "Clean"
   },
   "contents": {
@@ -22,7 +22,7 @@
     "releaseGate": "PASS",
     "buildWarnings": 0,
     "buildErrors": 0,
-    "testsPassed": 61,
+    "testsPassed": 62,
     "testsFailed": 0,
     "format": "PASS",
     "isolatedInstallOverwriteUninstall": "PASS",
@@ -33,7 +33,12 @@
       "customDirectoryUninstallCommand": "Verified",
       "logonBehavior": "Startup shortcut fallback created and removed"
     },
-    "trayMenu": "PASS"
+    "trayMenu": "PASS",
+    "policyPreflight": {
+      "result": "PASS",
+      "mode": "read-only",
+      "hardwareWrites": 0
+    }
   },
   "limitations": [
     "The current host denied scheduled-task registration, so the Startup-folder fallback was exercised instead of task creation.",

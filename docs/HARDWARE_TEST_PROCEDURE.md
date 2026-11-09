@@ -76,7 +76,10 @@ do not put it in CI or an unattended automation.
 
 The read-only preflight was exercised on the development laptop on 2026-11-10:
 MECHREVO WUJIE15 PRO, Ryzen 7 8845HS, Hawk Point profile, AC baseline
-12/12/12 W, zero hardware writes, and a clean worker shutdown.
+12/12/12 W, zero hardware writes, and a clean worker shutdown. Machine-readable
+evidence:
+`docs/evidence/hardware/mechrevo-wujie15-8845hs-policy-preflight-2026-11-10.json`.
+This preflight does not satisfy the supervised battery/AC transition gate.
 
 ## Abort Criteria
 

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "controlled-policy-preflight-read-only",
+  "capturedAt": "2026-11-10T05:12:53.1980627+08:00",
+  "package": {
+    "name": "amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
+    "sha256": "92b469a504f9668cba6f2f9fe28357625fa9a6b622266d24474cab99e1efcfb2",
+    "workerExecutableSha256": "f31c615f7b838a1cec6c5eee0fcc0f4c4c4c80314d987fa529a0aa697d07134a"
+  },
+  "host": {
+    "manufacturer": "MECHREVO",
+    "model": "WUJIE15 PRO",
+    "biosVersion": "T153_HPT_V05",
+    "processor": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "ryzenAdjFamilyName": "Hawk Point",
+    "smuBiosVersion": "15",
+    "pmTableVersion": "4c0009",
+    "matchedProfile": "hawk-point-8845hs",
+    "powerShell": "7.6.9"
+  },
+  "baseline": {
+    "powerLine": "ac",
+    "powerSourceNote": "USB-C power bank reported by Windows as external/AC power",
+    "stapmLimitWatts": 12.000000953674316,
+    "fastLimitWatts": 12.000000953674316,
+    "slowLimitWatts": 12.000000953674316,
+    "temperatureCelsius": 49.28280258178711,
+    "firmwareClamp": false
+  },
+  "test": {
+    "mode": "plan-only",
+    "plannedBatteryTargetWatts": {
+      "stapm": 12,
+      "fast": 12,
+      "slow": 12
+    },
+    "hardwareWrites": 0
+  },
+  "cleanup": {
+    "shutdownProtocol": "PASS",
+    "guiProcessCountAfterTest": 0,
+    "workerProcessCountAfterTest": 0
+  },
+  "result": "PLAN_ONLY_PASS",
+  "notes": [
+    "The packaged worker started on an isolated pipe.",
+    "No policy was enabled and no power-limit target was written.",
+    "The automated AC/battery transition test remains pending a supervised physical run."
+  ]
+}
