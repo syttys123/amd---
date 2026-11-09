@@ -82,10 +82,10 @@ Test uninstall from the package:
 The verified local development package uses SHA256:
 
 ```text
-01ba3ba41ba0a84f36ad6ff74b07ba8196de4bb0e30f4958dfcf977b1d126b23
+c61dcbea652c98ec0b1a80550910bc7f01c62c182b32b431f7e03aa2528dc441
 ```
 
-It was built from clean commit `0276c5b`.
+It was built from clean commit `cba9c91`.
 
 Rebuilds may produce a different hash because embedded timestamps can change.
 Always use the hash generated with the current build.
@@ -102,5 +102,5 @@ until:
 - The release artifact is rebuilt from the current clean commit.
 - The release artifact hash, source commit, and clean/dirty state are recorded.
 
-The current local `v0.1.0` package was built from clean commit `0276c5b` and is
+The current local `v0.1.0` package was built from clean commit `cba9c91` and is
 useful for development testing. It is not a public release.

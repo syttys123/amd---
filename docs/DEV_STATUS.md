@@ -178,13 +178,11 @@ third_party/
   8845HS platform and telemetry data.
 - Current local package:
   - Path: `artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip`
-  - Size: 106,646,897 bytes
+  - Size: 106,647,225 bytes
   - SHA256:
-    `01ba3ba41ba0a84f36ad6ff74b07ba8196de4bb0e30f4958dfcf977b1d126b23`
-  - Source commit: `0276c5b`
+    `c61dcbea652c98ec0b1a80550910bc7f01c62c182b32b431f7e03aa2528dc441`
+  - Source commit: `cba9c91`
   - Working tree at build time: clean
-  - Rebuild status: stale because the worker-startup fail-closed fix landed after
-    this package was built
 - Verified first install, overwrite upgrade, and uninstall against an isolated
   `artifacts/test-install` directory without changing shell integration.
 - Re-verified isolated install and uninstall with the license-bearing package;
@@ -261,6 +259,8 @@ third_party/
 - Extended fail-closed handling to worker startup: if the process does not begin
   listening within the startup deadline, the GUI stops it and does not retry
   automatically.
+- Rebuilt the portable package from clean commit `cba9c91` with the complete
+  fail-closed worker behavior.
 - Attempted an elevated restart of both `WinRing0_1_2_0` and `inpoutx64` with
   no RyzenAdj process running. Both services returned to `Running`, but the
   legacy `ryzenadj.exe --info` still hung in the SMU polling loop. Service
