@@ -1,5 +1,7 @@
+using System.IO.Pipes;
 using System.Text.Json;
 using AmdMobilePower.Core.Contracts;
+using AmdMobilePower.Core.Diagnostics;
 using AmdMobilePower.Core.Hardware;
 using AmdMobilePower.Core.Ipc;
 using AmdMobilePower.Core.Models;
@@ -27,6 +29,32 @@ public sealed class WorkerServerTests
         Assert.Equal(startedAt, health.StartedAt);
         Assert.True(health.UptimeSeconds >= 5);
         Assert.False(health.HardwareInitialized);
+
+        shutdown.Cancel();
+        await serverTask;
+    }
+
+    [Fact]
+    public async Task ClientDisconnect_DoesNotStopWorker()
+    {
+        string pipeName = CreatePipeName();
+        using CancellationTokenSource shutdown = new(TimeSpan.FromSeconds(10));
+        using WorkerServer server = new(pipeName);
+        Task serverTask = server.RunAsync(shutdown.Token);
+
+        using (NamedPipeClientStream abandoned = new(
+            ".",
+            pipeName,
+            PipeDirection.InOut,
+            PipeOptions.Asynchronous))
+        {
+            await abandoned.ConnectAsync(5000);
+        }
+
+        NamedPipeWorkerClient client = new(pipeName);
+        WorkerHealth health = await client.GetHealthAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Equal("ok", health.Status);
 
         shutdown.Cancel();
         await serverTask;
@@ -313,6 +341,14 @@ public sealed class WorkerServerTests
     [Fact]
     public async Task ExportDiagnostics_WithAdapter_ReturnsPlatformAndTelemetry()
     {
+        string logDirectory = Path.Combine(
+            Path.GetTempPath(),
+            "amd-mobile-power-worker-tests",
+            Guid.NewGuid().ToString("N"));
+        DiagnosticFileLog workerLog = new(logDirectory, "worker");
+        DiagnosticFileLog guiLog = new(logDirectory, "gui");
+        workerLog.Info("worker diagnostic marker");
+        guiLog.Info("gui diagnostic marker");
         string pipeName = CreatePipeName();
         FakeRyzenPowerAdapter adapter = new();
         PlatformProfile profile = ProfileRepository.Parse(
@@ -327,26 +363,54 @@ public sealed class WorkerServerTests
               "defaultWatts": 25
             }
             """);
-        using CancellationTokenSource shutdown = new(TimeSpan.FromSeconds(10));
-        using WorkerServer server = new(
-            pipeName,
-            startedAt: null,
-            adapter: adapter,
-            profiles: [profile]);
-        Task serverTask = server.RunAsync(shutdown.Token);
+        try
+        {
+            using CancellationTokenSource shutdown = new(TimeSpan.FromSeconds(10));
+            using WorkerServer server = new(
+                pipeName,
+                startedAt: null,
+                adapter: adapter,
+                profiles: [profile],
+                workerLog: workerLog,
+                guiLog: guiLog);
+            Task serverTask = server.RunAsync(shutdown.Token);
 
-        NamedPipeWorkerClient client = new(pipeName);
-        WorkerDiagnostics diagnostics = await client.ExportDiagnosticsAsync(
-            TimeSpan.FromSeconds(5));
+            NamedPipeWorkerClient client = new(pipeName);
+            WorkerDiagnostics diagnostics = await client.ExportDiagnosticsAsync(
+                TimeSpan.FromSeconds(5));
 
-        Assert.NotNull(diagnostics.Platform);
-        Assert.Equal("AMD Ryzen 7 8845HS", diagnostics.Platform.Cpu.ProcessorName);
-        Assert.Equal("hawk-point-8845hs", diagnostics.MatchedProfile?.Id);
-        Assert.Equal(18.5, diagnostics.Telemetry?.StapmLimitWatts);
-        Assert.Equal(4, diagnostics.RuntimeFiles.Count);
+            Assert.NotNull(diagnostics.Platform);
+            Assert.Equal("AMD Ryzen 7 8845HS", diagnostics.Platform.Cpu.ProcessorName);
+            Assert.Equal(10, diagnostics.Platform.Cpu.RyzenAdjFamily);
+            Assert.Equal("Hawk Point", diagnostics.Platform.Cpu.RyzenAdjFamilyName);
+            Assert.Equal("hawk-point-8845hs", diagnostics.MatchedProfile?.Id);
+            Assert.Equal(18.5, diagnostics.Telemetry?.StapmLimitWatts);
+            Assert.Equal(1, diagnostics.SchemaVersion);
+            Assert.Equal(WorkerProtocol.CurrentVersion, diagnostics.ProtocolVersion);
+            Assert.Equal(pipeName, diagnostics.PipeName);
+            Assert.True(diagnostics.HardwareAdapterConfigured);
+            Assert.False(diagnostics.WriteControlsEnabled);
+            Assert.Single(diagnostics.Profiles);
+            Assert.Equal("hawk-point-8845hs", diagnostics.Profiles[0].Id);
+            Assert.Equal(5, diagnostics.RuntimeFiles.Count);
+            Assert.Equal(logDirectory, diagnostics.DiagnosticLogDirectory);
+            Assert.Contains(
+                diagnostics.RecentWorkerLogLines,
+                line => line.Contains("worker diagnostic marker"));
+            Assert.Contains(
+                diagnostics.RecentGuiLogLines,
+                line => line.Contains("gui diagnostic marker"));
 
-        shutdown.Cancel();
-        await serverTask;
+            shutdown.Cancel();
+            await serverTask;
+        }
+        finally
+        {
+            if (Directory.Exists(logDirectory))
+            {
+                Directory.Delete(logDirectory, recursive: true);
+            }
+        }
     }
 
     [Fact]
@@ -363,6 +427,9 @@ public sealed class WorkerServerTests
 
         Assert.Null(diagnostics.Platform);
         Assert.Null(diagnostics.Telemetry);
+        Assert.False(diagnostics.HardwareAdapterConfigured);
+        Assert.False(diagnostics.WriteControlsEnabled);
+        Assert.Empty(diagnostics.Profiles);
         Assert.Contains(
             diagnostics.Notes,
             note => note.Contains("No hardware adapter", StringComparison.Ordinal));
@@ -505,6 +572,8 @@ public sealed class WorkerServerTests
                         ProcessorName = "AMD Ryzen 7 8845HS",
                         Family = 25,
                         Model = 117,
+                        RyzenAdjFamily = 10,
+                        RyzenAdjFamilyName = "Hawk Point",
                         PmTableVersion = "4c0009"
                     },
                     new PowerLimitCapability(

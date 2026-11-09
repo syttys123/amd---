@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "ryzenadj-rembrandt-phoenix",
+  "displayName": "Unverified Rembrandt Phoenix mobile profile",
+  "cpuFamilyPatterns": [
+    "ryzenadj:7",
+    "ryzenadj:9"
+  ],
+  "processorNamePatterns": [
+    "*AMD*"
+  ],
+  "pmTablePatterns": [],
+  "minimumWatts": 5,
+  "maximumWatts": 45,
+  "defaultWatts": 15,
+  "supportsStapm": true,
+  "supportsFast": true,
+  "supportsSlow": true,
+  "notes": [
+    "Conservative family profile only.",
+    "No device-level write, read-back, or restore evidence has been recorded.",
+    "RyzenAdj capability detection and per-target validation remain mandatory."
+  ]
+}

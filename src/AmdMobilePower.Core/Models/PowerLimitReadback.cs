@@ -20,6 +20,13 @@ public sealed record PowerLimitApplicationResult(
     public bool HasFirmwareClamp =>
         Readbacks.Any(readback =>
             readback.EffectiveWatts is { } effective &&
-            effective < readback.RequestedWatts - 0.5);
+            Math.Abs(effective - readback.RequestedWatts) > 0.5);
+
+    public bool HasStapmWarning =>
+        Readbacks.Any(readback =>
+            readback.Kind == PowerLimitKind.Stapm &&
+            (readback.DriverResultCode != 0 ||
+             readback.EffectiveWatts is not { } effective ||
+             Math.Abs(effective - readback.RequestedWatts) > 0.5));
 }
 

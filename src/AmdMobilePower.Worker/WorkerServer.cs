@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using AmdMobilePower.Core.Contracts;
+using AmdMobilePower.Core.Diagnostics;
 using AmdMobilePower.Core.Hardware;
 using AmdMobilePower.Core.Models;
 using AmdMobilePower.Core.Profiles;
@@ -20,6 +21,8 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
     private readonly IReadOnlyList<PlatformProfile> _profiles;
     private readonly bool _allowHardwareWrites;
     private readonly TimeSpan _policyPollInterval;
+    private readonly DiagnosticFileLog? _workerLog;
+    private readonly DiagnosticFileLog? _guiLog;
     private readonly object _policySync = new();
     private PowerPolicySettings? _powerPolicy;
     private PowerPolicyState _powerPolicyState = new(
@@ -42,15 +45,25 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         IRyzenPowerAdapter? adapter = null,
         IReadOnlyList<PlatformProfile>? profiles = null,
         bool allowHardwareWrites = false,
-        TimeSpan? policyPollInterval = null)
+        TimeSpan? policyPollInterval = null,
+        DiagnosticFileLog? workerLog = null,
+        DiagnosticFileLog? guiLog = null)
     {
         _pipeName = pipeName;
         _startedAt = startedAt ?? DateTimeOffset.UtcNow;
-        _workerVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+        _workerVersion = Assembly
+            .GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion
+            .Split('+', 2)[0] ??
+            Assembly.GetExecutingAssembly().GetName().Version?.ToString() ??
+            "0.0.0";
         _adapter = adapter;
         _profiles = profiles ?? Array.Empty<PlatformProfile>();
         _allowHardwareWrites = allowHardwareWrites;
         _policyPollInterval = policyPollInterval ?? TimeSpan.FromSeconds(1);
+        _workerLog = workerLog;
+        _guiLog = guiLog;
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
@@ -72,7 +85,15 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
                     PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
 
                 await server.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
-                await HandleClientAsync(server, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    await HandleClientAsync(server, cancellationToken).ConfigureAwait(false);
+                }
+                catch (IOException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    // A probe or UI can disconnect before completing a frame.
+                    // Keep the next pipe instance available for the next client.
+                }
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -146,6 +167,9 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         }
         catch (Exception error)
         {
+            _workerLog?.Error(
+                $"Request {request?.RequestId ?? "<unknown>"} failed.",
+                error);
             response = WorkerProtocol.CreateError(
                 request?.RequestId ?? string.Empty,
                 WorkerErrorCodes.InternalError,
@@ -365,9 +389,14 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
             .ConfigureAwait(false);
         if (result.IsSuccessful)
         {
+            _workerLog?.Info(
+                $"Applied target {payload.Target.StapmWatts}/" +
+                $"{payload.Target.FastWatts}/{payload.Target.SlowWatts} W.");
             return WorkerProtocol.CreateSuccess(request.RequestId, result);
         }
 
+        _workerLog?.Error(
+            $"Power-limit apply failed: {result.Error ?? "unknown error"}");
         string errorCode = result.RestoreAttempted && !result.RestoredPreviousLimits
             ? WorkerErrorCodes.HardwareRestoreFailed
             : WorkerErrorCodes.HardwareWriteFailed;
@@ -714,6 +743,7 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
 
         string[] runtimeFiles =
         [
+            "AmdMobilePower.Worker.exe",
             "libryzenadj.dll",
             "WinRing0x64.dll",
             "WinRing0x64.sys",
@@ -734,7 +764,33 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
             MatchedProfile: profile,
             Telemetry: telemetry,
             RuntimeFiles: fileDiagnostics,
-            Notes: notes);
+            DiagnosticLogDirectory: _workerLog?.DirectoryPath ?? string.Empty,
+            RecentWorkerLogLines: _workerLog?.ReadTail(200) ?? Array.Empty<string>(),
+            RecentGuiLogLines: _guiLog?.ReadTail(100) ?? Array.Empty<string>(),
+            Notes: notes)
+        {
+            PipeName = _pipeName,
+            HardwareAdapterConfigured = _adapter is not null,
+            WriteControlsEnabled = _allowHardwareWrites,
+            WorkerExecutableSha256 = fileDiagnostics
+                .FirstOrDefault(file => file.Name == "AmdMobilePower.Worker.exe")
+                ?.Sha256,
+            Profiles = _profiles
+                .Select(profile => new PlatformProfileDiagnostic(
+                    profile.Id,
+                    profile.DisplayName,
+                    profile.CpuFamilyPatterns,
+                    profile.ProcessorNamePatterns,
+                    profile.PmTablePatterns,
+                    profile.MinimumWatts,
+                    profile.MaximumWatts,
+                    profile.DefaultWatts,
+                    profile.SupportsStapm,
+                    profile.SupportsFast,
+                    profile.SupportsSlow))
+                .ToArray()
+        };
+        _workerLog?.Info("Diagnostics export generated.");
         return WorkerProtocol.CreateSuccess(requestId, diagnostics);
     }
 

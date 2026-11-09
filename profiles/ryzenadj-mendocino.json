@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "ryzenadj-mendocino",
+  "displayName": "Unverified Mendocino mobile profile",
+  "cpuFamilyPatterns": [
+    "ryzenadj:8"
+  ],
+  "processorNamePatterns": [
+    "*AMD*"
+  ],
+  "pmTablePatterns": [],
+  "minimumWatts": 5,
+  "maximumWatts": 35,
+  "defaultWatts": 15,
+  "supportsStapm": true,
+  "supportsFast": true,
+  "supportsSlow": true,
+  "notes": [
+    "Conservative low-power family profile only.",
+    "No device-level write, read-back, or restore evidence has been recorded.",
+    "RyzenAdj capability detection and per-target validation remain mandatory."
+  ]
+}

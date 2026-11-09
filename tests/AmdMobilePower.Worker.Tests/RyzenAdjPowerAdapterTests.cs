@@ -6,6 +6,20 @@ namespace AmdMobilePower.Worker.Tests;
 public sealed class RyzenAdjPowerAdapterTests
 {
     [Fact]
+    public async Task ProbeAsync_ReportsRyzenAdjFamily()
+    {
+        FakeRyzenAdjNative native = new();
+        await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
+
+        PlatformCapability capability = await adapter.ProbeAsync();
+
+        Assert.True(capability.IsSupported);
+        Assert.Equal(10, capability.Cpu.RyzenAdjFamily);
+        Assert.Equal("Hawk Point", capability.Cpu.RyzenAdjFamilyName);
+        Assert.Equal("4c0009", capability.Cpu.PmTableVersion);
+    }
+
+    [Fact]
     public async Task ApplyTarget_ReadsBackRequestedLimits()
     {
         FakeRyzenAdjNative native = new();
@@ -36,6 +50,44 @@ public sealed class RyzenAdjPowerAdapterTests
         Assert.True(result.IsSuccessful);
         Assert.True(result.HasFirmwareClamp);
         Assert.Equal([20.0, 30.0, 20.0], GetEffectiveLimits(result.Readbacks));
+    }
+
+    [Fact]
+    public async Task ApplyTarget_DynamicStapmDoesNotUndoFastAndSlowLimits()
+    {
+        FakeRyzenAdjNative native = new()
+        {
+            StapmWriteOverrideWatts = 29
+        };
+        await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
+
+        PowerLimitApplicationResult result = await adapter.ApplyTargetAsync(
+            new PowerLimitTarget(12, 12, 12));
+
+        Assert.True(result.IsSuccessful);
+        Assert.True(result.HasFirmwareClamp);
+        Assert.False(result.RestoreAttempted);
+        Assert.Equal([29.0, 12.0, 12.0], GetEffectiveLimits(result.Readbacks));
+        Assert.Equal([29.0, 12.0, 12.0], native.GetLimits());
+    }
+
+    [Fact]
+    public async Task ApplyTarget_StapmWriteFailureDoesNotUndoFastAndSlowLimits()
+    {
+        FakeRyzenAdjNative native = new()
+        {
+            StapmWriteFailuresRemaining = 1
+        };
+        await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
+
+        PowerLimitApplicationResult result = await adapter.ApplyTargetAsync(
+            new PowerLimitTarget(10, 10, 10));
+
+        Assert.True(result.IsSuccessful);
+        Assert.False(result.RestoreAttempted);
+        Assert.True(result.HasStapmWarning);
+        Assert.Equal([12.0, 10.0, 10.0], GetEffectiveLimits(result.Readbacks));
+        Assert.Equal([12.0, 10.0, 10.0], native.GetLimits());
     }
 
     [Fact]
@@ -138,10 +190,13 @@ public sealed class RyzenAdjPowerAdapterTests
         private double _fastLimitWatts = 25;
         private double _slowLimitWatts = 45;
         private int _slowOverrideApplications;
+        private int _stapmOverrideApplications;
 
         public int SlowWriteFailuresRemaining { get; set; }
+        public int StapmWriteFailuresRemaining { get; set; }
         public int ThrowOnSlowWriteCount { get; set; }
         public int FailedRefreshCallNumber { get; init; }
+        public double? StapmWriteOverrideWatts { get; init; }
         public double? SlowWriteOverrideWatts { get; init; }
         public int SlowWriteOverrideUses { get; init; } = 1;
         public int RefreshCallCount { get; private set; }
@@ -170,7 +225,24 @@ public sealed class RyzenAdjPowerAdapterTests
 
         public int SetStapmLimit(IntPtr ryzenAccess, uint value)
         {
-            _stapmLimitWatts = value / 1000.0;
+            if (StapmWriteFailuresRemaining > 0)
+            {
+                StapmWriteFailuresRemaining--;
+                return 12;
+            }
+
+            bool useOverride =
+                StapmWriteOverrideWatts is { } &&
+                _stapmOverrideApplications < 1;
+            if (useOverride)
+            {
+                _stapmOverrideApplications++;
+                _stapmLimitWatts = StapmWriteOverrideWatts!.Value;
+            }
+            else
+            {
+                _stapmLimitWatts = value / 1000.0;
+            }
             return 0;
         }
 

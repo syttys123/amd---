@@ -44,9 +44,16 @@ public static class ProfileRepository
     private static int GetSpecificity(PlatformProfile profile)
     {
         return
-            (profile.ProcessorNamePatterns.Length * 100) +
-            (profile.PmTablePatterns.Length * 10) +
-            profile.CpuFamilyPatterns.Length;
+            (CountSpecificPatterns(profile.ProcessorNamePatterns) * 100) +
+            (CountSpecificPatterns(profile.CpuFamilyPatterns) * 30) +
+            (CountSpecificPatterns(profile.PmTablePatterns) * 10);
+    }
+
+    private static int CountSpecificPatterns(IEnumerable<string> patterns)
+    {
+        return patterns.Count(pattern =>
+            !string.IsNullOrWhiteSpace(pattern) &&
+            pattern != "*");
     }
 }
 

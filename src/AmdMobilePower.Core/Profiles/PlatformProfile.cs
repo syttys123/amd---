@@ -24,7 +24,7 @@ public sealed record PlatformProfile
     public bool Matches(CpuPlatformInfo cpu)
     {
         return MatchesAny(ProcessorNamePatterns, cpu.ProcessorName) &&
-            MatchesAny(CpuFamilyPatterns, BuildFamilyIdentity(cpu)) &&
+            MatchesFamily(CpuFamilyPatterns, cpu) &&
             MatchesAny(PmTablePatterns, cpu.PmTableVersion);
     }
 
@@ -80,15 +80,29 @@ public sealed record PlatformProfile
         return Regex.IsMatch(value, regex.ToString(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
     }
 
-    private static string BuildFamilyIdentity(CpuPlatformInfo cpu)
+    private static bool MatchesFamily(string[] patterns, CpuPlatformInfo cpu)
     {
-        return string.Join(
-            ':',
-            new[]
-            {
-                cpu.Family?.ToString(),
-                cpu.Model?.ToString()
-            }.Where(value => value is not null));
+        if (patterns.Length == 0)
+        {
+            return true;
+        }
+
+        string[] identities = new[]
+        {
+            cpu.RyzenAdjFamily is { } ryzenAdjFamily
+                ? $"ryzenadj:{ryzenAdjFamily}"
+                : null,
+            cpu.Family is { } family && cpu.Model is { } model
+                ? $"{family}:{model}"
+                : null,
+            cpu.Family?.ToString(),
+            cpu.Model?.ToString()
+        }
+            .Where(value => value is not null)
+            .Select(value => value!)
+            .ToArray();
+        return identities.Any(identity =>
+            patterns.Any(pattern => WildcardMatches(pattern, identity)));
     }
 }
 

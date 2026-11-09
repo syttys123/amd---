@@ -214,6 +214,8 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
             return new PlatformCapability(
                 cpu with
                 {
+                    RyzenAdjFamily = family,
+                    RyzenAdjFamilyName = RyzenAdjFamilyNames.GetName(family),
                     SmuBiosVersion = _native.GetBiosIfVersion(_ryzenAccess).ToString(),
                     PmTableVersion = _native.GetTableVersion(_ryzenAccess).ToString("x")
                 },
@@ -264,9 +266,20 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
         PowerLimitTarget target,
         bool requireExactReadback)
     {
-        int stapmResult = _native.SetStapmLimit(
-            _ryzenAccess,
-            checked((uint)(target.StapmWatts * 1000)));
+        int stapmResult = 0;
+        try
+        {
+            stapmResult = _native.SetStapmLimit(
+                _ryzenAccess,
+                checked((uint)(target.StapmWatts * 1000)));
+        }
+        catch
+        {
+            // Fast/Slow are the effective required caps on firmware-dynamic STAPM
+            // platforms. A rejected STAPM write must not roll those caps back.
+            stapmResult = -1;
+        }
+
         int fastResult = _native.SetFastLimit(
             _ryzenAccess,
             checked((uint)(target.FastWatts * 1000)));
@@ -297,6 +310,13 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
         List<string> errors = new(4);
         foreach (PowerLimitReadback readback in readbacks)
         {
+            if (readback.Kind == PowerLimitKind.Stapm)
+            {
+                // STAPM can be firmware-managed or rejected independently of the
+                // PPT Fast/Slow limits that enforce the requested power ceiling.
+                continue;
+            }
+
             if (readback.DriverResultCode != 0)
             {
                 errors.Add(
@@ -315,9 +335,10 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
             }
 
             double difference = effective - readback.RequestedWatts;
+            bool increased = difference > ReadbackToleranceWatts;
             bool invalid = requireExactReadback
                 ? Math.Abs(difference) > ReadbackToleranceWatts
-                : difference > ReadbackToleranceWatts;
+                : increased;
             if (invalid)
             {
                 errors.Add(
@@ -384,7 +405,7 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
         return new PowerLimitReadback(
             kind,
             requestedWatts,
-            driverResult == 0 ? ReadFloat(effectiveWatts) : null,
+            ReadFloat(effectiveWatts),
             driverResult);
     }
 

@@ -9,8 +9,8 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Product>AMD Mobile Power Worker</Product>
-    <Version>0.1.0</Version>
+    <AssemblyTitle>AMD Mobile Power Worker</AssemblyTitle>
+    <Description>Privileged hardware worker for AMD Mobile Power</Description>
   </PropertyGroup>
 
   <PropertyGroup>

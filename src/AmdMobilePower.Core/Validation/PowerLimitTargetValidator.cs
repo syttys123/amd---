@@ -26,11 +26,7 @@ public static class PowerLimitTargetValidator
             return Invalid($"Slow: {slow.Error}");
         }
 
-        List<string> unsupported = new(3);
-        if (!capability.SupportsStapm)
-        {
-            unsupported.Add("STAPM");
-        }
+        List<string> unsupported = new(2);
         if (!capability.SupportsFast)
         {
             unsupported.Add("Fast");

@@ -34,6 +34,20 @@ public sealed class PowerLimitValidatorTests
     }
 
     [Fact]
+    public void TargetValidate_AllowsMissingStapmWhenFastAndSlowAreSupported()
+    {
+        PowerLimitTargetValidationResult result = PowerLimitTargetValidator.Validate(
+            PowerLimitTarget.Uniform(25),
+            new PowerLimitCapability(
+                SupportsStapm: false,
+                SupportsFast: true,
+                SupportsSlow: true));
+
+        Assert.True(result.IsValid);
+        Assert.Null(result.Error);
+    }
+
+    [Fact]
     public void TargetValidate_AcceptsFullySupportedTarget()
     {
         PowerLimitTargetValidationResult result = PowerLimitTargetValidator.Validate(

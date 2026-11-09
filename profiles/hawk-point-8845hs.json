@@ -3,7 +3,7 @@
   "id": "hawk-point-8845hs",
   "displayName": "Hawk Point 8845HS development profile",
   "cpuFamilyPatterns": [
-    "*"
+    "ryzenadj:10"
   ],
   "processorNamePatterns": [
     "*8845HS*"

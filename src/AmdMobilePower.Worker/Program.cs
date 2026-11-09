@@ -1,4 +1,5 @@
 using AmdMobilePower.Core.Contracts;
+using AmdMobilePower.Core.Diagnostics;
 using AmdMobilePower.Core.Hardware;
 using AmdMobilePower.Core.Profiles;
 using AmdMobilePower.Worker.Hardware;
@@ -35,25 +36,45 @@ for (int index = 0; index < args.Length; index++)
     }
 }
 
+AppDiagnostics.Worker.Info(
+    $"Worker starting. Pipe={pipeName}; hardware={enableHardware}; writes={enableWrites}.");
+AppDomain.CurrentDomain.UnhandledException += delegate (object sender, UnhandledExceptionEventArgs eventArgs)
+{
+    Exception? error = eventArgs.ExceptionObject as Exception;
+    AppDiagnostics.Worker.Error(
+        $"Unhandled worker exception. Terminating={eventArgs.IsTerminating}.",
+        error);
+};
+TaskScheduler.UnobservedTaskException += delegate (object? sender, UnobservedTaskExceptionEventArgs eventArgs)
+{
+    AppDiagnostics.Worker.Error("Unobserved worker task exception.", eventArgs.Exception);
+    eventArgs.SetObserved();
+};
+
 IRyzenPowerAdapter? adapter = null;
-Mutex? hardwareOwner = null;
+EventWaitHandle? hardwareOwner = null;
 if (enableHardware)
 {
     HardwareProcessConflict? conflict = HardwareConflictDetector.FindKnownHardwareOwner();
     if (conflict is not null)
     {
+        AppDiagnostics.Worker.Warning(
+            $"Hardware access already owned by {FormatHardwareOwner(conflict)}.");
         Console.Error.WriteLine(
             $"Hardware access is already owned by {FormatHardwareOwner(conflict)}.");
         Environment.ExitCode = 3;
         return;
     }
 
-    hardwareOwner = new Mutex(
-        initiallyOwned: true,
+    hardwareOwner = new EventWaitHandle(
+        initialState: false,
+        EventResetMode.ManualReset,
         @"Local\AmdMobilePower.HardwareOwner.v1",
-        out bool ownsHardwareMutex);
-    if (!ownsHardwareMutex)
+        out bool ownsHardwareEvent);
+    if (!ownsHardwareEvent)
     {
+        AppDiagnostics.Worker.Warning(
+            "Another AMD Mobile Power worker owns hardware access.");
         hardwareOwner.Dispose();
         hardwareOwner = null;
         Console.Error.WriteLine("Another AMD Mobile Power worker owns hardware access.");
@@ -89,7 +110,9 @@ try
         pipeName,
         adapter: adapter,
         profiles: profiles,
-        allowHardwareWrites: enableWrites);
+        allowHardwareWrites: enableWrites,
+        workerLog: AppDiagnostics.Worker,
+        guiLog: AppDiagnostics.Gui);
     Console.WriteLine($"AMD Mobile Power worker listening on {pipeName}");
     if (enableHardware)
     {
@@ -103,11 +126,8 @@ try
 }
 finally
 {
-    if (hardwareOwner is not null)
-    {
-        hardwareOwner.ReleaseMutex();
-        hardwareOwner.Dispose();
-    }
+    AppDiagnostics.Worker.Info($"Worker stopping. ExitCode={Environment.ExitCode}.");
+    hardwareOwner?.Dispose();
 }
 
 static string FormatHardwareOwner(HardwareProcessConflict conflict)
