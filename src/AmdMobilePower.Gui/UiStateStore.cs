@@ -27,6 +27,21 @@ internal static class UiStateStore
         return [.. DefaultPresets];
     }
 
+    public static UiMode LoadUiMode()
+    {
+        return string.Equals(
+            LoadState()?.UiMode,
+            "simple",
+            StringComparison.OrdinalIgnoreCase)
+            ? UiMode.Simple
+            : UiMode.Advanced;
+    }
+
+    public static bool LoadTopMost()
+    {
+        return LoadState()?.TopMost == true;
+    }
+
     public static StoredPowerPolicy? LoadPowerPolicy()
     {
         StoredPowerPolicy? policy = LoadState()?.PowerPolicy;
@@ -38,6 +53,21 @@ internal static class UiStateStore
         }
 
         return policy;
+    }
+
+    public static void SaveUiMode(UiMode mode)
+    {
+        GuiState state = LoadState() ?? new GuiState();
+        WriteState(state with
+        {
+            UiMode = mode == UiMode.Simple ? "simple" : "advanced"
+        });
+    }
+
+    public static void SaveTopMost(bool topMost)
+    {
+        GuiState state = LoadState() ?? new GuiState();
+        WriteState(state with { TopMost = topMost });
     }
 
     public static void SavePresets(IReadOnlyList<int> presets)
@@ -96,7 +126,15 @@ internal static class UiStateStore
     {
         public int[] Presets { get; init; } = [.. DefaultPresets];
         public StoredPowerPolicy? PowerPolicy { get; init; }
+        public string UiMode { get; init; } = "advanced";
+        public bool TopMost { get; init; }
     }
+}
+
+internal enum UiMode
+{
+    Simple,
+    Advanced
 }
 
 internal sealed record StoredPowerPolicy(

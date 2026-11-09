@@ -8,6 +8,7 @@ internal static class AppTheme
     public static readonly Color Surface = Color.White;
     public static readonly Color SurfaceMuted = Color.FromArgb(247, 249, 247);
     public static readonly Color Border = Color.FromArgb(216, 224, 219);
+    public static readonly Color BorderStrong = Color.FromArgb(135, 149, 143);
     public static readonly Color Text = Color.FromArgb(27, 38, 37);
     public static readonly Color TextMuted = Color.FromArgb(96, 110, 107);
     public static readonly Color Accent = Color.FromArgb(12, 132, 119);
@@ -19,6 +20,8 @@ internal static class AppTheme
     public static readonly Color WarningSoft = Color.FromArgb(255, 247, 237);
     public static readonly Color Error = Color.FromArgb(185, 28, 28);
     public static readonly Color ErrorSoft = Color.FromArgb(254, 242, 242);
+    public static readonly Color DisabledBackground = Color.FromArgb(205, 213, 209);
+    public static readonly Color DisabledText = Color.FromArgb(54, 67, 63);
 
     public static readonly Font Body = new("Microsoft YaHei UI", 9F);
     public static readonly Font BodyBold = new("Microsoft YaHei UI", 9F, FontStyle.Bold);
@@ -27,6 +30,10 @@ internal static class AppTheme
     public static readonly Font Heading = new("Microsoft YaHei UI", 12F, FontStyle.Bold);
     public static readonly Font Display = new("Segoe UI Variable Display", 30F, FontStyle.Bold);
     public static readonly Font Title = new("Segoe UI Variable Display", 17F, FontStyle.Bold);
+    public static readonly Font CompactTitle =
+        new("Segoe UI Variable Display", 14F, FontStyle.Bold);
+    public static readonly Font Metric = new("Consolas", 12F, FontStyle.Bold);
+    public static readonly Font MetricDisplay = new("Consolas", 27F, FontStyle.Bold);
 
     public static Label CreateLabel(
         string text,
@@ -73,14 +80,13 @@ internal static class AppTheme
         return button;
     }
 
-    public static void StyleNumberInput(NumericUpDown input)
+    public static void StyleNumberInput(NumericEntry input)
     {
         input.Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold);
         input.ForeColor = Text;
         input.BackColor = Surface;
         input.BorderStyle = BorderStyle.FixedSingle;
         input.TextAlign = HorizontalAlignment.Right;
-        input.ThousandsSeparator = false;
         input.Width = 120;
         input.Height = 34;
     }

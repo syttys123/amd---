@@ -4,7 +4,7 @@ namespace AmdMobilePower.Gui;
 
 internal sealed class PresetEditorForm : Form
 {
-    private readonly NumericUpDown[] _inputs;
+    private readonly NumericEntry[] _inputs;
 
     public PresetEditorForm(IReadOnlyList<int> presets, int minimumWatts, int maximumWatts)
     {
@@ -45,7 +45,7 @@ internal sealed class PresetEditorForm : Form
         layout.SetColumnSpan(heading, 2);
         layout.Controls.Add(heading, 0, 0);
 
-        _inputs = new NumericUpDown[3];
+        _inputs = new NumericEntry[3];
         for (int index = 0; index < _inputs.Length; index++)
         {
             Label label = AppTheme.CreateLabel(
@@ -55,7 +55,7 @@ internal sealed class PresetEditorForm : Form
             label.Margin = new Padding(0, 8, 8, 8);
             layout.Controls.Add(label, 0, index + 1);
 
-            NumericUpDown input = new()
+            NumericEntry input = new()
             {
                 Minimum = minimumWatts,
                 Maximum = maximumWatts,
