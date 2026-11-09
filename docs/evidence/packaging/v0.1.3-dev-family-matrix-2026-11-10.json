@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "evidenceType": "clean-release-verification",
-  "generatedAt": "2026-11-10T06:39:38.069+08:00",
-  "sourceCommit": "144e89cc3e9787639e5f997cc7fb7ac37c938f71",
+  "generatedAt": "2026-11-10T06:55:24.551+08:00",
+  "sourceCommit": "625839532f507748c6a21d2b63b5b82aa48fb789",
   "workingTree": "Clean",
   "verificationCommand": ".\\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent -VerifyShellIntegration -VerifyTrayMenu -VerifyTrayExit -VerifyDiagnostics",
   "package": {
     "name": "amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
-    "sizeBytes": 593334,
-    "sha256": "08cd4913f4d39d1907e248bb1e40d87ea55ca40724af2f87b715fd138cdd9b83",
+    "sizeBytes": 593474,
+    "sha256": "209faac93698bc71952f48c95568f2c6b19a570e1f1e4038b31c52ae40a2f3fd",
     "files": 40,
     "checksums": 39,
     "profiles": 9,
@@ -20,7 +20,12 @@
     "warnings": 0,
     "errors": 0,
     "testsPassed": 65,
-    "testsFailed": 0
+    "testsFailed": 0,
+    "dependencyAudit": {
+      "result": "PASS",
+      "projects": 6,
+      "directOrTransitiveAdvisories": 0
+    }
   },
   "compatibilityMatrix": {
     "knownRyzenAdjFamilies": 16,
@@ -36,8 +41,8 @@
     "trayMenuItems": 11,
     "trayMenuHorizontalGap": 0,
     "trayGracefulExit": "PASS",
-    "trayNotificationText": "AMD Mobile Power AMD Mobile Power | 电池 | 13.8 W",
-    "trayScreenshotSha256": "c0e5b3e336bdd216d45cafab11bd6d6303c4d1c9661812f2d7bdf99ae9aab530"
+    "trayNotificationText": "AMD Mobile Power AMD Mobile Power | 电池 | 16.6 W",
+    "trayScreenshotSha256": "6de728c989f4c7945de4aa7b1d76a2ac98d169563955988450554f9ff3f41a3e"
   },
   "diagnostics": {
     "collectionStatus": "PASS",

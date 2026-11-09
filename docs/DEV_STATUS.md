@@ -535,15 +535,16 @@ third_party/
   uses an isolated pipe, writes a whitelisted and path-sanitized JSON report,
   and requires graceful protocol shutdown. Release verification can exercise
   this path with `-VerifyDiagnostics`.
-- Rebuilt the clean Lite package after integrating the sanitized GUI export and
-  full RyzenAdj family coverage tests. The package is 593,334 bytes with
-  SHA256 `08cd4913f4d39d1907e248bb1e40d87ea55ca40724af2f87b715fd138cdd9b83`,
-  built from commit `144e89c`, and contains 40 files with 39 checksum entries.
+- Rebuilt the clean Lite package after upgrading the test toolchain and adding
+  the dependency vulnerability gate. The package is 593,474 bytes with SHA256
+  `209faac93698bc71952f48c95568f2c6b19a570e1f1e4038b31c52ae40a2f3fd`,
+  built from commit `6258395`, and contains 40 files with 39 checksum entries.
   The full local gate passed with 0 build warnings, 65/65 tests, shell
   integration, tray-menu placement, graceful tray exit, and read-only
-  diagnostics collection. PowerShell 5.1 and PowerShell 7 both produced a
-  `PASS` diagnostic report with no local drive paths or forbidden process/log
-  fields.
+  diagnostics collection. Direct and transitive dependency audit covered all
+  six projects with zero advisories. PowerShell 5.1 and PowerShell 7 both
+  produced a `PASS` diagnostic report with no local drive paths or forbidden
+  process/log fields.
 - Replaced the GUI's raw diagnostics serialization with the shared
   `PublicDiagnosticsReport` whitelist. The GUI and portable collector now
   exclude process IDs, worker/log directories, and recent logs while redacting

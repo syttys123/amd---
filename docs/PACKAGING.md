@@ -96,10 +96,10 @@ Current `0.1.3-dev` integration candidate:
 artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
 ```
 
-- Size: 593,334 bytes.
+- Size: 593,474 bytes.
 - SHA256:
-  `08cd4913f4d39d1907e248bb1e40d87ea55ca40724af2f87b715fd138cdd9b83`.
-- Source commit: `144e89c`.
+  `209faac93698bc71952f48c95568f2c6b19a570e1f1e4038b31c52ae40a2f3fd`.
+- Source commit: `6258395`.
 - Working tree at build time: clean.
 - Framework-dependent and requires the Microsoft .NET 8 Desktop Runtime x64.
 - All 39 staged SHA256 entries verified across 40 files.
@@ -275,10 +275,10 @@ GUI/worker teardown.
 The current verified local development package uses SHA256:
 
 ```text
-08cd4913f4d39d1907e248bb1e40d87ea55ca40724af2f87b715fd138cdd9b83
+209faac93698bc71952f48c95568f2c6b19a570e1f1e4038b31c52ae40a2f3fd
 ```
 
-It was built from clean commit `144e89c`.
+It was built from clean commit `6258395`.
 
 Rebuilds may produce a different hash because embedded timestamps can change.
 Always use the hash generated with the current build.

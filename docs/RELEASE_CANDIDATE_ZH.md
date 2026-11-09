@@ -8,17 +8,17 @@
 ## Source And Package
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
-- Current `main` at review preparation: `e291863`
-- Package source commit: `144e89c`
+- Current source commit reviewed: `6258395`
+- Package source commit: `6258395`
 - Package: `artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip`
-- Size: `593,334` bytes
-- SHA256: `08cd4913f4d39d1907e248bb1e40d87ea55ca40724af2f87b715fd138cdd9b83`
+- Size: `593,474` bytes
+- SHA256: `209faac93698bc71952f48c95568f2c6b19a570e1f1e4038b31c52ae40a2f3fd`
 - Files / checksums / profiles / licenses: `40 / 39 / 9 / 4`
 - Runtime: Microsoft .NET 8 Desktop Runtime x64
 
-The package predates the final documentation-only and verification-script
-commits. Rebuild from the exact final release commit and replace this hash
-before publishing.
+The ZIP was rebuilt from a clean `6258395` worktree after the dependency audit
+and upgraded test toolchain were committed. Later documentation-only commits do
+not change the packaged runtime files.
 
 ## Local Verification
 
