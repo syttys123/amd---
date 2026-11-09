@@ -18,6 +18,18 @@ The lite package requires the Microsoft .NET 8 Desktop Runtime x64 and is
 published with a `-lite` filename suffix. It keeps the same process isolation
 and native runtime files, but omits the duplicated self-contained .NET runtime.
 
+Current lite development package:
+
+```text
+artifacts/packages/amd-mobile-power-v0.1.0-win-x64-lite.zip
+```
+
+- Size: 449,612 bytes.
+- SHA256:
+  `e4c58b20e2efd45f4119920c3b0d7c083b0b30cfcd6061748bd3b63e3c760318`.
+- Source commit: `624d959`.
+- Working tree at build time: clean.
+
 Output:
 
 ```text

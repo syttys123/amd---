@@ -266,6 +266,17 @@ third_party/
   three license files were present, then uninstalled it successfully.
 - Re-verified every staged `SHA256SUMS.txt` entry and the outer ZIP SHA256 after
   the final package contents were staged.
+- Added a framework-dependent lite package mode to `build-package.ps1`.
+- Built the lite package from a detached clean worktree at commit `624d959`:
+  - ZIP size: 449,612 bytes.
+  - SHA256:
+    `e4c58b20e2efd45f4119920c3b0d7c083b0b30cfcd6061748bd3b63e3c760318`.
+  - Requires the Microsoft .NET 8 Desktop Runtime x64.
+  - Working-tree state at build time: clean.
+- Smoke-tested the lite GUI while the legacy hardware owner prevented worker
+  startup. The GUI working set was about 56 MB, private memory about 14.6 MB,
+  and startup CPU time about 0.45 seconds. This measurement covers the GUI only,
+  not a connected worker or live hardware polling.
 - Rebooted the development laptop for driver-state recovery. The enabled
   `\AMD\RyzenAdjWatch` logon trigger immediately restarted the legacy
   `RyzenPower` GUI and hidden worker, and `Local\RyzenAdjPowerWorker` was present
