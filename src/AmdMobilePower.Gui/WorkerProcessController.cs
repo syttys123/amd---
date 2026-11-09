@@ -135,7 +135,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         if (conflict is not null)
         {
             throw new InvalidOperationException(
-                $"检测到 {conflict.ProcessName} 正在占用 RyzenAdj (PID {conflict.ProcessId})，请先退出旧版工具。");
+                $"检测到 {FormatHardwareOwner(conflict)} 正在占用 RyzenAdj，请先退出旧版工具或停止对应计划任务。");
         }
 
         string executablePath = LocateWorkerExecutable();
@@ -230,5 +230,17 @@ internal sealed class WorkerProcessController : IAsyncDisposable
             ?? throw new FileNotFoundException(
                 "未找到 AmdMobilePower.Worker.exe。请先构建解决方案或安装完整的发布包。",
                 candidates[0]);
+    }
+
+    private static string FormatHardwareOwner(HardwareProcessConflict conflict)
+    {
+        if (conflict.ScheduledTaskPath is { } taskPath)
+        {
+            return $"{conflict.ProcessName} 计划任务 {taskPath}";
+        }
+
+        return conflict.ProcessId is { } processId
+            ? $"{conflict.ProcessName} (PID {processId})"
+            : conflict.ProcessName;
     }
 }

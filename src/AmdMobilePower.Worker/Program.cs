@@ -43,7 +43,7 @@ if (enableHardware)
     if (conflict is not null)
     {
         Console.Error.WriteLine(
-            $"Hardware access is already owned by {conflict.ProcessName} (PID {conflict.ProcessId}).");
+            $"Hardware access is already owned by {FormatHardwareOwner(conflict)}.");
         Environment.ExitCode = 3;
         return;
     }
@@ -108,4 +108,16 @@ finally
         hardwareOwner.ReleaseMutex();
         hardwareOwner.Dispose();
     }
+}
+
+static string FormatHardwareOwner(HardwareProcessConflict conflict)
+{
+    if (conflict.ScheduledTaskPath is { } taskPath)
+    {
+        return $"{conflict.ProcessName} scheduled task {taskPath}";
+    }
+
+    return conflict.ProcessId is { } processId
+        ? $"{conflict.ProcessName} (PID {processId})"
+        : conflict.ProcessName;
 }
