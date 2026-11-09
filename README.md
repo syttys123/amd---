@@ -35,6 +35,7 @@ See:
 - `docs/DEV_STATUS.md` for the current state and next task.
 - `docs/ROADMAP.md` for milestones.
 - `docs/ARCHITECTURE.md` for component boundaries.
+- `docs/IPC.md` for the GUI-to-worker protocol.
 - `AGENTS.md` for maintenance rules.
 
 ## License

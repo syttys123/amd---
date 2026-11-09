@@ -10,7 +10,7 @@
 
 ## M1: Core Contracts
 
-- [ ] Define named pipe commands and responses.
+- [x] Define named pipe commands and responses.
 - [x] Define telemetry models.
 - [x] Add validation and unit tests.
 - [ ] Add profile schema.

@@ -111,16 +111,24 @@ third_party/
 - Added GitHub Actions Windows build workflow.
 - Added the initial hardware evidence matrix.
 - Added the first maintenance commit and pushed it to the remote.
+- Added a versioned JSON-lines named pipe protocol with request IDs and
+  structured errors.
+- Added a reusable named pipe client in Core.
+- Added a worker server with a no-hardware `getHealth` endpoint.
+- Added integration tests for health responses and unsupported commands.
+- Full Release build remains at zero warnings and errors.
+- Test suite now includes nine passing tests across Core and Worker.
 
 ## In Progress
 
 - Add named pipe request/response contracts and capability models.
+- Add platform capability and profile schemas.
 - Decide how RyzenAdj source and licensed binaries will be vendored.
 
 ## Next Concrete Task
 
-Add named pipe contracts and capability models, then implement the first worker
-health endpoint that can be called without touching hardware.
+Define capability and profile schemas, then add a hardware adapter interface
+that can be mocked without loading RyzenAdj.
 
 ## Known Risks
 
