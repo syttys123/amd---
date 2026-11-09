@@ -6,7 +6,8 @@ param(
     [switch]$VerifyShellIntegration,
     [switch]$VerifyTrayMenu,
     [switch]$VerifyTrayExit,
-    [switch]$VerifyDiagnostics
+    [switch]$VerifyDiagnostics,
+    [switch]$VerifyDashboard
 )
 
 $ErrorActionPreference = "Stop"
@@ -308,6 +309,28 @@ try {
         $diagnostics = "PASS"
     }
 
+    $dashboard = "Not requested"
+    $dashboardScreenshot = $null
+    $dashboardScreenshotHash = $null
+    if ($VerifyDashboard) {
+        $dashboardDirectory = Join-Path $artifacts "verify"
+        New-Item -ItemType Directory -Path $dashboardDirectory -Force | Out-Null
+        $dashboardScreenshot = Join-Path (
+            $dashboardDirectory
+        ) ("dashboard-" + [Guid]::NewGuid().ToString("N") + ".png")
+        $dashboardEvidence = Join-Path (
+            $dashboardDirectory
+        ) ("dashboard-" + [Guid]::NewGuid().ToString("N") + ".json")
+        & (Join-Path $root "verify-dashboard.ps1") `
+            -PackageDirectory $stage `
+            -ScreenshotPath $dashboardScreenshot `
+            -EvidencePath $dashboardEvidence
+        $dashboard = "PASS"
+        $dashboardScreenshotHash = (
+            Get-FileHash -LiteralPath $dashboardScreenshot -Algorithm SHA256
+        ).Hash.ToLowerInvariant()
+    }
+
     [pscustomobject]@{
         Package = $zipPath
         SHA256 = $zipHash
@@ -323,6 +346,9 @@ try {
         TrayMenuScreenshot = $trayMenuScreenshot
         Diagnostics = $diagnostics
         DiagnosticsReport = $diagnosticsPath
+        Dashboard = $dashboard
+        DashboardScreenshot = $dashboardScreenshot
+        DashboardScreenshotSHA256 = $dashboardScreenshotHash
         DependencyAudit = "PASS"
         Verification = "PASS"
     } | Format-List

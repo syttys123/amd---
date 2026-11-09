@@ -95,17 +95,19 @@ internal sealed class MainForm : Form
     private bool _trayHintShown;
     private bool _exitRequested;
     private bool _syncingTargets;
-    private UiMode _uiMode = UiStateStore.LoadUiMode();
+    private UiMode _uiMode;
     private bool _topMost = UiStateStore.LoadTopMost();
 
     public MainForm(
         EventWaitHandle showEvent,
         bool startHidden,
-        bool writeControlsEnabled)
+        bool writeControlsEnabled,
+        UiMode? initialMode = null)
     {
         _showEvent = showEvent;
         _startHidden = startHidden;
         _writeControlsEnabled = writeControlsEnabled;
+        _uiMode = initialMode ?? UiStateStore.LoadUiMode();
         _worker = new WorkerProcessController(writeControlsEnabled);
         _storedPolicy = UiStateStore.LoadPowerPolicy();
         _appIcon = LoadApplicationIcon();

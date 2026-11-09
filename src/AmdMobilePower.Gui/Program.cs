@@ -20,6 +20,9 @@ internal static class Program
         bool enableWriteControls = args.Contains(
             "--enable-write-controls",
             StringComparer.OrdinalIgnoreCase);
+        bool startInSimpleMode = args.Contains(
+            "--simple-mode",
+            StringComparer.OrdinalIgnoreCase);
         AppDiagnostics.Gui.Info(
             $"GUI starting. Tray={startHidden}; writes={enableWriteControls}.");
         AppDomain.CurrentDomain.UnhandledException += delegate (object sender, UnhandledExceptionEventArgs eventArgs)
@@ -56,7 +59,11 @@ internal static class Program
             initialState: false,
             EventResetMode.AutoReset,
             ShowEventName);
-        using MainForm form = new(showEvent, startHidden, enableWriteControls);
+        using MainForm form = new(
+            showEvent,
+            startHidden,
+            enableWriteControls,
+            startInSimpleMode ? UiMode.Simple : null);
         try
         {
             Application.Run(form);
