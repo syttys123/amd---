@@ -50,6 +50,15 @@ artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip
 Extract the ZIP and run `AmdMobilePower.exe`. This starts in read-only mode.
 See `docs/INSTALLATION.md` before using `install.ps1`.
 
+A framework-dependent lite package is also available:
+
+```text
+artifacts/packages/amd-mobile-power-v0.1.0-win-x64-lite.zip
+```
+
+It is roughly 439 KB without the .NET runtime and requires the Microsoft .NET 8
+Desktop Runtime x64. See `docs/PACKAGING.md` for build and runtime details.
+
 ## Documentation
 
 - `docs/README.md` is the documentation index and authority order.
