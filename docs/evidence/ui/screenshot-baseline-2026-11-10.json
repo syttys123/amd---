@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-10T03:27:00+08:00",
+  "displayScale": 1.25,
+  "screenshots": {
+    "main-dashboard-external-power-2026-11-10.png": {
+      "width": 718,
+      "height": 547,
+      "sha256": "b4c2e51e0e95152cfd16010f81cddb81a69c6ba4f35600b754691e2df8c06a79",
+      "state": "healthy read-only worker",
+      "powerLine": "external power",
+      "visibleBoundaryViolations": 0
+    },
+    "preset-editor-2026-11-10.png": {
+      "width": 394,
+      "height": 331,
+      "sha256": "10bfd2fd44bedfa02e67bf75a9209136f3f676e3682c4c368fb850e8051a8622",
+      "state": "editable 12/25/45 W presets",
+      "visibleBoundaryViolations": 0,
+      "savedChanges": false
+    },
+    "worker-conflict-2026-11-10.png": {
+      "width": 718,
+      "height": 547,
+      "sha256": "a3da73dbdd8cc030b51e365ba589fdcca7d6ba7213d61b8803e1b3d7902968f1",
+      "state": "legacy mutex conflict before worker startup",
+      "workerProcessCount": 0,
+      "visibleBoundaryViolations": 0
+    },
+    "diagnostics-export-2026-11-10.png": {
+      "width": 1280,
+      "height": 250,
+      "sha256": "2e0f162f6d6096f2c780e14a9cbf4a5c46d6887d8cd18103c1ef606c5943aea9",
+      "state": "diagnostics save dialog bottom crop",
+      "personalPathIncluded": false,
+      "fileSaved": false
+    }
+  },
+  "runtimeChecks": {
+    "compactVisibleBoundaryViolations": 0,
+    "compactFooterHidden": true,
+    "advancedWindow": {
+      "width": 1268,
+      "height": 922,
+      "diagnosticsButtonPresent": true,
+      "visibleBoundaryViolations": 0
+    }
+  },
+  "missing": [
+    "tray context menu screenshot",
+    "real battery-power dashboard screenshot",
+    "final package screenshot after the UI changes are rebuilt and committed"
+  ],
+  "limitations": [
+    "The conflict state used a temporary legacy mutex and did not start a hardware worker.",
+    "The diagnostics save dialog was cancelled; no diagnostics file was written.",
+    "The current external-power state cannot distinguish a USB-C power bank from a wall adapter."
+  ]
+}

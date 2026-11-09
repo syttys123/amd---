@@ -39,6 +39,7 @@ conflict, prefer the first applicable source in this order:
 | Document | Purpose |
 |---|---|
 | `UI_DESIGN_DATABASE.md` | Local design-system evidence, project tokens, component contracts, and the compact-window layout specification |
+| `UI_SCREENSHOT_EVIDENCE.md` | Captured UI states, privacy boundary, and remaining media evidence |
 
 The project-specific design database is derived from the read-only local corpus
 at `<local-design-library>\design-corpus` and the SQLite index at

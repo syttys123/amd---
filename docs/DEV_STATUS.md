@@ -475,6 +475,12 @@ third_party/
   protection, WinRing0 signature/service state, binary hashes, and packaged
   read-only telemetry evidence in `WINDOWS_DRIVER_SECURITY.md`. Clean-VM and
   third-party endpoint-protection validation remain open.
+- Added a visible `导出诊断` action to advanced mode while retaining the tray
+  entry, and fixed compact mode to hide the advanced footer instead of leaving
+  its controls in a zero-height layout row.
+- Captured healthy external-power, preset-editor, legacy-conflict, and
+  diagnostics-save states with zero visible boundary violations. Tray-menu and
+  real-battery screenshots remain open.
 
 Development screenshot:
 

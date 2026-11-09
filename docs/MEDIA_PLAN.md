@@ -97,12 +97,15 @@ Narration:
 
 ## Screenshot Set For Repository
 
-- `main-dashboard-ac.png`
-- `main-dashboard-battery.png`
-- `preset-editor.png`
-- `worker-conflict.png`
-- `diagnostics-export.png`
-- `tray-menu.png`
+- `assets/main-dashboard-external-power-2026-11-10.png` - captured
+- `assets/main-dashboard-battery.png` - pending real battery state
+- `assets/preset-editor-2026-11-10.png` - captured
+- `assets/worker-conflict-2026-11-10.png` - captured with a temporary mutex
+- `assets/diagnostics-export-2026-11-10.png` - captured save dialog crop
+- `assets/tray-menu.png` - pending
+
+See `UI_SCREENSHOT_EVIDENCE.md` for dimensions, hashes, safety boundaries, and
+remaining captures.
 
 Replace the current development screenshot only after these states can be
 captured against a healthy read-only worker.
