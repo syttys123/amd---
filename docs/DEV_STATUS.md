@@ -429,6 +429,9 @@ third_party/
   renders as one `12.0 W` label. Both compact and advanced mode now label
   external power as `电源`, because Windows cannot distinguish a power bank
   from a wall adapter.
+- Removed the compact-mode power-line badge beside `目标功耗`; its `--` startup
+  placeholder looked like a gray dot. The current source now appends `电源` or
+  `电池` to the `动态上限` line below the live STAPM value.
 - Rebuilt `artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip`
   with the final UI and multi-generation profile changes. The package is
   564,349 bytes with SHA256

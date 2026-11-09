@@ -6,9 +6,10 @@
     "main-dashboard-external-power-2026-11-10.png": {
       "width": 718,
       "height": 547,
-      "sha256": "b4c2e51e0e95152cfd16010f81cddb81a69c6ba4f35600b754691e2df8c06a79",
+      "sha256": "1252c399faf676015fb90bd4990536e041de7e1b4a43e92b486062d18e175d7f",
       "state": "healthy read-only worker",
       "powerLine": "external power",
+      "targetLeftArtifactPixels": 0,
       "visibleBoundaryViolations": 0
     },
     "preset-editor-2026-11-10.png": {

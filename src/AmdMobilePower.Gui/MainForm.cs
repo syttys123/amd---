@@ -450,13 +450,12 @@ internal sealed class MainForm : Form
         TableLayoutPanel liveHeading = new()
         {
             Dock = DockStyle.Fill,
-            ColumnCount = 2,
+            ColumnCount = 1,
             RowCount = 1,
             BackColor = Color.Transparent,
             Margin = Padding.Empty
         };
         liveHeading.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        liveHeading.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 52));
         Label liveCaption = AppTheme.CreateLabel(
             "STAPM 实时",
             AppTheme.Small,
@@ -465,17 +464,6 @@ internal sealed class MainForm : Form
         liveCaption.Margin = Padding.Empty;
         liveCaption.AutoEllipsis = false;
         liveHeading.Controls.Add(liveCaption, 0, 0);
-
-        _simplePowerLineBadge = AppTheme.CreateLabel(
-            "--",
-            AppTheme.SmallBold,
-            AppTheme.Text,
-            ContentAlignment.MiddleCenter);
-        _simplePowerLineBadge.Dock = DockStyle.Fill;
-        _simplePowerLineBadge.Margin = Padding.Empty;
-        _simplePowerLineBadge.BackColor = AppTheme.SurfaceMuted;
-        _simplePowerLineBadge.AutoEllipsis = false;
-        liveHeading.Controls.Add(_simplePowerLineBadge, 1, 0);
         live.Controls.Add(liveHeading, 0, 0);
 
         TableLayoutPanel liveValues = new()
@@ -2089,23 +2077,17 @@ internal sealed class MainForm : Form
         }
 
         bool battery = telemetry.PowerLine == PowerLineState.Battery;
-        _powerLineBadge.Text = telemetry.PowerLine switch
-        {
-            PowerLineState.Ac => "电源",
-            PowerLineState.Battery => "电池",
-            _ => "未知"
-        };
+        string powerLineText = DescribePowerLine(telemetry.PowerLine);
+        _powerLineBadge.Text = powerLineText;
         _powerLineBadge.BackColor = battery ? AppTheme.BatterySoft : AppTheme.AccentSoft;
         _powerLineBadge.ForeColor = battery ? AppTheme.Battery : AppTheme.Accent;
         _currentPower.ForeColor = battery ? AppTheme.Battery : AppTheme.Accent;
-        _simplePowerLineBadge.Text = telemetry.PowerLine switch
+        if (_simplePowerLineBadge is not null)
         {
-            PowerLineState.Ac => "电源",
-            PowerLineState.Battery => "电池",
-            _ => "未知"
-        };
-        _simplePowerLineBadge.BackColor = _powerLineBadge.BackColor;
-        _simplePowerLineBadge.ForeColor = _powerLineBadge.ForeColor;
+            _simplePowerLineBadge.Text = powerLineText;
+            _simplePowerLineBadge.BackColor = _powerLineBadge.BackColor;
+            _simplePowerLineBadge.ForeColor = _powerLineBadge.ForeColor;
+        }
         _simpleCurrentPower.ForeColor = _currentPower.ForeColor;
 
         ConfigureInputs(minimum, maximum);
@@ -2138,7 +2120,7 @@ internal sealed class MainForm : Form
                 ? AppTheme.AccentSoft
                 : AppTheme.Border;
 
-        string line = battery ? "电池" : telemetry.PowerLine == PowerLineState.Ac ? "电源" : "未知电源";
+        string line = powerLineText;
         DateTimeOffset updatedAt = telemetry.UpdatedAt ?? DateTimeOffset.Now;
         _updatedLabel.Text = $"更新于 {updatedAt:HH:mm:ss} · {line}";
         _trayStatusItem.Text = $"当前：{line} · {FormatNumber(current)} W";
@@ -2630,7 +2612,19 @@ internal sealed class MainForm : Form
         }
 
         string limit = FormatNumber(_lastSnapshot?.Telemetry.StapmLimitWatts);
-        _simpleLimitSummary.Text = $"动态上限 {limit} W";
+        string powerLine = DescribePowerLine(
+            _lastSnapshot?.Telemetry.PowerLine ?? PowerLineState.Unknown);
+        _simpleLimitSummary.Text = $"动态上限 {limit} W · {powerLine}";
+    }
+
+    private static string DescribePowerLine(PowerLineState powerLine)
+    {
+        return powerLine switch
+        {
+            PowerLineState.Ac => "电源",
+            PowerLineState.Battery => "电池",
+            _ => "电源未知"
+        };
     }
 
     private void SetConnectionState(bool connected)
