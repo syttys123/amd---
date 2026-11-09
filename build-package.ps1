@@ -75,6 +75,10 @@ Copy-Item -Path (Join-Path $root "profiles\*.json") -Destination (Join-Path $sta
 New-Item -ItemType Directory -Path (Join-Path $stage "licenses") -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $root "third_party\RyzenAdj\LICENSE") `
     -Destination (Join-Path $stage "licenses\RyzenAdj-LICENSE.txt") -Force
+Copy-Item -LiteralPath (Join-Path $root "third_party\licenses\InpOut32-LICENSE.txt") `
+    -Destination (Join-Path $stage "licenses\InpOut32-LICENSE.txt") -Force
+Copy-Item -LiteralPath (Join-Path $root "third_party\licenses\WinRing0-COPYRIGHT.txt") `
+    -Destination (Join-Path $stage "licenses\WinRing0-COPYRIGHT.txt") -Force
 Copy-Item -LiteralPath (Join-Path $root "docs\THIRD_PARTY_NOTICES.md") `
     -Destination (Join-Path $stage "THIRD_PARTY_NOTICES.md") -Force
 Copy-Item -LiteralPath (Join-Path $root "packaging\portable-README.txt") `
