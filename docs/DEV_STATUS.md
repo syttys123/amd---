@@ -185,6 +185,8 @@ third_party/
   - Working tree at build time: clean
 - Verified first install, overwrite upgrade, and uninstall against an isolated
   `artifacts/test-install` directory without changing shell integration.
+- Re-verified isolated install and uninstall with the license-bearing package;
+  all three third-party license files were present after installation.
 - Added CI-side portable package generation with uploaded ZIP and SHA256
   artifacts on pushes.
 - Made `build-ryzenadj.ps1` detect Visual Studio 2019/2022/2026 automatically;
