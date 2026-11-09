@@ -544,12 +544,12 @@ third_party/
   and requires graceful protocol shutdown. Release verification can exercise
   this path with `-VerifyDiagnostics`.
 - Rebuilt the clean Lite package after adding product analyzer hardening and
-  the dependency vulnerability and deprecation gate. The package is 593,794
+  the dependency vulnerability and deprecation gate. The package is 593,854
   bytes with SHA256
-  `cdc987acfe9c9c4f311999a1eb5b9d8fee5a77f40b0f9da39062315d93be12b1`,
-  built from commit `dae220b` with .NET SDK `8.0.427`, and contains 40 files
+  `5bfad4a16d15612d44a47e56cbe4c9d0196e15d75b52b5e3b04a5f9eb596584a`,
+  built from commit `6cb020a` with .NET SDK `8.0.427`, and contains 40 files
   with 39 checksum entries.
-  The full local gate passed with 0 build warnings, 68/68 tests, shell
+  The full local gate passed with 0 build warnings, 71/71 tests, shell
   integration, tray-menu placement, graceful tray exit, and read-only
   diagnostics collection. Direct and transitive dependency audit covered all
   six projects with zero advisories. PowerShell 5.1 and PowerShell 7 both

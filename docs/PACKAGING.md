@@ -96,10 +96,10 @@ Current `0.1.3-dev` integration candidate:
 artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
 ```
 
-- Size: 593,794 bytes.
+- Size: 593,854 bytes.
 - SHA256:
-  `cdc987acfe9c9c4f311999a1eb5b9d8fee5a77f40b0f9da39062315d93be12b1`.
-- Source commit: `dae220b`.
+  `5bfad4a16d15612d44a47e56cbe4c9d0196e15d75b52b5e3b04a5f9eb596584a`.
+- Source commit: `6cb020a`.
 - Working tree at build time: clean.
 - Framework-dependent and requires the Microsoft .NET 8 Desktop Runtime x64.
 - All 39 staged SHA256 entries verified across 40 files.
@@ -125,7 +125,7 @@ artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
   `collectionStatus=PASS`, no drive paths, no process IDs, no worker/log
   directories, no recent logs, and `shutdownProtocol=PASS`. The same collector
   passed under Windows PowerShell 5.1 and PowerShell 7.
-- The full local gate passed with 68/68 tests after adding regressions for
+- The full local gate passed with 71/71 tests after adding regressions for
   sanitized GUI diagnostics and complete RyzenAdj family coverage.
 - GUI and worker both report product version `0.1.3-dev` and file version
   `0.1.3.0`.
@@ -275,10 +275,10 @@ GUI/worker teardown.
 The current verified local development package uses SHA256:
 
 ```text
-cdc987acfe9c9c4f311999a1eb5b9d8fee5a77f40b0f9da39062315d93be12b1
+5bfad4a16d15612d44a47e56cbe4c9d0196e15d75b52b5e3b04a5f9eb596584a
 ```
 
-It was built from clean commit `dae220b` with .NET SDK `8.0.427`.
+It was built from clean commit `6cb020a` with .NET SDK `8.0.427`.
 
 Rebuilds may produce a different hash because embedded timestamps can change.
 Always use the hash generated with the current build.
