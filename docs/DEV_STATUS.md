@@ -228,7 +228,7 @@ third_party/
   `\AMD\RyzenAdjWatch` running with an elevated hidden PowerShell worker; the
   old process-name-only check missed it and a read-only probe crashed natively.
 - Added a Core regression test for legacy-worker mutex detection. The suite now
-  has 36 passing tests: 13 Core and 23 Worker.
+  has 37 passing tests: 14 Core and 23 Worker.
 - Made portable publishing independent of the NuGet vulnerability endpoint by
   disabling NuGet Audit inside the package build.
 - Rebuilt the portable package from clean commit `b48c011`.
@@ -254,6 +254,8 @@ third_party/
 - Negative-tested the fail-closed path against the known bad driver state:
   the worker timed out once, exited, and remained at zero worker processes
   while the GUI stayed responsive with the recovery message.
+- Added a Core regression test confirming that named-pipe request cancellation
+  becomes an explicit `TimeoutException` for the GUI recovery path.
 - Attempted an elevated restart of both `WinRing0_1_2_0` and `inpoutx64` with
   no RyzenAdj process running. Both services returned to `Running`, but the
   legacy `ryzenadj.exe --info` still hung in the SMU polling loop. Service
