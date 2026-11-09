@@ -25,12 +25,47 @@ public static class HardwareConflictDetector
 
     public static HardwareProcessConflict? FindKnownHardwareOwner()
     {
-        HardwareProcessConflict? legacyWorker = FindLegacyWorkerOwner();
-        if (legacyWorker is not null)
+        return Evaluate(
+            IsLegacyWorkerMutexPresent(),
+            FindKnownProcessOwners(),
+            FindRunningScheduledTaskOwners());
+    }
+
+    internal static HardwareProcessConflict? Evaluate(
+        bool legacyWorkerMutexPresent,
+        IReadOnlyList<HardwareProcessCandidate> processes,
+        IReadOnlyList<string> runningScheduledTaskPaths)
+    {
+        HardwareProcessConflict? scheduledTask = FindScheduledTaskConflict(
+            runningScheduledTaskPaths);
+        if (legacyWorkerMutexPresent)
         {
-            return legacyWorker;
+            return scheduledTask
+                ?? new HardwareProcessConflict("RyzenAdjPowerWorker", null);
         }
 
+        foreach (string processName in KnownOwners)
+        {
+            foreach (HardwareProcessCandidate candidate in processes)
+            {
+                if (string.Equals(
+                    candidate.Name,
+                    processName,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return new HardwareProcessConflict(
+                        candidate.Name,
+                        candidate.ProcessId);
+                }
+            }
+        }
+
+        return scheduledTask;
+    }
+
+    private static IReadOnlyList<HardwareProcessCandidate> FindKnownProcessOwners()
+    {
+        List<HardwareProcessCandidate> owners = [];
         int currentProcessId = Environment.ProcessId;
         foreach (string processName in KnownOwners)
         {
@@ -41,7 +76,7 @@ public static class HardwareConflictDetector
                     process => process.Id != currentProcessId && !process.HasExited);
                 if (match is not null)
                 {
-                    return new HardwareProcessConflict(processName, match.Id);
+                    owners.Add(new HardwareProcessCandidate(processName, match.Id));
                 }
             }
             finally
@@ -53,52 +88,73 @@ public static class HardwareConflictDetector
             }
         }
 
-        return FindRunningScheduledTaskOwner();
+        return owners;
     }
 
-    private static HardwareProcessConflict? FindLegacyWorkerOwner()
+    private static bool IsLegacyWorkerMutexPresent()
     {
         if (!OperatingSystem.IsWindows())
         {
-            return null;
+            return false;
         }
 
         try
         {
             using Mutex mutex = Mutex.OpenExisting(LegacyWorkerMutexName);
-            return FindRunningScheduledTaskOwner()
-                ?? new HardwareProcessConflict("RyzenAdjPowerWorker", null);
+            return true;
         }
         catch (WaitHandleCannotBeOpenedException)
         {
-            return null;
+            return false;
         }
         catch (UnauthorizedAccessException)
         {
-            return new HardwareProcessConflict("RyzenAdjPowerWorker", null);
+            return true;
         }
     }
 
-    private static HardwareProcessConflict? FindRunningScheduledTaskOwner()
+    private static HardwareProcessConflict? FindScheduledTaskConflict(
+        IReadOnlyList<string> runningScheduledTaskPaths)
+    {
+        HashSet<string> running = new(
+            runningScheduledTaskPaths,
+            StringComparer.OrdinalIgnoreCase);
+        foreach (ScheduledTaskOwner owner in KnownScheduledTaskOwners)
+        {
+            string path = $"{owner.Folder}\\{owner.Name}";
+            if (running.Contains(path))
+            {
+                return new HardwareProcessConflict(
+                    owner.Name,
+                    null,
+                    path);
+            }
+        }
+
+        return null;
+    }
+
+    private static IReadOnlyList<string> FindRunningScheduledTaskOwners()
     {
         if (!OperatingSystem.IsWindows())
         {
-            return null;
+            return [];
         }
 
         Type? serviceType = Type.GetTypeFromProgID("Schedule.Service");
         if (serviceType is null)
         {
-            return null;
+            return [];
         }
 
+        List<string> running = [];
         object? service = null;
         try
         {
             service = Activator.CreateInstance(serviceType);
             if (service is null)
             {
-                return null;
+                return [];
             }
 
             dynamic scheduler = service;
@@ -118,10 +174,7 @@ public static class HardwareConflictDetector
                         CultureInfo.InvariantCulture);
                     if (state == ScheduledTaskStateRunning)
                     {
-                        return new HardwareProcessConflict(
-                            owner.Name,
-                            null,
-                            $"{owner.Folder}\\{owner.Name}");
+                        running.Add($"{owner.Folder}\\{owner.Name}");
                     }
                 }
                 catch (Exception)
@@ -142,7 +195,7 @@ public static class HardwareConflictDetector
             ReleaseComObject(service);
         }
 
-        return null;
+        return running;
     }
 
     private static void ReleaseComObject(object? value)
@@ -160,6 +213,10 @@ public static class HardwareConflictDetector
 
     private sealed record ScheduledTaskOwner(string Folder, string Name);
 }
+
+internal readonly record struct HardwareProcessCandidate(
+    string Name,
+    int ProcessId);
 
 public sealed record HardwareProcessConflict(
     string ProcessName,

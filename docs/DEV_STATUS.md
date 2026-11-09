@@ -33,7 +33,7 @@ not authoritative.
 - Baseline commit `f9d1be5` was pushed to `origin/main`.
 - The intended project name is `amd-mobile-power`. The GitHub repository still
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
-- The current Release build has 47 passing tests across Core and Worker.
+- The current Release build has 57 passing tests across Core and Worker.
 - A real hardware read-only probe against the development laptop succeeded.
 - The repository GUI now reads through the named pipe and updates every second.
 - The GUI defaults to read-only; hardware writes require the explicit
@@ -463,6 +463,10 @@ third_party/
 - Corrected the Lite package README so it now states that
   `-FrameworkDependent` builds require the Microsoft .NET 8 Desktop Runtime x64
   instead of claiming every package is self-contained.
+- Split hardware-conflict evaluation into deterministic inputs and added tests
+  for the legacy worker mutex, all three known process owners, all four running
+  scheduled tasks, precedence, and the no-conflict case. The suite increased
+  from 47 to 57 passing tests.
 
 Development screenshot:
 
