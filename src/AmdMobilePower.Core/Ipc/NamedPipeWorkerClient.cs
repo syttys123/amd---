@@ -2,6 +2,7 @@ using System.IO.Pipes;
 using System.Text;
 using System.Text.Json;
 using AmdMobilePower.Core.Contracts;
+using AmdMobilePower.Core.Models;
 
 namespace AmdMobilePower.Core.Ipc;
 
@@ -81,6 +82,34 @@ public sealed class NamedPipeWorkerClient
 
         return payload.Deserialize<WorkerSnapshot>(WorkerProtocol.JsonOptions)
             ?? throw new InvalidOperationException("Worker returned an invalid snapshot payload.");
+    }
+
+    public async Task<PowerLimitApplicationResult> ApplyTargetAsync(
+        PowerLimitTarget target,
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
+    {
+        ApplyTargetRequest requestPayload = new(target);
+        WorkerResponse response = await SendAsync(
+            new WorkerRequest
+            {
+                RequestId = Guid.NewGuid().ToString("N"),
+                Command = WorkerCommand.ApplyTarget,
+                Payload = JsonSerializer.SerializeToElement(
+                    requestPayload,
+                    WorkerProtocol.JsonOptions)
+            },
+            timeout,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!response.Success || response.Payload is not { } payload)
+        {
+            string message = response.Error?.Message ?? "Worker returned no application payload.";
+            throw new InvalidOperationException(message);
+        }
+
+        return payload.Deserialize<PowerLimitApplicationResult>(WorkerProtocol.JsonOptions)
+            ?? throw new InvalidOperationException("Worker returned an invalid application payload.");
     }
 
     public async Task<WorkerResponse> SendAsync(

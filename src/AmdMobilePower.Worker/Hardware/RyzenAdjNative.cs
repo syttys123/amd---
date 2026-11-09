@@ -2,7 +2,30 @@ using System.Runtime.InteropServices;
 
 namespace AmdMobilePower.Worker.Hardware;
 
-internal sealed class RyzenAdjNativeApi
+internal interface IRyzenAdjNativeApi
+{
+    IntPtr InitRyzenAdj();
+    uint GetWinRingDllStatus();
+    void CleanupRyzenAdj(IntPtr ryzenAccess);
+    int GetCpuFamily(IntPtr ryzenAccess);
+    int GetBiosIfVersion(IntPtr ryzenAccess);
+    int InitTable(IntPtr ryzenAccess);
+    int RefreshTable(IntPtr ryzenAccess);
+    uint GetTableVersion(IntPtr ryzenAccess);
+    int SetStapmLimit(IntPtr ryzenAccess, uint value);
+    int SetFastLimit(IntPtr ryzenAccess, uint value);
+    int SetSlowLimit(IntPtr ryzenAccess, uint value);
+    float GetStapmLimit(IntPtr ryzenAccess);
+    float GetStapmValue(IntPtr ryzenAccess);
+    float GetFastLimit(IntPtr ryzenAccess);
+    float GetFastValue(IntPtr ryzenAccess);
+    float GetSlowLimit(IntPtr ryzenAccess);
+    float GetSlowValue(IntPtr ryzenAccess);
+    float GetTctlTemp(IntPtr ryzenAccess);
+    float GetTctlTempValue(IntPtr ryzenAccess);
+}
+
+internal sealed class RyzenAdjNativeApi : IRyzenAdjNativeApi
 {
     private readonly IntPtr _winRingHandle;
     private readonly IntPtr _inpOutHandle;

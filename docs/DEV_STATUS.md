@@ -30,7 +30,7 @@ not authoritative.
 - Baseline commit `f9d1be5` was pushed to `origin/main`.
 - The intended project name is `amd-mobile-power`. The GitHub repository still
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
-- The current clean Release build has 22 passing tests across Core and Worker.
+- The current Release build has 31 passing tests across Core and Worker.
 - A real hardware read-only probe against the development laptop succeeded.
 
 ## Development Workflow
@@ -142,18 +142,26 @@ third_party/
   - STAPM, Fast, and Slow all reported as supported.
   - Matched profile `hawk-point-8845hs`.
   - Probe ran while on AC and performed no hardware writes.
+- Added the `applyTarget` named pipe contract.
+- Added profile-aware and capability-aware target validation.
+- Added mandatory read-back checks and automatic STAPM/Fast/Slow restore when a
+  write or read-back fails.
+- Added adapter tests for successful writes, firmware clamps, partial writes,
+  missing read-backs, unexpected read-back increases, native exceptions, and
+  restore failures.
+- Added `docs/HARDWARE_TEST_PROCEDURE.md`.
 
 ## In Progress
 
-- Define the `applyTarget` request and response contract.
-- Add a controlled hardware-test procedure with mandatory read-back and restore.
+- Execute the first supervised no-change hardware write test.
+- Confirm no worker process remains after the hardware test.
 - Resolve WinRing0/inpout redistribution licensing before public binary release.
 
 ## Next Concrete Task
 
-Implement `applyTarget` with mandatory range/capability validation, read-back,
-and prior-state restore, but do not expose it in the GUI until a controlled
-hardware smoke test passes.
+Run the controlled no-change write test while connected to AC, then verify the
+initial and final STAPM/Fast/Slow limits match. Do not expose write controls in
+the GUI until this test passes.
 
 ## Known Risks
 

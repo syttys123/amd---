@@ -7,6 +7,7 @@ using AmdMobilePower.Core.Contracts;
 using AmdMobilePower.Core.Hardware;
 using AmdMobilePower.Core.Models;
 using AmdMobilePower.Core.Profiles;
+using AmdMobilePower.Core.Validation;
 
 public sealed class WorkerServer : IDisposable, IAsyncDisposable
 {
@@ -159,6 +160,12 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
                 .ConfigureAwait(false);
         }
 
+        if (request.Command == WorkerCommand.ApplyTarget)
+        {
+            return await CreateApplyTargetResponseAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         return WorkerProtocol.CreateError(
             request.RequestId,
             WorkerErrorCodes.UnsupportedCommand,
@@ -221,6 +228,109 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         return WorkerProtocol.CreateSuccess(
             requestId,
             new WorkerSnapshot(platform, profile, telemetry));
+    }
+
+    private async Task<WorkerResponse> CreateApplyTargetResponseAsync(
+        WorkerRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (_adapter is null)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.WorkerUnavailable,
+                "No hardware adapter is configured.");
+        }
+
+        ApplyTargetRequest? payload;
+        try
+        {
+            payload = request.Payload?.Deserialize<ApplyTargetRequest>(WorkerProtocol.JsonOptions);
+        }
+        catch (JsonException error)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.InvalidRequest,
+                $"Invalid applyTarget payload: {error.Message}");
+        }
+
+        if (payload is null)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.InvalidRequest,
+                "applyTarget requires a target payload.");
+        }
+
+        PlatformCapability platform = await _adapter.ProbeAsync(cancellationToken).ConfigureAwait(false);
+        _hardwareInitialized = platform.IsSupported;
+        if (!platform.IsSupported)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.UnsupportedPlatform,
+                platform.UnsupportedReason ?? "The platform does not support power-limit writes.",
+                platform);
+        }
+
+        PowerLimitTargetValidationResult validation =
+            PowerLimitTargetValidator.Validate(payload.Target, platform.Limits);
+        if (!validation.IsValid)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.InvalidTarget,
+                validation.Error ?? "The target power limits are invalid.");
+        }
+
+        PlatformProfile? profile = ProfileRepository.FindBestMatch(_profiles, platform.Cpu);
+        string? profileError = ValidateAgainstProfile(payload.Target, profile);
+        if (profileError is not null)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.InvalidTarget,
+                profileError);
+        }
+
+        PowerLimitApplicationResult result = await _adapter
+            .ApplyTargetAsync(payload.Target, cancellationToken)
+            .ConfigureAwait(false);
+        if (result.IsSuccessful)
+        {
+            return WorkerProtocol.CreateSuccess(request.RequestId, result);
+        }
+
+        string errorCode = result.RestoreAttempted && !result.RestoredPreviousLimits
+            ? WorkerErrorCodes.HardwareRestoreFailed
+            : WorkerErrorCodes.HardwareWriteFailed;
+        return WorkerProtocol.CreateError(
+            request.RequestId,
+            errorCode,
+            result.Error ?? "The power-limit write did not complete successfully.",
+            result);
+    }
+
+    private static string? ValidateAgainstProfile(
+        PowerLimitTarget target,
+        PlatformProfile? profile)
+    {
+        if (profile is null)
+        {
+            return null;
+        }
+
+        int minimum = Math.Min(target.StapmWatts, Math.Min(target.FastWatts, target.SlowWatts));
+        int maximum = target.MaximumWatts;
+        if (minimum < profile.MinimumWatts || maximum > profile.MaximumWatts)
+        {
+            return
+                $"Target values must be between {profile.MinimumWatts}W and " +
+                $"{profile.MaximumWatts}W for profile {profile.Id}.";
+        }
+
+        return null;
     }
 }
 

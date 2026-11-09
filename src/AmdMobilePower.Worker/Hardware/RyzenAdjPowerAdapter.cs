@@ -8,12 +8,36 @@ namespace AmdMobilePower.Worker.Hardware;
 
 public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
 {
+    private const double ReadbackToleranceWatts = 0.75;
+    private const int MinimumRestoreWatts = 1;
+    private const int MaximumRestoreWatts = 200;
+
     private readonly object _sync = new();
-    private readonly RyzenAdjNativeApi _native;
+    private readonly IRyzenAdjNativeApi _native;
+    private readonly Func<CpuPlatformInfo> _cpuInfoProvider;
+    private readonly Func<PowerLineState> _powerLineProvider;
     private IntPtr _ryzenAccess;
     private bool _disposed;
 
     public RyzenAdjPowerAdapter(string runtimeDirectory)
+        : this(
+            CreateNativeApi(runtimeDirectory),
+            ReadCpuInfo,
+            GetPowerLineState)
+    {
+    }
+
+    internal RyzenAdjPowerAdapter(
+        IRyzenAdjNativeApi native,
+        Func<CpuPlatformInfo>? cpuInfoProvider = null,
+        Func<PowerLineState>? powerLineProvider = null)
+    {
+        _native = native;
+        _cpuInfoProvider = cpuInfoProvider ?? ReadCpuInfo;
+        _powerLineProvider = powerLineProvider ?? GetPowerLineState;
+    }
+
+    private static IRyzenAdjNativeApi CreateNativeApi(string runtimeDirectory)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(runtimeDirectory);
         string libraryPath = Path.Combine(runtimeDirectory, "libryzenadj.dll");
@@ -22,7 +46,7 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
             throw new FileNotFoundException("libryzenadj.dll was not found.", libraryPath);
         }
         SetDllDirectory(runtimeDirectory);
-        _native = new RyzenAdjNativeApi(runtimeDirectory);
+        return new RyzenAdjNativeApi(runtimeDirectory);
     }
 
     public Task<PlatformCapability> ProbeAsync(CancellationToken cancellationToken = default)
@@ -51,25 +75,7 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
                 {
                     ThrowIfDisposed();
                     EnsureInitialized();
-                    int result = _native.RefreshTable(_ryzenAccess);
-                    if (result != 0)
-                    {
-                        throw new InvalidOperationException($"RyzenAdj refresh_table failed with code {result}.");
-                    }
-
-                    return new TelemetrySnapshot
-                    {
-                        StapmValueWatts = ReadFloat(_native.GetStapmValue(_ryzenAccess)),
-                        FastValueWatts = ReadFloat(_native.GetFastValue(_ryzenAccess)),
-                        SlowValueWatts = ReadFloat(_native.GetSlowValue(_ryzenAccess)),
-                        StapmLimitWatts = ReadFloat(_native.GetStapmLimit(_ryzenAccess)),
-                        FastLimitWatts = ReadFloat(_native.GetFastLimit(_ryzenAccess)),
-                        SlowLimitWatts = ReadFloat(_native.GetSlowLimit(_ryzenAccess)),
-                        TctlValueCelsius = ReadFloat(_native.GetTctlTempValue(_ryzenAccess)),
-                        TctlLimitCelsius = ReadFloat(_native.GetTctlTemp(_ryzenAccess)),
-                        PowerLine = GetPowerLineState(),
-                        UpdatedAt = DateTimeOffset.Now
-                    };
+                    return RefreshTelemetryCore();
                 }
             },
             cancellationToken);
@@ -102,37 +108,55 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
                         throw new ArgumentException(validation.Error, nameof(target));
                     }
 
-                    int stapmResult = _native.SetStapmLimit(
-                        _ryzenAccess,
-                        checked((uint)(target.StapmWatts * 1000)));
-                    int fastResult = _native.SetFastLimit(
-                        _ryzenAccess,
-                        checked((uint)(target.FastWatts * 1000)));
-                    int slowResult = _native.SetSlowLimit(
-                        _ryzenAccess,
-                        checked((uint)(target.SlowWatts * 1000)));
-                    int refreshResult = _native.RefreshTable(_ryzenAccess);
-
-                    List<PowerLimitReadback> readbacks = new(3)
+                    TelemetrySnapshot before = RefreshTelemetryCore();
+                    if (!TryGetPreviousTarget(before, out PowerLimitTarget previous, out string? previousError))
                     {
-                        CreateReadback(
-                            PowerLimitKind.Stapm,
-                            target.StapmWatts,
-                            stapmResult,
-                            refreshResult == 0 ? _native.GetStapmLimit(_ryzenAccess) : float.NaN),
-                        CreateReadback(
-                            PowerLimitKind.Fast,
-                            target.FastWatts,
-                            fastResult,
-                            refreshResult == 0 ? _native.GetFastLimit(_ryzenAccess) : float.NaN),
-                        CreateReadback(
-                            PowerLimitKind.Slow,
-                            target.SlowWatts,
-                            slowResult,
-                            refreshResult == 0 ? _native.GetSlowLimit(_ryzenAccess) : float.NaN)
-                    };
+                        throw new InvalidOperationException(
+                            $"Previous power limits cannot be verified safely: {previousError}");
+                    }
 
-                    return new PowerLimitApplicationResult(target, readbacks);
+                    PowerLimitWriteAttempt applied;
+                    try
+                    {
+                        applied = WriteTarget(target, requireExactReadback: false);
+                    }
+                    catch (Exception writeError)
+                    {
+                        applied = new PowerLimitWriteAttempt(
+                            Array.Empty<PowerLimitReadback>(),
+                            $"Power-limit write failed: {writeError.Message}");
+                    }
+
+                    if (applied.IsSuccessful)
+                    {
+                        return new PowerLimitApplicationResult(
+                            target,
+                            applied.Readbacks,
+                            previous);
+                    }
+
+                    PowerLimitWriteAttempt restored;
+                    try
+                    {
+                        restored = WriteTarget(previous, requireExactReadback: true);
+                    }
+                    catch (Exception restoreError)
+                    {
+                        restored = new PowerLimitWriteAttempt(
+                            Array.Empty<PowerLimitReadback>(),
+                            $"Restore threw an exception: {restoreError.Message}");
+                    }
+
+                    return new PowerLimitApplicationResult(
+                        target,
+                        applied.Readbacks,
+                        previous,
+                        RestoreAttempted: true,
+                        RestoredPreviousLimits: restored.IsSuccessful,
+                        restored.Readbacks,
+                        restored.IsSuccessful
+                            ? applied.Error
+                            : $"{applied.Error} Restore failed: {restored.Error}");
                 }
             },
             cancellationToken);
@@ -181,7 +205,7 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
 
     private PlatformCapability ReadCapability()
     {
-        CpuPlatformInfo cpu = ReadCpuInfo();
+        CpuPlatformInfo cpu = _cpuInfoProvider();
         try
         {
             EnsureInitialized();
@@ -206,6 +230,149 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
                 false,
                 $"{error.Message} WinRing0 status={winRingStatus} ({DescribeWinRingStatus(winRingStatus)}).");
         }
+    }
+
+    private TelemetrySnapshot ReadTelemetry()
+    {
+        return new TelemetrySnapshot
+        {
+            StapmValueWatts = ReadFloat(_native.GetStapmValue(_ryzenAccess)),
+            FastValueWatts = ReadFloat(_native.GetFastValue(_ryzenAccess)),
+            SlowValueWatts = ReadFloat(_native.GetSlowValue(_ryzenAccess)),
+            StapmLimitWatts = ReadFloat(_native.GetStapmLimit(_ryzenAccess)),
+            FastLimitWatts = ReadFloat(_native.GetFastLimit(_ryzenAccess)),
+            SlowLimitWatts = ReadFloat(_native.GetSlowLimit(_ryzenAccess)),
+            TctlValueCelsius = ReadFloat(_native.GetTctlTempValue(_ryzenAccess)),
+            TctlLimitCelsius = ReadFloat(_native.GetTctlTemp(_ryzenAccess)),
+            PowerLine = _powerLineProvider(),
+            UpdatedAt = DateTimeOffset.Now
+        };
+    }
+
+    private TelemetrySnapshot RefreshTelemetryCore()
+    {
+        int result = _native.RefreshTable(_ryzenAccess);
+        if (result != 0)
+        {
+            throw new InvalidOperationException($"RyzenAdj refresh_table failed with code {result}.");
+        }
+
+        return ReadTelemetry();
+    }
+
+    private PowerLimitWriteAttempt WriteTarget(
+        PowerLimitTarget target,
+        bool requireExactReadback)
+    {
+        int stapmResult = _native.SetStapmLimit(
+            _ryzenAccess,
+            checked((uint)(target.StapmWatts * 1000)));
+        int fastResult = _native.SetFastLimit(
+            _ryzenAccess,
+            checked((uint)(target.FastWatts * 1000)));
+        int slowResult = _native.SetSlowLimit(
+            _ryzenAccess,
+            checked((uint)(target.SlowWatts * 1000)));
+        int refreshResult = _native.RefreshTable(_ryzenAccess);
+
+        List<PowerLimitReadback> readbacks = new(3)
+        {
+            CreateReadback(
+                PowerLimitKind.Stapm,
+                target.StapmWatts,
+                stapmResult,
+                refreshResult == 0 ? _native.GetStapmLimit(_ryzenAccess) : float.NaN),
+            CreateReadback(
+                PowerLimitKind.Fast,
+                target.FastWatts,
+                fastResult,
+                refreshResult == 0 ? _native.GetFastLimit(_ryzenAccess) : float.NaN),
+            CreateReadback(
+                PowerLimitKind.Slow,
+                target.SlowWatts,
+                slowResult,
+                refreshResult == 0 ? _native.GetSlowLimit(_ryzenAccess) : float.NaN)
+        };
+
+        List<string> errors = new(4);
+        foreach (PowerLimitReadback readback in readbacks)
+        {
+            if (readback.DriverResultCode != 0)
+            {
+                errors.Add(
+                    $"{readback.Kind} write returned {readback.DriverResultCode}.");
+                continue;
+            }
+            if (readback.EffectiveWatts is not { } effective)
+            {
+                errors.Add($"{readback.Kind} read-back is unavailable.");
+                continue;
+            }
+            if (effective <= 0)
+            {
+                errors.Add($"{readback.Kind} read back an invalid value of {effective:0.00}W.");
+                continue;
+            }
+
+            double difference = effective - readback.RequestedWatts;
+            bool invalid = requireExactReadback
+                ? Math.Abs(difference) > ReadbackToleranceWatts
+                : difference > ReadbackToleranceWatts;
+            if (invalid)
+            {
+                errors.Add(
+                    $"{readback.Kind} requested {readback.RequestedWatts}W but read back {effective:0.00}W.");
+            }
+        }
+
+        if (refreshResult != 0)
+        {
+            errors.Add($"RyzenAdj refresh_table failed with code {refreshResult}.");
+        }
+
+        return new PowerLimitWriteAttempt(
+            readbacks,
+            errors.Count == 0 ? null : string.Join(" ", errors));
+    }
+
+    private static bool TryGetPreviousTarget(
+        TelemetrySnapshot telemetry,
+        out PowerLimitTarget target,
+        out string? error)
+    {
+        target = default;
+        error = null;
+        if (telemetry.StapmLimitWatts is not { } stapm ||
+            telemetry.FastLimitWatts is not { } fast ||
+            telemetry.SlowLimitWatts is not { } slow)
+        {
+            error = "STAPM, Fast, or Slow limits are missing.";
+            return false;
+        }
+
+        int stapmWatts = RoundReadback(stapm);
+        int fastWatts = RoundReadback(fast);
+        int slowWatts = RoundReadback(slow);
+        if (!IsRestorable(stapmWatts) || !IsRestorable(fastWatts) || !IsRestorable(slowWatts))
+        {
+            error =
+                $"Read-back values must be between {MinimumRestoreWatts}W and {MaximumRestoreWatts}W; " +
+                $"received {stapm:0.00}/{fast:0.00}/{slow:0.00}W.";
+            return false;
+        }
+
+        target = new PowerLimitTarget(stapmWatts, fastWatts, slowWatts);
+        return true;
+    }
+
+    private static int RoundReadback(double watts)
+    {
+        return checked((int)Math.Round(watts, MidpointRounding.AwayFromZero));
+    }
+
+    private static bool IsRestorable(int watts)
+    {
+        return watts is >= MinimumRestoreWatts and <= MaximumRestoreWatts;
     }
 
     private static PowerLimitReadback CreateReadback(
@@ -273,6 +440,13 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
     private void ThrowIfDisposed()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+    }
+
+    private sealed record PowerLimitWriteAttempt(
+        IReadOnlyList<PowerLimitReadback> Readbacks,
+        string? Error)
+    {
+        public bool IsSuccessful => Error is null;
     }
 
     [DllImport("kernel32.dll")]

@@ -38,6 +38,7 @@ See:
 - `docs/IPC.md` for the GUI-to-worker protocol.
 - `docs/PROFILES.md` for platform capability profiles.
 - `docs/BUILDING.md` for application and RyzenAdj builds.
+- `docs/HARDWARE_TEST_PROCEDURE.md` for supervised hardware verification.
 - `AGENTS.md` for maintenance rules.
 
 ## License

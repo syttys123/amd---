@@ -70,7 +70,7 @@ Failure:
 | `getHealth` | implemented | no |
 | `getCapabilities` | implemented; requires the opt-in hardware adapter | probe only |
 | `getSnapshot` | implemented; requires the opt-in hardware adapter | read only |
-| `applyTarget` | reserved | yes |
+| `applyTarget` | implemented; mock-tested, hardware smoke pending | read/write |
 | `refreshTelemetry` | reserved | yes |
 | `setPresets` | reserved | no |
 | `exportDiagnostics` | reserved | read-only |

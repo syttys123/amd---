@@ -31,12 +31,20 @@ public static class WorkerProtocol
     public static WorkerResponse CreateError(
         string requestId,
         string code,
-        string message)
+        string message,
+        object? payload = null)
     {
+        JsonElement? payloadElement = null;
+        if (payload is not null)
+        {
+            payloadElement = JsonSerializer.SerializeToElement(payload, payload.GetType(), JsonOptions);
+        }
+
         return new WorkerResponse
         {
             RequestId = requestId,
             Success = false,
+            Payload = payloadElement,
             Error = new WorkerError(code, message)
         };
     }

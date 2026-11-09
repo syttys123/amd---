@@ -21,6 +21,7 @@
 - [x] Add RyzenAdj source submodule and reproducible Windows build script.
 - [x] Detect CPU family, SMU interface, PM table, and supported fields.
 - [x] Expose read-only capability and telemetry snapshots over the named pipe.
+- [x] Implement validated target writes with mandatory read-back and restore.
 - [ ] Implement AC/battery target application with read-back verification.
 - [ ] Implement safe shutdown and single-instance behavior.
 - [ ] Add diagnostic logging.

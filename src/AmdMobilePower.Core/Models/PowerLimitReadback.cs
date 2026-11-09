@@ -8,8 +8,15 @@ public sealed record PowerLimitReadback(
 
 public sealed record PowerLimitApplicationResult(
     PowerLimitTarget Target,
-    IReadOnlyList<PowerLimitReadback> Readbacks)
+    IReadOnlyList<PowerLimitReadback> Readbacks,
+    PowerLimitTarget? PreviousTarget = null,
+    bool RestoreAttempted = false,
+    bool RestoredPreviousLimits = false,
+    IReadOnlyList<PowerLimitReadback>? RestoreReadbacks = null,
+    string? Error = null)
 {
+    public bool IsSuccessful => Error is null;
+
     public bool HasFirmwareClamp =>
         Readbacks.Any(readback =>
             readback.EffectiveWatts is { } effective &&
