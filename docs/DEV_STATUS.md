@@ -503,7 +503,7 @@ third_party/
   the Windows build workflow. Windows PowerShell 5.1 and PowerShell 7 both
   complete the six-project audit.
 - Verified the solution with an isolated .NET SDK `8.0.427`: restore, Release
-  build, 65 tests, formatting, and vulnerability audit pass with zero warnings.
+  build, 68 tests, formatting, and dependency audit pass with zero warnings.
   The CI workflow now pins this tested SDK patch instead of tracking `8.0.x`.
 - Fixed three installer defects found by current-user integration testing:
   scheduled-task permission failures now reset the native exit code before the
@@ -543,13 +543,13 @@ third_party/
   uses an isolated pipe, writes a whitelisted and path-sanitized JSON report,
   and requires graceful protocol shutdown. Release verification can exercise
   this path with `-VerifyDiagnostics`.
-- Rebuilt the clean Lite package after upgrading the test toolchain and adding
-  the dependency vulnerability and deprecation gate. The package is 593,460
+- Rebuilt the clean Lite package after adding product analyzer hardening and
+  the dependency vulnerability and deprecation gate. The package is 593,794
   bytes with SHA256
-  `397e78135cd11c3c7b1f32e52f65dbc45828c5b2b7b67d28e08022b48c9f3ca0`,
-  built from commit `f5bf83c` with .NET SDK `8.0.427`, and contains 40 files
+  `cdc987acfe9c9c4f311999a1eb5b9d8fee5a77f40b0f9da39062315d93be12b1`,
+  built from commit `dae220b` with .NET SDK `8.0.427`, and contains 40 files
   with 39 checksum entries.
-  The full local gate passed with 0 build warnings, 65/65 tests, shell
+  The full local gate passed with 0 build warnings, 68/68 tests, shell
   integration, tray-menu placement, graceful tray exit, and read-only
   diagnostics collection. Direct and transitive dependency audit covered all
   six projects with zero advisories. PowerShell 5.1 and PowerShell 7 both
@@ -563,6 +563,10 @@ third_party/
   and PowerShell 7 pass. The media verifier now reads UTF-8 JSON explicitly and
   captures FFmpeg stderr without treating successful diagnostics as a failure
   on PowerShell 5.1.
+- Enabled selected product analyzers as errors under `src/.editorconfig`:
+  null validation, culture-stable formatting, explicit string comparison, and
+  safe P/Invoke search paths. Added regression tests for the new public API
+  null guards.
 - Replaced the GUI's raw diagnostics serialization with the shared
   `PublicDiagnosticsReport` whitelist. The GUI and portable collector now
   exclude process IDs, worker/log directories, and recent logs while redacting

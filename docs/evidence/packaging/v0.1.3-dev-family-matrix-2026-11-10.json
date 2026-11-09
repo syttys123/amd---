@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "evidenceType": "clean-release-verification",
-  "generatedAt": "2026-11-10T07:18:05.000+08:00",
-  "sourceCommit": "f5bf83c09d4a4c6f555bd30e17732000dcd2a0b9",
+  "generatedAt": "2026-11-10T07:43:12.000+08:00",
+  "sourceCommit": "dae220b8a1bfc03446dbd79f421114de6c4f61f6",
   "workingTree": "Clean",
   "verificationCommand": ".\\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent -VerifyShellIntegration -VerifyTrayMenu -VerifyTrayExit -VerifyDiagnostics",
   "package": {
     "name": "amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
-    "sizeBytes": 593460,
-    "sha256": "397e78135cd11c3c7b1f32e52f65dbc45828c5b2b7b67d28e08022b48c9f3ca0",
+    "sizeBytes": 593794,
+    "sha256": "cdc987acfe9c9c4f311999a1eb5b9d8fee5a77f40b0f9da39062315d93be12b1",
     "files": 40,
     "checksums": 39,
     "profiles": 9,
@@ -21,7 +21,7 @@
     "frameworkDependent": true,
     "warnings": 0,
     "errors": 0,
-    "testsPassed": 65,
+    "testsPassed": 68,
     "testsFailed": 0,
     "dependencyAudit": {
       "result": "PASS",
@@ -44,8 +44,8 @@
     "trayMenuItems": 11,
     "trayMenuHorizontalGap": 0,
     "trayGracefulExit": "PASS",
-    "trayNotificationText": "AMD Mobile Power AMD Mobile Power | 电池 | 19.4 W",
-    "trayScreenshotSha256": "3b8cc241b496a94f9a6ae243044f9965fb252247283c02fa5ace183bb7a3cc94"
+    "trayNotificationText": "AMD Mobile Power AMD Mobile Power | 电源 | 25.0 W",
+    "trayScreenshotSha256": "6a8bfe099da309d4f31f599b77efd5f393775d46439dcf4495bd0267f29551e4"
   },
   "diagnostics": {
     "collectionStatus": "PASS",

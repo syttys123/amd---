@@ -37,7 +37,7 @@ AMD Mobile Power 是一个面向 AMD 轻薄本的 Windows 原生功耗监控工�
 - GUI 与隐藏 worker 通过当前用户专属命名管道通信。
 - 12 W、25 W、45 W 预设可编辑，写入门禁与失败回读路径已有自动化测试。
 - 便携包包含无需打开 GUI 的只读诊断收集器。
-- 本地发布门禁通过：构建 0 警告、65/65 测试、安装/卸载、托盘退出、
+- 本地发布门禁通过：构建 0 警告、68/68 测试、安装/卸载、托盘退出、
   只读诊断和 clean-package 校验。
 
 ## 安全边界
@@ -47,6 +47,15 @@ AMD Mobile Power 是一个面向 AMD 轻薄本的 Windows 原生功耗监控工�
 
 不同 AMD 世代、BIOS 和 EC 行为需要独立证据。目前只有一台开发机的完整
 实机证据，因此本项目不声明支持所有 AMD 笔记本。
+
+## 已知风险
+
+- 这是开发预览，不保证在所有 AMD 轻薄本上可用。
+- BIOS 或 EC 可能钳制、忽略或动态调整请求值；必须同时查看回读值和实时功耗。
+- WinRing0 可能被 Windows 安全软件阻止、隔离或卸载。不要关闭系统安全防护。
+- 强制结束进程、蓝屏或意外断电可能中断恢复流程；不要在无人值守场景执行写入。
+- Windows 无法区分 USB-C 充电宝与墙插，两者都会被报告为“电源”。
+- 除 Ryzen 7 8845HS 开发机外，其余世代配置仍是实验性适配，需要社区诊断证据。
 
 ## 兼容性反馈
 
@@ -62,6 +71,7 @@ powershell -ExecutionPolicy Bypass -File .\collect-diagnostics.ps1
 ## 下载
 
 - Lite 包需要 Microsoft .NET 8 Desktop Runtime x64。
+- Release Assets 包含 Lite ZIP 及其同名 `.sha256` 校验文件。
 - 完整 SHA256、构建提交和测试证据见 Release Assets 与本仓库文档。
 ````
 

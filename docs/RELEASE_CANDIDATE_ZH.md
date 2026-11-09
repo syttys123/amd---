@@ -8,15 +8,15 @@
 ## Source And Package
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
-- Current source commit reviewed: `f5bf83c`
-- Package source commit: `f5bf83c`
+- Current source commit reviewed: `dae220b`
+- Package source commit: `dae220b`
 - Package: `artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip`
-- Size: `593,460` bytes
-- SHA256: `397e78135cd11c3c7b1f32e52f65dbc45828c5b2b7b67d28e08022b48c9f3ca0`
+- Size: `593,794` bytes
+- SHA256: `cdc987acfe9c9c4f311999a1eb5b9d8fee5a77f40b0f9da39062315d93be12b1`
 - Files / checksums / profiles / licenses: `40 / 39 / 9 / 4`
 - Runtime: Microsoft .NET 8 Desktop Runtime x64
 
-The ZIP was rebuilt from a clean `f5bf83c` worktree with .NET SDK `8.0.427`,
+The ZIP was rebuilt from a clean `dae220b` worktree with .NET SDK `8.0.427`,
 matching the pinned CI toolchain. Later documentation-only commits do not change
 the packaged runtime files.
 
@@ -27,7 +27,7 @@ Evidence:
 
 - Build warnings / errors: `0 / 0`
 - SDK: `8.0.427`
-- Tests: `65 passed, 0 failed`
+- Tests: `68 passed, 0 failed`
 - Formatting verification: PASS
 - NuGet dependency audit: PASS (`6` projects, `0` advisories, `0` deprecated packages)
 - Isolated install, overwrite, and uninstall: PASS
@@ -123,7 +123,7 @@ docs/assets/bilibili-cover-2026-11-10.png
 - The supervised full AC -> battery -> AC policy transition still needs a human
   operator and explicit confirmation phrase.
 - At least one second AMD laptop still needs read-only compatibility evidence.
-- Any runtime or packaging change after `f5bf83c` requires a new clean package,
+- Any runtime or packaging change after `dae220b` requires a new clean package,
   SHA256, and release evidence.
 - Project owner must review final video voice, pacing, claims, and cover.
 - GitHub tag/release, Bilibili login/upload, and public publication require

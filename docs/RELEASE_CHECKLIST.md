@@ -78,7 +78,9 @@
 - [x] Draft GitHub release notes and Bilibili publication copy are prepared.
       Evidence: `LAUNCH_COPY_ZH.md`; publication still requires human approval.
 - [ ] GitHub release tag and asset list are reviewed.
-- [ ] Release notes include safety limits and known risks.
+- [x] Release notes include safety limits and known risks.
+      Evidence: `LAUNCH_COPY_ZH.md`; draft covers firmware limits, driver blocks,
+      interrupted recovery, power-bank detection, and experimental profiles.
 - [ ] Bilibili upload uses an authenticated human-operated session.
 - [ ] No login, credential, or account-security prompt is automated.
 - [ ] Project owner gives explicit approval for final publication.
