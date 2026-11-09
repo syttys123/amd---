@@ -2612,7 +2612,7 @@ internal sealed class MainForm : Form
         _simpleLimitSummary.Text = $"动态上限 {limit} W · {powerLine}";
     }
 
-    private static string DescribePowerLine(PowerLineState powerLine)
+    internal static string DescribePowerLine(PowerLineState powerLine)
     {
         return powerLine switch
         {
