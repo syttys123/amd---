@@ -146,3 +146,18 @@ https://github.com/syttys123/amd-mobile-power
 - Final video reviewed by the project owner.
 - GitHub release and Bilibili login/upload performed with explicit human
   confirmation.
+
+## Reproducible Draft
+
+`render-promo.ps1` reads `media/promo/storyboard.json`, renders 1920x1080 slides
+from the reviewed screenshots, generates Chinese narration with the installed
+Windows voice, burns no terminal footage, and produces an MP4 plus an SRT and a
+hash manifest under `artifacts/media`.
+
+The output is intentionally marked `DRAFT_FOR_HUMAN_REVIEW`. Rendering the file
+does not satisfy the publication gate and does not log in to GitHub or Bilibili.
+
+Current draft status: rendered at 71.9 seconds in 1920x1080 with Chinese
+narration and captions. Cover and contact-sheet review assets are committed;
+the MP4 remains under ignored `artifacts/media`. Project-owner review is still
+pending.

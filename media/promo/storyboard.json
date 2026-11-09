@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "title": "AMD Mobile Power",
+  "subtitle": "AMD 轻薄本功耗，看得见，改得谨慎",
+  "repositoryUrl": "https://github.com/syttys123/amd-mobile-power",
+  "voice": "Microsoft Huihui Desktop",
+  "voiceRate": 3,
+  "voiceVolume": 90,
+  "scenes": [
+    {
+      "id": "hook",
+      "layout": "hero",
+      "eyebrow": "OPEN SOURCE / DEV PREVIEW",
+      "title": "AMD 轻薄本\n功耗别只靠猜",
+      "caption": "实时看见 STAPM / PPT / 温度",
+      "image": "docs/assets/main-dashboard-clean-package-2026-11-10.png",
+      "badges": [
+        "12.0 W 动态上限",
+        "电源 / 电池",
+        "原生 GUI"
+      ],
+      "narration": "插电、离电或接充电宝时，AMD 轻薄本功耗会变化。AMD Mobile Power 把 RyzenAdj 做成可读的原生桌面工具。"
+    },
+    {
+      "id": "live",
+      "layout": "screenshot-right",
+      "eyebrow": "LIVE TELEMETRY",
+      "title": "每秒看见\n真实状态",
+      "bullets": [
+        "实时 STAPM / PPT",
+        "目标值与固件上限分开",
+        "供电、温度和匹配配置"
+      ],
+      "image": "docs/assets/main-dashboard-clean-package-2026-11-10.png",
+      "narration": "每秒刷新实时功耗、功耗上限和温度。目标值与固件上限分开显示，避免把调用成功当成实际生效。"
+    },
+    {
+      "id": "presets",
+      "layout": "screenshot-right",
+      "eyebrow": "EDITABLE PRESETS",
+      "title": "12 / 25 / 45 W\n快捷，也能编辑",
+      "bullets": [
+        "默认只读",
+        "校验平台与范围",
+        "写入开关双重确认"
+      ],
+      "image": "docs/assets/preset-editor-2026-11-10.png",
+      "narration": "十二、二十五、四十五瓦三个预设都可编辑。开发版默认只读，写入需要额外开关并校验平台与范围。"
+    },
+    {
+      "id": "safety",
+      "layout": "screenshot-right",
+      "eyebrow": "FAIL CLOSED",
+      "title": "安全边界\n写进产品里",
+      "bullets": [
+        "GUI / worker 隔离",
+        "单一硬件所有者",
+        "强制回读与失败锁定"
+      ],
+      "image": "docs/assets/worker-conflict-2026-11-10.png",
+      "narration": "硬件访问隔离在独立 worker，只允许一个 RyzenAdj 所有者。写入后强制回读，读取超时立即停止自动重启。"
+    },
+    {
+      "id": "tray",
+      "layout": "tray",
+      "eyebrow": "TRAY WORKFLOW",
+      "title": "关掉窗口\n监控继续",
+      "bullets": [
+        "隐藏托盘实时状态",
+        "菜单快捷预设",
+        "无黑窗后台"
+      ],
+      "image": "docs/assets/tray-menu-clean-package-2026-11-10.png",
+      "narration": "关闭窗口后留在托盘。隐藏图标也能看实时功率和供电状态，菜单支持预设、切换、置顶和诊断，全程没有黑窗。"
+    },
+    {
+      "id": "compatibility",
+      "layout": "screenshot-right",
+      "eyebrow": "EVIDENCE FIRST",
+      "title": "先测清楚\n再谈兼容",
+      "bullets": [
+        "Ryzen 7 8845HS",
+        "Hawk Point / PMT 4c0009",
+        "仅一台实机证据"
+      ],
+      "image": "docs/assets/main-dashboard-external-power-2026-11-10.png",
+      "narration": "目前只有一台 Ryzen 七 八八四五 H S 的完整实机证据。不同 AMD 世代和 BIOS 需要独立诊断，不能冒充通用支持。"
+    },
+    {
+      "id": "closing",
+      "layout": "closing",
+      "eyebrow": "OPEN SOURCE / SAFETY FIRST",
+      "title": "默认只读\n谨慎写入",
+      "caption": "欢迎提交同型号诊断与兼容性证据",
+      "image": "assets/amd-mobile-power-256.png",
+      "narration": "项目仍在开发，默认只读，危险写入留在受控验证之后。Git Hub 开源，欢迎提交同型号诊断，不要关闭系统安全防护。"
+    }
+  ]
+}
