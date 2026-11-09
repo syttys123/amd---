@@ -15,6 +15,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
     private readonly NamedPipeWorkerClient _client = new();
     private readonly bool _allowHardwareWrites;
     private Process? _workerProcess;
+    private string? _hardwareFault;
 
     public WorkerProcessController(bool allowHardwareWrites)
     {
@@ -23,6 +24,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
 
     public async Task<WorkerSnapshot> GetSnapshotAsync(CancellationToken cancellationToken)
     {
+        ThrowIfHardwareFaulted();
         try
         {
             return await _client
@@ -31,6 +33,13 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         }
         catch (Exception error) when (ShouldTryStartingWorker(error, cancellationToken))
         {
+            if (_workerProcess is { HasExited: false } && error is TimeoutException)
+            {
+                throw await EnterHardwareFaultAsync(
+                    "worker 读取硬件超时，已停止自动重启。请重启 Windows 后再打开程序。",
+                    error).ConfigureAwait(false);
+            }
+
             if (_workerProcess is { HasExited: false })
             {
                 await Task.Delay(120, cancellationToken).ConfigureAwait(false);
@@ -46,9 +55,25 @@ internal sealed class WorkerProcessController : IAsyncDisposable
             }
 
             await EnsureWorkerStartedAsync(cancellationToken).ConfigureAwait(false);
-            return await _client
-                .GetSnapshotAsync(RequestTimeout, cancellationToken)
-                .ConfigureAwait(false);
+            try
+            {
+                return await _client
+                    .GetSnapshotAsync(RequestTimeout, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (TimeoutException timeoutError)
+            {
+                throw await EnterHardwareFaultAsync(
+                    "worker 读取硬件超时，已停止自动重启。请重启 Windows 后再打开程序。",
+                    timeoutError).ConfigureAwait(false);
+            }
+            catch (IOException pipeError) when (
+                _workerProcess is { HasExited: true } && !cancellationToken.IsCancellationRequested)
+            {
+                throw await EnterHardwareFaultAsync(
+                    "worker 在读取硬件时异常退出，已停止自动重启。请重启 Windows 后再打开程序。",
+                    pipeError).ConfigureAwait(false);
+            }
         }
     }
 
@@ -56,6 +81,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         PowerLimitTarget target,
         CancellationToken cancellationToken)
     {
+        ThrowIfHardwareFaulted();
         try
         {
             return await _client
@@ -74,6 +100,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
     public async Task<WorkerDiagnostics> ExportDiagnosticsAsync(
         CancellationToken cancellationToken)
     {
+        ThrowIfHardwareFaulted();
         try
         {
             return await _client
@@ -91,6 +118,7 @@ internal sealed class WorkerProcessController : IAsyncDisposable
 
     public Task<PowerPolicyState> GetPowerPolicyAsync(CancellationToken cancellationToken)
     {
+        ThrowIfHardwareFaulted();
         return _client.GetPowerPolicyAsync(RequestTimeout, cancellationToken);
     }
 
@@ -98,10 +126,16 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         PowerPolicySettings settings,
         CancellationToken cancellationToken)
     {
+        ThrowIfHardwareFaulted();
         return _client.SetPowerPolicyAsync(settings, RequestTimeout, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
+    {
+        await StopWorkerProcessAsync().ConfigureAwait(false);
+    }
+
+    private async Task StopWorkerProcessAsync()
     {
         Process? process = Interlocked.Exchange(ref _workerProcess, null);
         if (process is null)
@@ -120,6 +154,23 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         finally
         {
             process.Dispose();
+        }
+    }
+
+    private async Task<InvalidOperationException> EnterHardwareFaultAsync(
+        string message,
+        Exception innerException)
+    {
+        _hardwareFault = message;
+        await StopWorkerProcessAsync().ConfigureAwait(false);
+        return new InvalidOperationException(message, innerException);
+    }
+
+    private void ThrowIfHardwareFaulted()
+    {
+        if (_hardwareFault is { } fault)
+        {
+            throw new InvalidOperationException(fault);
         }
     }
 

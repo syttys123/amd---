@@ -201,41 +201,50 @@ public sealed class NamedPipeWorkerClient
         using CancellationTokenSource timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutSource.CancelAfter(timeout);
 
-        using NamedPipeClientStream client = new(
-            ".",
-            _pipeName,
-            PipeDirection.InOut,
-            PipeOptions.Asynchronous);
-
-        await client.ConnectAsync(timeoutSource.Token).ConfigureAwait(false);
-
-        using StreamWriter writer = new(
-            client,
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-            bufferSize: 1024,
-            leaveOpen: true)
+        try
         {
-            AutoFlush = true,
-            NewLine = "\n"
-        };
-        using StreamReader reader = new(
-            client,
-            Encoding.UTF8,
-            detectEncodingFromByteOrderMarks: false,
-            bufferSize: 1024,
-            leaveOpen: true);
+            using NamedPipeClientStream client = new(
+                ".",
+                _pipeName,
+                PipeDirection.InOut,
+                PipeOptions.Asynchronous);
 
-        string requestJson = JsonSerializer.Serialize(request, WorkerProtocol.JsonOptions);
-        await writer.WriteLineAsync(requestJson.AsMemory(), timeoutSource.Token).ConfigureAwait(false);
+            await client.ConnectAsync(timeoutSource.Token).ConfigureAwait(false);
 
-        string? responseJson = await reader.ReadLineAsync(timeoutSource.Token).ConfigureAwait(false);
-        if (string.IsNullOrWhiteSpace(responseJson))
-        {
-            throw new IOException("Worker closed the pipe without a response.");
+            using StreamWriter writer = new(
+                client,
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                bufferSize: 1024,
+                leaveOpen: true)
+            {
+                AutoFlush = true,
+                NewLine = "\n"
+            };
+            using StreamReader reader = new(
+                client,
+                Encoding.UTF8,
+                detectEncodingFromByteOrderMarks: false,
+                bufferSize: 1024,
+                leaveOpen: true);
+
+            string requestJson = JsonSerializer.Serialize(request, WorkerProtocol.JsonOptions);
+            await writer.WriteLineAsync(requestJson.AsMemory(), timeoutSource.Token).ConfigureAwait(false);
+
+            string? responseJson = await reader.ReadLineAsync(timeoutSource.Token).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(responseJson))
+            {
+                throw new IOException("Worker closed the pipe without a response.");
+            }
+
+            return JsonSerializer.Deserialize<WorkerResponse>(responseJson, WorkerProtocol.JsonOptions)
+                ?? throw new InvalidOperationException("Worker returned an invalid response.");
         }
-
-        return JsonSerializer.Deserialize<WorkerResponse>(responseJson, WorkerProtocol.JsonOptions)
-            ?? throw new InvalidOperationException("Worker returned an invalid response.");
+        catch (OperationCanceledException error) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException(
+                $"Worker request {request.RequestId} timed out after {timeout.TotalSeconds:0.###} seconds.",
+                error);
+        }
     }
 }
 
