@@ -42,6 +42,14 @@ If an owning worker must be force-terminated, treat the WinRing0/inpout/SMU
 state as tainted. Reboot before probing or writing again; repeated calls can
 raise `AccessViolationException` inside `init_ryzenadj`.
 
+Restarting the WinRing0 and inpout services does not reliably clear this state.
+On the development laptop both services restarted successfully, but
+`ryzenadj.exe --info` still hung in SMU polling.
+
+The GUI treats a hardware-read timeout as a terminal worker fault for the
+current application session. It stops the unresponsive worker and does not
+automatically relaunch it, preventing a crash/restart loop.
+
 ## Write Validation
 
 When write controls are explicitly enabled, the worker:

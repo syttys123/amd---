@@ -183,6 +183,8 @@ third_party/
     `b2be250ec880d1a8f9fe298d622ba5bf14f7a41d85898e3111c7bd56c8c0ceba`
   - Source commit: `783e0e0`
   - Working tree at build time: clean
+  - Rebuild status: stale because the fail-closed worker changes landed after
+    this package was built
 - Verified first install, overwrite upgrade, and uninstall against an isolated
   `artifacts/test-install` directory without changing shell integration.
 - Re-verified isolated install and uninstall with the license-bearing package;
@@ -247,6 +249,16 @@ third_party/
   natively in `init_ryzenadj`.
 - Added a recovery gate: after force-terminating a RyzenAdj owner, reboot before
   attempting another probe or any hardware write.
+- Added fail-closed worker handling: a hardware-read timeout now kills the
+  unresponsive worker, blocks automatic restart attempts, and asks for a Windows
+  reboot instead of relaunching the worker every refresh tick.
+- Negative-tested the fail-closed path against the known bad driver state:
+  the worker timed out once, exited, and remained at zero worker processes
+  while the GUI stayed responsive with the recovery message.
+- Attempted an elevated restart of both `WinRing0_1_2_0` and `inpoutx64` with
+  no RyzenAdj process running. Both services returned to `Running`, but the
+  legacy `ryzenadj.exe --info` still hung in the SMU polling loop. Service
+  restart is therefore insufficient; a Windows reboot remains required.
 
 Development screenshot:
 
@@ -275,6 +287,10 @@ controls in the public package until this test passes.
 - Windows driver security software may block WinRing0.
 - Firmware and EC behavior varies by laptop vendor and BIOS profile.
 - STAPM writes may report success while being clamped.
+- RyzenAdj's SMU test/request polling loops have no timeout. A broken
+  WinRing0/inpout/SMU state can spin one CPU core and later raise a native
+  `AccessViolationException`; the GUI now fails closed but cannot safely reset
+  the driver without a reboot.
 - RyzenAdj LGPL and WinRing0 redistribution terms require review.
 - Bilibili publishing requires an authenticated session and final human review.
 

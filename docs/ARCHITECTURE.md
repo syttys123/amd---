@@ -16,6 +16,8 @@ This document separates the current implementation from the longer-term target.
   override.
 - Starts the worker as a hidden child process when a pipe command cannot reach
   an existing worker.
+- Uses fail-closed recovery for hardware read timeouts: stop the worker, block
+  automatic restart for the current session, and request a Windows reboot.
 
 ### AmdMobilePower.Worker
 
