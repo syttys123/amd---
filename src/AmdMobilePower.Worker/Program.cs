@@ -112,7 +112,8 @@ try
         profiles: profiles,
         allowHardwareWrites: enableWrites,
         workerLog: AppDiagnostics.Worker,
-        guiLog: AppDiagnostics.Gui);
+        guiLog: AppDiagnostics.Gui,
+        requestShutdown: shutdown.Cancel);
     Console.WriteLine($"AMD Mobile Power worker listening on {pipeName}");
     if (enableHardware)
     {

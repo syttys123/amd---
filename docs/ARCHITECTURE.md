@@ -70,9 +70,10 @@ Implemented commands:
 - `getPowerPolicy`
 - `setPowerPolicy` when the worker write flag is enabled
 - `exportDiagnostics`
+- `shutdown` for graceful worker teardown
 
-`refreshTelemetry`, `setPresets`, `restartWorker`, and `shutdown` are reserved
-protocol names but are not implemented commands. See `IPC.md`.
+`refreshTelemetry`, `setPresets`, and `restartWorker` are reserved protocol names
+but are not implemented commands. See `IPC.md`.
 
 ## Data Locations
 

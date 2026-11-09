@@ -33,7 +33,7 @@ not authoritative.
 - Baseline commit `f9d1be5` was pushed to `origin/main`.
 - The intended project name is `amd-mobile-power`. The GitHub repository still
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
-- The current Release build has 61 passing tests across Core, Worker, and GUI.
+- The current Release build has 62 passing tests across Core, Worker, and GUI.
 - A real hardware read-only probe against the development laptop succeeded.
 - The repository GUI now reads through the named pipe and updates every second.
 - The GUI defaults to read-only; hardware writes require the explicit
@@ -507,6 +507,11 @@ third_party/
 - Added `verify-release.ps1 -VerifyTrayMenu`; runtime screenshots are written
   under ignored `artifacts/verify` so an interactive media check does not dirty
   the release worktree.
+- Implemented the versioned `shutdown` worker command with a
+  response-before-exit test; GUI teardown now tries graceful shutdown before
+  falling back to process termination.
+- Added `verify-power-policy.ps1` with a read-only preflight mode and an
+  explicitly confirmed AC/battery baseline, transition, and restore workflow.
 
 Development screenshot:
 

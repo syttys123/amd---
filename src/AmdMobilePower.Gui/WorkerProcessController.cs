@@ -181,8 +181,25 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         {
             if (!process.HasExited)
             {
-                process.Kill(entireProcessTree: true);
-                await process.WaitForExitAsync().ConfigureAwait(false);
+                try
+                {
+                    await _client
+                        .ShutdownAsync(TimeSpan.FromSeconds(2))
+                        .ConfigureAwait(false);
+                    using CancellationTokenSource gracefulTimeout =
+                        new(TimeSpan.FromSeconds(3));
+                    await process
+                        .WaitForExitAsync(gracefulTimeout.Token)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                        await process.WaitForExitAsync().ConfigureAwait(false);
+                    }
+                }
             }
         }
         finally

@@ -23,6 +23,7 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
     private readonly TimeSpan _policyPollInterval;
     private readonly DiagnosticFileLog? _workerLog;
     private readonly DiagnosticFileLog? _guiLog;
+    private readonly Action? _requestShutdown;
     private readonly object _policySync = new();
     private PowerPolicySettings? _powerPolicy;
     private PowerPolicyState _powerPolicyState = new(
@@ -47,7 +48,8 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         bool allowHardwareWrites = false,
         TimeSpan? policyPollInterval = null,
         DiagnosticFileLog? workerLog = null,
-        DiagnosticFileLog? guiLog = null)
+        DiagnosticFileLog? guiLog = null,
+        Action? requestShutdown = null)
     {
         _pipeName = pipeName;
         _startedAt = startedAt ?? DateTimeOffset.UtcNow;
@@ -64,6 +66,7 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         _policyPollInterval = policyPollInterval ?? TimeSpan.FromSeconds(1);
         _workerLog = workerLog;
         _guiLog = guiLog;
+        _requestShutdown = requestShutdown;
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
@@ -178,6 +181,10 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
 
         string responseJson = JsonSerializer.Serialize(response, WorkerProtocol.JsonOptions);
         await writer.WriteLineAsync(responseJson.AsMemory(), cancellationToken).ConfigureAwait(false);
+        if (request?.Command == WorkerCommand.Shutdown && response.Success)
+        {
+            _requestShutdown?.Invoke();
+        }
     }
 
     private async Task<WorkerResponse> HandleRequestAsync(
@@ -246,6 +253,16 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         {
             return await CreateDiagnosticsResponseAsync(request.RequestId, cancellationToken)
                 .ConfigureAwait(false);
+        }
+
+        if (request.Command == WorkerCommand.Shutdown)
+        {
+            return _requestShutdown is null
+                ? WorkerProtocol.CreateError(
+                    request.RequestId,
+                    WorkerErrorCodes.UnsupportedCommand,
+                    "Shutdown is not available for this worker instance.")
+                : WorkerProtocol.CreateSuccess(request.RequestId);
         }
 
         return WorkerProtocol.CreateError(

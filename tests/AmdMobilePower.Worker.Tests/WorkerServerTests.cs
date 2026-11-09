@@ -86,6 +86,23 @@ public sealed class WorkerServerTests
     }
 
     [Fact]
+    public async Task Shutdown_StopsWorkerAfterAcknowledgingRequest()
+    {
+        string pipeName = CreatePipeName();
+        using CancellationTokenSource shutdown = new(TimeSpan.FromSeconds(10));
+        using WorkerServer server = new(
+            pipeName,
+            requestShutdown: shutdown.Cancel);
+        Task serverTask = server.RunAsync(shutdown.Token);
+
+        NamedPipeWorkerClient client = new(pipeName);
+        await client.ShutdownAsync(TimeSpan.FromSeconds(5));
+        await serverTask.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.True(serverTask.IsCompletedSuccessfully);
+    }
+
+    [Fact]
     public async Task GetCapabilities_ReturnsPlatformAndMatchedProfile()
     {
         string pipeName = CreatePipeName();

@@ -46,6 +46,38 @@ intentionally changing the thermal load.
 7. Send a final `getSnapshot` and compare limits with the initial response.
 8. Stop the worker and confirm no worker process remains.
 
+## AC/Battery Policy Verification
+
+Use the packaged worker with `verify-power-policy.ps1`. The default mode is a
+read-only preflight:
+
+```powershell
+.\verify-power-policy.ps1 `
+  -PackageDirectory artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite
+```
+
+The full supervised test starts on AC power, records the current AC limits,
+asks for the adapter to be unplugged, records the current battery limits, tests
+the conservative battery target, verifies the automatic AC transition, and then
+restores both baselines. It requires an explicit switch and an interactive
+confirmation phrase:
+
+```powershell
+.\verify-power-policy.ps1 `
+  -PackageDirectory artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite `
+  -BatteryWatts 12 `
+  -ConfirmHardwareWrite
+```
+
+The script uses an isolated named pipe, disables the policy during baseline
+capture and final recovery, sends `shutdown` for graceful teardown, and writes
+machine-local evidence below `artifacts\verify`. A full run must be supervised;
+do not put it in CI or an unattended automation.
+
+The read-only preflight was exercised on the development laptop on 2026-11-10:
+MECHREVO WUJIE15 PRO, Ryzen 7 8845HS, Hawk Point profile, AC baseline
+12/12/12 W, zero hardware writes, and a clean worker shutdown.
+
 ## Abort Criteria
 
 Stop testing and restore the previous deployment if:

@@ -165,6 +165,21 @@ public sealed class NamedPipeWorkerClient : IWorkerClient
         return DeserializePayload<PowerPolicyState>(response, "power policy");
     }
 
+    public async Task ShutdownAsync(
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
+    {
+        WorkerResponse response = await SendCommandAsync(
+            WorkerCommand.Shutdown,
+            timeout,
+            cancellationToken).ConfigureAwait(false);
+        if (!response.Success)
+        {
+            throw new InvalidOperationException(
+                response.Error?.Message ?? "Worker rejected the shutdown request.");
+        }
+    }
+
     private Task<WorkerResponse> SendCommandAsync(
         WorkerCommand command,
         TimeSpan timeout,

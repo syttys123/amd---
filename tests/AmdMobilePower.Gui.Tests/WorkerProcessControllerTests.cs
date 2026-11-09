@@ -189,5 +189,12 @@ public sealed class WorkerProcessControllerTests
         {
             throw new NotSupportedException();
         }
+
+        public Task ShutdownAsync(
+            TimeSpan timeout,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

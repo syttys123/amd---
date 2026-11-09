@@ -77,7 +77,7 @@ Failure:
 | `setPresets` | reserved | no |
 | `exportDiagnostics` | implemented | read-only |
 | `restartWorker` | reserved | no |
-| `shutdown` | reserved | no |
+| `shutdown` | implemented; acknowledges before graceful worker exit | no |
 
 ## Development
 

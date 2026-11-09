@@ -30,4 +30,8 @@ public interface IWorkerClient
         PowerPolicySettings settings,
         TimeSpan timeout,
         CancellationToken cancellationToken = default);
+
+    Task ShutdownAsync(
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default);
 }
