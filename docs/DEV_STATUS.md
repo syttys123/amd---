@@ -497,6 +497,7 @@ third_party/
 - Added `verify-dependencies.ps1` as a machine-readable release and CI gate. It
   verifies complete project coverage, rejects every reported advisory, and runs
   automatically inside `verify-release.ps1` and the Windows build workflow.
+  Windows PowerShell 5.1 and PowerShell 7 both complete the six-project audit.
 - Fixed three installer defects found by current-user integration testing:
   scheduled-task permission failures now reset the native exit code before the
   Startup-folder fallback, task-not-found checks no longer make uninstall fail,

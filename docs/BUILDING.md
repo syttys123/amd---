@@ -29,7 +29,8 @@ Audit direct and transitive NuGet dependencies for known vulnerabilities:
 
 The command requests the machine-readable NuGet vulnerability report, verifies
 that every solution project was covered, and fails if any direct or transitive
-package has an advisory. The release gate runs this audit automatically.
+package has an advisory. The script is verified in Windows PowerShell 5.1 and
+PowerShell 7. The release gate runs this audit automatically.
 
 Run the complete local release gate, including package integrity, isolated
 install/overwrite/uninstall checks, and current-user shell integration:

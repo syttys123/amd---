@@ -41,7 +41,7 @@ try {
 
     try {
         $report = ($output -join [Environment]::NewLine) |
-            ConvertFrom-Json -Depth 32 -ErrorAction Stop
+            ConvertFrom-Json -ErrorAction Stop
     }
     catch {
         throw "NuGet vulnerability query did not return valid JSON: $($_.Exception.Message)"
