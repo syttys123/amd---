@@ -92,10 +92,10 @@ Current `0.1.3-dev` integration candidate:
 artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
 ```
 
-- Size: 581,661 bytes.
+- Size: 581,651 bytes.
 - SHA256:
-  `92b469a504f9668cba6f2f9fe28357625fa9a6b622266d24474cab99e1efcfb2`.
-- Source commit: `8cc9d12`.
+  `ca8afed8680342da98e31983a9e4f276997e2f58a8a3e91779b52b6b3b0710fd`.
+- Source commit: `27f2757`.
 - Working tree at build time: clean.
 - Framework-dependent and requires the Microsoft .NET 8 Desktop Runtime x64.
 - All 38 staged SHA256 entries verified across 39 files.
@@ -107,6 +107,8 @@ artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
 - The clean package itself launched in read-only mode, connected to its bundled
   worker, reported `动态上限 12.0 W · 电源`, and produced zero visible boundary
   violations.
+- The hidden tray menu opened upward, stayed anchored to the notification icon,
+  invoked Exit, and left no GUI or worker process behind.
 - Packed read-only startup passed and launched the packed worker.
 - Packed diagnostics export reported schema 1, protocol 1, `Hawk Point`,
   `hawk-point-8845hs`, nine profiles, five runtime-file hashes, hardware
@@ -237,10 +239,10 @@ GUI/worker teardown.
 The verified local development package uses SHA256:
 
 ```text
-92b469a504f9668cba6f2f9fe28357625fa9a6b622266d24474cab99e1efcfb2
+ca8afed8680342da98e31983a9e4f276997e2f58a8a3e91779b52b6b3b0710fd
 ```
 
-It was built from clean commit `8cc9d12`.
+It was built from clean commit `27f2757`.
 
 Rebuilds may produce a different hash because embedded timestamps can change.
 Always use the hash generated with the current build.

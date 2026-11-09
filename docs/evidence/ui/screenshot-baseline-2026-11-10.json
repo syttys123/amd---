@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-11-10T05:12:53+08:00",
+  "capturedAt": "2026-11-10T05:25:53+08:00",
   "displayScale": 1.25,
   "screenshots": {
     "main-dashboard-external-power-2026-11-10.png": {
@@ -15,25 +15,26 @@
     "main-dashboard-clean-package-2026-11-10.png": {
       "width": 718,
       "height": 547,
-      "sha256": "a3b9175c80b1ecaabafc8eb9212ebf36d5fbe0a376c4d375eb9dd93b01f54d3d",
+      "sha256": "d5349b66761705dc5b4d812c89176fdc95014e6120ec8b7580c76d77ba302582",
       "state": "clean package, healthy read-only worker",
       "powerLine": "external power",
-      "packageSha256": "92b469a504f9668cba6f2f9fe28357625fa9a6b622266d24474cab99e1efcfb2",
+      "packageSha256": "ca8afed8680342da98e31983a9e4f276997e2f58a8a3e91779b52b6b3b0710fd",
       "targetLeftArtifactPixels": 0,
       "visibleBoundaryViolations": 0
     },
     "tray-menu-clean-package-2026-11-10.png": {
       "width": 280,
-      "height": 414,
-      "sha256": "631fc1f3258ad303d70b199460b7845000f625174370f6cf931dfcd7afca244c",
+      "height": 394,
+      "sha256": "72b417bf2a9bca3582d57afacd9a09798fb8ff6c674b7f447f527873cc1fca9e",
       "state": "clean package tray context menu",
-      "notificationText": "AMD Mobile Power | 电源 | 10.4 W",
-      "rawAccessibleNotificationText": "AMD Mobile Power AMD Mobile Power | 电源 | 10.4 W",
-      "trayIconBounds": "2116,1465,2166,1515",
+      "notificationText": "AMD Mobile Power | 电源 | 9.1 W",
+      "rawAccessibleNotificationText": "AMD Mobile Power AMD Mobile Power | 电源 | 9.1 W",
+      "trayIconBounds": "2116,1445,2166,1495",
       "menuDirection": "up",
+      "menuHorizontalGapPixels": 0,
       "menuWindowBounds": "1907,1135,2141,1443",
       "menuItems": [
-        "当前：电源 · 10.4 W",
+        "当前：电源 · 9.1 W",
         "打开 AMD Mobile Power",
         "刷新状态",
         "界面模式",
@@ -88,7 +89,7 @@
   "limitations": [
     "The conflict state used a temporary legacy mutex and did not start a hardware worker.",
     "The diagnostics save dialog was cancelled; no diagnostics file was written.",
-    "The tray menu was opened on a real hidden-tray icon and closed with Escape; no menu action was invoked.",
+    "The tray menu was opened on a real hidden-tray icon; the clean-package verification invoked Exit and confirmed GUI/worker teardown without invoking a power action.",
     "The tray verifier requires an interactive Windows desktop and is not part of headless CI.",
     "The current external-power state cannot distinguish a USB-C power bank from a wall adapter."
   ]
