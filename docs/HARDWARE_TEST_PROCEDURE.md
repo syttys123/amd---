@@ -86,7 +86,8 @@ evidence:
 This preflight does not satisfy the supervised battery/AC transition gate.
 
 The same read-only path was also exercised while discharging on battery:
-baseline `25/25/20 W`, planned target `12/12/12 W`, and zero hardware writes.
+baseline `25/25/20 W`, planned target `12/12/12 W`, zero hardware writes, and
+graceful worker shutdown.
 Evidence:
 `docs/evidence/hardware/mechrevo-wujie15-8845hs-battery-preflight-2026-11-10.json`.
 

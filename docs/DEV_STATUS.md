@@ -549,7 +549,7 @@ third_party/
 - Relaxed read-only `verify-power-policy.ps1 -PlanOnly` so it can run from either
   AC or battery while the full write test still requires starting on AC. The
   battery preflight recorded a `25/25/20 W` baseline, a planned `12/12/12 W`
-  target, and zero hardware writes.
+  target, zero hardware writes, and `shutdownProtocol=PASS`.
 
 Development screenshot:
 

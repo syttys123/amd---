@@ -318,6 +318,7 @@ function Test-RestoredTarget {
 }
 
 function Stop-WorkerGracefully {
+    $script:shutdownResult = "NOT_REQUESTED"
     if ($null -eq $script:workerProcess) {
         return
     }
@@ -328,6 +329,7 @@ function Stop-WorkerGracefully {
             if (-not $script:workerProcess.WaitForExit(5000)) {
                 throw "Worker did not exit within five seconds after shutdown acknowledgement."
             }
+            $script:shutdownResult = "PASS"
         }
         catch {
             Write-Warning "Graceful worker shutdown failed: $($_.Exception.Message)"
@@ -335,6 +337,7 @@ function Stop-WorkerGracefully {
                 $script:workerProcess.Kill($true)
                 $script:workerProcess.WaitForExit(5000) | Out-Null
             }
+            $script:shutdownResult = "FALLBACK_PROCESS_TERMINATION"
         }
     }
 
@@ -345,6 +348,7 @@ function Stop-WorkerGracefully {
 $runId = [Guid]::NewGuid().ToString("N")
 $script:pipeName = "AmdMobilePower.PolicyVerify.$runId"
 $script:workerProcess = $null
+$script:shutdownResult = "NOT_REQUESTED"
 $evidenceDirectory = Join-Path $root "artifacts\verify"
 New-Item -ItemType Directory -Path $evidenceDirectory -Force | Out-Null
 $evidencePath = Join-Path $evidenceDirectory "power-policy-$runId.json"
@@ -360,6 +364,9 @@ $evidence = [ordered]@{
     baseline = [ordered]@{}
     test = [ordered]@{}
     restore = [ordered]@{}
+    cleanup = [ordered]@{
+        shutdownProtocol = "NOT_REQUESTED"
+    }
     result = "INCOMPLETE"
     error = $null
 }
@@ -574,6 +581,7 @@ catch {
 }
 finally {
     Stop-WorkerGracefully
+    $evidence.cleanup.shutdownProtocol = $script:shutdownResult
     $evidence.completedAt = [DateTimeOffset]::Now
     $evidence | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $evidencePath -Encoding utf8
     Write-Host "Evidence: $evidencePath"
