@@ -94,4 +94,9 @@ until:
 - WinRing0 and inpout redistribution terms are resolved.
 - Portable startup, tray lifecycle, worker startup, upgrade, and uninstall are
   verified.
-- The release artifact hash and source commit are recorded.
+- The release artifact is rebuilt from the current clean commit.
+- The release artifact hash, source commit, and clean/dirty state are recorded.
+
+The current local `v0.1.0` package was built from commit `5f844eb`, while the
+repository head is `53e1935`. It is useful for development testing but is stale
+as a release candidate.

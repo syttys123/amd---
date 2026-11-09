@@ -30,14 +30,14 @@
 
 - [x] Migrate the current WinForms layout.
 - [x] Add tray menu, close-to-tray, and single-instance wake-up.
-- [ ] Show effective limits and firmware clamps.
+- [x] Show effective limits and firmware clamps.
 - [x] Add editable presets and profile-aware ranges.
 - [x] Add worker connection state and automatic restart after conflicts clear.
 
 ## M4: Compatibility
 
 - [ ] Add detection profiles for supported AMD mobile generations.
-- [ ] Create a hardware matrix with verified, experimental, and unsupported
+- [x] Create a hardware matrix with verified, experimental, and unsupported
   states.
 - [x] Add a diagnostics export that contains no secrets.
 - [ ] Test at least two physical AMD laptops when available.
@@ -52,10 +52,10 @@
 
 ## M6: Release Documentation
 
-- [ ] README screenshots.
-- [ ] Installation and recovery guide.
-- [ ] Supported hardware guide.
-- [ ] Security and driver warning.
+- [x] README screenshot.
+- [x] Installation and recovery guide.
+- [x] Supported hardware guide.
+- [x] Security and driver warning.
 - [ ] Third-party notices.
 
 ## M7: Public Launch

@@ -1,0 +1,51 @@
+# Documentation Index
+
+Use this page as the entry point for project documentation. When documents
+conflict, prefer the first applicable source in this order:
+
+1. Current disk state, executable behavior, and fresh command/test output.
+2. `DEV_STATUS.md`: implemented state, evidence, blockers, and next task.
+3. Contracts and procedures: `IPC.md`, `PROFILES.md`, `SECURITY.md`, and
+   `HARDWARE_TEST_PROCEDURE.md`.
+4. Build and deployment guides: `BUILDING.md`, `PACKAGING.md`, and
+   `DEPLOYMENT.md`.
+5. Planning and rationale: `ROADMAP.md`, `ARCHITECTURE.md`, and `DECISIONS.md`.
+
+## Start Here
+
+| Document | Purpose |
+|---|---|
+| `DEV_STATUS.md` | Authoritative implemented state and next concrete task |
+| `INSTALLATION.md` | Development package, install, upgrade, removal, and recovery |
+| `SUPPORTED_HARDWARE.md` | Current compatibility scope and evidence limits |
+| `SECURITY.md` | Hardware-write, driver, privilege, and data-safety model |
+| `HARDWARE_MATRIX.md` | Device-level evidence |
+| `HARDWARE_TEST_PROCEDURE.md` | Supervised first-write validation procedure |
+
+## Architecture And Contracts
+
+| Document | Purpose |
+|---|---|
+| `ARCHITECTURE.md` | Current process boundaries plus target architecture |
+| `IPC.md` | Named-pipe protocol and command status |
+| `PROFILES.md` | Platform profile schema and matching rules |
+| `DECISIONS.md` | Accepted architecture decisions |
+
+## Build And Release
+
+| Document | Purpose |
+|---|---|
+| `BUILDING.md` | .NET and RyzenAdj build prerequisites |
+| `PACKAGING.md` | Portable ZIP and install-script packaging |
+| `DEPLOYMENT.md` | Promotion from development source to stable deployment |
+| `THIRD_PARTY_NOTICES.md` | Third-party source and binary obligations |
+| `ROADMAP.md` | Milestones and release gates |
+
+## Status Rules
+
+- "Read-only" means the default process does not write power limits. It does not
+  mean the source tree lacks write-capable code.
+- A hardware write is not considered verified until read-back and restoration
+  evidence is recorded in `HARDWARE_MATRIX.md`.
+- A generated package is not a public release until every gate in
+  `THIRD_PARTY_NOTICES.md`, `PACKAGING.md`, and `DEV_STATUS.md` passes.

@@ -24,6 +24,9 @@ not authoritative.
 - GitHub remote: `https://github.com/syttys123/amd-mobile-power.git`
 - Local directory: `D:\amd-mobile-power`
 - Stable deployment directory: `C:\RyzenAdj`
+- Documentation audit starting point: commit `53e1935` (`ci: build portable
+  package on Windows`). Always verify the live value with `git rev-parse HEAD`;
+  this line is historical evidence, not a permanent current-head marker.
 - The remote was empty when cloned.
 - The repository now contains the documentation and maintenance baseline.
 - The initial .NET 8 solution skeleton builds with zero warnings and errors.
@@ -36,6 +39,8 @@ not authoritative.
 - The GUI defaults to read-only; hardware writes require the explicit
   `--enable-write-controls` development flag.
 - A self-contained Windows x64 portable ZIP now builds reproducibly.
+- The current development package predates the current commit and must be
+  rebuilt before any release-candidate validation.
 
 ## Development Workflow
 
@@ -177,6 +182,8 @@ third_party/
     `ed58addb7bb67dc9a095b8fba6337755dd198adb91b681de7ede612f35d21274`
   - Source commit: `5f844eb`
   - Working tree at build time: clean
+  - Relationship to current head: stale by one commit; rebuild required before
+    claims about the current CI build
 - Verified first install, overwrite upgrade, and uninstall against an isolated
   `artifacts/test-install` directory without changing shell integration.
 - Added CI-side portable package generation with uploaded ZIP and SHA256
@@ -202,6 +209,15 @@ third_party/
   disabled in read-only mode.
 - Persisted automatic policy settings in the existing local UI state file so
   presets and policy updates do not overwrite each other.
+- Added a documentation index, installation/recovery guide, security guide,
+  supported-hardware guide, and refreshed README.
+- Clarified that read-only mode is a runtime write gate, not a filesystem mode
+  or lack of write-capable code.
+- Reconciled architecture documentation with the current child-worker process,
+  named-pipe commands, package profiles, and LocalAppData storage.
+- Renamed live STAPM, PPT Fast, PPT Slow, and temperature captions to
+  "实际 / 上限" so requested targets cannot be mistaken for current firmware
+  limits.
 
 Development screenshot:
 
@@ -213,14 +229,20 @@ Development screenshot:
 - Confirm no worker process remains after the hardware test.
 - Runtime-verify close-to-tray and tray-icon behavior through a manual desktop
   pass.
-- Add an installer, upgrade, and uninstall flow.
 - Resolve WinRing0/inpout redistribution licensing before public binary release.
+- Rebuild the release-candidate package from the current clean commit and record
+  the resulting hash.
+- Add more AMD generation profiles and verify a second physical laptop when
+  available.
+- Complete release screenshots, project introduction, and promotional media.
 
 ## Next Concrete Task
 
 Run the controlled no-change write test while connected to AC, then verify the
 initial and final STAPM/Fast/Slow limits match. Do not expose write controls in
-the GUI until this test passes.
+the public package until this test passes. Before that test, stop the legacy
+`RyzenPower` process with explicit operator approval and preserve the stable
+`C:\RyzenAdj` deployment.
 
 ## Known Risks
 
