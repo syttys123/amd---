@@ -1,6 +1,7 @@
 param(
     [string]$Version = "0.1.0",
-    [string]$Configuration = "Release"
+    [string]$Configuration = "Release",
+    [switch]$FrameworkDependent
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,10 +10,12 @@ $root = Split-Path -Parent $PSCommandPath
 $artifacts = Join-Path $root "artifacts"
 $publishRoot = Join-Path $artifacts "publish"
 $packageRoot = Join-Path $artifacts "packages"
-$packageName = "amd-mobile-power-v$Version-win-x64"
+$packageSuffix = if ($FrameworkDependent) { "-lite" } else { "" }
+$packageName = "amd-mobile-power-v$Version-win-x64$packageSuffix"
 $stage = Join-Path $packageRoot $packageName
 $zipPath = Join-Path $packageRoot "$packageName.zip"
 $ryzenAdjRuntime = Join-Path $artifacts "ryzenadj-runtime"
+$selfContainedValue = if ($FrameworkDependent) { "false" } else { "true" }
 
 function Reset-ArtifactDirectory {
     param([string]$Path)
@@ -42,7 +45,7 @@ Reset-ArtifactDirectory $stage
 dotnet publish (Join-Path $root "src\AmdMobilePower.Gui\AmdMobilePower.Gui.csproj") `
     -c $Configuration `
     -r win-x64 `
-    --self-contained true `
+    --self-contained $selfContainedValue `
     -p:NuGetAudit=false `
     -p:Version=$Version `
     -o (Join-Path $publishRoot "gui")
@@ -53,7 +56,7 @@ if ($LASTEXITCODE -ne 0) {
 dotnet publish (Join-Path $root "src\AmdMobilePower.Worker\AmdMobilePower.Worker.csproj") `
     -c $Configuration `
     -r win-x64 `
-    --self-contained true `
+    --self-contained $selfContainedValue `
     -p:NuGetAudit=false `
     -p:Version=$Version `
     -o (Join-Path $publishRoot "worker")
@@ -83,6 +86,14 @@ Copy-Item -LiteralPath (Join-Path $root "docs\THIRD_PARTY_NOTICES.md") `
     -Destination (Join-Path $stage "THIRD_PARTY_NOTICES.md") -Force
 Copy-Item -LiteralPath (Join-Path $root "packaging\portable-README.txt") `
     -Destination (Join-Path $stage "README.txt") -Force
+if ($FrameworkDependent) {
+    @(
+        ""
+        "轻量版运行时要求:"
+        "  需要安装 Microsoft .NET 8 Desktop Runtime x64。"
+        "  如果尚未安装，请从 Microsoft 官方 .NET 8 下载页面获取。"
+    ) | Add-Content -LiteralPath (Join-Path $stage "README.txt") -Encoding utf8
+}
 Copy-Item -LiteralPath (Join-Path $root "docs\MIGRATING_FROM_LEGACY.md") `
     -Destination (Join-Path $stage "MIGRATING-FROM-LEGACY.md") -Force
 Copy-Item -LiteralPath (Join-Path $root "docs\RELEASE_CHECKLIST.md") `
@@ -108,7 +119,8 @@ else {
     "Commit=$commit"
     "WorkingTree=$workingTree"
     "Configuration=$Configuration"
-    "SelfContained=true"
+    "SelfContained=$(-not $FrameworkDependent)"
+    "FrameworkDependent=$FrameworkDependent"
     "BuiltAt=$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz')"
 ) | Set-Content -LiteralPath (Join-Path $stage "BUILD-INFO.txt") -Encoding utf8
 

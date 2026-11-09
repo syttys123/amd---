@@ -8,6 +8,16 @@ Build a self-contained Windows x64 portable package from a clean source tree:
 .\build-package.ps1 -Version 0.1.0
 ```
 
+Build the small framework-dependent variant:
+
+```powershell
+.\build-package.ps1 -Version 0.1.0 -FrameworkDependent
+```
+
+The lite package requires the Microsoft .NET 8 Desktop Runtime x64 and is
+published with a `-lite` filename suffix. It keeps the same process isolation
+and native runtime files, but omits the duplicated self-contained .NET runtime.
+
 Output:
 
 ```text
