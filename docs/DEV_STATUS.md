@@ -27,6 +27,9 @@ not authoritative.
 - The remote was empty when cloned.
 - The repository now contains the documentation and maintenance baseline.
 - The initial .NET 8 solution skeleton builds with zero warnings and errors.
+- Baseline commit `f9d1be5` was pushed to `origin/main`.
+- The intended project name is `amd-mobile-power`. The GitHub repository still
+  uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
 
 ## Development Workflow
 
@@ -107,6 +110,7 @@ third_party/
 - Added seven passing unit tests.
 - Added GitHub Actions Windows build workflow.
 - Added the initial hardware evidence matrix.
+- Added the first maintenance commit and pushed it to the remote.
 
 ## In Progress
 
