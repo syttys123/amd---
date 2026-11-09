@@ -10,11 +10,9 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>..\..\assets\amd-mobile-power.ico</ApplicationIcon>
     <AssemblyName>AmdMobilePower</AssemblyName>
-    <Product>AMD Mobile Power</Product>
+    <AssemblyTitle>AMD Mobile Power</AssemblyTitle>
     <Description>Capability-aware AMD laptop power manager</Description>
-    <Version>0.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

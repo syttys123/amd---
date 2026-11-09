@@ -1,7 +1,8 @@
 param(
     [switch]$Apply,
     [string]$TaskName = "RyzenAdjWatch",
-    [string]$TaskPath = "\AMD\"
+    [string]$TaskPath = "\AMD\",
+    [string]$StartupShortcutName = "Ryzen Power.lnk"
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,17 +17,23 @@ try {
 catch [Threading.WaitHandleCannotBeOpenedException] {
 }
 
+$startupDirectory = [Environment]::GetFolderPath("Startup")
+$startupShortcut = Join-Path $startupDirectory $StartupShortcutName
+$disabledStartupShortcut = "$startupShortcut.disabled"
+
 Write-Output "Legacy task: $TaskPath$TaskName"
 Write-Output "Task state: $($task.State)"
 Write-Output "Legacy worker mutex present: $legacyMutexPresent"
+Write-Output "Legacy startup shortcut present: $(Test-Path -LiteralPath $startupShortcut)"
 
 if (-not $Apply) {
     Write-Output ""
     Write-Output "Preview only. With -Apply this script will:"
     Write-Output "1. Disable the legacy logon task."
     Write-Output "2. Stop the currently running task."
-    Write-Output "3. Leave C:\RyzenAdj files and configuration unchanged."
-    Write-Output "4. Require a Windows reboot to release any hidden task child and SMU state."
+    Write-Output "3. Disable the legacy Startup-folder shortcut without deleting it."
+    Write-Output "4. Leave C:\RyzenAdj files and configuration unchanged."
+    Write-Output "5. Require a Windows reboot to release any hidden task child and SMU state."
     return
 }
 
@@ -41,6 +48,17 @@ if ($task.State -eq "Running") {
     Stop-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath
 }
 
+if (Test-Path -LiteralPath $startupShortcut) {
+    if (Test-Path -LiteralPath $disabledStartupShortcut) {
+        throw "Disabled shortcut already exists: $disabledStartupShortcut"
+    }
+
+    Move-Item `
+        -LiteralPath $startupShortcut `
+        -Destination $disabledStartupShortcut
+}
+
 $updatedTask = Get-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath -ErrorAction Stop
 Write-Output "Updated task state: $($updatedTask.State)"
+Write-Output "Legacy startup shortcut disabled: $(Test-Path -LiteralPath $disabledStartupShortcut)"
 Write-Output "Reboot Windows before starting the AMD Mobile Power worker."

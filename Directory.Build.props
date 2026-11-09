@@ -4,6 +4,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Product>AMD Mobile Power</Product>
+    <Company>AMD Mobile Power contributors</Company>
+    <Copyright>Copyright (c) 2026 AMD Mobile Power contributors</Copyright>
+    <RepositoryUrl>https://github.com/syttys123/amd-mobile-power</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <VersionPrefix>0.1.1</VersionPrefix>
+    <ApplicationIcon>$(MSBuildThisFileDirectory)assets\amd-mobile-power.ico</ApplicationIcon>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
 </Project>
 
