@@ -32,6 +32,9 @@ not authoritative.
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
 - The current Release build has 31 passing tests across Core and Worker.
 - A real hardware read-only probe against the development laptop succeeded.
+- The repository GUI now reads through the named pipe and updates every second.
+- The GUI defaults to read-only; hardware writes require the explicit
+  `--enable-write-controls` development flag.
 
 ## Development Workflow
 
@@ -150,11 +153,28 @@ third_party/
   missing read-backs, unexpected read-back increases, native exceptions, and
   restore failures.
 - Added `docs/HARDWARE_TEST_PROCEDURE.md`.
+- Added the native WinForms read-only GUI shell with:
+  - Named pipe snapshots instead of shared text files.
+  - Hidden worker startup with no console window.
+  - CPU, SMU, PM table, power line, live power, limits, and temperature display.
+  - One-second telemetry refresh without overlapping requests.
+  - Editable 12/25/45 W presets stored under `%LocalAppData%\AmdMobilePower`.
+  - Tray icon, close-to-tray behavior, single-instance wake-up, and app icon.
+- Verified the GUI at 175% Windows display scaling with the two-column layout
+  fully visible and no clipped labels.
+- Verified that a second GUI launch exits and wakes the existing instance.
+- Verified that the worker runs without a visible window.
+
+Development screenshot:
+
+![Read-only GUI](assets/gui-readonly-2026-11-09.png)
 
 ## In Progress
 
 - Execute the first supervised no-change hardware write test.
 - Confirm no worker process remains after the hardware test.
+- Runtime-verify close-to-tray and tray-icon behavior through a manual desktop
+  pass.
 - Resolve WinRing0/inpout redistribution licensing before public binary release.
 
 ## Next Concrete Task

@@ -1,16 +1,63 @@
+using System.Runtime.InteropServices;
+
 namespace AmdMobilePower.Gui;
 
-static class Program
+internal static class Program
 {
-    /// <summary>
-    ///  The main entry point for the application.
-    /// </summary>
+    private const string MutexName = "Local\\AmdMobilePower.Gui.v2";
+    private const string ShowEventName = "Local\\AmdMobilePower.Show.v2";
+    private const string AppUserModelId = "AmdMobilePower.Desktop";
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
+    private static extern void SetCurrentProcessExplicitAppUserModelID(string appId);
+
     [STAThread]
-    static void Main()
+    private static void Main(string[] args)
     {
-        // To customize application configuration such as set high DPI settings or default font,
-        // see https://aka.ms/applicationconfiguration.
+        bool startHidden = args.Contains("--tray", StringComparer.OrdinalIgnoreCase);
+        bool enableWriteControls = args.Contains(
+            "--enable-write-controls",
+            StringComparer.OrdinalIgnoreCase);
+
+        using Mutex mutex = new(initiallyOwned: true, MutexName, out bool ownsMutex);
+        if (!ownsMutex)
+        {
+            SignalExistingInstance();
+            return;
+        }
+
+        try
+        {
+            SetCurrentProcessExplicitAppUserModelID(AppUserModelId);
+        }
+        catch
+        {
+        }
+
         ApplicationConfiguration.Initialize();
-        Application.Run(new Form1());
+        using EventWaitHandle showEvent = new(
+            initialState: false,
+            EventResetMode.AutoReset,
+            ShowEventName);
+        using MainForm form = new(showEvent, startHidden, enableWriteControls);
+        Application.Run(form);
+        GC.KeepAlive(mutex);
+    }
+
+    private static void SignalExistingInstance()
+    {
+        for (int attempt = 0; attempt < 12; attempt++)
+        {
+            try
+            {
+                using EventWaitHandle showEvent = EventWaitHandle.OpenExisting(ShowEventName);
+                showEvent.Set();
+                return;
+            }
+            catch (WaitHandleCannotBeOpenedException)
+            {
+                Thread.Sleep(100);
+            }
+        }
     }
 }

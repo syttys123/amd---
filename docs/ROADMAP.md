@@ -28,10 +28,10 @@
 
 ## M3: Native GUI
 
-- [ ] Migrate the current WinForms layout.
-- [ ] Add tray menu, close-to-tray, and single-instance wake-up.
+- [x] Migrate the current WinForms layout.
+- [x] Add tray menu, close-to-tray, and single-instance wake-up.
 - [ ] Show effective limits and firmware clamps.
-- [ ] Add editable presets and profile-aware ranges.
+- [x] Add editable presets and profile-aware ranges.
 - [ ] Add worker connection state and restart action.
 
 ## M4: Compatibility

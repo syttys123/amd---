@@ -10,6 +10,20 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>..\..\assets\amd-mobile-power.ico</ApplicationIcon>
+    <AssemblyName>AmdMobilePower</AssemblyName>
+    <Product>AMD Mobile Power</Product>
+    <Description>Capability-aware AMD laptop power manager</Description>
+    <Version>0.1.0</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\amd-mobile-power.ico"
+          Link="assets\amd-mobile-power.ico"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\assets\amd-mobile-power-256.png"
+          Link="assets\amd-mobile-power-256.png"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
 </Project>
