@@ -233,6 +233,9 @@ third_party/
 - Added complete license texts under `third_party/licenses/`.
 - Rebuilt the portable package from clean commit `783e0e0` and verified that the
   staged ZIP license directory contains RyzenAdj, InpOut32, and WinRing0 texts.
+- Runtime-verified close-to-tray on the current Release GUI: WM_CLOSE hid the
+  window while PID `91956` remained responsive; a second launch woke the same
+  process, left one GUI instance, and made the window visible again.
 
 Development screenshot:
 
@@ -242,8 +245,6 @@ Development screenshot:
 
 - Execute the first supervised no-change hardware write test.
 - Confirm no worker process remains after the hardware test.
-- Runtime-verify close-to-tray and tray-icon behavior through a manual desktop
-  pass.
 - Verify WinRing0 behavior under a clean Windows security baseline and document
   any driver-blocking failures.
 - Add more AMD generation profiles and verify a second physical laptop when
