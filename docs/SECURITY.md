@@ -113,9 +113,15 @@ and firmware versions may still be sensitive.
 
 ## Driver And License Risk
 
-RyzenAdj is LGPL-3.0. The Windows driver components bundled by its upstream
-project require separate redistribution and safety review. Review
-`THIRD_PARTY_NOTICES.md` before publishing a binary.
+RyzenAdj is LGPL-3.0 and is loaded as a separate shared library. Packages include
+the upstream LGPL text, the canonical GPL-3.0 text referenced by LGPL-3.0, a
+pinned source commit, and instructions for replacing `worker\libryzenadj.dll`
+with a compatible build. The bundled InpOut32 and WinRing0 terms are recorded in
+`THIRD_PARTY_NOTICES.md` and `LICENSING_REVIEW.md`.
+
+This is an engineering redistribution review, not a legal opinion. WinRing0
+remains old kernel driver software and may be blocked or unloaded by Windows
+security software; license compliance does not establish runtime safety.
 
 ## Public-Release Gate
 
@@ -125,5 +131,6 @@ Do not publish or promote write-capable builds until:
 - Initial and final STAPM/Fast/Slow limits match. Development 8845HS passed at
   12/12/12 W.
 - Process cleanup and conflict behavior are verified.
-- The driver redistribution review is complete.
+- The driver redistribution review is complete for the package contents
+  recorded in `LICENSING_REVIEW.md`.
 - A recovery procedure has been tested on the target device.

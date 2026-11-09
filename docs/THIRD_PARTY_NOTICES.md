@@ -10,11 +10,23 @@ packages. Public releases still require the runtime and compatibility gates in
 - Integration: Git submodule at `third_party/RyzenAdj`
 - License: GNU Lesser General Public License v3.0
 - Current reviewed commit: `5775fc3e6dbb25c7030ee2d100a1bdd6e8bf2d0a`
-- Redistribution: planned as an unmodified shared `libryzenadj.dll`
+- Redistribution: built from the pinned submodule as a shared
+  `libryzenadj.dll`
 - Source is retained in this repository through the submodule
 
-Release packages include `licenses/RyzenAdj-LICENSE.txt` and a clear notice
-that the application dynamically loads the RyzenAdj library.
+Release packages include:
+
+- `licenses/RyzenAdj-LICENSE.txt`, the upstream LGPL-3.0 text supplied by the
+  pinned RyzenAdj commit.
+- `licenses/GPL-3.0.txt`, the canonical GNU GPL-3.0 text referenced by
+  LGPL-3.0. The reviewed text has SHA256
+  `3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986`.
+
+The worker loads RyzenAdj as the separate shared library
+`worker\libryzenadj.dll`; it does not statically link the library into the
+application. Users may replace that DLL with a compatible build produced from
+the pinned upstream source. The pinned source commit and build instructions are
+published in this repository so the library can be rebuilt and replaced.
 
 ## InpOut32 / InpOutx64
 
@@ -60,6 +72,13 @@ This confirms redistribution permission, not runtime compatibility. WinRing0 is
 old low-level driver software and may be blocked, quarantined, or unloaded by
 Windows security software. Release testing must document those failures and
 must not instruct users to disable security controls.
+
+## Engineering Review Scope
+
+`docs/LICENSING_REVIEW.md` records the current redistribution review. It is an
+engineering compliance review, not legal advice. A release still requires the
+project owner to confirm the final package contents, notices, and source
+availability at the release commit.
 
 ## Future Dependencies
 

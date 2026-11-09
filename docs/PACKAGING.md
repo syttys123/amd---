@@ -130,14 +130,20 @@ worker/
   inpoutx64.dll
   profiles/
 licenses/
+  GPL-3.0.txt
+  InpOut32-LICENSE.txt
+  RyzenAdj-LICENSE.txt
+  WinRing0-COPYRIGHT.txt
 README.txt
 THIRD_PARTY_NOTICES.md
 BUILD-INFO.txt
 SHA256SUMS.txt
 ```
 
-The package is self-contained and does not require a separate .NET runtime
-installation.
+The default package is self-contained and does not require a separate .NET
+runtime installation. The `-FrameworkDependent` Lite package requires the
+Microsoft .NET 8 Desktop Runtime x64 and appends that requirement to
+`README.txt`.
 
 ## User Installation
 

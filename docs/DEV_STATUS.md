@@ -483,7 +483,9 @@ read-back, and restore evidence required by `HARDWARE_TEST_PROCEDURE.md`.
   WinRing0/inpout/SMU state can spin one CPU core and later raise a native
   `AccessViolationException`; the GUI now fails closed but cannot safely reset
   the driver without a reboot.
-- RyzenAdj LGPL and WinRing0 redistribution terms require review.
+- RyzenAdj, InpOut32, and WinRing0 engineering redistribution obligations are
+  recorded in `LICENSING_REVIEW.md`; this is not a legal opinion. WinRing0 may
+  still be blocked or unloaded by Windows security software.
 - Bilibili publishing requires an authenticated session and final human review.
 
 ## Release Gates

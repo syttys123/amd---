@@ -52,6 +52,7 @@ Markdown document records the decisions that apply to AMD Mobile Power.
 | `PACKAGING.md` | Portable ZIP and install-script packaging |
 | `DEPLOYMENT.md` | Promotion from development source to stable deployment |
 | `THIRD_PARTY_NOTICES.md` | Third-party source and binary obligations |
+| `LICENSING_REVIEW.md` | Engineering redistribution review and release license gates |
 | `ROADMAP.md` | Milestones and release gates |
 | `RELEASE_CHECKLIST.md` | Final publication checklist |
 | `INTRODUCTION_ZH.md` | Chinese project introduction draft |

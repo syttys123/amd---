@@ -22,11 +22,15 @@ AMD Mobile Power
 
 运行时:
   worker 位于 worker\AmdMobilePower.Worker.exe。
-  本包使用自包含 .NET 运行时，不要求目标电脑单独安装 .NET 8。
+  自包含包不要求目标电脑单独安装 .NET 8。
+  轻量版需要 Microsoft .NET 8 Desktop Runtime x64，详见文末附加说明。
 
 安全提示:
   RyzenAdj 使用底层 Windows 驱动接口。部分安全软件可能拦截或卸载驱动。
-  RyzenAdj、InpOut32 和 WinRing0 的许可文本已包含在 licenses 目录。
+  RyzenAdj（LGPL-3.0/GPL-3.0）、InpOut32 和 WinRing0 的许可文本
+  已包含在 licenses 目录。
+  RyzenAdj 以独立 worker\libryzenadj.dll 动态加载；高级用户可按
+  THIRD_PARTY_NOTICES.md 获取对应源码并使用兼容构建替换该 DLL。
   本包仍是开发版本，公开发布前必须完成 RELEASE-CHECKLIST 中的验证。
 
 更多文档:
