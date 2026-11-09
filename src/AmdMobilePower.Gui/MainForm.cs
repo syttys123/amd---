@@ -2067,9 +2067,9 @@ internal sealed class MainForm : Form
         bool battery = telemetry.PowerLine == PowerLineState.Battery;
         _powerLineBadge.Text = telemetry.PowerLine switch
         {
-            PowerLineState.Ac => "接入电源",
-            PowerLineState.Battery => "电池供电",
-            _ => "电源未知"
+            PowerLineState.Ac => "电源",
+            PowerLineState.Battery => "电池",
+            _ => "未知"
         };
         _powerLineBadge.BackColor = battery ? AppTheme.BatterySoft : AppTheme.AccentSoft;
         _powerLineBadge.ForeColor = battery ? AppTheme.Battery : AppTheme.Accent;
