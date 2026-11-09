@@ -39,8 +39,9 @@ not authoritative.
 - The GUI defaults to read-only; hardware writes require the explicit
   `--enable-write-controls` development flag.
 - A self-contained Windows x64 portable ZIP now builds reproducibly.
-- The current development package was rebuilt from clean commit `b48c011` and
-  includes the hidden-legacy-worker conflict detection.
+- The current development package was rebuilt from clean commit `783e0e0` and
+  includes hidden-legacy-worker conflict detection plus reviewed third-party
+  license texts.
 
 ## Development Workflow
 
@@ -177,10 +178,10 @@ third_party/
   8845HS platform and telemetry data.
 - Current local package:
   - Path: `artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip`
-  - Size: 106,638,810 bytes
+  - Size: 106,641,392 bytes
   - SHA256:
-    `848765166a062de5501c0fe0df2271c1b219658a4305958e7e5a1372fb02a637`
-  - Source commit: `b48c011`
+    `b2be250ec880d1a8f9fe298d622ba5bf14f7a41d85898e3111c7bd56c8c0ceba`
+  - Source commit: `783e0e0`
   - Working tree at build time: clean
 - Verified first install, overwrite upgrade, and uninstall against an isolated
   `artifacts/test-install` directory without changing shell integration.
@@ -230,6 +231,8 @@ third_party/
   the official InpOut binary hash matches and includes MIT terms; WinRing0 uses
   the OpenLibSys two-clause BSD terms.
 - Added complete license texts under `third_party/licenses/`.
+- Rebuilt the portable package from clean commit `783e0e0` and verified that the
+  staged ZIP license directory contains RyzenAdj, InpOut32, and WinRing0 texts.
 
 Development screenshot:
 
@@ -243,7 +246,6 @@ Development screenshot:
   pass.
 - Verify WinRing0 behavior under a clean Windows security baseline and document
   any driver-blocking failures.
-- Rebuild the portable package with the newly bundled license texts.
 - Add more AMD generation profiles and verify a second physical laptop when
   available.
 - Complete release screenshots, project introduction, and promotional media.
