@@ -489,6 +489,14 @@ third_party/
   separately from Fast/Slow transport failures and restore behavior.
 - Removed the compact-mode gray `--` placeholder beside `目标功耗`; the live
   summary now reads `动态上限 ... · 电源/电池`.
+- Upgraded the shared test toolchain to Test SDK 18.11.0, xUnit 2.9.3, Visual
+  Studio Runner 4.0.1, and Coverlet 10.1.0. The previous test dependencies
+  pulled vulnerable `System.Net.Http` 4.3.0 and
+  `System.Text.RegularExpressions` 4.3.0 transitively; all six projects now
+  pass a direct and transitive NuGet vulnerability audit.
+- Added `verify-dependencies.ps1` as a machine-readable release and CI gate. It
+  verifies complete project coverage, rejects every reported advisory, and runs
+  automatically inside `verify-release.ps1` and the Windows build workflow.
 - Fixed three installer defects found by current-user integration testing:
   scheduled-task permission failures now reset the native exit code before the
   Startup-folder fallback, task-not-found checks no longer make uninstall fail,

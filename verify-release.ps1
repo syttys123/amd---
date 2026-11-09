@@ -53,6 +53,11 @@ try {
     Invoke-CheckedCommand "dotnet restore" {
         dotnet restore AmdMobilePower.sln
     }
+    Invoke-CheckedCommand "dependency vulnerability audit" {
+        & (Join-Path $root "verify-dependencies.ps1") `
+            -Solution "AmdMobilePower.sln" `
+            -NoRestore
+    }
     Invoke-CheckedCommand "dotnet build" {
         dotnet build AmdMobilePower.sln -c $Configuration --no-restore
     }
@@ -319,6 +324,7 @@ try {
         TrayMenuScreenshot = $trayMenuScreenshot
         Diagnostics = $diagnostics
         DiagnosticsReport = $diagnosticsPath
+        DependencyAudit = "PASS"
         Verification = "PASS"
     } | Format-List
 }

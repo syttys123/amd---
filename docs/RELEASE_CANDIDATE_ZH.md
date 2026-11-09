@@ -28,6 +28,7 @@ Evidence:
 - Build warnings / errors: `0 / 0`
 - Tests: `65 passed, 0 failed`
 - Formatting verification: PASS
+- NuGet vulnerability audit: PASS (`6` projects, `0` direct/transitive advisories)
 - Isolated install, overwrite, and uninstall: PASS
 - Start menu, uninstall entry, startup fallback: PASS
 - Tray menu direction: up
