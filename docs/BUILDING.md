@@ -22,16 +22,18 @@ dotnet build AmdMobilePower.sln -c Release
 dotnet test AmdMobilePower.sln -c Release
 ```
 
-Audit direct and transitive NuGet dependencies for known vulnerabilities:
+Audit direct and transitive NuGet dependencies for known vulnerabilities and
+deprecated packages:
 
 ```powershell
 .\verify-dependencies.ps1
 ```
 
-The command requests the machine-readable NuGet vulnerability report, verifies
-that every solution project was covered, and fails if any direct or transitive
-package has an advisory. The script is verified in Windows PowerShell 5.1 and
-PowerShell 7. The release gate runs this audit automatically.
+The command requests machine-readable NuGet vulnerability and deprecation
+reports, verifies that every solution project was covered, and fails if any
+direct or transitive package has an advisory or is marked legacy/deprecated. The
+script is verified in Windows PowerShell 5.1 and PowerShell 7. The release gate
+runs this audit automatically.
 
 Run the complete local release gate, including package integrity, isolated
 install/overwrite/uninstall checks, and current-user shell integration:

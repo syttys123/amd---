@@ -11,7 +11,8 @@ public sealed class RyzenAdjPowerAdapterTests
         FakeRyzenAdjNative native = new();
         await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
 
-        PlatformCapability capability = await adapter.ProbeAsync();
+        PlatformCapability capability = await adapter.ProbeAsync(
+            TestContext.Current.CancellationToken);
 
         Assert.True(capability.IsSupported);
         Assert.Equal(10, capability.Cpu.RyzenAdjFamily);
@@ -26,7 +27,8 @@ public sealed class RyzenAdjPowerAdapterTests
         await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
 
         PowerLimitApplicationResult result = await adapter.ApplyTargetAsync(
-            new PowerLimitTarget(20, 30, 40));
+            new PowerLimitTarget(20, 30, 40),
+            TestContext.Current.CancellationToken);
 
         Assert.True(result.IsSuccessful);
         Assert.False(result.HasFirmwareClamp);
@@ -45,7 +47,8 @@ public sealed class RyzenAdjPowerAdapterTests
         await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
 
         PowerLimitApplicationResult result = await adapter.ApplyTargetAsync(
-            new PowerLimitTarget(20, 30, 40));
+            new PowerLimitTarget(20, 30, 40),
+            TestContext.Current.CancellationToken);
 
         Assert.True(result.IsSuccessful);
         Assert.True(result.HasFirmwareClamp);
@@ -62,7 +65,8 @@ public sealed class RyzenAdjPowerAdapterTests
         await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
 
         PowerLimitApplicationResult result = await adapter.ApplyTargetAsync(
-            new PowerLimitTarget(12, 12, 12));
+            new PowerLimitTarget(12, 12, 12),
+            TestContext.Current.CancellationToken);
 
         Assert.True(result.IsSuccessful);
         Assert.True(result.HasFirmwareClamp);
@@ -81,7 +85,8 @@ public sealed class RyzenAdjPowerAdapterTests
         await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
 
         PowerLimitApplicationResult result = await adapter.ApplyTargetAsync(
-            new PowerLimitTarget(10, 10, 10));
+            new PowerLimitTarget(10, 10, 10),
+            TestContext.Current.CancellationToken);
 
         Assert.True(result.IsSuccessful);
         Assert.False(result.RestoreAttempted);
@@ -100,7 +105,8 @@ public sealed class RyzenAdjPowerAdapterTests
         await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
 
         PowerLimitApplicationResult result = await adapter.ApplyTargetAsync(
-            new PowerLimitTarget(20, 30, 40));
+            new PowerLimitTarget(20, 30, 40),
+            TestContext.Current.CancellationToken);
 
         Assert.False(result.IsSuccessful);
         Assert.True(result.RestoreAttempted);
@@ -120,7 +126,8 @@ public sealed class RyzenAdjPowerAdapterTests
         await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
 
         PowerLimitApplicationResult result = await adapter.ApplyTargetAsync(
-            new PowerLimitTarget(20, 30, 40));
+            new PowerLimitTarget(20, 30, 40),
+            TestContext.Current.CancellationToken);
 
         Assert.False(result.IsSuccessful);
         Assert.True(result.RestoreAttempted);
@@ -139,7 +146,8 @@ public sealed class RyzenAdjPowerAdapterTests
         await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
 
         PowerLimitApplicationResult result = await adapter.ApplyTargetAsync(
-            new PowerLimitTarget(20, 30, 40));
+            new PowerLimitTarget(20, 30, 40),
+            TestContext.Current.CancellationToken);
 
         Assert.False(result.IsSuccessful);
         Assert.True(result.RestoredPreviousLimits);
@@ -158,7 +166,8 @@ public sealed class RyzenAdjPowerAdapterTests
         await using RyzenAdjPowerAdapter adapter = CreateAdapter(native);
 
         PowerLimitApplicationResult result = await adapter.ApplyTargetAsync(
-            new PowerLimitTarget(20, 30, 40));
+            new PowerLimitTarget(20, 30, 40),
+            TestContext.Current.CancellationToken);
 
         Assert.False(result.IsSuccessful);
         Assert.True(result.RestoredPreviousLimits);

@@ -6,8 +6,9 @@
 - [x] `dotnet build AmdMobilePower.sln -c Release` passes with zero warnings.
 - [x] `dotnet test AmdMobilePower.sln -c Release` passes.
 - [x] `dotnet format AmdMobilePower.sln --verify-no-changes` passes.
-- [x] Direct and transitive NuGet vulnerability audit passes.
-      Evidence: `verify-dependencies.ps1`; six projects covered, zero advisories.
+- [x] Direct and transitive NuGet vulnerability and deprecation audit passes.
+      Evidence: `verify-dependencies.ps1`; six projects covered, zero advisories,
+      zero deprecated packages.
 - [x] Pinned RyzenAdj submodule commit is recorded.
 - [ ] CI build for the release commit passes.
       Current blocker: GitHub Actions reports an account billing/spending-limit

@@ -489,15 +489,19 @@ third_party/
   separately from Fast/Slow transport failures and restore behavior.
 - Removed the compact-mode gray `--` placeholder beside `目标功耗`; the live
   summary now reads `动态上限 ... · 电源/电池`.
-- Upgraded the shared test toolchain to Test SDK 18.11.0, xUnit 2.9.3, Visual
-  Studio Runner 4.0.1, and Coverlet 10.1.0. The previous test dependencies
-  pulled vulnerable `System.Net.Http` 4.3.0 and
-  `System.Text.RegularExpressions` 4.3.0 transitively; all six projects now
-  pass a direct and transitive NuGet vulnerability audit.
+- Upgraded the shared test toolchain to Test SDK 18.11.0, xUnit v3 4.0.3,
+  Visual Studio Runner 4.0.1, and Coverlet 10.1.0. The previous test
+  dependencies pulled vulnerable `System.Net.Http` 4.3.0 and
+  `System.Text.RegularExpressions` 4.3.0 transitively. xUnit v3's analyzer also
+  required every asynchronous test call to use the current test cancellation
+  token, which is now enforced. A test-only
+  `System.Diagnostics.DiagnosticSource` 8.0.1 override removes the remaining
+  deprecated transitive package.
 - Added `verify-dependencies.ps1` as a machine-readable release and CI gate. It
-  verifies complete project coverage, rejects every reported advisory, and runs
-  automatically inside `verify-release.ps1` and the Windows build workflow.
-  Windows PowerShell 5.1 and PowerShell 7 both complete the six-project audit.
+  verifies complete project coverage, rejects every reported advisory or
+  deprecated package, and runs automatically inside `verify-release.ps1` and
+  the Windows build workflow. Windows PowerShell 5.1 and PowerShell 7 both
+  complete the six-project audit.
 - Verified the solution with an isolated .NET SDK `8.0.427`: restore, Release
   build, 65 tests, formatting, and vulnerability audit pass with zero warnings.
   The CI workflow now pins this tested SDK patch instead of tracking `8.0.x`.
@@ -540,7 +544,7 @@ third_party/
   and requires graceful protocol shutdown. Release verification can exercise
   this path with `-VerifyDiagnostics`.
 - Rebuilt the clean Lite package after upgrading the test toolchain and adding
-  the dependency vulnerability gate. The package is 593,363 bytes with SHA256
+  the dependency vulnerability and deprecation gate. The package is 593,363 bytes with SHA256
   `75adb54db49c14724f94b79afbb7fb712d6ccca8e7f62314d5e6dff591c18f01`,
   built from commit `1a9988d` with .NET SDK `8.0.427`, and contains 40 files
   with 39 checksum entries.

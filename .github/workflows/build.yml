@@ -14,7 +14,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.427
-      - name: Audit package vulnerabilities
+      - name: Audit package dependencies
         shell: pwsh
         run: |
           .\verify-dependencies.ps1 -Solution AmdMobilePower.sln

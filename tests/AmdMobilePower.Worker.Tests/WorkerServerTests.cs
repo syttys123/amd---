@@ -21,7 +21,9 @@ public sealed class WorkerServerTests
         Task serverTask = server.RunAsync(shutdown.Token);
 
         NamedPipeWorkerClient client = new(pipeName);
-        WorkerHealth health = await client.GetHealthAsync(TimeSpan.FromSeconds(5));
+        WorkerHealth health = await client.GetHealthAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.Equal("ok", health.Status);
         Assert.Equal(WorkerProtocol.CurrentVersion, health.ProtocolVersion);
@@ -48,11 +50,15 @@ public sealed class WorkerServerTests
             PipeDirection.InOut,
             PipeOptions.Asynchronous))
         {
-            await abandoned.ConnectAsync(5000);
+            await abandoned.ConnectAsync(
+                5000,
+                TestContext.Current.CancellationToken);
         }
 
         NamedPipeWorkerClient client = new(pipeName);
-        WorkerHealth health = await client.GetHealthAsync(TimeSpan.FromSeconds(5));
+        WorkerHealth health = await client.GetHealthAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.Equal("ok", health.Status);
 
@@ -75,7 +81,8 @@ public sealed class WorkerServerTests
                 RequestId = "request-1",
                 Command = WorkerCommand.RefreshTelemetry
             },
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.False(response.Success);
         Assert.Equal("request-1", response.RequestId);
@@ -96,8 +103,12 @@ public sealed class WorkerServerTests
         Task serverTask = server.RunAsync(shutdown.Token);
 
         NamedPipeWorkerClient client = new(pipeName);
-        await client.ShutdownAsync(TimeSpan.FromSeconds(5));
-        await serverTask.WaitAsync(TimeSpan.FromSeconds(5));
+        await client.ShutdownAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
+        await serverTask.WaitAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.True(serverTask.IsCompletedSuccessfully);
     }
@@ -130,8 +141,11 @@ public sealed class WorkerServerTests
 
         NamedPipeWorkerClient client = new(pipeName);
         WorkerCapabilitySnapshot capabilities = await client.GetCapabilitiesAsync(
-            TimeSpan.FromSeconds(5));
-        WorkerHealth health = await client.GetHealthAsync(TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
+        WorkerHealth health = await client.GetHealthAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.True(capabilities.Platform.IsSupported);
         Assert.Equal("AMD Ryzen 7 8845HS", capabilities.Platform.Cpu.ProcessorName);
@@ -157,7 +171,8 @@ public sealed class WorkerServerTests
                 RequestId = "request-2",
                 Command = WorkerCommand.GetCapabilities
             },
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.False(response.Success);
         Assert.Equal(WorkerErrorCodes.WorkerUnavailable, response.Error?.Code);
@@ -193,7 +208,9 @@ public sealed class WorkerServerTests
         Task serverTask = server.RunAsync(shutdown.Token);
 
         NamedPipeWorkerClient client = new(pipeName);
-        WorkerSnapshot snapshot = await client.GetSnapshotAsync(TimeSpan.FromSeconds(5));
+        WorkerSnapshot snapshot = await client.GetSnapshotAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.True(snapshot.Platform.IsSupported);
         Assert.Equal("hawk-point-8845hs", snapshot.MatchedProfile?.Id);
@@ -218,7 +235,9 @@ public sealed class WorkerServerTests
         Task serverTask = server.RunAsync(shutdown.Token);
 
         NamedPipeWorkerClient client = new(pipeName);
-        WorkerSnapshot snapshot = await client.GetSnapshotAsync(TimeSpan.FromSeconds(5));
+        WorkerSnapshot snapshot = await client.GetSnapshotAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.False(snapshot.Platform.IsSupported);
         Assert.Null(snapshot.Telemetry.StapmLimitWatts);
@@ -257,7 +276,8 @@ public sealed class WorkerServerTests
         NamedPipeWorkerClient client = new(pipeName);
         PowerLimitApplicationResult result = await client.ApplyTargetAsync(
             new PowerLimitTarget(12, 25, 45),
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.True(result.IsSuccessful);
         Assert.Equal(new PowerLimitTarget(12, 25, 45), adapter.LastAppliedTarget);
@@ -302,7 +322,8 @@ public sealed class WorkerServerTests
                     new ApplyTargetRequest(PowerLimitTarget.Uniform(50)),
                     WorkerProtocol.JsonOptions)
             },
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.False(response.Success);
         Assert.Equal(WorkerErrorCodes.InvalidTarget, response.Error?.Code);
@@ -345,7 +366,8 @@ public sealed class WorkerServerTests
                     new ApplyTargetRequest(target),
                     WorkerProtocol.JsonOptions)
             },
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.False(response.Success);
         Assert.Equal(WorkerErrorCodes.HardwareRestoreFailed, response.Error?.Code);
@@ -394,7 +416,8 @@ public sealed class WorkerServerTests
 
             NamedPipeWorkerClient client = new(pipeName);
             WorkerDiagnostics diagnostics = await client.ExportDiagnosticsAsync(
-                TimeSpan.FromSeconds(5));
+                TimeSpan.FromSeconds(5),
+                TestContext.Current.CancellationToken);
 
             Assert.NotNull(diagnostics.Platform);
             Assert.Equal("AMD Ryzen 7 8845HS", diagnostics.Platform.Cpu.ProcessorName);
@@ -440,7 +463,8 @@ public sealed class WorkerServerTests
 
         NamedPipeWorkerClient client = new(pipeName);
         WorkerDiagnostics diagnostics = await client.ExportDiagnosticsAsync(
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.Null(diagnostics.Platform);
         Assert.Null(diagnostics.Telemetry);
@@ -490,7 +514,10 @@ public sealed class WorkerServerTests
             Enabled: true,
             BatteryTarget: PowerLimitTarget.Uniform(12),
             AcTarget: PowerLimitTarget.Uniform(45));
-        _ = await client.SetPowerPolicyAsync(settings, TimeSpan.FromSeconds(5));
+        _ = await client.SetPowerPolicyAsync(
+            settings,
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         await WaitUntilAsync(
             () => adapter.LastAppliedTarget == PowerLimitTarget.Uniform(12),
@@ -501,7 +528,9 @@ public sealed class WorkerServerTests
             () => adapter.LastAppliedTarget == PowerLimitTarget.Uniform(45),
             TimeSpan.FromSeconds(2));
 
-        PowerPolicyState state = await client.GetPowerPolicyAsync(TimeSpan.FromSeconds(5));
+        PowerPolicyState state = await client.GetPowerPolicyAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
         Assert.True(state.LastAttemptSucceeded);
         Assert.Equal(PowerLineState.Ac, state.LastObservedPowerLine);
         Assert.Equal(PowerLimitTarget.Uniform(45), state.LastAppliedTarget);
@@ -536,7 +565,8 @@ public sealed class WorkerServerTests
                             AcTarget: PowerLimitTarget.Uniform(45))),
                     WorkerProtocol.JsonOptions)
             },
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         Assert.False(response.Success);
         Assert.Equal(WorkerErrorCodes.HardwareWritesDisabled, response.Error?.Code);

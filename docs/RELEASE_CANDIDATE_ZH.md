@@ -29,7 +29,7 @@ Evidence:
 - SDK: `8.0.427`
 - Tests: `65 passed, 0 failed`
 - Formatting verification: PASS
-- NuGet vulnerability audit: PASS (`6` projects, `0` direct/transitive advisories)
+- NuGet dependency audit: PASS (`6` projects, `0` advisories, `0` deprecated packages)
 - Isolated install, overwrite, and uninstall: PASS
 - Start menu, uninstall entry, startup fallback: PASS
 - Tray menu direction: up

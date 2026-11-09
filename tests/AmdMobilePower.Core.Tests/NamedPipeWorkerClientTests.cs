@@ -16,6 +16,8 @@ public sealed class NamedPipeWorkerClientTests
         NamedPipeWorkerClient client = new(pipeName);
 
         await Assert.ThrowsAsync<TimeoutException>(
-            () => client.GetHealthAsync(TimeSpan.FromMilliseconds(100)));
+            () => client.GetHealthAsync(
+                TimeSpan.FromMilliseconds(100),
+                TestContext.Current.CancellationToken));
     }
 }
