@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 
 namespace AmdMobilePower.Core.Diagnostics;
@@ -60,7 +61,9 @@ public sealed class DiagnosticFileLog
 
                 StringBuilder entry = new();
                 entry.Append('[')
-                    .Append(now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz"))
+                    .Append(now.ToString(
+                        "yyyy-MM-dd HH:mm:ss.fff zzz",
+                        CultureInfo.InvariantCulture))
                     .Append("] [")
                     .Append(level.Trim().ToUpperInvariant())
                     .Append("] [")

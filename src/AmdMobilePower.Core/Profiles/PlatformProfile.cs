@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using AmdMobilePower.Core.Models;
@@ -23,6 +24,8 @@ public sealed record PlatformProfile
 
     public bool Matches(CpuPlatformInfo cpu)
     {
+        ArgumentNullException.ThrowIfNull(cpu);
+
         return MatchesAny(ProcessorNamePatterns, cpu.ProcessorName) &&
             MatchesFamily(CpuFamilyPatterns, cpu) &&
             MatchesAny(PmTablePatterns, cpu.PmTableVersion);
@@ -95,8 +98,8 @@ public sealed record PlatformProfile
             cpu.Family is { } family && cpu.Model is { } model
                 ? $"{family}:{model}"
                 : null,
-            cpu.Family?.ToString(),
-            cpu.Model?.ToString()
+            cpu.Family?.ToString(CultureInfo.InvariantCulture),
+            cpu.Model?.ToString(CultureInfo.InvariantCulture)
         }
             .Where(value => value is not null)
             .Select(value => value!)

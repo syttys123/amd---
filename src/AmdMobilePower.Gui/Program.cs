@@ -9,6 +9,7 @@ internal static class Program
     private const string ShowEventName = "Local\\AmdMobilePower.Show.v2";
     private const string AppUserModelId = "AmdMobilePower.Desktop";
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
     [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
     private static extern void SetCurrentProcessExplicitAppUserModelID(string appId);
 

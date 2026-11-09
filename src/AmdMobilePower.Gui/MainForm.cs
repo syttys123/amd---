@@ -1722,7 +1722,7 @@ internal sealed class MainForm : Form
         footer.Controls.Add(_updatedLabel);
 
         string productVersion = Application.ProductVersion;
-        int buildMetadataIndex = productVersion.IndexOf('+');
+        int buildMetadataIndex = productVersion.IndexOf('+', StringComparison.Ordinal);
         if (buildMetadataIndex >= 0)
         {
             productVersion = productVersion[..buildMetadataIndex];

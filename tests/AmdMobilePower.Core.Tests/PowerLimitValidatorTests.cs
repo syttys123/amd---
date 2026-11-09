@@ -5,6 +5,15 @@ namespace AmdMobilePower.Core.Tests;
 
 public sealed class PowerLimitValidatorTests
 {
+    [Fact]
+    public void TargetValidate_RejectsNullCapability()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            PowerLimitTargetValidator.Validate(
+                PowerLimitTarget.Uniform(25),
+                null!));
+    }
+
     [Theory]
     [InlineData(5, true)]
     [InlineData(25, true)]

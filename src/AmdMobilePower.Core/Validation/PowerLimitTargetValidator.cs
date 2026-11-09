@@ -8,6 +8,8 @@ public static class PowerLimitTargetValidator
         PowerLimitTarget target,
         PowerLimitCapability capability)
     {
+        ArgumentNullException.ThrowIfNull(capability);
+
         PowerLimitValidationResult stapm = PowerLimitValidator.Validate(target.StapmWatts);
         if (!stapm.IsValid)
         {

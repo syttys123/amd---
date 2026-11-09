@@ -104,7 +104,7 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         }
         finally
         {
-            monitorShutdown.Cancel();
+            await monitorShutdown.CancelAsync().ConfigureAwait(false);
             if (monitorTask is not null)
             {
                 try

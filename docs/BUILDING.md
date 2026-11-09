@@ -22,6 +22,10 @@ dotnet build AmdMobilePower.sln -c Release
 dotnet test AmdMobilePower.sln -c Release
 ```
 
+Product code enforces selected .NET analyzers as errors through
+`src/.editorconfig`: null validation, culture-stable formatting, explicit string
+comparison, and safe P/Invoke library search paths.
+
 Audit direct and transitive NuGet dependencies for known vulnerabilities and
 deprecated packages:
 

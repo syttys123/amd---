@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.InteropServices;
 using AmdMobilePower.Core.Hardware;
 using AmdMobilePower.Core.Models;
@@ -216,8 +217,11 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
                 {
                     RyzenAdjFamily = family,
                     RyzenAdjFamilyName = RyzenAdjFamilyNames.GetName(family),
-                    SmuBiosVersion = _native.GetBiosIfVersion(_ryzenAccess).ToString(),
-                    PmTableVersion = _native.GetTableVersion(_ryzenAccess).ToString("x")
+                    SmuBiosVersion = _native.GetBiosIfVersion(_ryzenAccess).ToString(
+                        CultureInfo.InvariantCulture),
+                    PmTableVersion = _native.GetTableVersion(_ryzenAccess).ToString(
+                        "x",
+                        CultureInfo.InvariantCulture)
                 },
                 new PowerLimitCapability(supported, supported, supported),
                 supported,
@@ -470,9 +474,11 @@ public sealed class RyzenAdjPowerAdapter : IRyzenPowerAdapter
         public bool IsSuccessful => Error is null;
     }
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
     [DllImport("kernel32.dll")]
     private static extern bool GetSystemPowerStatus(out SystemPowerStatus systemPowerStatus);
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern bool SetDllDirectory(string pathName);
 

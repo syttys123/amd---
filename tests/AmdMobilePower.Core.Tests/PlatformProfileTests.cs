@@ -6,6 +6,18 @@ namespace AmdMobilePower.Core.Tests;
 public sealed class PlatformProfileTests
 {
     [Fact]
+    public void Matches_RejectsNullCpu()
+    {
+        PlatformProfile profile = new()
+        {
+            Id = "test-profile",
+            DisplayName = "Test profile"
+        };
+
+        Assert.Throws<ArgumentNullException>(() => profile.Matches(null!));
+    }
+
+    [Fact]
     public void FindBestMatch_PrefersSpecificProcessorAndPmTableProfile()
     {
         PlatformProfile fallback = ProfileRepository.Parse(

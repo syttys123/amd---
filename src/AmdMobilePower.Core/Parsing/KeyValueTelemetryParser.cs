@@ -13,7 +13,7 @@ public static class KeyValueTelemetryParser
         foreach (string rawLine in content.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
         {
             string line = rawLine.Trim();
-            int separator = line.IndexOf('=');
+            int separator = line.IndexOf('=', StringComparison.Ordinal);
             if (separator <= 0)
             {
                 continue;
