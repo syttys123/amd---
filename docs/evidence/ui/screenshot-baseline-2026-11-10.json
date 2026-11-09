@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-11-10T05:25:53+08:00",
+  "capturedAt": "2026-11-10T06:37:45+08:00",
   "displayScale": 1.25,
   "screenshots": {
     "main-dashboard-external-power-2026-11-10.png": {
@@ -21,6 +21,18 @@
       "packageSha256": "ca8afed8680342da98e31983a9e4f276997e2f58a8a3e91779b52b6b3b0710fd",
       "targetLeftArtifactPixels": 0,
       "visibleBoundaryViolations": 0
+    },
+    "main-dashboard-battery-2026-11-10.png": {
+      "width": 718,
+      "height": 547,
+      "sizeBytes": 33892,
+      "sha256": "879c817ee0a99a111de1ad0d19058d360a2da7b364101d51037d167c3529e8ff",
+      "state": "clean package, healthy read-only worker on battery",
+      "powerLine": "battery",
+      "dynamicLimitText": "动态上限 25.0 W · 电池",
+      "targetLeftArtifactPixels": 0,
+      "visibleBoundaryViolations": 0,
+      "captureMethod": "UI Automation physical bounds with per-monitor DPI awareness"
     },
     "tray-menu-clean-package-2026-11-10.png": {
       "width": 280,
@@ -83,14 +95,13 @@
       "visibleBoundaryViolations": 0
     }
   },
-  "missing": [
-    "real battery-power dashboard screenshot"
-  ],
+  "missing": [],
   "limitations": [
     "The conflict state used a temporary legacy mutex and did not start a hardware worker.",
     "The diagnostics save dialog was cancelled; no diagnostics file was written.",
     "The tray menu was opened on a real hidden-tray icon; the clean-package verification invoked Exit and confirmed GUI/worker teardown without invoking a power action.",
     "The tray verifier requires an interactive Windows desktop and is not part of headless CI.",
-    "The current external-power state cannot distinguish a USB-C power bank from a wall adapter."
+    "The current external-power state cannot distinguish a USB-C power bank from a wall adapter.",
+    "The real-battery dashboard capture was read-only; no power-limit write or policy transition was performed."
   ]
 }

@@ -398,9 +398,6 @@ try {
     if ($snapshot.platform.isSupported -ne $true) {
         throw "Platform is unsupported: $($snapshot.platform.unsupportedReason)"
     }
-    if ($snapshot.telemetry.powerLine -ne "ac") {
-        throw "Start the full test on AC power. Current worker state: $($snapshot.telemetry.powerLine)."
-    }
     if ($null -eq $snapshot.matchedProfile) {
         throw "No matched power profile was reported."
     }
@@ -411,11 +408,19 @@ try {
         )-$($snapshot.matchedProfile.maximumWatts) W."
     }
 
-    $originalAc = Get-TargetFromTelemetry $snapshot.telemetry
-    $evidence.baseline.ac = [ordered]@{
+    $currentPowerLine = [string]$snapshot.telemetry.powerLine
+    if ($currentPowerLine -notin @("ac", "battery")) {
+        throw "Power-line state is unknown. Connect AC or run on battery and retry."
+    }
+    if (-not $PlanOnly -and $currentPowerLine -ne "ac") {
+        throw "Start the full test on AC power. Current worker state: $currentPowerLine."
+    }
+
+    $currentTarget = Get-TargetFromTelemetry $snapshot.telemetry
+    $evidence.baseline[$currentPowerLine] = [ordered]@{
         capturedAt = [DateTimeOffset]::Now
-        powerLine = $snapshot.telemetry.powerLine
-        target = $originalAc
+        powerLine = $currentPowerLine
+        target = $currentTarget
         telemetry = $snapshot.telemetry
     }
     $evidence.baseline.profile = $snapshot.matchedProfile
@@ -427,7 +432,7 @@ try {
     Write-Host "Profile: $($snapshot.matchedProfile.id) $(
         $snapshot.matchedProfile.minimumWatts
     )-$($snapshot.matchedProfile.maximumWatts) W" -ForegroundColor Cyan
-    Write-Host "Current AC baseline: $(Format-Target $originalAc)" -ForegroundColor Cyan
+    Write-Host "Current $currentPowerLine baseline: $(Format-Target $currentTarget)" -ForegroundColor Cyan
     Write-Host "Planned battery test: $(Format-Target (New-Target $BatteryWatts))" -ForegroundColor Cyan
 
     if ($PlanOnly) {
@@ -441,6 +446,7 @@ try {
         return
     }
 
+    $originalAc = $currentTarget
     $confirmationCode = "APPLY $BatteryWatts W BATTERY TEST"
     Write-Host ""
     Write-Warning "The full test changes Fast/Slow to $BatteryWatts W on battery and restores both baselines afterward."

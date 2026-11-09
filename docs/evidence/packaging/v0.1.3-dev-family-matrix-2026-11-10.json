@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "clean-release-verification",
+  "generatedAt": "2026-11-10T06:39:38.069+08:00",
+  "sourceCommit": "144e89cc3e9787639e5f997cc7fb7ac37c938f71",
+  "workingTree": "Clean",
+  "verificationCommand": ".\\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent -VerifyShellIntegration -VerifyTrayMenu -VerifyTrayExit -VerifyDiagnostics",
+  "package": {
+    "name": "amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
+    "sizeBytes": 593334,
+    "sha256": "08cd4913f4d39d1907e248bb1e40d87ea55ca40724af2f87b715fd138cdd9b83",
+    "files": 40,
+    "checksums": 39,
+    "profiles": 9,
+    "licenses": 4
+  },
+  "build": {
+    "configuration": "Release",
+    "frameworkDependent": true,
+    "warnings": 0,
+    "errors": 0,
+    "testsPassed": 65,
+    "testsFailed": 0
+  },
+  "compatibilityMatrix": {
+    "knownRyzenAdjFamilies": 16,
+    "everyFamilyMappedExactlyOnce": true,
+    "allKnownFamilyNamesTested": true
+  },
+  "runtimeChecks": {
+    "isolatedInstallOverwriteUninstall": "PASS",
+    "shellIntegration": "PASS",
+    "startupFallback": "Startup-folder shortcut",
+    "trayMenu": "PASS",
+    "trayMenuDirection": "up",
+    "trayMenuItems": 11,
+    "trayMenuHorizontalGap": 0,
+    "trayGracefulExit": "PASS",
+    "trayNotificationText": "AMD Mobile Power AMD Mobile Power | 电池 | 13.8 W",
+    "trayScreenshotSha256": "c0e5b3e336bdd216d45cafab11bd6d6303c4d1c9661812f2d7bdf99ae9aab530"
+  },
+  "diagnostics": {
+    "collectionStatus": "PASS",
+    "workerVersion": "0.1.3-dev",
+    "platformSupported": true,
+    "matchedProfile": "hawk-point-8845hs",
+    "profiles": 9,
+    "runtimeFiles": 5,
+    "hardwareAdapterConfigured": true,
+    "writeControlsEnabled": false,
+    "shutdownProtocol": "PASS",
+    "localDrivePathIncluded": false,
+    "forbiddenProcessOrLogFieldsIncluded": false
+  },
+  "batteryEvidence": {
+    "evidence": "docs/evidence/hardware/mechrevo-wujie15-8845hs-battery-preflight-2026-11-10.json",
+    "powerLine": "battery",
+    "baselineStapmFastSlowWatts": [25, 25, 20],
+    "plannedTargetWatts": [12, 12, 12],
+    "hardwareWrites": 0,
+    "dashboardScreenshot": "docs/assets/main-dashboard-battery-2026-11-10.png",
+    "dashboardScreenshotSha256": "879c817ee0a99a111de1ad0d19058d360a2da7b364101d51037d167c3529e8ff"
+  }
+}

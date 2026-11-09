@@ -56,6 +56,10 @@ read-only preflight:
   -PackageDirectory artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite
 ```
 
+`-PlanOnly` accepts either AC or battery as the starting state. It records the
+current limits and generates machine-local evidence without enabling write
+controls.
+
 The full supervised test starts on AC power, records the current AC limits,
 asks for the adapter to be unplugged, records the current battery limits, tests
 the conservative battery target, verifies the automatic AC transition, and then
@@ -80,6 +84,11 @@ MECHREVO WUJIE15 PRO, Ryzen 7 8845HS, Hawk Point profile, AC baseline
 evidence:
 `docs/evidence/hardware/mechrevo-wujie15-8845hs-policy-preflight-2026-11-10.json`.
 This preflight does not satisfy the supervised battery/AC transition gate.
+
+The same read-only path was also exercised while discharging on battery:
+baseline `25/25/20 W`, planned target `12/12/12 W`, and zero hardware writes.
+Evidence:
+`docs/evidence/hardware/mechrevo-wujie15-8845hs-battery-preflight-2026-11-10.json`.
 
 ## Abort Criteria
 

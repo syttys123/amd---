@@ -8,9 +8,10 @@ thin-and-light laptops.
 > Hardware write support is present but requires two explicit development flags
 > and remains under supervised validation. Controlled 10 W and 12 W write/readback
 > tests and a packaged 12 W no-change write gate passed on the development laptop
-> on 2026-11-10.
+> on 2026-11-10. A real battery read-only baseline was also captured at
+> `STAPM/Fast/Slow = 25/25/20 W`; the full AC/battery transition gate remains pending.
 
-![AMD Mobile Power read-only external-power dashboard](docs/assets/main-dashboard-clean-package-2026-11-10.png)
+![AMD Mobile Power read-only battery dashboard](docs/assets/main-dashboard-battery-2026-11-10.png)
 
 ## Current Features
 

@@ -482,8 +482,8 @@ third_party/
   entry, and fixed compact mode to hide the advanced footer instead of leaving
   its controls in a zero-height layout row.
 - Captured healthy external-power, preset-editor, legacy-conflict,
-  diagnostics-save, clean-package, and tray-menu states with zero visible
-  boundary violations. The real-battery screenshot remains open.
+  diagnostics-save, clean-package, tray-menu, and real-battery dashboard states
+  with zero visible boundary violations.
 - Reconciled the hardware matrix with current 10 W, 12 W, 25 W, and 45 W
   request/read-back evidence. Firmware-clamped STAPM values are documented
   separately from Fast/Slow transport failures and restore behavior.
@@ -527,11 +527,11 @@ third_party/
   uses an isolated pipe, writes a whitelisted and path-sanitized JSON report,
   and requires graceful protocol shutdown. Release verification can exercise
   this path with `-VerifyDiagnostics`.
-- Rebuilt the clean Lite package after integrating the sanitized GUI export.
-  The package is 593,334 bytes with SHA256
-  `d9f73ff16d69ad6ab20beffed46d26b0488e2295cef3ddd3a8b71736c85c4dbb`,
-  built from commit `1732ac0`, and contains 40 files with 39 checksum entries.
-  The full local gate passed with 0 build warnings, 63/63 tests, shell
+- Rebuilt the clean Lite package after integrating the sanitized GUI export and
+  full RyzenAdj family coverage tests. The package is 593,334 bytes with
+  SHA256 `08cd4913f4d39d1907e248bb1e40d87ea55ca40724af2f87b715fd138cdd9b83`,
+  built from commit `144e89c`, and contains 40 files with 39 checksum entries.
+  The full local gate passed with 0 build warnings, 65/65 tests, shell
   integration, tray-menu placement, graceful tray exit, and read-only
   diagnostics collection. PowerShell 5.1 and PowerShell 7 both produced a
   `PASS` diagnostic report with no local drive paths or forbidden process/log
@@ -543,6 +543,13 @@ third_party/
   and verifies private fields and path values are absent.
 - Added compatibility-matrix tests that require every RyzenAdj family `0-15` to
   map to exactly one shipped profile and verify every known family display name.
+- Captured the real battery state through the packaged read-only GUI and worker:
+  `动态上限 25.0 W · 电池`, zero visible boundary violations, and screenshot
+  `assets/main-dashboard-battery-2026-11-10.png`.
+- Relaxed read-only `verify-power-policy.ps1 -PlanOnly` so it can run from either
+  AC or battery while the full write test still requires starting on AC. The
+  battery preflight recorded a `25/25/20 W` baseline, a planned `12/12/12 W`
+  target, and zero hardware writes.
 
 Development screenshot:
 
@@ -562,11 +569,11 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Close the remaining physical release evidence: capture a real battery-powered
-dashboard, run the supervised AC/battery policy procedure, and collect a
-read-only diagnostics report from a second AMD laptop. Do not promote a family
-to supported until a physical laptop supplies the capability, telemetry, write,
-read-back, and restore evidence required by `HARDWARE_TEST_PROCEDURE.md`.
+Run the supervised AC/battery policy transition now that real battery telemetry
+and a screenshot are recorded, and collect a read-only diagnostics report from
+a second AMD laptop. Do not promote a family to supported until a physical
+laptop supplies the capability, telemetry, write, read-back, and restore
+evidence required by `HARDWARE_TEST_PROCEDURE.md`.
 
 ## Known Risks
 

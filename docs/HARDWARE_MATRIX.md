@@ -13,7 +13,7 @@ behavior.
 
 | Device | CPU | BIOS | AC result | Battery result | Status | Notes |
 |---|---|---|---|---|---|---|
-| MECHREVO WUJIE15 PRO | Ryzen 7 8845HS | `T153_HPT_V05` | Write/read-back evidence: 10/10/10 W, 12/12/12 W, and earlier 25/25/25 W. A 45 W request read back as 25/45/45 W. Latest clean-package read-only snapshot held required limits at 12/12/12 W. | Pending controlled validation | Experimental | Windows build 26300; SMU 15; PM table `4c0009`; firmware can clamp or dynamically manage STAPM while Fast/Slow remain the required package cap |
+| MECHREVO WUJIE15 PRO | Ryzen 7 8845HS | `T153_HPT_V05` | Write/read-back evidence: 10/10/10 W, 12/12/12 W, and earlier 25/25/25 W. A 45 W request read back as 25/45/45 W. Latest clean-package read-only snapshot held required limits at 12/12/12 W. | Read-only battery baseline: 25/25/20 W. Supervised policy transition still pending. | Experimental | Windows build 26300; SMU 15; PM table `4c0009`; firmware can clamp or dynamically manage STAPM while Fast/Slow remain the required package cap |
 
 ## Firmware Clamp Interpretation
 

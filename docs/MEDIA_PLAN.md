@@ -100,7 +100,8 @@ Narration:
 - `assets/main-dashboard-clean-package-2026-11-10.png` - captured from the clean
   package
 - `assets/main-dashboard-external-power-2026-11-10.png` - captured
-- `assets/main-dashboard-battery.png` - pending real battery state
+- `assets/main-dashboard-battery-2026-11-10.png` - captured on real battery
+  power with a read-only worker
 - `assets/preset-editor-2026-11-10.png` - captured
 - `assets/worker-conflict-2026-11-10.png` - captured with a temporary mutex
 - `assets/diagnostics-export-2026-11-10.png` - captured save dialog crop
