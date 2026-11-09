@@ -523,12 +523,11 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Close the remaining physical release evidence: capture the tray context menu,
-capture a real battery-powered dashboard, run the supervised AC/battery policy
-procedure, and collect a read-only diagnostics report from a second AMD laptop.
-Do not promote a family to supported until a physical laptop supplies the
-capability, telemetry, write, read-back, and restore evidence required by
-`HARDWARE_TEST_PROCEDURE.md`.
+Close the remaining physical release evidence: capture a real battery-powered
+dashboard, run the supervised AC/battery policy procedure, and collect a
+read-only diagnostics report from a second AMD laptop. Do not promote a family
+to supported until a physical laptop supplies the capability, telemetry, write,
+read-back, and restore evidence required by `HARDWARE_TEST_PROCEDURE.md`.
 
 ## Known Risks
 

@@ -97,12 +97,15 @@ Narration:
 
 ## Screenshot Set For Repository
 
+- `assets/main-dashboard-clean-package-2026-11-10.png` - captured from the clean
+  package
 - `assets/main-dashboard-external-power-2026-11-10.png` - captured
 - `assets/main-dashboard-battery.png` - pending real battery state
 - `assets/preset-editor-2026-11-10.png` - captured
 - `assets/worker-conflict-2026-11-10.png` - captured with a temporary mutex
 - `assets/diagnostics-export-2026-11-10.png` - captured save dialog crop
-- `assets/tray-menu.png` - pending
+- `assets/tray-menu-clean-package-2026-11-10.png` - captured and reproducible
+  with `verify-tray-menu.ps1`
 
 See `UI_SCREENSHOT_EVIDENCE.md` for dimensions, hashes, safety boundaries, and
 remaining captures.

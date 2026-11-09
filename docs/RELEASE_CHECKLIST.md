@@ -51,7 +51,7 @@
 - [x] Supported-hardware wording does not claim universal support.
 - [x] Healthy dashboard, preset, conflict, diagnostics, and tray screenshots
       exist.
-- [ ] Project introduction is reviewed.
+- [x] Project introduction is fact-checked against current package evidence.
 - [ ] Promo video is rendered and reviewed.
 - [ ] Bilibili title, description, cover, and tags are reviewed.
 
