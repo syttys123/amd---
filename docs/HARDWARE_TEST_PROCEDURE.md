@@ -49,6 +49,8 @@ intentionally changing the thermal load.
 Stop testing and restore the previous deployment if:
 
 - The machine becomes unstable or unexpectedly shuts down.
+- RyzenAdj reports `Unable to get MP1 SMU Obj`, especially after an owning
+  process was force-terminated. Reboot before any further hardware access.
 - A read-back is missing or non-finite.
 - A write reports success but an effective limit rises above the request.
 - Automatic restore fails or cannot be verified.

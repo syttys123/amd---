@@ -38,6 +38,10 @@ Do not bypass this protection. Concurrent RyzenAdj owners have caused an
 uncatchable native access violation during development. Closing the legacy GUI
 is not sufficient when its logon task still has a hidden worker running.
 
+If an owning worker must be force-terminated, treat the WinRing0/inpout/SMU
+state as tainted. Reboot before probing or writing again; repeated calls can
+raise `AccessViolationException` inside `init_ryzenadj`.
+
 ## Write Validation
 
 When write controls are explicitly enabled, the worker:

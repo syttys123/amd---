@@ -240,6 +240,13 @@ third_party/
 - Runtime-verified close-to-tray on the current Release GUI: WM_CLOSE hid the
   window while PID `91956` remained responsive; a second launch woke the same
   process, left one GUI instance, and made the window visible again.
+- Stopped `\AMD\RyzenAdjWatch` on 2026-11-09 and confirmed
+  `Stop-ScheduledTask` left the elevated hidden `pwsh.exe` child alive. Ending
+  that child removed the legacy mutex, but subsequent old and new RyzenAdj
+  probes both reported `Unable to get MP1 SMU Obj`; the new worker then crashed
+  natively in `init_ryzenadj`.
+- Added a recovery gate: after force-terminating a RyzenAdj owner, reboot before
+  attempting another probe or any hardware write.
 
 Development screenshot:
 
@@ -257,11 +264,11 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Run the controlled no-change write test while connected to AC, then verify the
-initial and final STAPM/Fast/Slow limits match. Do not expose write controls in
-the public package until this test passes. Before that test, stop the legacy
-`RyzenPower` process with explicit operator approval and preserve the stable
-`C:\RyzenAdj` deployment.
+Reboot Windows to reset the RyzenAdj/WinRing0/inpout/SMU state, then launch the
+new GUI without the legacy task running and confirm a clean read-only snapshot.
+After that, run the controlled no-change write test while connected to AC and
+verify the initial and final STAPM/Fast/Slow limits match. Do not expose write
+controls in the public package until this test passes.
 
 ## Known Risks
 
