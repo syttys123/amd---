@@ -520,11 +520,12 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Extend diagnostics and the compatibility report so a new AMD laptop can submit
-its RyzenAdj family, matched profile, SMU interface, PM table, capability flags,
-and runtime-file hashes in one reviewable artifact. Do not promote a family to
-supported until a physical laptop supplies the capability, telemetry, write,
-read-back, and restore evidence required by `HARDWARE_TEST_PROCEDURE.md`.
+Close the remaining physical release evidence: capture the tray context menu,
+capture a real battery-powered dashboard, run the supervised AC/battery policy
+procedure, and collect a read-only diagnostics report from a second AMD laptop.
+Do not promote a family to supported until a physical laptop supplies the
+capability, telemetry, write, read-back, and restore evidence required by
+`HARDWARE_TEST_PROCEDURE.md`.
 
 ## Known Risks
 
