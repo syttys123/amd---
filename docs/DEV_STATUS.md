@@ -178,10 +178,10 @@ third_party/
   8845HS platform and telemetry data.
 - Current local package:
   - Path: `artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip`
-  - Size: 106,642,846 bytes
+  - Size: 106,646,897 bytes
   - SHA256:
-    `3428c33d4967c7c5e7d06abe98b97198e2c0f3fbbc4cfc6bbdc09bd13f74bcf0`
-  - Source commit: `8a750d5`
+    `01ba3ba41ba0a84f36ad6ff74b07ba8196de4bb0e30f4958dfcf977b1d126b23`
+  - Source commit: `0276c5b`
   - Working tree at build time: clean
 - Verified first install, overwrite upgrade, and uninstall against an isolated
   `artifacts/test-install` directory without changing shell integration.
@@ -257,8 +257,9 @@ third_party/
   no RyzenAdj process running. Both services returned to `Running`, but the
   legacy `ryzenadj.exe --info` still hung in the SMU polling loop. Service
   restart is therefore insufficient; a Windows reboot remains required.
-- Rebuilt the portable package from clean commit `8a750d5`; it contains the
-  fail-closed worker recovery behavior.
+- Rebuilt the portable package from clean commit `0276c5b`; it contains the
+  fail-closed worker recovery behavior, migration helper, migration guide, and
+  release checklist.
 
 Development screenshot:
 
