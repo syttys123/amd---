@@ -513,8 +513,9 @@ third_party/
   and false menu captures by requiring the context menu to open upward and
   remain horizontally anchored to the notification icon.
 - Added `render-promo.ps1` and the JSON storyboard for a reproducible Chinese
-  development-preview video. The current draft is 71.9 seconds at 1920x1080,
-  passes full FFmpeg decode and text safe-width checks, and remains
+  development-preview video. The current draft is 77.1 seconds at 1920x1080,
+  includes the read-only diagnostics collector, enforces text safe-width
+  bounds, passes full FFmpeg decode and audio-level checks, and remains
   `DRAFT_FOR_HUMAN_REVIEW`.
 - Implemented the versioned `shutdown` worker command with a
   response-before-exit test; GUI teardown now tries graceful shutdown before

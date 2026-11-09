@@ -157,7 +157,7 @@ hash manifest under `artifacts/media`.
 The output is intentionally marked `DRAFT_FOR_HUMAN_REVIEW`. Rendering the file
 does not satisfy the publication gate and does not log in to GitHub or Bilibili.
 
-Current draft status: rendered at 71.9 seconds in 1920x1080 with Chinese
+Current draft status: rendered at 77.1 seconds in 1920x1080 with Chinese
 narration and captions. Cover and contact-sheet review assets are committed;
 the MP4 remains under ignored `artifacts/media`. Project-owner review is still
 pending.

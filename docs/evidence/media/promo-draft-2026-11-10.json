@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "evidenceType": "development-preview-video-draft",
-  "capturedAt": "2026-11-10T05:42:14+08:00",
+  "capturedAt": "2026-11-10T06:06:11+08:00",
   "status": "DRAFT_FOR_HUMAN_REVIEW",
   "video": {
     "path": "artifacts/media/amd-mobile-power-promo-draft-2026-11-10/amd-mobile-power-intro-draft-2026-11-10.mp4",
-    "sha256": "11200e358b0fe92cac2a96c9ef1d3d3991a6896255e6cc64f2b537060a8a6ccd",
-    "sizeBytes": 17923909,
-    "durationSeconds": 71.9,
+    "sha256": "5fa82dabe9030f0328095023d80413f281e48f9b876ae7c68d715ea14e334380",
+    "sizeBytes": 18821110,
+    "durationSeconds": 77.1,
     "width": 1920,
     "height": 1080,
     "frameRate": "25/1",
@@ -20,25 +20,25 @@
     "voice": "Microsoft Huihui Desktop",
     "rate": 3,
     "captions": "artifacts/media/amd-mobile-power-promo-draft-2026-11-10/captions-zh.srt",
-    "captionsSha256": "2877f9f7a2e0cf1b6fa50e3095275af1ee59cf8a8c0b3a897e058f1c972c2095"
+    "captionsSha256": "fc7147585d37820d0ed8e422bcfce2bf80f6d57deb2548bd2d3e3fa12c65e212"
   },
   "source": {
     "storyboard": "media/promo/storyboard.json",
-    "storyboardSha256": "159f7744209b09368cdd747a5dd6146f0d655a8331edd6363bb1b3125ba1125a",
+    "storyboardSha256": "81ba96e1bd82e1e60274e38290a579ffeb0ea1e21ec002bbf84e8e82f978b392",
     "renderer": "render-promo.ps1",
-    "rendererSha256": "6845c163641c34720c7fa08f8e110ea3d96408252cde29e1323cd49d4393d8f1"
+    "rendererSha256": "a6166b6892f60ca0d499ef7bdbdd7d68d2a19b5addb0de65803576122969c47c"
   },
   "reviewAssets": {
     "cover": "docs/assets/promo-draft-cover-2026-11-10.png",
-    "coverSha256": "74ff5e2011b8ff17ceac3b17461dd240bc6aa2aac32e0d7b2ac525f4e1fc95a5",
+    "coverSha256": "75d489248a16740095b79c5c58d44ac4547b74183b1b12f44a5eae675b6002a5",
     "contactSheet": "docs/assets/promo-draft-contact-sheet-2026-11-10.png",
-    "contactSheetSha256": "823b07a4a1fcb414eccbd347fc30fb4382712dba93e302b26c23e8e9d22b72de"
+    "contactSheetSha256": "dd69f971c8b3e87ae9521596588d2e12273eace00eacee2816340cf7eac892c2"
   },
   "verification": {
     "ffmpegFullDecode": "PASS",
     "textSafeWidth": "PASS",
     "sceneCount": 7,
-    "meanVolumeDb": -21.1,
+    "meanVolumeDb": -21.2,
     "maxVolumeDb": -1.3,
     "noApplicationProcess": true,
     "noHardwareWrite": true,

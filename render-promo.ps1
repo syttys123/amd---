@@ -196,7 +196,7 @@ function Draw-Pill {
     $rectangle = [Drawing.RectangleF]::new(
         $X,
         $Y,
-        $size.Width + 42,
+        $size.Width + 36,
         $size.Height + 18)
     $fill = [Drawing.SolidBrush]::new([Drawing.Color]::FromArgb(30, 69, 214, 168))
     $border = [Drawing.Pen]::new([Drawing.Color]::FromArgb(150, 69, 214, 168), 2)
@@ -216,9 +216,9 @@ function Draw-Pill {
                 $Font,
                 $brush,
                 [Drawing.RectangleF]::new(
-                    $rectangle.X + 21,
+                    $rectangle.X + 18,
                     $rectangle.Y + 8,
-                    $rectangle.Width - 42,
+                    $rectangle.Width - 36,
                     $rectangle.Height - 16))
         }
         finally {
@@ -416,6 +416,103 @@ function Draw-SceneText {
     }
 }
 
+function Measure-TextBlock {
+    param(
+        [Drawing.Graphics]$Graphics,
+        [string]$Text,
+        [Drawing.Font]$Font
+    )
+
+    $width = 0.0
+    $height = 0.0
+    foreach ($line in (($Text -replace "`r", "") -split "`n")) {
+        $size = $Graphics.MeasureString($line, $Font)
+        $width = [Math]::Max($width, $size.Width)
+        $height += $size.Height
+    }
+    return [pscustomobject]@{
+        Width = $width
+        Height = $height
+    }
+}
+
+function Assert-SceneTextSafeWidth {
+    param(
+        [Drawing.Graphics]$Graphics,
+        [object]$Scene
+    )
+
+    $textWidth = switch ($Scene.layout) {
+        "hero" { 620.0 }
+        "screenshot-right" { 720.0 }
+        "tray" { 880.0 }
+        "closing" { 1060.0 }
+        default { throw "Unknown scene layout: $($Scene.layout)" }
+    }
+    $eyebrowFont = [Drawing.Font]::new("Segoe UI", 18, [Drawing.FontStyle]::Bold)
+    $titleFont = [Drawing.Font]::new($displayFamily, 58, [Drawing.FontStyle]::Bold)
+    $captionFont = [Drawing.Font]::new($fontFamily, 28, [Drawing.FontStyle]::Regular)
+    try {
+        $eyebrow = Measure-TextBlock -Graphics $Graphics -Text $Scene.eyebrow -Font $eyebrowFont
+        if ($eyebrow.Width -gt $textWidth) {
+            throw "Scene $($Scene.id) eyebrow exceeds its safe width."
+        }
+
+        $title = Measure-TextBlock -Graphics $Graphics -Text $Scene.title -Font $titleFont
+        if ($title.Width -gt $textWidth -or $title.Height -gt 230) {
+            throw "Scene $($Scene.id) title exceeds its safe text box."
+        }
+
+        if ($Scene.PSObject.Properties.Name -contains "caption") {
+            $caption = Measure-TextBlock -Graphics $Graphics -Text $Scene.caption -Font $captionFont
+            if ($caption.Width -gt $textWidth -or $caption.Height -gt 80) {
+                throw "Scene $($Scene.id) caption exceeds its safe text box."
+            }
+        }
+
+        if ($Scene.PSObject.Properties.Name -contains "bullets") {
+            $bulletFont = [Drawing.Font]::new($fontFamily, 30, [Drawing.FontStyle]::Regular)
+            $bulletWidth = if ($Scene.layout -eq "tray") { 1100.0 } else { 740.0 }
+            try {
+                foreach ($bullet in $Scene.bullets) {
+                    $size = Measure-TextBlock -Graphics $Graphics -Text $bullet -Font $bulletFont
+                    if ($size.Width -gt $bulletWidth) {
+                        throw "Scene $($Scene.id) bullet exceeds its safe width: $bullet"
+                    }
+                }
+                if (($Scene.bullets.Count * 78) -gt 360) {
+                    throw "Scene $($Scene.id) bullet list exceeds its safe height."
+                }
+            }
+            finally {
+                $bulletFont.Dispose()
+            }
+        }
+
+        if ($Scene.PSObject.Properties.Name -contains "badges") {
+            $badgeFont = [Drawing.Font]::new($fontFamily, 20, [Drawing.FontStyle]::Bold)
+            try {
+                $badgeWidth = 0.0
+                foreach ($badge in $Scene.badges) {
+                    $size = $Graphics.MeasureString($badge, $badgeFont)
+                    $badgeWidth += $size.Width + 36 + 14
+                }
+                if (($badgeWidth - 14) -gt 640) {
+                    throw "Scene $($Scene.id) badges exceed their safe width."
+                }
+            }
+            finally {
+                $badgeFont.Dispose()
+            }
+        }
+    }
+    finally {
+        $eyebrowFont.Dispose()
+        $titleFont.Dispose()
+        $captionFont.Dispose()
+    }
+}
+
 function Render-Slide {
     param(
         [object]$Scene,
@@ -435,6 +532,7 @@ function Render-Slide {
         $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
         $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
         $graphics.TextRenderingHint = [Drawing.Text.TextRenderingHint]::ClearTypeGridFit
+        Assert-SceneTextSafeWidth -Graphics $graphics -Scene $Scene
         Draw-BaseBackground -Graphics $graphics -SceneIndex $SceneIndex
 
         switch ($Scene.layout) {
@@ -454,7 +552,7 @@ function Render-Slide {
                             -X $badgeX `
                             -Y 690 `
                             -Font $badgeFont
-                        $badgeX += $width + 18
+                        $badgeX += $width + 14
                     }
                 }
                 finally {
@@ -799,6 +897,40 @@ if ($videoStream.width -ne 1920 -or $videoStream.height -ne 1080) {
     throw "Rendered video is not 1920x1080."
 }
 
+& $ffmpeg `
+    -v error `
+    -i $outputPath `
+    -f null `
+    NUL 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "Full FFmpeg decode failed."
+}
+
+$volumeOutput = & $ffmpeg `
+    -hide_banner `
+    -i $outputPath `
+    -af volumedetect `
+    -f null `
+    NUL 2>&1
+if ($LASTEXITCODE -ne 0) {
+    throw "FFmpeg volume analysis failed."
+}
+$volumeText = $volumeOutput | Out-String
+$meanMatch = [regex]::Match($volumeText, "mean_volume:\s*(-?[0-9.]+) dB")
+$maxMatch = [regex]::Match($volumeText, "max_volume:\s*(-?[0-9.]+) dB")
+if (-not $meanMatch.Success -or -not $maxMatch.Success) {
+    throw "FFmpeg volume analysis did not report mean/max levels."
+}
+$meanVolumeDb = [double]::Parse(
+    $meanMatch.Groups[1].Value,
+    [Globalization.CultureInfo]::InvariantCulture)
+$maxVolumeDb = [double]::Parse(
+    $maxMatch.Groups[1].Value,
+    [Globalization.CultureInfo]::InvariantCulture)
+if ($meanVolumeDb -lt -28 -or $maxVolumeDb -gt -0.5) {
+    throw "Rendered audio level is outside the accepted range."
+}
+
 $workingFilesRetained = -not $CleanWorkingFiles
 if ($CleanWorkingFiles) {
     foreach ($record in $sceneRecords) {
@@ -840,6 +972,18 @@ $manifest = [ordered]@{
         cover = $coverPath
         coverSha256 = $coverHash
     }
+    verification = [ordered]@{
+        ffmpegFullDecode = "PASS"
+        textSafeWidth = "PASS"
+        sceneCount = $sceneRecords.Count
+        width = $videoStream.width
+        height = $videoStream.height
+        meanVolumeDb = $meanVolumeDb
+        maxVolumeDb = $maxVolumeDb
+        noApplicationProcess = $true
+        noHardwareWrite = $true
+        noLoginOrUpload = $true
+    }
     safety = @(
         "No application process was started during rendering.",
         "No hardware write, driver change, login, upload, or publication occurred.",
@@ -860,5 +1004,8 @@ Write-Host "Promo draft rendered." -ForegroundColor Green
     Captions = $captionsPath
     Manifest = $manifestPath
     ReviewFrames = $reviewDirectory
+    MeanVolumeDb = $meanVolumeDb
+    MaxVolumeDb = $maxVolumeDb
+    FullDecode = "PASS"
     Status = "DRAFT_FOR_HUMAN_REVIEW"
 } | Format-List

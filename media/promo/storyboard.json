@@ -42,7 +42,7 @@
       "bullets": [
         "默认只读",
         "校验平台与范围",
-        "写入开关双重确认"
+        "GUI / worker 双门控"
       ],
       "image": "docs/assets/preset-editor-2026-11-10.png",
       "narration": "十二、二十五、四十五瓦三个预设都可编辑。开发版默认只读，写入需要额外开关并校验平台与范围。"
@@ -79,12 +79,12 @@
       "eyebrow": "EVIDENCE FIRST",
       "title": "先测清楚\n再谈兼容",
       "bullets": [
-        "Ryzen 7 8845HS",
-        "Hawk Point / PMT 4c0009",
-        "仅一台实机证据"
+        "Ryzen 7 8845HS / Hawk Point",
+        "九代候选 Profile",
+        "无 GUI 只读诊断"
       ],
       "image": "docs/assets/main-dashboard-external-power-2026-11-10.png",
-      "narration": "目前只有一台 Ryzen 七 八八四五 H S 的完整实机证据。不同 AMD 世代和 BIOS 需要独立诊断，不能冒充通用支持。"
+      "narration": "目前只有一台 Ryzen 七 八八四五 H S 的完整实机证据。项目为多个 AMD 世代准备了保守配置，并提供无需打开图形界面的只读诊断收集器；不同机型仍需独立验证，不能冒充通用支持。"
     },
     {
       "id": "closing",

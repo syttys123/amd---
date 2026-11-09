@@ -6,7 +6,7 @@ process and performs no hardware write.
 
 ## Current Draft
 
-The current draft is 71.9 seconds at 1920x1080, 25 fps, with H.264 video, AAC
+The current draft is 77.1 seconds at 1920x1080, 25 fps, with H.264 video, AAC
 stereo audio, Chinese narration, and simplified-Chinese captions. It is marked
 `DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
 
@@ -21,11 +21,11 @@ artifacts/media/amd-mobile-power-promo-draft-2026-11-10/
   amd-mobile-power-intro-draft-2026-11-10.mp4
 ```
 
-- Size: 17,923,909 bytes.
+- Size: 18,821,110 bytes.
 - SHA256:
-  `11200e358b0fe92cac2a96c9ef1d3d3991a6896255e6cc64f2b537060a8a6ccd`.
+  `5fa82dabe9030f0328095023d80413f281e48f9b876ae7c68d715ea14e334380`.
 - Full-file FFmpeg decode: PASS.
-- Audio level: mean `-21.1 dB`, peak `-1.3 dB`.
+- Audio level: mean `-21.2 dB`, peak `-1.3 dB`.
 - Title, caption, and bullet safe-width checks: PASS.
 - Scene count: 7.
 
@@ -54,6 +54,10 @@ artifacts/media/amd-mobile-power-promo-draft-2026-11-10/
 Generated scene PNGs and WAV files are retained by default for review. Use
 `-CleanWorkingFiles` when only the final MP4, captions, cover, manifest, and
 review frames are needed.
+
+The renderer enforces scene text bounds before encoding and runs full-decode,
+mean-volume, and peak-volume checks before writing the manifest. A failed text
+or audio bound stops the render instead of producing an accepted draft.
 
 ## Review Gate
 
