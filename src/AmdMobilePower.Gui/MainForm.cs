@@ -37,6 +37,7 @@ internal sealed class MainForm : Form
     private Label _headerTitle = null!;
     private Panel _headerModeSwitch = null!;
     private Panel _bodyHost = null!;
+    private Panel _footerHost = null!;
     private Control _advancedBody = null!;
     private Control _simpleBody = null!;
     private Button _simpleModeButton = null!;
@@ -58,6 +59,7 @@ internal sealed class MainForm : Form
     private Label _policyStatusLabel = null!;
     private PowerUsageBar _powerBar = null!;
     private Button _applyButton = null!;
+    private Button _diagnosticsButton = null!;
     private Button _editPresetButton = null!;
     private Label _simpleCurrentPower = null!;
     private Label _simplePowerLineBadge = null!;
@@ -246,7 +248,9 @@ internal sealed class MainForm : Form
             _advancedBody.BringToFront();
         }
         root.Controls.Add(_bodyHost, 0, 1);
-        root.Controls.Add(BuildFooter(), 0, 2);
+        _footerHost = (Panel)BuildFooter();
+        _footerHost.Visible = _uiMode == UiMode.Advanced;
+        root.Controls.Add(_footerHost, 0, 2);
         UpdateDisplayModeControls();
 
         Resize += delegate
@@ -1678,14 +1682,34 @@ internal sealed class MainForm : Form
 
         layout.Controls.Add(BuildPolicyPanel(), 0, 4);
 
+        FlowLayoutPanel actions = new()
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.RightToLeft,
+            WrapContents = false,
+            BackColor = Color.Transparent,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty
+        };
+
         _applyButton = AppTheme.CreateButton(
             "应用三项限制",
             primary: true,
             width: 220,
             height: 40);
-        _applyButton.Dock = DockStyle.Fill;
+        _applyButton.Margin = new Padding(8, 3, 0, 3);
         _applyButton.Click += async delegate { await ApplyCurrentTargetAsync(); };
-        layout.Controls.Add(_applyButton, 0, 5);
+        actions.Controls.Add(_applyButton);
+
+        _diagnosticsButton = AppTheme.CreateButton(
+            "导出诊断",
+            width: 120,
+            height: 40);
+        _diagnosticsButton.Margin = new Padding(0, 3, 0, 3);
+        _diagnosticsButton.AccessibleName = "导出诊断";
+        _diagnosticsButton.Click += async delegate { await ExportDiagnosticsAsync(); };
+        actions.Controls.Add(_diagnosticsButton);
+        layout.Controls.Add(actions, 0, 5);
         SetApplyEnabled(false);
 
         _inputsInitialized = false;
@@ -2736,12 +2760,14 @@ internal sealed class MainForm : Form
             SyncSimpleTargetFromAdvanced();
             _simpleBody.Visible = true;
             _advancedBody.Visible = false;
+            _footerHost.Visible = false;
             _simpleBody.BringToFront();
         }
         else
         {
             _simpleBody.Visible = false;
             _advancedBody.Visible = true;
+            _footerHost.Visible = true;
             _advancedBody.BringToFront();
         }
 
