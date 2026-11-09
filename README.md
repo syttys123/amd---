@@ -63,7 +63,7 @@ The earlier self-contained development package remains available:
 artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip
 ```
 
-The lite package is roughly 547 KB without the .NET runtime and requires the
+The lite package is roughly 573 KB without the .NET runtime and requires the
 Microsoft .NET 8 Desktop Runtime x64. See `docs/PACKAGING.md` for build and
 runtime details.
 

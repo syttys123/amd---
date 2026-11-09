@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "clean-release-verification",
+  "generatedAt": "2026-11-10T05:59:00.185+08:00",
+  "sourceCommit": "4f963e85fa9a228b64a301d3ee625a736153c6a8",
+  "workingTree": "Clean",
+  "verificationCommand": ".\\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent -VerifyShellIntegration -VerifyTrayMenu -VerifyTrayExit -VerifyDiagnostics",
+  "package": {
+    "name": "amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
+    "sizeBytes": 586394,
+    "sha256": "e0c254ee7e2531ea63e79a176d852aa1c7aed3c8a2e339ff7d3c5f45db47f592",
+    "files": 40,
+    "checksums": 39,
+    "profiles": 9,
+    "licenses": 4
+  },
+  "build": {
+    "configuration": "Release",
+    "frameworkDependent": true,
+    "warnings": 0,
+    "errors": 0,
+    "testsPassed": 62,
+    "testsFailed": 0
+  },
+  "runtimeChecks": {
+    "isolatedInstallOverwriteUninstall": "PASS",
+    "shellIntegration": "PASS",
+    "startupFallback": "Startup-folder shortcut",
+    "trayMenu": "PASS",
+    "trayMenuDirection": "up",
+    "trayMenuItems": 11,
+    "trayMenuHorizontalGap": 0,
+    "trayGracefulExit": "PASS",
+    "trayScreenshotSha256": "4d19288eabf88f6f86a3448dcd8a762dc28f93676548c44445e7ee582a772b5c"
+  },
+  "diagnostics": {
+    "collectionStatus": "PASS",
+    "workerVersion": "0.1.3-dev",
+    "platformSupported": true,
+    "matchedProfile": "hawk-point-8845hs",
+    "profiles": 9,
+    "runtimeFiles": 5,
+    "writeControlsEnabled": false,
+    "shutdownProtocol": "PASS",
+    "localDrivePathIncluded": false,
+    "forbiddenProcessOrLogFieldsIncluded": false,
+    "powerShellHostsVerified": [
+      "5.1.26100.9711",
+      "7.6.9"
+    ],
+    "powerLine": "ac",
+    "stapmLimitWatts": 12.000000953674316,
+    "fastLimitWatts": 12.000000953674316,
+    "slowLimitWatts": 12.000000953674316
+  }
+}
