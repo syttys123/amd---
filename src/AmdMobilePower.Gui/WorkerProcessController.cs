@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using AmdMobilePower.Core.Contracts;
+using AmdMobilePower.Core.Hardware;
 using AmdMobilePower.Core.Ipc;
 using AmdMobilePower.Core.Models;
 
@@ -12,7 +13,13 @@ internal sealed class WorkerProcessController : IAsyncDisposable
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(12);
 
     private readonly NamedPipeWorkerClient _client = new();
+    private readonly bool _allowHardwareWrites;
     private Process? _workerProcess;
+
+    public WorkerProcessController(bool allowHardwareWrites)
+    {
+        _allowHardwareWrites = allowHardwareWrites;
+    }
 
     public async Task<WorkerSnapshot> GetSnapshotAsync(CancellationToken cancellationToken)
     {
@@ -82,6 +89,18 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         }
     }
 
+    public Task<PowerPolicyState> GetPowerPolicyAsync(CancellationToken cancellationToken)
+    {
+        return _client.GetPowerPolicyAsync(RequestTimeout, cancellationToken);
+    }
+
+    public Task<PowerPolicyState> SetPowerPolicyAsync(
+        PowerPolicySettings settings,
+        CancellationToken cancellationToken)
+    {
+        return _client.SetPowerPolicyAsync(settings, RequestTimeout, cancellationToken);
+    }
+
     public async ValueTask DisposeAsync()
     {
         Process? process = Interlocked.Exchange(ref _workerProcess, null);
@@ -112,6 +131,13 @@ internal sealed class WorkerProcessController : IAsyncDisposable
             return;
         }
 
+        HardwareProcessConflict? conflict = HardwareConflictDetector.FindKnownHardwareOwner();
+        if (conflict is not null)
+        {
+            throw new InvalidOperationException(
+                $"检测到 {conflict.ProcessName} 正在占用 RyzenAdj (PID {conflict.ProcessId})，请先退出旧版工具。");
+        }
+
         string executablePath = LocateWorkerExecutable();
         ProcessStartInfo startInfo = new()
         {
@@ -120,7 +146,9 @@ internal sealed class WorkerProcessController : IAsyncDisposable
             UseShellExecute = false,
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden,
-            Arguments = "--enable-hardware"
+            Arguments = _allowHardwareWrites
+                ? "--enable-hardware --enable-write-controls"
+                : "--enable-hardware"
         };
 
         _workerProcess = Process.Start(startInfo)

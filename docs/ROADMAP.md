@@ -22,8 +22,8 @@
 - [x] Detect CPU family, SMU interface, PM table, and supported fields.
 - [x] Expose read-only capability and telemetry snapshots over the named pipe.
 - [x] Implement validated target writes with mandatory read-back and restore.
-- [ ] Implement AC/battery target application with read-back verification.
-- [ ] Implement safe shutdown and single-instance behavior.
+- [x] Implement AC/battery target application with read-back verification.
+- [x] Implement safe shutdown and single-instance behavior.
 - [ ] Add diagnostic logging.
 
 ## M3: Native GUI
@@ -32,7 +32,7 @@
 - [x] Add tray menu, close-to-tray, and single-instance wake-up.
 - [ ] Show effective limits and firmware clamps.
 - [x] Add editable presets and profile-aware ranges.
-- [ ] Add worker connection state and restart action.
+- [x] Add worker connection state and automatic restart after conflicts clear.
 
 ## M4: Compatibility
 

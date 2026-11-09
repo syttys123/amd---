@@ -79,7 +79,8 @@ public sealed class WorkerServerTests
             pipeName,
             startedAt: null,
             adapter: adapter,
-            profiles: [profile]);
+            profiles: [profile],
+            allowHardwareWrites: true);
         Task serverTask = server.RunAsync(shutdown.Token);
 
         NamedPipeWorkerClient client = new(pipeName);
@@ -142,7 +143,8 @@ public sealed class WorkerServerTests
             pipeName,
             startedAt: null,
             adapter: adapter,
-            profiles: [profile]);
+            profiles: [profile],
+            allowHardwareWrites: true);
         Task serverTask = server.RunAsync(shutdown.Token);
 
         NamedPipeWorkerClient client = new(pipeName);
@@ -166,7 +168,8 @@ public sealed class WorkerServerTests
         using WorkerServer server = new(
             pipeName,
             startedAt: null,
-            adapter: adapter);
+            adapter: adapter,
+            allowHardwareWrites: true);
         Task serverTask = server.RunAsync(shutdown.Token);
 
         NamedPipeWorkerClient client = new(pipeName);
@@ -202,7 +205,8 @@ public sealed class WorkerServerTests
             pipeName,
             startedAt: null,
             adapter: adapter,
-            profiles: [profile]);
+            profiles: [profile],
+            allowHardwareWrites: true);
         Task serverTask = server.RunAsync(shutdown.Token);
 
         NamedPipeWorkerClient client = new(pipeName);
@@ -239,7 +243,8 @@ public sealed class WorkerServerTests
             pipeName,
             startedAt: null,
             adapter: adapter,
-            profiles: [profile]);
+            profiles: [profile],
+            allowHardwareWrites: true);
         Task serverTask = server.RunAsync(shutdown.Token);
 
         NamedPipeWorkerClient client = new(pipeName);
@@ -281,7 +286,8 @@ public sealed class WorkerServerTests
         using WorkerServer server = new(
             pipeName,
             startedAt: null,
-            adapter: adapter);
+            adapter: adapter,
+            allowHardwareWrites: true);
         Task serverTask = server.RunAsync(shutdown.Token);
 
         NamedPipeWorkerClient client = new(pipeName);
@@ -365,17 +371,125 @@ public sealed class WorkerServerTests
         await serverTask;
     }
 
+    [Fact]
+    public async Task PowerPolicy_AppliesBatteryThenAcTargetOnPowerLineChange()
+    {
+        string pipeName = CreatePipeName();
+        FakeRyzenPowerAdapter adapter = new()
+        {
+            PowerLine = PowerLineState.Battery
+        };
+        PlatformProfile profile = ProfileRepository.Parse(
+            """
+            {
+              "id": "hawk-point-8845hs",
+              "displayName": "8845HS",
+              "processorNamePatterns": ["*8845HS*"],
+              "pmTablePatterns": ["4c0009"],
+              "minimumWatts": 5,
+              "maximumWatts": 60,
+              "defaultWatts": 25
+            }
+            """);
+        using CancellationTokenSource shutdown = new(TimeSpan.FromSeconds(10));
+        using WorkerServer server = new(
+            pipeName,
+            startedAt: null,
+            adapter: adapter,
+            profiles: [profile],
+            allowHardwareWrites: true,
+            policyPollInterval: TimeSpan.FromMilliseconds(20));
+        Task serverTask = server.RunAsync(shutdown.Token);
+
+        NamedPipeWorkerClient client = new(pipeName);
+        PowerPolicySettings settings = new(
+            Enabled: true,
+            BatteryTarget: PowerLimitTarget.Uniform(12),
+            AcTarget: PowerLimitTarget.Uniform(45));
+        _ = await client.SetPowerPolicyAsync(settings, TimeSpan.FromSeconds(5));
+
+        await WaitUntilAsync(
+            () => adapter.LastAppliedTarget == PowerLimitTarget.Uniform(12),
+            TimeSpan.FromSeconds(2));
+
+        adapter.PowerLine = PowerLineState.Ac;
+        await WaitUntilAsync(
+            () => adapter.LastAppliedTarget == PowerLimitTarget.Uniform(45),
+            TimeSpan.FromSeconds(2));
+
+        PowerPolicyState state = await client.GetPowerPolicyAsync(TimeSpan.FromSeconds(5));
+        Assert.True(state.LastAttemptSucceeded);
+        Assert.Equal(PowerLineState.Ac, state.LastObservedPowerLine);
+        Assert.Equal(PowerLimitTarget.Uniform(45), state.LastAppliedTarget);
+
+        shutdown.Cancel();
+        await serverTask;
+    }
+
+    [Fact]
+    public async Task SetPowerPolicy_IsRejectedWhenWorkerWritesAreDisabled()
+    {
+        string pipeName = CreatePipeName();
+        FakeRyzenPowerAdapter adapter = new();
+        using CancellationTokenSource shutdown = new(TimeSpan.FromSeconds(10));
+        using WorkerServer server = new(
+            pipeName,
+            startedAt: null,
+            adapter: adapter);
+        Task serverTask = server.RunAsync(shutdown.Token);
+
+        NamedPipeWorkerClient client = new(pipeName);
+        WorkerResponse response = await client.SendAsync(
+            new WorkerRequest
+            {
+                RequestId = "policy-writes-disabled",
+                Command = WorkerCommand.SetPowerPolicy,
+                Payload = JsonSerializer.SerializeToElement(
+                    new SetPowerPolicyRequest(
+                        new PowerPolicySettings(
+                            Enabled: true,
+                            BatteryTarget: PowerLimitTarget.Uniform(12),
+                            AcTarget: PowerLimitTarget.Uniform(45))),
+                    WorkerProtocol.JsonOptions)
+            },
+            TimeSpan.FromSeconds(5));
+
+        Assert.False(response.Success);
+        Assert.Equal(WorkerErrorCodes.HardwareWritesDisabled, response.Error?.Code);
+        Assert.Equal(0, adapter.ApplyCount);
+
+        shutdown.Cancel();
+        await serverTask;
+    }
+
     private static string CreatePipeName()
     {
         return "AmdMobilePower.Tests." + Guid.NewGuid().ToString("N");
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
+    {
+        DateTimeOffset deadline = DateTimeOffset.UtcNow + timeout;
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            if (condition())
+            {
+                return;
+            }
+            await Task.Delay(20);
+        }
+
+        Assert.True(condition(), "Condition was not reached before timeout.");
     }
 
     private sealed class FakeRyzenPowerAdapter : IRyzenPowerAdapter
     {
         public bool IsSupported { get; init; } = true;
         public int RefreshCount { get; private set; }
+        public int ApplyCount { get; private set; }
         public PowerLimitTarget? LastAppliedTarget { get; private set; }
         public PowerLimitApplicationResult? ApplicationResult { get; init; }
+        public PowerLineState PowerLine { get; set; } = PowerLineState.Battery;
 
         public ValueTask DisposeAsync()
         {
@@ -409,7 +523,7 @@ public sealed class WorkerServerTests
                 new TelemetrySnapshot
                 {
                     StapmLimitWatts = 18.5,
-                    PowerLine = PowerLineState.Battery,
+                    PowerLine = PowerLine,
                     UpdatedAt = DateTimeOffset.UtcNow
                 });
         }
@@ -418,6 +532,7 @@ public sealed class WorkerServerTests
             PowerLimitTarget target,
             CancellationToken cancellationToken = default)
         {
+            ApplyCount++;
             LastAppliedTarget = target;
             if (ApplicationResult is not null)
             {

@@ -30,7 +30,7 @@ not authoritative.
 - Baseline commit `f9d1be5` was pushed to `origin/main`.
 - The intended project name is `amd-mobile-power`. The GitHub repository still
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
-- The current Release build has 33 passing tests across Core and Worker.
+- The current Release build has 35 passing tests across Core and Worker.
 - A real hardware read-only probe against the development laptop succeeded.
 - The repository GUI now reads through the named pipe and updates every second.
 - The GUI defaults to read-only; hardware writes require the explicit
@@ -181,6 +181,19 @@ third_party/
   runtime files.
 - Verified a real diagnostics export on the 8845HS with all four runtime files
   present and hashed.
+- Added an explicit worker-level `--enable-write-controls` gate in addition to
+  the GUI flag.
+- Added battery/AC power policy settings with a one-second monitor and automatic
+  switching on power-line changes.
+- Added a named hardware-owner mutex and legacy `RyzenPower`/`ryzenadj` process
+  detection.
+- Reproduced an access violation caused by running the legacy and new hardware
+  owners together; the new GUI now blocks startup and reports the conflicting
+  process instead of launching a second RyzenAdj owner.
+- Added GUI controls for optional automatic battery/AC targets; they remain
+  disabled in read-only mode.
+- Persisted automatic policy settings in the existing local UI state file so
+  presets and policy updates do not overwrite each other.
 
 Development screenshot:
 

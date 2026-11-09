@@ -17,27 +17,27 @@ internal static class UiStateStore
 
     public static int[] LoadPresets()
     {
-        try
+        GuiState? state = LoadState();
+        if (state?.Presets is { Length: 3 } presets &&
+            presets.All(value => value is >= 5 and <= 60))
         {
-            if (!File.Exists(StatePath))
-            {
-                return [.. DefaultPresets];
-            }
-
-            GuiState? state = JsonSerializer.Deserialize<GuiState>(
-                File.ReadAllText(StatePath),
-                JsonOptions);
-            if (state?.Presets is { Length: 3 } presets &&
-                presets.All(value => value is >= 5 and <= 60))
-            {
-                return [.. presets];
-            }
-        }
-        catch
-        {
+            return [.. presets];
         }
 
         return [.. DefaultPresets];
+    }
+
+    public static StoredPowerPolicy? LoadPowerPolicy()
+    {
+        StoredPowerPolicy? policy = LoadState()?.PowerPolicy;
+        if (policy is null ||
+            policy.BatteryWatts is < 5 or > 60 ||
+            policy.AcWatts is < 5 or > 60)
+        {
+            return null;
+        }
+
+        return policy;
     }
 
     public static void SavePresets(IReadOnlyList<int> presets)
@@ -47,12 +47,47 @@ internal static class UiStateStore
             throw new ArgumentException("Three presets between 5W and 60W are required.", nameof(presets));
         }
 
+        GuiState state = LoadState() ?? new GuiState();
+        WriteState(state with
+        {
+            Presets = [presets[0], presets[1], presets[2]]
+        });
+    }
+
+    public static void SavePowerPolicy(StoredPowerPolicy policy)
+    {
+        if (policy.BatteryWatts is < 5 or > 60 ||
+            policy.AcWatts is < 5 or > 60)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(policy),
+                "Battery and AC targets must be between 5W and 60W.");
+        }
+
+        GuiState state = LoadState() ?? new GuiState();
+        WriteState(state with { PowerPolicy = policy });
+    }
+
+    private static GuiState? LoadState()
+    {
+        try
+        {
+            return File.Exists(StatePath)
+                ? JsonSerializer.Deserialize<GuiState>(File.ReadAllText(StatePath), JsonOptions)
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static void WriteState(GuiState state)
+    {
         string directory = Path.GetDirectoryName(StatePath)!;
         Directory.CreateDirectory(directory);
         string temporaryPath = StatePath + ".tmp";
-        string json = JsonSerializer.Serialize(
-            new GuiState { Presets = [presets[0], presets[1], presets[2]] },
-            JsonOptions);
+        string json = JsonSerializer.Serialize(state, JsonOptions);
         File.WriteAllText(temporaryPath, json);
         File.Move(temporaryPath, StatePath, overwrite: true);
     }
@@ -60,5 +95,11 @@ internal static class UiStateStore
     private sealed record GuiState
     {
         public int[] Presets { get; init; } = [.. DefaultPresets];
+        public StoredPowerPolicy? PowerPolicy { get; init; }
     }
 }
+
+internal sealed record StoredPowerPolicy(
+    bool Enabled,
+    int BatteryWatts,
+    int AcWatts);

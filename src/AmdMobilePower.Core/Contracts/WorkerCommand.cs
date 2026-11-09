@@ -6,6 +6,8 @@ public enum WorkerCommand
     GetCapabilities,
     GetSnapshot,
     ApplyTarget,
+    GetPowerPolicy,
+    SetPowerPolicy,
     RefreshTelemetry,
     SetPresets,
     ExportDiagnostics,

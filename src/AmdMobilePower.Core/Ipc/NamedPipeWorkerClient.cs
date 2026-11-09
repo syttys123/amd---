@@ -135,6 +135,64 @@ public sealed class NamedPipeWorkerClient
             ?? throw new InvalidOperationException("Worker returned an invalid diagnostics payload.");
     }
 
+    public async Task<PowerPolicyState> GetPowerPolicyAsync(
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
+    {
+        WorkerResponse response = await SendCommandAsync(
+            WorkerCommand.GetPowerPolicy,
+            timeout,
+            cancellationToken).ConfigureAwait(false);
+        return DeserializePayload<PowerPolicyState>(response, "power policy");
+    }
+
+    public async Task<PowerPolicyState> SetPowerPolicyAsync(
+        PowerPolicySettings settings,
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
+    {
+        WorkerResponse response = await SendAsync(
+            new WorkerRequest
+            {
+                RequestId = Guid.NewGuid().ToString("N"),
+                Command = WorkerCommand.SetPowerPolicy,
+                Payload = JsonSerializer.SerializeToElement(
+                    new SetPowerPolicyRequest(settings),
+                    WorkerProtocol.JsonOptions)
+            },
+            timeout,
+            cancellationToken).ConfigureAwait(false);
+        return DeserializePayload<PowerPolicyState>(response, "power policy");
+    }
+
+    private Task<WorkerResponse> SendCommandAsync(
+        WorkerCommand command,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        return SendAsync(
+            new WorkerRequest
+            {
+                RequestId = Guid.NewGuid().ToString("N"),
+                Command = command
+            },
+            timeout,
+            cancellationToken);
+    }
+
+    private static T DeserializePayload<T>(WorkerResponse response, string payloadName)
+    {
+        if (!response.Success || response.Payload is not { } payload)
+        {
+            string message = response.Error?.Message ?? $"Worker returned no {payloadName} payload.";
+            throw new InvalidOperationException(message);
+        }
+
+        return payload.Deserialize<T>(WorkerProtocol.JsonOptions)
+            ?? throw new InvalidOperationException(
+                $"Worker returned an invalid {payloadName} payload.");
+    }
+
     public async Task<WorkerResponse> SendAsync(
         WorkerRequest request,
         TimeSpan timeout,

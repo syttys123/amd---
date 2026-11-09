@@ -18,23 +18,48 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
     private readonly string _workerVersion;
     private readonly IRyzenPowerAdapter? _adapter;
     private readonly IReadOnlyList<PlatformProfile> _profiles;
+    private readonly bool _allowHardwareWrites;
+    private readonly TimeSpan _policyPollInterval;
+    private readonly object _policySync = new();
+    private PowerPolicySettings? _powerPolicy;
+    private PowerPolicyState _powerPolicyState = new(
+        null,
+        null,
+        null,
+        null,
+        null,
+        null);
+    private PowerLineState? _lastAppliedPowerLine;
+    private PowerLimitTarget? _lastAppliedPolicyTarget;
+    private PowerLineState? _lastAttemptPowerLine;
+    private PowerLimitTarget? _lastAttemptPolicyTarget;
+    private DateTimeOffset? _lastPolicyFailureAt;
     private bool _hardwareInitialized;
 
     public WorkerServer(
         string pipeName = WorkerProtocol.DefaultPipeName,
         DateTimeOffset? startedAt = null,
         IRyzenPowerAdapter? adapter = null,
-        IReadOnlyList<PlatformProfile>? profiles = null)
+        IReadOnlyList<PlatformProfile>? profiles = null,
+        bool allowHardwareWrites = false,
+        TimeSpan? policyPollInterval = null)
     {
         _pipeName = pipeName;
         _startedAt = startedAt ?? DateTimeOffset.UtcNow;
         _workerVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
         _adapter = adapter;
         _profiles = profiles ?? Array.Empty<PlatformProfile>();
+        _allowHardwareWrites = allowHardwareWrites;
+        _policyPollInterval = policyPollInterval ?? TimeSpan.FromSeconds(1);
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
+        using CancellationTokenSource monitorShutdown =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        Task? monitorTask = _allowHardwareWrites
+            ? MonitorPowerPolicyAsync(monitorShutdown.Token)
+            : null;
         try
         {
             while (!cancellationToken.IsCancellationRequested)
@@ -52,6 +77,20 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+        }
+        finally
+        {
+            monitorShutdown.Cancel();
+            if (monitorTask is not null)
+            {
+                try
+                {
+                    await monitorTask.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (monitorShutdown.IsCancellationRequested)
+                {
+                }
+            }
         }
     }
 
@@ -168,6 +207,17 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
                 .ConfigureAwait(false);
         }
 
+        if (request.Command == WorkerCommand.GetPowerPolicy)
+        {
+            return WorkerProtocol.CreateSuccess(request.RequestId, GetPowerPolicyState());
+        }
+
+        if (request.Command == WorkerCommand.SetPowerPolicy)
+        {
+            return await CreateSetPowerPolicyResponseAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         if (request.Command == WorkerCommand.ExportDiagnostics)
         {
             return await CreateDiagnosticsResponseAsync(request.RequestId, cancellationToken)
@@ -242,6 +292,14 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
         WorkerRequest request,
         CancellationToken cancellationToken)
     {
+        if (!_allowHardwareWrites)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.HardwareWritesDisabled,
+                "Hardware power-limit writes are disabled for this worker.");
+        }
+
         if (_adapter is null)
         {
             return WorkerProtocol.CreateError(
@@ -318,6 +376,281 @@ public sealed class WorkerServer : IDisposable, IAsyncDisposable
             errorCode,
             result.Error ?? "The power-limit write did not complete successfully.",
             result);
+    }
+
+    private async Task<WorkerResponse> CreateSetPowerPolicyResponseAsync(
+        WorkerRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!_allowHardwareWrites)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.HardwareWritesDisabled,
+                "Hardware power-limit writes are disabled for this worker.");
+        }
+
+        if (_adapter is null)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.WorkerUnavailable,
+                "No hardware adapter is configured.");
+        }
+
+        SetPowerPolicyRequest? payload;
+        try
+        {
+            payload = request.Payload?.Deserialize<SetPowerPolicyRequest>(
+                WorkerProtocol.JsonOptions);
+        }
+        catch (JsonException error)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.InvalidRequest,
+                $"Invalid setPowerPolicy payload: {error.Message}");
+        }
+
+        if (payload is null)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.InvalidRequest,
+                "setPowerPolicy requires a settings payload.");
+        }
+
+        PlatformCapability platform = await _adapter.ProbeAsync(cancellationToken).ConfigureAwait(false);
+        _hardwareInitialized = platform.IsSupported;
+        if (!platform.IsSupported)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.UnsupportedPlatform,
+                platform.UnsupportedReason ?? "The platform does not support power-limit writes.",
+                platform);
+        }
+
+        PlatformProfile? profile = ProfileRepository.FindBestMatch(_profiles, platform.Cpu);
+        string? validationError = ValidatePowerPolicyTarget(
+            payload.Settings.BatteryTarget,
+            platform,
+            profile);
+        validationError ??= ValidatePowerPolicyTarget(
+            payload.Settings.AcTarget,
+            platform,
+            profile);
+        if (validationError is not null)
+        {
+            return WorkerProtocol.CreateError(
+                request.RequestId,
+                WorkerErrorCodes.InvalidTarget,
+                validationError);
+        }
+
+        lock (_policySync)
+        {
+            _powerPolicy = payload.Settings;
+            _lastAppliedPowerLine = null;
+            _lastAppliedPolicyTarget = null;
+            _lastAttemptPowerLine = null;
+            _lastAttemptPolicyTarget = null;
+            _lastPolicyFailureAt = null;
+            _powerPolicyState = new PowerPolicyState(
+                payload.Settings,
+                null,
+                null,
+                null,
+                null,
+                null);
+        }
+
+        return WorkerProtocol.CreateSuccess(request.RequestId, GetPowerPolicyState());
+    }
+
+    private static string? ValidatePowerPolicyTarget(
+        PowerLimitTarget target,
+        PlatformCapability platform,
+        PlatformProfile? profile)
+    {
+        PowerLimitTargetValidationResult capabilityValidation =
+            PowerLimitTargetValidator.Validate(target, platform.Limits);
+        return capabilityValidation.IsValid
+            ? ValidateAgainstProfile(target, profile)
+            : capabilityValidation.Error;
+    }
+
+    private PowerPolicyState GetPowerPolicyState()
+    {
+        lock (_policySync)
+        {
+            return _powerPolicyState;
+        }
+    }
+
+    private async Task MonitorPowerPolicyAsync(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            PowerPolicySettings? settings;
+            lock (_policySync)
+            {
+                settings = _powerPolicy;
+            }
+
+            if (settings is null || !settings.Enabled || _adapter is null)
+            {
+                await Task.Delay(_policyPollInterval, cancellationToken).ConfigureAwait(false);
+                continue;
+            }
+
+            try
+            {
+                PlatformCapability platform = await _adapter
+                    .ProbeAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                _hardwareInitialized = platform.IsSupported;
+                if (!platform.IsSupported)
+                {
+                    RecordPolicyFailure(
+                        null,
+                        null,
+                        platform.UnsupportedReason ?? "Unsupported platform.");
+                    await Task.Delay(_policyPollInterval, cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+
+                TelemetrySnapshot telemetry = await _adapter
+                    .RefreshTelemetryAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                PowerLineState powerLine = telemetry.PowerLine;
+                if (powerLine == PowerLineState.Unknown)
+                {
+                    RecordPolicyFailure(null, null, "Power-line state is unknown.");
+                    await Task.Delay(_policyPollInterval, cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+
+                PowerLimitTarget target = powerLine == PowerLineState.Ac
+                    ? settings.AcTarget
+                    : settings.BatteryTarget;
+                if (!ShouldAttemptPolicyApply(powerLine, target))
+                {
+                    await Task.Delay(_policyPollInterval, cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+
+                PowerLimitApplicationResult result = await _adapter
+                    .ApplyTargetAsync(target, cancellationToken)
+                    .ConfigureAwait(false);
+                RecordPolicyAttempt(
+                    powerLine,
+                    target,
+                    result.IsSuccessful,
+                    result.Error);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+            catch (Exception error)
+            {
+                RecordPolicyFailure(
+                    _lastAttemptPowerLine,
+                    _lastAttemptPolicyTarget,
+                    error.Message);
+            }
+
+            await Task.Delay(_policyPollInterval, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private bool ShouldAttemptPolicyApply(
+        PowerLineState powerLine,
+        PowerLimitTarget target)
+    {
+        lock (_policySync)
+        {
+            if (_lastAppliedPowerLine == powerLine &&
+                _lastAppliedPolicyTarget == target)
+            {
+                _powerPolicyState = _powerPolicyState with
+                {
+                    LastObservedPowerLine = powerLine
+                };
+                return false;
+            }
+
+            DateTimeOffset now = DateTimeOffset.Now;
+            bool retryingSameFailure =
+                _lastAttemptPowerLine == powerLine &&
+                _lastAttemptPolicyTarget == target &&
+                _lastPolicyFailureAt is { } lastFailure &&
+                now - lastFailure < TimeSpan.FromSeconds(5);
+            if (retryingSameFailure)
+            {
+                _powerPolicyState = _powerPolicyState with
+                {
+                    LastObservedPowerLine = powerLine
+                };
+                return false;
+            }
+
+            _lastAttemptPowerLine = powerLine;
+            _lastAttemptPolicyTarget = target;
+            _powerPolicyState = _powerPolicyState with
+            {
+                LastObservedPowerLine = powerLine
+            };
+            return true;
+        }
+    }
+
+    private void RecordPolicyAttempt(
+        PowerLineState powerLine,
+        PowerLimitTarget target,
+        bool succeeded,
+        string? error)
+    {
+        lock (_policySync)
+        {
+            if (succeeded)
+            {
+                _lastAppliedPowerLine = powerLine;
+                _lastAppliedPolicyTarget = target;
+                _lastPolicyFailureAt = null;
+            }
+            else
+            {
+                _lastPolicyFailureAt = DateTimeOffset.Now;
+            }
+
+            _powerPolicyState = new PowerPolicyState(
+                _powerPolicy,
+                powerLine,
+                succeeded ? target : _lastAppliedPolicyTarget,
+                DateTimeOffset.Now,
+                succeeded,
+                error);
+        }
+    }
+
+    private void RecordPolicyFailure(
+        PowerLineState? powerLine,
+        PowerLimitTarget? target,
+        string error)
+    {
+        lock (_policySync)
+        {
+            _lastPolicyFailureAt = DateTimeOffset.Now;
+            _powerPolicyState = new PowerPolicyState(
+                _powerPolicy,
+                powerLine,
+                _lastAppliedPolicyTarget,
+                DateTimeOffset.Now,
+                false,
+                error);
+        }
     }
 
     private static string? ValidateAgainstProfile(

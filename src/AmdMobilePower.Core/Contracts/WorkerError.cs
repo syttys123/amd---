@@ -10,6 +10,7 @@ public static class WorkerErrorCodes
     public const string WorkerUnavailable = "worker_unavailable";
     public const string UnsupportedPlatform = "unsupported_platform";
     public const string InvalidTarget = "invalid_target";
+    public const string HardwareWritesDisabled = "hardware_writes_disabled";
     public const string HardwareWriteFailed = "hardware_write_failed";
     public const string HardwareRestoreFailed = "hardware_restore_failed";
 }

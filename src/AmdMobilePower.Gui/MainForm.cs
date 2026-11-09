@@ -11,7 +11,7 @@ internal sealed class MainForm : Form
     private readonly EventWaitHandle _showEvent;
     private readonly bool _startHidden;
     private readonly bool _writeControlsEnabled;
-    private readonly WorkerProcessController _worker = new();
+    private readonly WorkerProcessController _worker;
     private readonly CancellationTokenSource _lifetime = new();
     private readonly System.Windows.Forms.Timer _refreshTimer;
     private readonly Icon _appIcon;
@@ -20,6 +20,7 @@ internal sealed class MainForm : Form
     private readonly NumericUpDown[] _limitInputs = new NumericUpDown[3];
     private readonly Button[] _presetButtons = new Button[3];
     private readonly List<ToolStripMenuItem> _trayPresetItems = new(3);
+    private StoredPowerPolicy? _storedPolicy;
 
     private NotifyIcon _notifyIcon = null!;
     private ContextMenuStrip _trayMenu = null!;
@@ -37,12 +38,19 @@ internal sealed class MainForm : Form
     private Label _statusLabel = null!;
     private Label _updatedLabel = null!;
     private Label _writeStateLabel = null!;
+    private Label _policyStatusLabel = null!;
     private PowerUsageBar _powerBar = null!;
     private Button _applyButton = null!;
     private Button _editPresetButton = null!;
+    private Button _savePolicyButton = null!;
+    private CheckBox _autoPolicyCheckBox = null!;
+    private NumericUpDown _batteryPolicyInput = null!;
+    private NumericUpDown _acPolicyInput = null!;
     private int[] _presets = UiStateStore.LoadPresets();
     private WorkerSnapshot? _lastSnapshot;
     private bool _inputsInitialized;
+    private bool _policyInputsInitialized;
+    private bool _storedPolicyRestored;
     private bool _refreshing;
     private bool _connected;
     private bool _applying;
@@ -58,6 +66,8 @@ internal sealed class MainForm : Form
         _showEvent = showEvent;
         _startHidden = startHidden;
         _writeControlsEnabled = writeControlsEnabled;
+        _worker = new WorkerProcessController(writeControlsEnabled);
+        _storedPolicy = UiStateStore.LoadPowerPolicy();
         _appIcon = LoadApplicationIcon();
         _trayIcon = new Icon(_appIcon, SystemInformation.SmallIconSize);
         _headerImage = LoadHeaderImage();
@@ -395,8 +405,8 @@ internal sealed class MainForm : Form
         };
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 174));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 74));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 150));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 64));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
 
@@ -493,23 +503,7 @@ internal sealed class MainForm : Form
         presets.Controls.Add(_editPresetButton);
         layout.Controls.Add(presets, 0, 3);
 
-        Panel notice = new()
-        {
-            Dock = DockStyle.Fill,
-            BackColor = _writeControlsEnabled ? AppTheme.AccentSoft : AppTheme.SurfaceMuted,
-            Margin = new Padding(0, 10, 0, 8),
-            Padding = new Padding(10, 8, 10, 8)
-        };
-        Label noticeText = AppTheme.CreateLabel(
-            _writeControlsEnabled
-                ? "写入前检查与失败恢复已启用"
-                : "写入锁定，等待受控硬件验证",
-            AppTheme.Small,
-            _writeControlsEnabled ? AppTheme.Accent : AppTheme.TextMuted);
-        noticeText.Dock = DockStyle.Fill;
-        noticeText.AutoEllipsis = true;
-        notice.Controls.Add(noticeText);
-        layout.Controls.Add(notice, 0, 4);
+        layout.Controls.Add(BuildPolicyPanel(), 0, 4);
 
         _applyButton = AppTheme.CreateButton(
             "应用三项限制",
@@ -559,6 +553,142 @@ internal sealed class MainForm : Form
                 5);
         };
         return footer;
+    }
+
+    private Control BuildPolicyPanel()
+    {
+        Panel panel = new()
+        {
+            Dock = DockStyle.Fill,
+            BackColor = AppTheme.SurfaceMuted,
+            Margin = new Padding(0, 4, 0, 4),
+            Padding = new Padding(10, 5, 10, 5)
+        };
+
+        TableLayoutPanel layout = new()
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 3,
+            BackColor = Color.Transparent
+        };
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        panel.Controls.Add(layout);
+
+        Panel headingRow = new() { Dock = DockStyle.Fill, BackColor = Color.Transparent };
+        Label heading = AppTheme.CreateLabel(
+            "自动电源策略",
+            AppTheme.SmallBold,
+            AppTheme.Text);
+        heading.Location = Point.Empty;
+        heading.Size = new Size(120, 24);
+        headingRow.Controls.Add(heading);
+
+        _autoPolicyCheckBox = new CheckBox
+        {
+            Text = "启用",
+            AutoSize = true,
+            Font = AppTheme.Small,
+            ForeColor = AppTheme.TextMuted,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            Location = new Point(Math.Max(120, headingRow.Width - 58), 1)
+        };
+        headingRow.Resize += delegate
+        {
+            _autoPolicyCheckBox.Location = new Point(
+                Math.Max(120, headingRow.ClientSize.Width - 58),
+                1);
+        };
+        headingRow.Controls.Add(_autoPolicyCheckBox);
+        layout.Controls.Add(headingRow, 0, 0);
+
+        TableLayoutPanel values = new()
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 3,
+            RowCount = 2,
+            BackColor = Color.Transparent
+        };
+        values.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 44));
+        values.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 78));
+        values.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        values.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+        values.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+
+        Label batteryLabel = AppTheme.CreateLabel(
+            "电池",
+            AppTheme.Small,
+            AppTheme.TextMuted);
+        batteryLabel.Dock = DockStyle.Fill;
+        values.Controls.Add(batteryLabel, 0, 0);
+        _batteryPolicyInput = CreatePolicyInput();
+        _batteryPolicyInput.Dock = DockStyle.Fill;
+        values.Controls.Add(_batteryPolicyInput, 1, 0);
+        Label batteryUnit = AppTheme.CreateLabel(
+            "W",
+            AppTheme.Small,
+            AppTheme.TextMuted);
+        batteryUnit.Dock = DockStyle.Fill;
+        values.Controls.Add(batteryUnit, 2, 0);
+
+        Label acLabel = AppTheme.CreateLabel(
+            "电源",
+            AppTheme.Small,
+            AppTheme.TextMuted);
+        acLabel.Dock = DockStyle.Fill;
+        values.Controls.Add(acLabel, 0, 1);
+        _acPolicyInput = CreatePolicyInput();
+        _acPolicyInput.Dock = DockStyle.Fill;
+        values.Controls.Add(_acPolicyInput, 1, 1);
+        Label acUnit = AppTheme.CreateLabel(
+            "W",
+            AppTheme.Small,
+            AppTheme.TextMuted);
+        acUnit.Dock = DockStyle.Fill;
+        values.Controls.Add(acUnit, 2, 1);
+        layout.Controls.Add(values, 0, 1);
+
+        Panel actionRow = new() { Dock = DockStyle.Fill, BackColor = Color.Transparent };
+        _savePolicyButton = AppTheme.CreateButton("保存策略", width: 100, height: 30);
+        _savePolicyButton.Location = Point.Empty;
+        _savePolicyButton.Click += async delegate { await SavePowerPolicyAsync(); };
+        actionRow.Controls.Add(_savePolicyButton);
+
+        _policyStatusLabel = AppTheme.CreateLabel(
+            _writeControlsEnabled ? "自动策略未配置" : "写入锁定",
+            AppTheme.Small,
+            AppTheme.TextMuted,
+            ContentAlignment.MiddleRight);
+        _policyStatusLabel.Size = new Size(190, 28);
+        _policyStatusLabel.Location = new Point(actionRow.Width - 190, 1);
+        _policyStatusLabel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        actionRow.Resize += delegate
+        {
+            _policyStatusLabel.Location = new Point(
+                Math.Max(100, actionRow.ClientSize.Width - 190),
+                1);
+        };
+        actionRow.Controls.Add(_policyStatusLabel);
+        layout.Controls.Add(actionRow, 0, 2);
+        SetPolicyButtonEnabled(false);
+        return panel;
+    }
+
+    private static NumericUpDown CreatePolicyInput()
+    {
+        NumericUpDown input = new()
+        {
+            Minimum = 5,
+            Maximum = 60,
+            Value = 12,
+            Width = 72,
+            Margin = new Padding(4, 1, 2, 0)
+        };
+        input.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Bold);
+        input.TextAlign = HorizontalAlignment.Right;
+        return input;
     }
 
     private static Control CreateMetric(string title, out Label value)
@@ -737,6 +867,8 @@ internal sealed class MainForm : Form
         _currentPower.ForeColor = battery ? AppTheme.Battery : AppTheme.Accent;
 
         ConfigureInputs(minimum, maximum, snapshot.MatchedProfile?.DefaultWatts ?? 25);
+        ConfigurePolicyInputs(minimum, maximum, platform.IsSupported);
+        TryRestoreSavedPowerPolicy(platform);
         UpdatePresetButtons();
         UpdatePresetSelection();
         UpdateApplyButtonText();
@@ -787,6 +919,52 @@ internal sealed class MainForm : Form
             input.Value = initial;
         }
         _inputsInitialized = true;
+    }
+
+    private void ConfigurePolicyInputs(int minimum, int maximum, bool platformSupported)
+    {
+        _batteryPolicyInput.Minimum = minimum;
+        _batteryPolicyInput.Maximum = maximum;
+        _acPolicyInput.Minimum = minimum;
+        _acPolicyInput.Maximum = maximum;
+
+        if (!_policyInputsInitialized)
+        {
+            _batteryPolicyInput.Value = Math.Clamp(
+                _storedPolicy?.BatteryWatts ?? _presets[0],
+                minimum,
+                maximum);
+            _acPolicyInput.Value = Math.Clamp(
+                _storedPolicy?.AcWatts ?? _presets[2],
+                minimum,
+                maximum);
+            _autoPolicyCheckBox.Checked = _storedPolicy?.Enabled == true;
+            _policyInputsInitialized = true;
+        }
+        else
+        {
+            _batteryPolicyInput.Value = Math.Clamp(
+                _batteryPolicyInput.Value,
+                minimum,
+                maximum);
+            _acPolicyInput.Value = Math.Clamp(
+                _acPolicyInput.Value,
+                minimum,
+                maximum);
+        }
+
+        bool enabled = _writeControlsEnabled && platformSupported;
+        _autoPolicyCheckBox.Enabled = enabled;
+        _batteryPolicyInput.Enabled = enabled;
+        _acPolicyInput.Enabled = enabled;
+        SetPolicyButtonEnabled(enabled);
+        if (!enabled)
+        {
+            _policyStatusLabel.Text = platformSupported ? "写入锁定" : "平台不支持";
+            _policyStatusLabel.ForeColor = platformSupported
+                ? AppTheme.TextMuted
+                : AppTheme.Error;
+        }
     }
 
     private async Task ApplyPresetAsync(int index)
@@ -884,6 +1062,100 @@ internal sealed class MainForm : Form
         {
             ShowStatus("导出诊断失败：" + error.Message, StatusKind.Error);
         }
+    }
+
+    private async Task SavePowerPolicyAsync()
+    {
+        if (!_writeControlsEnabled || _lastSnapshot?.Platform.IsSupported != true)
+        {
+            ShowStatus("写入控件当前处于锁定状态", StatusKind.Warning);
+            return;
+        }
+
+        SetPolicyButtonEnabled(false);
+        try
+        {
+            PowerPolicySettings settings = new(
+                Enabled: _autoPolicyCheckBox.Checked,
+                BatteryTarget: PowerLimitTarget.Uniform((int)_batteryPolicyInput.Value),
+                AcTarget: PowerLimitTarget.Uniform((int)_acPolicyInput.Value));
+            PowerPolicyState state = await _worker
+                .SetPowerPolicyAsync(settings, _lifetime.Token)
+                .ConfigureAwait(true);
+            _storedPolicy = new StoredPowerPolicy(
+                settings.Enabled,
+                settings.BatteryTarget.StapmWatts,
+                settings.AcTarget.StapmWatts);
+            UiStateStore.SavePowerPolicy(_storedPolicy);
+            _storedPolicyRestored = settings.Enabled;
+            _policyStatusLabel.Text = state.Settings?.Enabled == true
+                ? $"电池 {settings.BatteryTarget.StapmWatts}W · 电源 {settings.AcTarget.StapmWatts}W"
+                : "自动策略已关闭";
+            _policyStatusLabel.ForeColor = AppTheme.TextMuted;
+            ShowStatus(
+                state.Settings?.Enabled == true ? "自动电源策略已启用" : "自动电源策略已关闭",
+                StatusKind.Normal);
+        }
+        catch (Exception error)
+        {
+            ShowStatus("保存自动策略失败：" + error.Message, StatusKind.Error);
+        }
+        finally
+        {
+            SetPolicyButtonEnabled(
+                _writeControlsEnabled &&
+                _lastSnapshot?.Platform.IsSupported == true);
+        }
+    }
+
+    private void TryRestoreSavedPowerPolicy(PlatformCapability platform)
+    {
+        if (!_writeControlsEnabled ||
+            !platform.IsSupported ||
+            _storedPolicy is not { Enabled: true } savedPolicy ||
+            _storedPolicyRestored)
+        {
+            return;
+        }
+
+        _storedPolicyRestored = true;
+        _ = RestoreSavedPowerPolicyAsync(savedPolicy);
+    }
+
+    private async Task RestoreSavedPowerPolicyAsync(StoredPowerPolicy savedPolicy)
+    {
+        try
+        {
+            PowerPolicySettings settings = new(
+                Enabled: true,
+                BatteryTarget: PowerLimitTarget.Uniform(savedPolicy.BatteryWatts),
+                AcTarget: PowerLimitTarget.Uniform(savedPolicy.AcWatts));
+            _ = await _worker
+                .SetPowerPolicyAsync(settings, _lifetime.Token)
+                .ConfigureAwait(true);
+            _autoPolicyCheckBox.Checked = true;
+            _policyStatusLabel.Text =
+                $"电池 {savedPolicy.BatteryWatts}W · 电源 {savedPolicy.AcWatts}W";
+            _policyStatusLabel.ForeColor = AppTheme.TextMuted;
+        }
+        catch (Exception error)
+        {
+            ShowStatus("恢复自动策略失败：" + error.Message, StatusKind.Error);
+        }
+    }
+
+    private void SetPolicyButtonEnabled(bool enabled)
+    {
+        _savePolicyButton.Enabled = enabled;
+        _savePolicyButton.BackColor = enabled
+            ? AppTheme.Surface
+            : Color.FromArgb(210, 217, 213);
+        _savePolicyButton.ForeColor = enabled
+            ? AppTheme.Text
+            : Color.FromArgb(110, 121, 117);
+        _savePolicyButton.FlatAppearance.MouseOverBackColor = enabled
+            ? AppTheme.SurfaceMuted
+            : Color.FromArgb(210, 217, 213);
     }
 
     private void ShowPresetEditor()

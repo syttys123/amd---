@@ -8,6 +8,9 @@ part of CI and must not be run by an unattended maintenance task.
 - Run only while connected to AC power.
 - Use a laptop with a known recovery path and a charged battery.
 - Close other RyzenAdj-based tools and vendor power utilities.
+- Exit the legacy `RyzenPower` or `ryzenadj` process before starting the new
+  worker. Concurrent hardware owners can trigger an access violation in the
+  native driver.
 - Confirm `getSnapshot` reports a supported platform and valid
   STAPM/Fast/Slow limits.
 - Keep the stable deployment at `C:\RyzenAdj` unchanged until the test passes.

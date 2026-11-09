@@ -5,6 +5,7 @@ using AmdMobilePower.Worker.Hardware;
 
 string pipeName = WorkerProtocol.DefaultPipeName;
 bool enableHardware = false;
+bool enableWrites = false;
 string? ryzenAdjDirectory = null;
 string? profilesDirectory = null;
 for (int index = 0; index < args.Length - 1; index++)
@@ -28,11 +29,38 @@ for (int index = 0; index < args.Length; index++)
     {
         enableHardware = true;
     }
+    else if (args[index] == "--enable-write-controls")
+    {
+        enableWrites = true;
+    }
 }
 
 IRyzenPowerAdapter? adapter = null;
+Mutex? hardwareOwner = null;
 if (enableHardware)
 {
+    HardwareProcessConflict? conflict = HardwareConflictDetector.FindKnownHardwareOwner();
+    if (conflict is not null)
+    {
+        Console.Error.WriteLine(
+            $"Hardware access is already owned by {conflict.ProcessName} (PID {conflict.ProcessId}).");
+        Environment.ExitCode = 3;
+        return;
+    }
+
+    hardwareOwner = new Mutex(
+        initiallyOwned: true,
+        @"Local\AmdMobilePower.HardwareOwner.v1",
+        out bool ownsHardwareMutex);
+    if (!ownsHardwareMutex)
+    {
+        hardwareOwner.Dispose();
+        hardwareOwner = null;
+        Console.Error.WriteLine("Another AMD Mobile Power worker owns hardware access.");
+        Environment.ExitCode = 4;
+        return;
+    }
+
     ryzenAdjDirectory ??= File.Exists(Path.Combine(AppContext.BaseDirectory, "libryzenadj.dll"))
         ? AppContext.BaseDirectory
         : Path.Combine(Environment.CurrentDirectory, "artifacts", "ryzenadj-runtime");
@@ -55,13 +83,29 @@ Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs event
     shutdown.Cancel();
 };
 
-await using WorkerServer server = new(
-    pipeName,
-    adapter: adapter,
-    profiles: profiles);
-Console.WriteLine($"AMD Mobile Power worker listening on {pipeName}");
-if (enableHardware)
+try
 {
-    Console.WriteLine("Hardware access is enabled.");
+    await using WorkerServer server = new(
+        pipeName,
+        adapter: adapter,
+        profiles: profiles,
+        allowHardwareWrites: enableWrites);
+    Console.WriteLine($"AMD Mobile Power worker listening on {pipeName}");
+    if (enableHardware)
+    {
+        Console.WriteLine("Hardware access is enabled.");
+    }
+    if (enableWrites)
+    {
+        Console.WriteLine("Hardware power-limit writes are enabled.");
+    }
+    await server.RunAsync(shutdown.Token);
 }
-await server.RunAsync(shutdown.Token);
+finally
+{
+    if (hardwareOwner is not null)
+    {
+        hardwareOwner.ReleaseMutex();
+        hardwareOwner.Dispose();
+    }
+}

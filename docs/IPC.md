@@ -71,6 +71,8 @@ Failure:
 | `getCapabilities` | implemented; requires the opt-in hardware adapter | probe only |
 | `getSnapshot` | implemented; requires the opt-in hardware adapter | read only |
 | `applyTarget` | implemented; mock-tested, hardware smoke pending | read/write |
+| `getPowerPolicy` | implemented | no |
+| `setPowerPolicy` | implemented; requires worker write flag | read/write |
 | `refreshTelemetry` | reserved | yes |
 | `setPresets` | reserved | no |
 | `exportDiagnostics` | implemented | read-only |
