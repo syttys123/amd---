@@ -35,6 +35,7 @@ not authoritative.
 - The repository GUI now reads through the named pipe and updates every second.
 - The GUI defaults to read-only; hardware writes require the explicit
   `--enable-write-controls` development flag.
+- A self-contained Windows x64 portable ZIP now builds reproducibly.
 
 ## Development Workflow
 
@@ -164,6 +165,16 @@ third_party/
   fully visible and no clipped labels.
 - Verified that a second GUI launch exits and wakes the existing instance.
 - Verified that the worker runs without a visible window.
+- Added `build-package.ps1` and `docs/PACKAGING.md`.
+- Verified the packaged GUI starts only one visible GUI process and launches
+  `worker\AmdMobilePower.Worker.exe` with no visible console window.
+- Verified the packaged worker responds to `getSnapshot` with the expected
+  8845HS platform and telemetry data.
+- Current local package:
+  - Path: `artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip`
+  - Size: 106,609,061 bytes
+  - SHA256:
+    `95cfc09a908a691764f6872db6ce471fdf77e5750490c2bfb2dd58094b7730d1`
 
 Development screenshot:
 
@@ -175,6 +186,7 @@ Development screenshot:
 - Confirm no worker process remains after the hardware test.
 - Runtime-verify close-to-tray and tray-icon behavior through a manual desktop
   pass.
+- Add an installer, upgrade, and uninstall flow.
 - Resolve WinRing0/inpout redistribution licensing before public binary release.
 
 ## Next Concrete Task

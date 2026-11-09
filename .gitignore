@@ -13,4 +13,5 @@ Coverage/
 node_modules/
 data/
 publish/
+dist/
 

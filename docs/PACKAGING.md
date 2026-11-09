@@ -1,0 +1,59 @@
+# Packaging
+
+## Portable ZIP
+
+Build a self-contained Windows x64 portable package from a clean source tree:
+
+```powershell
+.\build-package.ps1 -Version 0.1.0
+```
+
+Output:
+
+```text
+artifacts/packages/amd-mobile-power-v0.1.0-win-x64/
+artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip
+artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip.sha256
+```
+
+Package layout:
+
+```text
+AmdMobilePower.exe
+assets/
+worker/
+  AmdMobilePower.Worker.exe
+  libryzenadj.dll
+  WinRing0x64.dll
+  WinRing0x64.sys
+  inpoutx64.dll
+  profiles/
+licenses/
+README.txt
+THIRD_PARTY_NOTICES.md
+BUILD-INFO.txt
+SHA256SUMS.txt
+```
+
+The package is self-contained and does not require a separate .NET runtime
+installation.
+
+The verified local development package uses SHA256:
+
+```text
+95cfc09a908a691764f6872db6ce471fdf77e5750490c2bfb2dd58094b7730d1
+```
+
+Rebuilds may produce a different hash because embedded timestamps can change.
+Always use the hash generated with the current build.
+
+## Release Gate
+
+A locally generated package is not a public release. Do not publish the ZIP
+until:
+
+- The controlled hardware write test passes.
+- WinRing0 and inpout redistribution terms are resolved.
+- Portable startup, tray lifecycle, worker startup, upgrade, and uninstall are
+  verified.
+- The release artifact hash and source commit are recorded.

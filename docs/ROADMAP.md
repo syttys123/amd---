@@ -44,7 +44,7 @@
 
 ## M5: Packaging
 
-- [ ] Portable ZIP build.
+- [x] Portable ZIP build.
 - [ ] Installer with scheduled-task setup.
 - [ ] Upgrade and uninstall flow.
 - [ ] Version metadata and embedded icons.
