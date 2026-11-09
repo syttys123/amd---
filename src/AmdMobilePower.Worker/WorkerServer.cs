@@ -4,20 +4,30 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using AmdMobilePower.Core.Contracts;
+using AmdMobilePower.Core.Hardware;
+using AmdMobilePower.Core.Models;
+using AmdMobilePower.Core.Profiles;
 
-public sealed class WorkerServer : IDisposable
+public sealed class WorkerServer : IDisposable, IAsyncDisposable
 {
     private readonly string _pipeName;
     private readonly DateTimeOffset _startedAt;
     private readonly string _workerVersion;
+    private readonly IRyzenPowerAdapter? _adapter;
+    private readonly IReadOnlyList<PlatformProfile> _profiles;
+    private bool _hardwareInitialized;
 
     public WorkerServer(
         string pipeName = WorkerProtocol.DefaultPipeName,
-        DateTimeOffset? startedAt = null)
+        DateTimeOffset? startedAt = null,
+        IRyzenPowerAdapter? adapter = null,
+        IReadOnlyList<PlatformProfile>? profiles = null)
     {
         _pipeName = pipeName;
         _startedAt = startedAt ?? DateTimeOffset.UtcNow;
         _workerVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+        _adapter = adapter;
+        _profiles = profiles ?? Array.Empty<PlatformProfile>();
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
@@ -44,6 +54,15 @@ public sealed class WorkerServer : IDisposable
 
     public void Dispose()
     {
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_adapter is not null)
+        {
+            await _adapter.DisposeAsync().ConfigureAwait(false);
+        }
     }
 
     private async Task HandleClientAsync(
@@ -68,12 +87,13 @@ public sealed class WorkerServer : IDisposable
 
         string? requestJson = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
         WorkerResponse response;
+        WorkerRequest? request = null;
         try
         {
-            WorkerRequest? request = string.IsNullOrWhiteSpace(requestJson)
+            request = string.IsNullOrWhiteSpace(requestJson)
                 ? null
                 : JsonSerializer.Deserialize<WorkerRequest>(requestJson, WorkerProtocol.JsonOptions);
-            response = HandleRequest(request);
+            response = await HandleRequestAsync(request, cancellationToken).ConfigureAwait(false);
         }
         catch (JsonException error)
         {
@@ -85,7 +105,7 @@ public sealed class WorkerServer : IDisposable
         catch (Exception error)
         {
             response = WorkerProtocol.CreateError(
-                string.Empty,
+                request?.RequestId ?? string.Empty,
                 WorkerErrorCodes.InternalError,
                 error.Message);
         }
@@ -94,7 +114,9 @@ public sealed class WorkerServer : IDisposable
         await writer.WriteLineAsync(responseJson.AsMemory(), cancellationToken).ConfigureAwait(false);
     }
 
-    private WorkerResponse HandleRequest(WorkerRequest? request)
+    private async Task<WorkerResponse> HandleRequestAsync(
+        WorkerRequest? request,
+        CancellationToken cancellationToken)
     {
         if (request is null)
         {
@@ -120,14 +142,31 @@ public sealed class WorkerServer : IDisposable
                 "RequestId is required.");
         }
 
-        if (request.Command != WorkerCommand.GetHealth)
+        if (request.Command == WorkerCommand.GetHealth)
         {
-            return WorkerProtocol.CreateError(
-                request.RequestId,
-                WorkerErrorCodes.UnsupportedCommand,
-                $"Command {request.Command} is not available yet.");
+            return CreateHealthResponse(request.RequestId);
         }
 
+        if (request.Command == WorkerCommand.GetCapabilities)
+        {
+            return await CreateCapabilityResponseAsync(request.RequestId, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        if (request.Command == WorkerCommand.GetSnapshot)
+        {
+            return await CreateSnapshotResponseAsync(request.RequestId, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        return WorkerProtocol.CreateError(
+            request.RequestId,
+            WorkerErrorCodes.UnsupportedCommand,
+            $"Command {request.Command} is not available yet.");
+    }
+
+    private WorkerResponse CreateHealthResponse(string requestId)
+    {
         using Process process = Process.GetCurrentProcess();
         WorkerHealth health = new(
             Status: "ok",
@@ -136,8 +175,52 @@ public sealed class WorkerServer : IDisposable
             ProcessId: process.Id,
             StartedAt: _startedAt,
             UptimeSeconds: Math.Max(0, (DateTimeOffset.UtcNow - _startedAt).TotalSeconds),
-            HardwareInitialized: false);
-        return WorkerProtocol.CreateSuccess(request.RequestId, health);
+            HardwareInitialized: _hardwareInitialized);
+        return WorkerProtocol.CreateSuccess(requestId, health);
+    }
+
+    private async Task<WorkerResponse> CreateCapabilityResponseAsync(
+        string requestId,
+        CancellationToken cancellationToken)
+    {
+        if (_adapter is null)
+        {
+            return WorkerProtocol.CreateError(
+                requestId,
+                WorkerErrorCodes.WorkerUnavailable,
+                "No hardware adapter is configured.");
+        }
+
+        PlatformCapability platform = await _adapter.ProbeAsync(cancellationToken).ConfigureAwait(false);
+        _hardwareInitialized = platform.IsSupported;
+        PlatformProfile? profile = ProfileRepository.FindBestMatch(_profiles, platform.Cpu);
+        return WorkerProtocol.CreateSuccess(
+            requestId,
+            new WorkerCapabilitySnapshot(platform, profile));
+    }
+
+    private async Task<WorkerResponse> CreateSnapshotResponseAsync(
+        string requestId,
+        CancellationToken cancellationToken)
+    {
+        if (_adapter is null)
+        {
+            return WorkerProtocol.CreateError(
+                requestId,
+                WorkerErrorCodes.WorkerUnavailable,
+                "No hardware adapter is configured.");
+        }
+
+        PlatformCapability platform = await _adapter.ProbeAsync(cancellationToken).ConfigureAwait(false);
+        _hardwareInitialized = platform.IsSupported;
+        PlatformProfile? profile = ProfileRepository.FindBestMatch(_profiles, platform.Cpu);
+        TelemetrySnapshot telemetry = platform.IsSupported
+            ? await _adapter.RefreshTelemetryAsync(cancellationToken).ConfigureAwait(false)
+            : new TelemetrySnapshot();
+
+        return WorkerProtocol.CreateSuccess(
+            requestId,
+            new WorkerSnapshot(platform, profile, telemetry));
     }
 }
 

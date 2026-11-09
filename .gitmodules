@@ -1,0 +1,3 @@
+[submodule "third_party/RyzenAdj"]
+	path = third_party/RyzenAdj
+	url = https://github.com/FlyGoat/RyzenAdj.git

@@ -58,7 +58,7 @@ Failure:
   "payload": null,
   "error": {
     "code": "unsupported_command",
-    "message": "Command GetSnapshot is not available yet."
+    "message": "Command ApplyTarget is not available yet."
   }
 }
 ```
@@ -68,7 +68,8 @@ Failure:
 | Command | Status | Hardware access |
 |---|---|---|
 | `getHealth` | implemented | no |
-| `getSnapshot` | reserved | yes |
+| `getCapabilities` | implemented; requires the opt-in hardware adapter | probe only |
+| `getSnapshot` | implemented; requires the opt-in hardware adapter | read only |
 | `applyTarget` | reserved | yes |
 | `refreshTelemetry` | reserved | yes |
 | `setPresets` | reserved | no |

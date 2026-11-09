@@ -17,8 +17,10 @@
 
 ## M2: Privileged Worker
 
-- [ ] P/Invoke `libryzenadj` through a narrow core adapter.
-- [ ] Detect CPU family, SMU interface, PM table, and supported fields.
+- [x] P/Invoke `libryzenadj` through a narrow adapter behind `--enable-hardware`.
+- [x] Add RyzenAdj source submodule and reproducible Windows build script.
+- [x] Detect CPU family, SMU interface, PM table, and supported fields.
+- [x] Expose read-only capability and telemetry snapshots over the named pipe.
 - [ ] Implement AC/battery target application with read-back verification.
 - [ ] Implement safe shutdown and single-instance behavior.
 - [ ] Add diagnostic logging.

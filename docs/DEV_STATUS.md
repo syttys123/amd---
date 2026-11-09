@@ -30,6 +30,8 @@ not authoritative.
 - Baseline commit `f9d1be5` was pushed to `origin/main`.
 - The intended project name is `amd-mobile-power`. The GitHub repository still
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
+- The current clean Release build has 22 passing tests across Core and Worker.
+- A real hardware read-only probe against the development laptop succeeded.
 
 ## Development Workflow
 
@@ -122,17 +124,36 @@ third_party/
 - Added wildcard-based platform profiles with conservative default and 8845HS
   development profiles.
 - Test suite now includes twelve passing tests across Core and Worker.
+- Added RyzenAdj upstream as a Git submodule at commit
+  `5775fc3e6dbb25c7030ee2d100a1bdd6e8bf2d0a`.
+- Added `build-ryzenadj.ps1` and successfully built `libryzenadj.dll` from the
+  pinned submodule with Visual Studio 2026 and CMake.
+- Recorded RyzenAdj LGPL-3.0 and unresolved Windows-driver redistribution
+  concerns in the third-party notices.
+- Added an opt-in native RyzenAdj adapter that loads runtime dependencies beside
+  the worker executable and exposes capability and telemetry reads.
+- Added `getSnapshot` as a read-only named pipe command with profile matching.
+- Added mandatory target-range and capability validation inside the adapter
+  before any future power-limit write.
+- Verified a clean Release build with zero warnings and 22 passing tests.
+- Verified `getCapabilities` and `getSnapshot` on the Ryzen 7 8845HS:
+  - SMU BIOS interface `15`.
+  - PM table `4c0009`.
+  - STAPM, Fast, and Slow all reported as supported.
+  - Matched profile `hawk-point-8845hs`.
+  - Probe ran while on AC and performed no hardware writes.
 
 ## In Progress
 
-- Add named pipe request/response contracts and capability models.
-- Decide how RyzenAdj source and licensed binaries will be vendored.
+- Define the `applyTarget` request and response contract.
+- Add a controlled hardware-test procedure with mandatory read-back and restore.
+- Resolve WinRing0/inpout redistribution licensing before public binary release.
 
 ## Next Concrete Task
 
-Add a mock hardware adapter and a worker `getCapabilities` endpoint so profile
-selection and unsupported-platform behavior can be exercised end to end without
-loading RyzenAdj.
+Implement `applyTarget` with mandatory range/capability validation, read-back,
+and prior-state restore, but do not expose it in the GUI until a controlled
+hardware smoke test passes.
 
 ## Known Risks
 

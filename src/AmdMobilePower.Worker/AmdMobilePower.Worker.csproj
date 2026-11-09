@@ -6,9 +6,24 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <RyzenAdjRuntimeDirectory>$(MSBuildProjectDirectory)\..\..\artifacts\ryzenadj-runtime</RyzenAdjRuntimeDirectory>
+    <RepositoryProfilesDirectory>$(MSBuildProjectDirectory)\..\..\profiles</RepositoryProfilesDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <RyzenAdjRuntimeFiles Include="$(RyzenAdjRuntimeDirectory)\*" Condition="Exists('$(RyzenAdjRuntimeDirectory)')" />
+    <ProfileFiles Include="$(RepositoryProfilesDirectory)\*.json" Condition="Exists('$(RepositoryProfilesDirectory)')" />
+  </ItemGroup>
+
+  <Target Name="StageNativeRuntime" AfterTargets="Build">
+    <Copy SourceFiles="@(RyzenAdjRuntimeFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ProfileFiles)" DestinationFolder="$(OutDir)profiles" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

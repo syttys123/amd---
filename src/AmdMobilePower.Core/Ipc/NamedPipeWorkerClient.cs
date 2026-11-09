@@ -37,6 +37,52 @@ public sealed class NamedPipeWorkerClient
             ?? throw new InvalidOperationException("Worker returned an invalid health payload.");
     }
 
+    public async Task<WorkerCapabilitySnapshot> GetCapabilitiesAsync(
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
+    {
+        WorkerResponse response = await SendAsync(
+            new WorkerRequest
+            {
+                RequestId = Guid.NewGuid().ToString("N"),
+                Command = WorkerCommand.GetCapabilities
+            },
+            timeout,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!response.Success || response.Payload is not { } payload)
+        {
+            string message = response.Error?.Message ?? "Worker returned no capability payload.";
+            throw new InvalidOperationException(message);
+        }
+
+        return payload.Deserialize<WorkerCapabilitySnapshot>(WorkerProtocol.JsonOptions)
+            ?? throw new InvalidOperationException("Worker returned an invalid capability payload.");
+    }
+
+    public async Task<WorkerSnapshot> GetSnapshotAsync(
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
+    {
+        WorkerResponse response = await SendAsync(
+            new WorkerRequest
+            {
+                RequestId = Guid.NewGuid().ToString("N"),
+                Command = WorkerCommand.GetSnapshot
+            },
+            timeout,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!response.Success || response.Payload is not { } payload)
+        {
+            string message = response.Error?.Message ?? "Worker returned no snapshot payload.";
+            throw new InvalidOperationException(message);
+        }
+
+        return payload.Deserialize<WorkerSnapshot>(WorkerProtocol.JsonOptions)
+            ?? throw new InvalidOperationException("Worker returned an invalid snapshot payload.");
+    }
+
     public async Task<WorkerResponse> SendAsync(
         WorkerRequest request,
         TimeSpan timeout,

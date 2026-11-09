@@ -1,3 +1,4 @@
+using AmdMobilePower.Core.Models;
 using AmdMobilePower.Core.Validation;
 
 namespace AmdMobilePower.Core.Tests;
@@ -16,5 +17,33 @@ public sealed class PowerLimitValidatorTests
 
         Assert.Equal(expected, result.IsValid);
         Assert.Equal(watts, result.Watts);
+    }
+
+    [Fact]
+    public void TargetValidate_RejectsUnsupportedLimitBeforeHardwareWrite()
+    {
+        PowerLimitTargetValidationResult result = PowerLimitTargetValidator.Validate(
+            PowerLimitTarget.Uniform(25),
+            new PowerLimitCapability(
+                SupportsStapm: true,
+                SupportsFast: true,
+                SupportsSlow: false));
+
+        Assert.False(result.IsValid);
+        Assert.Contains("Slow", result.Error);
+    }
+
+    [Fact]
+    public void TargetValidate_AcceptsFullySupportedTarget()
+    {
+        PowerLimitTargetValidationResult result = PowerLimitTargetValidator.Validate(
+            new PowerLimitTarget(12, 25, 45),
+            new PowerLimitCapability(
+                SupportsStapm: true,
+                SupportsFast: true,
+                SupportsSlow: true));
+
+        Assert.True(result.IsValid);
+        Assert.Null(result.Error);
     }
 }
