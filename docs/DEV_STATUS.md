@@ -453,6 +453,16 @@ third_party/
   `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-2026-11-10.json`.
 - Stopped the packaged GUI/worker after the no-change test and confirmed no
   `AmdMobilePower` or `RyzenAdj` process remained.
+- Completed the engineering third-party redistribution review. Packages now
+  include the pinned RyzenAdj LGPL-3.0 text, canonical GPL-3.0 text, InpOut32
+  MIT notice, WinRing0 BSD notice, and instructions for replacing the separate
+  `worker\libryzenadj.dll` with a compatible build.
+- Verified the clean-tree Lite package with 39 staged files, 38 SHA256 entries,
+  nine profiles, four license files, no logs or machine state, isolated first
+  install/overwrite/uninstall, and a default read-only GUI/worker launch.
+- Corrected the Lite package README so it now states that
+  `-FrameworkDependent` builds require the Microsoft .NET 8 Desktop Runtime x64
+  instead of claiming every package is self-contained.
 
 Development screenshot:
 

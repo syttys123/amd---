@@ -65,6 +65,7 @@
 - [x] Supported hardware guide.
 - [x] Security and driver warning.
 - [x] Third-party notices.
+- [x] Engineering redistribution review with LGPL/GPL, MIT, and BSD notices.
 - [x] Release checklist and compatibility report template.
 - [x] Chinese project-introduction draft.
 

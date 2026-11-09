@@ -2,11 +2,11 @@
 
 ## Source And Build
 
-- [ ] Git worktree is clean.
-- [ ] `dotnet build AmdMobilePower.sln -c Release` passes with zero warnings.
-- [ ] `dotnet test AmdMobilePower.sln -c Release` passes.
-- [ ] `dotnet format AmdMobilePower.sln --verify-no-changes` passes.
-- [ ] Pinned RyzenAdj submodule commit is recorded.
+- [x] Git worktree is clean.
+- [x] `dotnet build AmdMobilePower.sln -c Release` passes with zero warnings.
+- [x] `dotnet test AmdMobilePower.sln -c Release` passes.
+- [x] `dotnet format AmdMobilePower.sln --verify-no-changes` passes.
+- [x] Pinned RyzenAdj submodule commit is recorded.
 - [ ] CI build for the release commit passes.
 
 ## Hardware Evidence
@@ -22,28 +22,28 @@
 
 ## Safety And Licensing
 
-- [ ] Default package remains read-only unless a deliberate release decision
+- [x] Default package remains read-only unless a deliberate release decision
       changes it.
-- [ ] Hardware-write flags and warning text are reviewed.
+- [x] Hardware-write flags and warning text are reviewed.
 - [ ] Conflict detection covers legacy process, mutex, and scheduled-task owners.
 - [ ] Hardware-timeout fail-closed behavior is verified.
-- [ ] RyzenAdj, InpOut32, and WinRing0 notices are present in the ZIP.
+- [x] RyzenAdj, InpOut32, and WinRing0 notices are present in the ZIP.
 - [ ] Driver security behavior is documented on the supported Windows version.
 
 ## Package Verification
 
-- [ ] Portable ZIP builds from the clean release commit.
-- [ ] ZIP SHA256 and source commit are recorded.
-- [ ] `SHA256SUMS.txt` verifies every staged file.
-- [ ] First install, overwrite upgrade, and uninstall pass in an isolated path.
+- [x] Portable ZIP builds from the clean release commit.
+- [x] ZIP SHA256 and source commit are recorded.
+- [x] `SHA256SUMS.txt` verifies every staged file.
+- [x] First install, overwrite upgrade, and uninstall pass in an isolated path.
 - [ ] Start menu, uninstall entry, and logon task behavior are verified.
-- [ ] No machine-specific diagnostics, logs, or user data are included.
+- [x] No machine-specific diagnostics, logs, or user data are included.
 
 ## Documentation And Media
 
-- [ ] README status and feature list match the package.
-- [ ] Installation and recovery guide is current.
-- [ ] Supported-hardware wording does not claim universal support.
+- [x] README status and feature list match the package.
+- [x] Installation and recovery guide is current.
+- [x] Supported-hardware wording does not claim universal support.
 - [ ] Healthy dashboard, preset, conflict, diagnostics, and tray screenshots
       exist.
 - [ ] Project introduction is reviewed.
