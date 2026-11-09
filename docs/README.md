@@ -18,6 +18,7 @@ conflict, prefer the first applicable source in this order:
 | `DEV_STATUS.md` | Authoritative implemented state and next concrete task |
 | `INSTALLATION.md` | Development package, install, upgrade, removal, and recovery |
 | `SUPPORTED_HARDWARE.md` | Current compatibility scope and evidence limits |
+| `COMPATIBILITY_REPORT_TEMPLATE.md` | Public hardware-evidence report format |
 | `SECURITY.md` | Hardware-write, driver, privilege, and data-safety model |
 | `HARDWARE_MATRIX.md` | Device-level evidence |
 | `HARDWARE_TEST_PROCEDURE.md` | Supervised first-write validation procedure |
@@ -40,6 +41,9 @@ conflict, prefer the first applicable source in this order:
 | `DEPLOYMENT.md` | Promotion from development source to stable deployment |
 | `THIRD_PARTY_NOTICES.md` | Third-party source and binary obligations |
 | `ROADMAP.md` | Milestones and release gates |
+| `RELEASE_CHECKLIST.md` | Final publication checklist |
+| `INTRODUCTION_ZH.md` | Chinese project introduction draft |
+| `MEDIA_PLAN.md` | Screenshot, video, and Bilibili preparation plan |
 
 ## Status Rules
 

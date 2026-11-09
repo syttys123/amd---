@@ -1,0 +1,57 @@
+# Release Checklist
+
+## Source And Build
+
+- [ ] Git worktree is clean.
+- [ ] `dotnet build AmdMobilePower.sln -c Release` passes with zero warnings.
+- [ ] `dotnet test AmdMobilePower.sln -c Release` passes.
+- [ ] `dotnet format AmdMobilePower.sln --verify-no-changes` passes.
+- [ ] Pinned RyzenAdj submodule commit is recorded.
+- [ ] CI build for the release commit passes.
+
+## Hardware Evidence
+
+- [ ] At least one controlled no-change write/read-back/restore test passes.
+- [ ] No hardware owner remains after the test.
+- [ ] Battery and AC policy behavior is verified on real hardware.
+- [ ] Firmware clamps are documented rather than treated as transport failures.
+- [ ] At least one second AMD platform has read-only evidence.
+- [ ] `HARDWARE_MATRIX.md` matches the tested release.
+
+## Safety And Licensing
+
+- [ ] Default package remains read-only unless a deliberate release decision
+      changes it.
+- [ ] Hardware-write flags and warning text are reviewed.
+- [ ] Conflict detection covers legacy process, mutex, and scheduled-task owners.
+- [ ] Hardware-timeout fail-closed behavior is verified.
+- [ ] RyzenAdj, InpOut32, and WinRing0 notices are present in the ZIP.
+- [ ] Driver security behavior is documented on the supported Windows version.
+
+## Package Verification
+
+- [ ] Portable ZIP builds from the clean release commit.
+- [ ] ZIP SHA256 and source commit are recorded.
+- [ ] `SHA256SUMS.txt` verifies every staged file.
+- [ ] First install, overwrite upgrade, and uninstall pass in an isolated path.
+- [ ] Start menu, uninstall entry, and logon task behavior are verified.
+- [ ] No machine-specific diagnostics, logs, or user data are included.
+
+## Documentation And Media
+
+- [ ] README status and feature list match the package.
+- [ ] Installation and recovery guide is current.
+- [ ] Supported-hardware wording does not claim universal support.
+- [ ] Healthy dashboard, preset, conflict, diagnostics, and tray screenshots
+      exist.
+- [ ] Project introduction is reviewed.
+- [ ] Promo video is rendered and reviewed.
+- [ ] Bilibili title, description, cover, and tags are reviewed.
+
+## Final Publication
+
+- [ ] GitHub release tag and asset list are reviewed.
+- [ ] Release notes include safety limits and known risks.
+- [ ] Bilibili upload uses an authenticated human-operated session.
+- [ ] No login, credential, or account-security prompt is automated.
+- [ ] Project owner gives explicit approval for final publication.

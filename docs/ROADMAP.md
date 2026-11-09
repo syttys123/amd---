@@ -57,11 +57,13 @@
 - [x] Supported hardware guide.
 - [x] Security and driver warning.
 - [x] Third-party notices.
+- [x] Release checklist and compatibility report template.
+- [x] Chinese project-introduction draft.
 
 ## M7: Public Launch
 
 - [ ] Release candidate validation.
-- [ ] Chinese project introduction.
+- [ ] Finalize Chinese project introduction.
 - [ ] Feature screenshots and terminal-free demo recording.
 - [ ] Promotional video script and rendered video.
 - [ ] GitHub release.

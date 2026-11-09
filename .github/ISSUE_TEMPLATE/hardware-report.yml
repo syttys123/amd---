@@ -1,0 +1,77 @@
+name: AMD laptop compatibility report
+description: Submit read-only hardware evidence for an AMD laptop.
+title: "hardware: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, serial numbers, personal file paths, or unrelated desktop content.
+        Development builds are read-only by default. Do not disable Windows security controls to run them.
+  - type: input
+    id: device
+    attributes:
+      label: Laptop vendor and model
+      placeholder: Example: MECHREVO WUJIE15 PRO
+    validations:
+      required: true
+  - type: input
+    id: cpu
+    attributes:
+      label: CPU
+      placeholder: Example: AMD Ryzen 7 8845HS
+    validations:
+      required: true
+  - type: input
+    id: bios
+    attributes:
+      label: BIOS version and performance mode
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows edition and build
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: App version or source commit
+    validations:
+      required: true
+  - type: dropdown
+    id: read_only
+    attributes:
+      label: Does read-only telemetry load?
+      options:
+        - Yes
+        - No
+        - App starts but telemetry does not
+    validations:
+      required: true
+  - type: input
+    id: smu_pmt
+    attributes:
+      label: SMU BIOS interface and PM table
+      placeholder: Example: SMU 15 / PMT 4c0009
+  - type: textarea
+    id: limits
+    attributes:
+      label: STAPM, Fast, and Slow actual/limit values
+      description: Copy the values shown in the read-only dashboard.
+    validations:
+      required: true
+  - type: textarea
+    id: conflicts
+    attributes:
+      label: Hardware-owner or driver conflicts
+      description: Include process, mutex, scheduled-task, timeout, crash, or reboot details.
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I reviewed diagnostics for sensitive information before attaching them.
+          required: true
+        - label: I understand this is experimental software and may not support this device.
+          required: true
