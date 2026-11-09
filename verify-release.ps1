@@ -55,8 +55,7 @@ try {
     }
     Invoke-CheckedCommand "dependency vulnerability audit" {
         & (Join-Path $root "verify-dependencies.ps1") `
-            -Solution "AmdMobilePower.sln" `
-            -NoRestore
+            -Solution "AmdMobilePower.sln"
     }
     Invoke-CheckedCommand "dotnet build" {
         dotnet build AmdMobilePower.sln -c $Configuration --no-restore

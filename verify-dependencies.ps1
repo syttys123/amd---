@@ -1,6 +1,5 @@
 param(
-    [string]$Solution = "AmdMobilePower.sln",
-    [switch]$NoRestore
+    [string]$Solution = "AmdMobilePower.sln"
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,9 +28,6 @@ try {
         "--output-version",
         "1"
     )
-    if ($NoRestore) {
-        $arguments += "--no-restore"
-    }
 
     $output = @(& dotnet @arguments)
     $exitCode = $LASTEXITCODE

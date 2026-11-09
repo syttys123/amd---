@@ -3,7 +3,8 @@
 ## Prerequisites
 
 - Windows x64.
-- .NET 8 SDK or a newer SDK capable of building `net8.0`.
+- .NET 8 SDK. CI and the release gate are verified with SDK `8.0.427`;
+  newer SDKs may be used for development.
 - Visual Studio with the MSVC C++ toolchain.
 - CMake, either on `PATH` or from the Visual Studio CMake component.
 - Git with submodule support.
