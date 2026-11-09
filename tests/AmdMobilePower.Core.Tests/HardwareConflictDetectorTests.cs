@@ -7,6 +7,11 @@ public sealed class HardwareConflictDetectorTests
     [Fact]
     public void FindKnownHardwareOwner_DetectsLegacyWorkerMutex()
     {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
         using Mutex mutex = new(
             initiallyOwned: true,
             HardwareConflictDetector.LegacyWorkerMutexName,
