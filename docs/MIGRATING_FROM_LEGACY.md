@@ -35,6 +35,17 @@ Get-ScheduledTask -TaskName $taskName -TaskPath $taskPath |
     Select-Object TaskName, TaskPath, State
 ```
 
+The repository includes the same operation as a preview-first helper:
+
+```powershell
+.\packaging\migrate-legacy-owner.ps1
+.\packaging\migrate-legacy-owner.ps1 -Apply
+```
+
+Without `-Apply`, the helper only prints current state. With `-Apply`, it
+requires elevation, disables the logon task, and stops the running task. It does
+not delete the task or files and does not reboot automatically.
+
 The expected task state is `Disabled`. Reboot Windows next. The reboot:
 
 - Terminates any hidden legacy task child.
