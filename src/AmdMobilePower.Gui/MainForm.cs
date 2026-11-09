@@ -364,10 +364,10 @@ internal sealed class MainForm : Form
             metrics.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
         }
 
-        metrics.Controls.Add(CreateMetric("STAPM", out _stapmValue), 0, 0);
-        metrics.Controls.Add(CreateMetric("PPT Fast", out _fastValue), 1, 0);
-        metrics.Controls.Add(CreateMetric("PPT Slow", out _slowValue), 0, 1);
-        metrics.Controls.Add(CreateMetric("CPU 温度", out _temperatureValue), 1, 1);
+        metrics.Controls.Add(CreateMetric("STAPM 实际 / 上限", out _stapmValue), 0, 0);
+        metrics.Controls.Add(CreateMetric("PPT Fast 实际 / 上限", out _fastValue), 1, 0);
+        metrics.Controls.Add(CreateMetric("PPT Slow 实际 / 上限", out _slowValue), 0, 1);
+        metrics.Controls.Add(CreateMetric("CPU 温度 实际 / 上限", out _temperatureValue), 1, 1);
         metrics.Controls.Add(CreateMetric("匹配配置", out _profileValue), 0, 2);
         metrics.Controls.Add(CreateMetric("允许范围", out _rangeValue), 1, 2);
 
