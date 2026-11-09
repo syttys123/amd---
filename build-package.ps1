@@ -83,7 +83,8 @@ Copy-Item -LiteralPath (Join-Path $root "packaging\uninstall.ps1") `
     -Destination (Join-Path $stage "uninstall.ps1") -Force
 
 $commit = (& git -C $root rev-parse HEAD).Trim()
-$workingTree = if ((& git -C $root status --porcelain).Trim()) {
+$statusText = (& git -C $root status --porcelain | Out-String).Trim()
+$workingTree = if ($statusText) {
     "Dirty"
 }
 else {
