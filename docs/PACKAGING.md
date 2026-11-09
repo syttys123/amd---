@@ -15,7 +15,8 @@ For the full release gate, use:
   -Version 0.1.3-dev `
   -FrameworkDependent `
   -VerifyShellIntegration `
-  -VerifyTrayMenu
+  -VerifyTrayMenu `
+  -VerifyTrayExit
 ```
 
 The verifier checks build, tests, formatting, package metadata and checksums,
@@ -25,6 +26,8 @@ checks the Start menu shortcut, current-user uninstall entry, custom-directory
 uninstall command, and either the logon task or Startup-folder fallback.
 `-VerifyTrayMenu` additionally checks the real tray icon and context menu on an
 interactive desktop; its runtime screenshot stays under `artifacts/verify`.
+`-VerifyTrayExit` also invokes the menu's Exit action and requires both GUI and
+worker processes to disappear within eight seconds.
 
 Build the small framework-dependent variant:
 
@@ -220,13 +223,15 @@ Regenerate the tray-menu release screenshot on an interactive Windows desktop:
 
 ```powershell
 .\verify-tray-menu.ps1 `
-  -PackageDirectory artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite
+  -PackageDirectory artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite `
+  -VerifyGracefulExit
 ```
 
 The verifier locates the real hidden-tray icon, checks the tooltip, opens the
 upward context menu, validates all primary actions and three editable presets,
 enforces screen bounds, captures the screenshot, and closes the menu without
-clicking a power action.
+clicking a power action. With `-VerifyGracefulExit`, it invokes `退出` after the
+screenshot and verifies clean GUI/worker teardown.
 
 The verified local development package uses SHA256:
 

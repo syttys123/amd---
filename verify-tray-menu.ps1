@@ -1,6 +1,7 @@
 param(
     [string]$PackageDirectory = "artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite",
-    [string]$ScreenshotPath = "docs\assets\tray-menu-clean-package-2026-11-10.png"
+    [string]$ScreenshotPath = "docs\assets\tray-menu-clean-package-2026-11-10.png",
+    [switch]$VerifyGracefulExit
 )
 
 $ErrorActionPreference = "Stop"
@@ -292,7 +293,28 @@ function Stop-PackageProcesses {
         Stop-Process -Force
 }
 
+function Wait-PackageProcessesStopped {
+    $deadline = [DateTime]::UtcNow.AddSeconds(8)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $remaining = @(
+            Get-Process -Name "AmdMobilePower", "AmdMobilePower.Worker" -ErrorAction SilentlyContinue |
+                Where-Object {
+                    $_.Path -and $_.Path.StartsWith(
+                        $packagePath + [IO.Path]::DirectorySeparatorChar,
+                        [StringComparison]::OrdinalIgnoreCase)
+                }
+        )
+        if ($remaining.Count -eq 0) {
+            return
+        }
+        Start-Sleep -Milliseconds 200
+    }
+
+    throw "GUI or worker process remained after the tray Exit action."
+}
+
 $menuVisible = $false
+$gracefulExit = "Not requested"
 try {
     $gui = Start-Process `
         -FilePath $executable `
@@ -335,6 +357,7 @@ try {
     $overflow = $null
     $appTrayButton = $null
     $trayBounds = $null
+    $trayNotificationText = $null
     for ($attempt = 1; $attempt -le 3 -and -not $appTrayButton; $attempt++) {
         [AmdTrayNative]::keybd_event(
             [AmdTrayNative]::Escape, 0, 0, [UIntPtr]::Zero)
@@ -360,8 +383,14 @@ try {
             if ($candidateBounds.Width -le 0 -or $candidateBounds.Height -le 0) {
                 throw "AMD Mobile Power tray icon has no clickable bounds."
             }
+            $candidateText = $candidateButton.Current.Name.Trim()
+            if ([string]::IsNullOrWhiteSpace($candidateText) -or
+                $candidateText -notmatch "AMD Mobile Power.*(电源|电池)") {
+                throw "AMD Mobile Power tray tooltip did not contain a power-line state."
+            }
             $appTrayButton = $candidateButton
             $trayBounds = $candidateBounds
+            $trayNotificationText = $candidateText
         }
         catch {
             if ($attempt -eq 3) {
@@ -417,6 +446,13 @@ try {
             } |
             ForEach-Object { $_.Current.Name }
     )
+    $exitItem = $menuChildren |
+        Where-Object {
+            $_.Current.ControlType -eq
+                [System.Windows.Automation.ControlType]::MenuItem -and
+            $_.Current.Name -eq "退出"
+        } |
+        Select-Object -First 1
     foreach ($required in @(
         "打开 AMD Mobile Power",
         "刷新状态",
@@ -468,18 +504,31 @@ try {
         $bitmap.Dispose()
     }
 
-    [AmdTrayNative]::keybd_event(
-        [AmdTrayNative]::Escape, 0, 0, [UIntPtr]::Zero)
-    [AmdTrayNative]::keybd_event(
-        [AmdTrayNative]::Escape, 0, 2, [UIntPtr]::Zero)
-    Start-Sleep -Milliseconds 400
-    $menuVisible = $false
+    if ($VerifyGracefulExit) {
+        if ($null -eq $exitItem) {
+            throw "Tray Exit menu item is unavailable."
+        }
+        $invokePattern = $exitItem.GetCurrentPattern(
+            [System.Windows.Automation.InvokePattern]::Pattern)
+        $invokePattern.Invoke()
+        $menuVisible = $false
+        Wait-PackageProcessesStopped
+        $gracefulExit = "PASS"
+    }
+    else {
+        [AmdTrayNative]::keybd_event(
+            [AmdTrayNative]::Escape, 0, 0, [UIntPtr]::Zero)
+        [AmdTrayNative]::keybd_event(
+            [AmdTrayNative]::Escape, 0, 2, [UIntPtr]::Zero)
+        Start-Sleep -Milliseconds 400
+        $menuVisible = $false
+    }
 
     $hash = (Get-FileHash -LiteralPath $resolvedScreenshotPath -Algorithm SHA256).
         Hash.ToLowerInvariant()
     [pscustomobject]@{
         Verification = "PASS"
-        NotificationText = $appTrayButton.Current.Name
+        NotificationText = $trayNotificationText
         TrayIconBounds = (
             "{0},{1},{2},{3}" -f
                 [int]$trayBounds.Left,
@@ -496,6 +545,7 @@ try {
                 $menuRect.Bottom
         )
         MenuItems = $menuItems.Count
+        GracefulExit = $gracefulExit
         Screenshot = $resolvedScreenshotPath
         ScreenshotSize = "${width}x${height}"
         SHA256 = $hash

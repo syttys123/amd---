@@ -507,6 +507,8 @@ third_party/
 - Added `verify-release.ps1 -VerifyTrayMenu`; runtime screenshots are written
   under ignored `artifacts/verify` so an interactive media check does not dirty
   the release worktree.
+- Extended the tray verifier with opt-in `-VerifyGracefulExit`, which invokes
+  the real Exit menu item and requires both packaged processes to disappear.
 - Implemented the versioned `shutdown` worker command with a
   response-before-exit test; GUI teardown now tries graceful shutdown before
   falling back to process termination.

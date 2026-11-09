@@ -4,7 +4,8 @@ param(
     [switch]$FrameworkDependent,
     [switch]$AllowDirty,
     [switch]$VerifyShellIntegration,
-    [switch]$VerifyTrayMenu
+    [switch]$VerifyTrayMenu,
+    [switch]$VerifyTrayExit
 )
 
 $ErrorActionPreference = "Stop"
@@ -227,7 +228,8 @@ try {
         ) ("tray-menu-" + [Guid]::NewGuid().ToString("N") + ".png")
         & (Join-Path $root "verify-tray-menu.ps1") `
             -PackageDirectory $stage `
-            -ScreenshotPath $trayMenuScreenshot
+            -ScreenshotPath $trayMenuScreenshot `
+            -VerifyGracefulExit:$VerifyTrayExit
         $trayMenu = "PASS"
     }
 
@@ -242,6 +244,7 @@ try {
         Licenses = $licenses.Count
         ShellIntegration = $shellIntegration
         TrayMenu = $trayMenu
+        TrayExit = if ($VerifyTrayExit) { "PASS" } else { "Not requested" }
         TrayMenuScreenshot = $trayMenuScreenshot
         Verification = "PASS"
     } | Format-List
