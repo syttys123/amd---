@@ -1,6 +1,6 @@
 # Development Status
 
-Last updated: 2026-11-09
+Last updated: 2026-11-10
 
 ## Objective
 
@@ -33,7 +33,7 @@ not authoritative.
 - Baseline commit `f9d1be5` was pushed to `origin/main`.
 - The intended project name is `amd-mobile-power`. The GitHub repository still
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
-- The current Release build has 35 passing tests across Core and Worker.
+- The current Release build has 47 passing tests across Core and Worker.
 - A real hardware read-only probe against the development laptop succeeded.
 - The repository GUI now reads through the named pipe and updates every second.
 - The GUI defaults to read-only; hardware writes require the explicit
@@ -285,6 +285,44 @@ third_party/
 - Ran `packaging/migrate-legacy-owner.ps1 -Apply` after that reboot. The task
   state changed to `Disabled`; the old GUI and hidden worker still existed in
   the current session and require one final reboot to clear.
+- Found that the legacy GUI also had `Ryzen Power.lnk` in the current user's
+  Startup folder. Renamed it to `Ryzen Power.lnk.disabled` before reboot and
+  updated the migration helper/documentation so future migrations disable both
+  the logon task and the GUI startup shortcut.
+- Confirmed after reboot that legacy processes and the legacy mutex were gone,
+  but the new worker initially failed with `WinRing0 status=2 (driver not
+  loaded)` because the demand-start kernel driver is not started automatically.
+- Added `packaging/install-driver-bootstrap.ps1`, which installs a stable
+  ProgramData driver copy and a highest-privilege logon task that starts only
+  the WinRing0 service. The GUI and worker remain non-elevated.
+- Installed `\AmdMobilePower\StartWinRing0`; manually running the task returned
+  exit code `0`, and the driver path is now
+  `C:\ProgramData\AmdMobilePower\driver\WinRing0x64.sys`.
+- Verified the new GUI connects after driver startup: SMU `15`, PM table
+  `4c0009`, AC telemetry present, and live STAPM/Fast/Slow/temperature values.
+- Verified the balanced BIOS profile exposes a dynamic STAPM limit that moved
+  between roughly 25 W and 40 W. The first implementation incorrectly treated
+  a higher dynamic STAPM readback as a total write failure and restored
+  Fast/Slow.
+- Changed the first-write policy so only non-STAPM readback increases are
+  treated as unsafe. A real 12 W test then succeeded: actual STAPM was 12.0 W,
+  Fast/Slow limits were 12.0 W, and the BIOS dynamic STAPM ceiling remained
+  about 25 W. Added a regression test; the suite now has 38 passing tests.
+- Confirmed on the development laptop that PPT Fast and Slow are the effective
+  required caps: at a 12 W target both read back as 12 W while the firmware
+  reports a dynamic STAPM ceiling between roughly 16 W and 25 W.
+- Changed write semantics so Fast and Slow must pass transport and read-back
+  validation, while STAPM is written best-effort and excluded from success and
+  rollback decisions. This keeps low-power targets effective when firmware
+  rejects or dynamically rewrites STAPM.
+- Found the recurring worker startup crash was caused by a client disconnect
+  before a complete pipe frame, followed by `Mutex.ReleaseMutex()` running on a
+  different thread during async shutdown. The mutex exception masked the pipe
+  error and made the GUI enter its hardware-timeout lockout.
+- Replaced the hardware-owner mutex with a named process-scoped event and made
+  incomplete client connections non-fatal to the server loop. Added a
+  regression test where a client connects and disconnects before sending a
+  frame, then verifies a later health request still succeeds.
 - Attempted an elevated restart of both `WinRing0_1_2_0` and `inpoutx64` with
   no RyzenAdj process running. Both services returned to `Running`, but the
   legacy `ryzenadj.exe --info` still hung in the SMU polling loop. Service
@@ -292,15 +330,136 @@ third_party/
 - Rebuilt the portable package from clean commit `0276c5b`; it contains the
   fail-closed worker recovery behavior, migration helper, migration guide, and
   release checklist.
+- Added persistent simple and advanced GUI modes in the same executable.
+  Simple mode is a fixed compact window with one uniform target input, editable
+  presets, a live STAPM value, and one-line STAPM/Fast/Slow/temperature
+  metrics. Advanced mode retains the two-column dashboard and independent
+  three-limit controls. Both modes share the same worker, telemetry, presets,
+  and pending target values.
+- Added title-bar and tray-menu mode switching. The selected mode is stored in
+  `%LocalAppData%\AmdMobilePower\ui-state.json` and restored at launch.
+- Added a persistent always-on-top toggle in both the compact header and tray
+  menu.
+- Removed numeric spin buttons from GUI watt inputs while retaining numeric
+  range validation.
+- Verified both mode pages at the current 125% Windows scaling without startup
+  crashes or control overlap. Long diagnostic messages remain intentionally
+  ellipsized in the compact status strip. Verified that changing the simple
+  target to 25 W updates STAPM, Fast, and Slow to 25 W when switching to
+  advanced mode. Verified the always-on-top toggle sets the Win32 topmost style
+  and survives through the UI-state file.
+- Reworked simple mode against the legacy compact hierarchy and expanded it to
+  `560x400`: quick-power presets are stacked vertically in a dedicated left
+  rail; the main column contains a full-width target row, a large live STAPM
+  value with power bar, a separate four-row telemetry panel, and the status
+  strip. Removed the horizontal preset row that compressed the labels.
+- Cleared default WinForms margins from fixed-height labels, disabled automatic
+  ellipsis on simple-mode value labels to remove the native floating tooltip,
+  and verified that the target, telemetry, and status text no longer overlap.
+- Removed the simple-mode power progress graphic below the live wattage. The
+  numeric value, AC/battery badge, firmware limit summary, and detailed
+  telemetry remain visible.
+- Verified the revised simple mode with a real window screenshot while the
+  worker was online at a 10 W limit; all four telemetry values and the target
+  controls were visible. The full suite remains at 41 passing tests.
+- Added lightweight rolling diagnostic logs for the GUI and worker under
+  `%LocalAppData%\AmdMobilePower\logs`. Logs are daily, retain seven days, and
+  avoid per-second telemetry spam by recording lifecycle, connection changes,
+  write outcomes, and exceptions only.
+- Extended diagnostics export with the log directory and recent GUI/worker log
+  excerpts so a single report is useful for field support. Added deterministic
+  logger tests and an injected worker logging test. The suite now has 44
+  passing tests.
+- Built a new framework-dependent `0.1.1-dev` package from the current dirty
+  source tree. The ZIP is 464,709 bytes with SHA256
+  `44b0602ef43c45738b974ed0ee52b2e62023f2d0dda85e28c9ec40e25c4332f0`.
+- Verified the candidate package in an isolated artifact directory: install,
+  file layout, and uninstall passed. Read-only launch also passed; the packaged
+  worker connected and reported AC telemetry with 10W STAPM/Fast/Slow limits.
+  This package remains a development candidate because the source tree was
+  dirty at build time.
+- Audited the local UI research corpus and catalogued 24 official design-system
+  repositories, Apple HIG, Atlassian guidance, and the existing SQLite UI index
+  in `docs/UI_DESIGN_DATABASE.md`. The document separates local evidence,
+  source-code findings, implementation recommendations, and runtime-only
+  checks, then defines the `560x400` compact-layout target.
+- Reworked compact mode into a four-band layout: live power and target controls,
+  one horizontal preset strip, a four-column telemetry matrix, and a persistent
+  status bar with a visible read-only/write-state badge.
+- Fixed compact mode so the initial target comes from the first editable preset
+  instead of the profile default. On the development profile it now starts at
+  12 W rather than 25 W.
+- Fixed the compact apply button so read-only and applying states actually
+  disable it; the previous `enabled || !_applying` condition could leave the
+  button active while hardware writes were locked.
+- Moved DPI sizing to run after WinForms auto-scaling. At 125% scaling the
+  compact window now reports a `700x500` client area, and UI Automation plus
+  Windows OCR confirm that the right-side target controls and four telemetry
+  columns fit inside the window.
+- Applied and read back 10 W, then 12 W, through the compact GUI while the
+  laptop was powered by a power bank. Both writes completed; STAPM, Fast, and
+  Slow read back at the requested limit, and the GUI remained responsive.
+- Renamed the two unused historical compact-layout builders and marked them
+  obsolete so future maintenance edits the active `BuildSimpleWorkspace()`
+  path.
+- Centralized product metadata in `Directory.Build.props`: GUI and worker now
+  share the product name, version, company, copyright, repository URL, embedded
+  application icon, deterministic builds, and source-revision settings.
+- Replaced the hardcoded GUI footer with `Application.ProductVersion` and the
+  worker protocol version. Verified that one `-p:Version=0.1.2-dev` publish sets
+  both executables to product version `0.1.2-dev` and file version `0.1.2.0`.
+- Built `artifacts/packages/amd-mobile-power-v0.1.2-dev-win-x64-lite.zip`.
+  The package is 554,191 bytes with SHA256
+  `38a258e9ca47a10b98593c629715e4f4912366d3fd5ced614a0c8a2b44c592cf`.
+  All 30 staged checksums match, isolated install/uninstall passed, and the
+  packaged read-only GUI started its packaged worker successfully. The source
+  tree was dirty at build time, so this is a development candidate rather than
+  release evidence.
+- Added RyzenAdj's own CPU-family identifier to platform capability data and
+  profile matching. This fills a real gap because Windows CPU information did
+  not provide reliable CPUID family/model values.
+- Added seven conservative family profiles covering legacy Vega, Renoir/
+  Cezanne/Lucienne, Rembrandt/Phoenix, Mendocino, Dragon/Fire Range,
+  Krackan/Strix Point, and Strix Halo. Every profile is explicitly marked
+  unverified and retains capability/read-back validation.
+- Added profile-priority and worker capability tests. The suite increased from
+  44 to 47 passing tests.
+- Replaced the native `NumericUpDown` implementation with a pure numeric text
+  entry, removing the residual gray spinner artifact. The live power value now
+  renders as one `12.0 W` label. Both compact and advanced mode now label
+  external power as `电源`, because Windows cannot distinguish a power bank
+  from a wall adapter.
+- Rebuilt `artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip`
+  with the final UI and multi-generation profile changes. The package is
+  564,349 bytes with SHA256
+  `d6c1046a30505d76f2777018d8f572ef73fe8e85658035a7ae053c4e11f800eb`.
+  All 37 staged checksums match, nine profiles are present, isolated
+  install/uninstall passed, and packed read-only startup launched the packed
+  worker with a connected GUI.
+- Expanded diagnostics schema 1 with protocol version, pipe name, hardware-
+  adapter and write-control state, worker executable SHA256, RyzenAdj family
+  number/name, and every available profile with its match patterns and ranges.
+- Verified a live `exportDiagnostics` response on the 8845HS: family `10`
+  (`Hawk Point`), SMU `15`, PM table `4c0009`, profile
+  `hawk-point-8845hs`, nine profiles, five runtime-file entries, and a worker
+  executable hash were all present in one JSON response.
+- Repeated the diagnostics export from the packed read-only build: version
+  `0.1.3-dev`, family `Hawk Point`, matched device profile, nine profiles, five
+  runtime-file entries, hardware adapter present, and write controls disabled.
+- Passed the controlled no-change write gate with the packaged `0.1.3-dev`
+  GUI/worker. Initial, requested, read-back, and final STAPM/Fast/Slow values
+  were all 12 W; no restore, firmware clamp, or STAPM warning was reported.
+  The evidence summary is
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-2026-11-10.json`.
+- Stopped the packaged GUI/worker after the no-change test and confirmed no
+  `AmdMobilePower` or `RyzenAdj` process remained.
 
 Development screenshot:
 
-![Read-only GUI](assets/gui-readonly-2026-11-09.png)
+![Compact mode at 12 W](assets/gui-simple-12w-2026-11-10.png)
 
 ## In Progress
 
-- Execute the first supervised no-change hardware write test.
-- Confirm no worker process remains after the hardware test.
 - Verify WinRing0 behavior under a clean Windows security baseline and document
   any driver-blocking failures.
 - Add more AMD generation profiles and verify a second physical laptop when
@@ -309,11 +468,11 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Reboot Windows to reset the RyzenAdj/WinRing0/inpout/SMU state, then launch the
-new GUI without the legacy task running and confirm a clean read-only snapshot.
-After that, run the controlled no-change write test while connected to AC and
-verify the initial and final STAPM/Fast/Slow limits match. Do not expose write
-controls in the public package until this test passes.
+Extend diagnostics and the compatibility report so a new AMD laptop can submit
+its RyzenAdj family, matched profile, SMU interface, PM table, capability flags,
+and runtime-file hashes in one reviewable artifact. Do not promote a family to
+supported until a physical laptop supplies the capability, telemetry, write,
+read-back, and restore evidence required by `HARDWARE_TEST_PROCEDURE.md`.
 
 ## Known Risks
 
@@ -338,4 +497,8 @@ Do not publish a stable release or promotional video until:
 - Installation, upgrade, and uninstall are tested.
 - Third-party notices and licenses are complete.
 - A release checklist and installation documentation exist.
+
+The controlled no-change write gate is complete for the development 8845HS
+using the packaged `0.1.3-dev` build. The remaining hardware gate is a second
+verified AMD platform or generation.
 

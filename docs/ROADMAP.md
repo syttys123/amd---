@@ -24,7 +24,7 @@
 - [x] Implement validated target writes with mandatory read-back and restore.
 - [x] Implement AC/battery target application with read-back verification.
 - [x] Implement safe shutdown and single-instance behavior.
-- [ ] Add diagnostic logging.
+- [x] Add diagnostic logging.
 
 ## M3: Native GUI
 
@@ -33,10 +33,18 @@
 - [x] Show effective limits and firmware clamps.
 - [x] Add editable presets and profile-aware ranges.
 - [x] Add worker connection state and automatic restart after conflicts clear.
+- [x] Add persistent tag-style simple mode, two-column advanced mode, and
+  always-on-top control.
+- [x] Rework compact mode into a horizontal preset strip, live target hero,
+  four-column telemetry matrix, and persistent write-state status bar.
+- [x] Verify compact mode at 125% scaling with real screenshots and controlled
+  10 W/12 W write/readback tests.
 
 ## M4: Compatibility
 
 - [ ] Add detection profiles for supported AMD mobile generations.
+- [x] Add conservative RyzenAdj-family profiles and matching tests for
+  additional generations pending physical-device evidence.
 - [x] Create a hardware matrix with verified, experimental, and unsupported
   states.
 - [x] Add a diagnostics export that contains no secrets.
@@ -47,7 +55,7 @@
 - [x] Portable ZIP build.
 - [x] Installer with scheduled-task setup.
 - [x] Upgrade and uninstall flow.
-- [ ] Version metadata and embedded icons.
+- [x] Version metadata and embedded icons shared by GUI and worker.
 - [x] GitHub Actions release artifacts.
 
 ## M6: Release Documentation

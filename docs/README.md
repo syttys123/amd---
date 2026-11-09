@@ -33,6 +33,17 @@ conflict, prefer the first applicable source in this order:
 | `PROFILES.md` | Platform profile schema and matching rules |
 | `DECISIONS.md` | Accepted architecture decisions |
 
+## UI And Design
+
+| Document | Purpose |
+|---|---|
+| `UI_DESIGN_DATABASE.md` | Local design-system evidence, project tokens, component contracts, and the compact-window layout specification |
+
+The project-specific design database is derived from the read-only local corpus
+at `<local-design-library>\design-corpus` and the SQLite index at
+`<local-design-library>\ui-database`. The index is research evidence; the checked-in
+Markdown document records the decisions that apply to AMD Mobile Power.
+
 ## Build And Release
 
 | Document | Purpose |

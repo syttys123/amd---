@@ -31,3 +31,13 @@ Release media may be prepared automatically. Account login and final upload
 must use an already authenticated session and must not automate credential or
 security prompts.
 
+## ADR-005: Fast And Slow Are Required Limits
+
+Status: accepted
+
+The 8845HS prototype showed that PPT Fast and Slow enforce the requested
+ceiling even when the firmware keeps STAPM dynamic or rejects a low STAPM
+write. The worker therefore requires Fast and Slow read-back but treats STAPM
+as best-effort, preventing a firmware-managed diagnostic limit from rolling
+back an otherwise effective power cap.
+

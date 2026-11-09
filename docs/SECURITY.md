@@ -31,7 +31,10 @@ The worker:
   worker.
 - Detects running legacy scheduled tasks including `\AMD\RyzenAdjWatch`,
   `\AMD\RyzenAdj`, `\AMD\RyzenAdjApply`, and `\AMD\RyzenAdjToggle`.
-- Acquires `Local\AmdMobilePower.HardwareOwner.v1`.
+- Acquires the named process-scoped event
+  `Local\AmdMobilePower.HardwareOwner.v1`. A named event is used instead of a
+  mutex because asynchronous shutdown may resume on another thread, while mutex
+  ownership is thread-affine.
 - Refuses to start when another known owner or AMD Mobile Power worker exists.
 
 Do not bypass this protection. Concurrent RyzenAdj owners have caused an
@@ -59,15 +62,25 @@ and enters the terminal fault state.
 When write controls are explicitly enabled, the worker:
 
 - Validates the target against the profile and reported capabilities.
-- Writes STAPM, Fast, and Slow together.
+- Writes Fast and Slow as the required enforcement pair and treats STAPM as a
+  best-effort value because firmware may manage it dynamically.
 - Refreshes the PM table and reads every value back.
+- Requires Fast and Slow transport success and matching read-back before
+  reporting a successful application.
 - Reports firmware clamps separately from transport success.
 - Attempts to restore the previous three-value target after a write or
   read-back failure.
 
-The first real hardware write test must use the current limit triplet, so a
-successful test does not intentionally change the power profile. See
-`HARDWARE_TEST_PROCEDURE.md`.
+Controlled 10 W and 12 W writes completed on the development laptop on
+2026-11-10 and are recorded in `HARDWARE_MATRIX.md`. The packaged `0.1.3-dev`
+GUI/worker also passed the separate 12 W no-change write gate with identical
+initial, requested, read-back, and final STAPM/Fast/Slow limits. See
+`docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-2026-11-10.json`.
+
+USB-C power banks are often reported by Windows as AC/external power. The
+automatic battery/AC policy cannot identify that case, so a power bank will use
+the AC target. Prefer manual conservative targets when operating from a power
+bank.
 
 ## Process And IPC Model
 
@@ -77,8 +90,10 @@ successful test does not intentionally change the power profile. See
 - Commands are a fixed enum; there is no arbitrary shell execution endpoint.
 - Requests and responses use versioned UTF-8 JSON Lines with request IDs.
 
-The current implementation does not install a privileged Windows service or
-elevate the worker.
+The current implementation does not elevate the worker. RyzenAdj still requires
+the WinRing0 kernel driver. The development driver helper installs a small
+current-user logon task whose only action is to start the already-installed
+driver service with highest privileges. The GUI and worker remain non-elevated.
 
 ## Data And Diagnostics
 
@@ -86,8 +101,11 @@ elevate the worker.
   `%LocalAppData%\AmdMobilePower\ui-state.json`.
 - Diagnostics are saved under
   `%LocalAppData%\AmdMobilePower\diagnostics` by default.
+- GUI and worker lifecycle/error logs are stored under
+  `%LocalAppData%\AmdMobilePower\logs` with daily files and seven-day retention.
 - Diagnostics include hardware capability, telemetry, OS/process architecture,
-  executable directory, and runtime-file hashes.
+  executable directory, runtime-file hashes, log directory, and recent log
+  excerpts.
 - Diagnostics do not include credentials or provider secrets.
 
 Review diagnostics before attaching them to a public issue. Device names, paths,
@@ -103,8 +121,9 @@ project require separate redistribution and safety review. Review
 
 Do not publish or promote write-capable builds until:
 
-- The supervised no-change write test passes.
-- Initial and final STAPM/Fast/Slow limits match.
+- The supervised no-change write test passes. Development 8845HS passed.
+- Initial and final STAPM/Fast/Slow limits match. Development 8845HS passed at
+  12/12/12 W.
 - Process cleanup and conflict behavior are verified.
 - The driver redistribution review is complete.
 - A recovery procedure has been tested on the target device.

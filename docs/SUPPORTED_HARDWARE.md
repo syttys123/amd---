@@ -10,6 +10,12 @@ experimental development platform and conservative detection profiles:
 | AMD Ryzen 7 8845HS | `hawk-point-8845hs` | Read-only capability and telemetry probe passed | Experimental |
 | Unknown AMD mobile CPU | `default` | Capability-dependent detection only | Unverified |
 
+Conservative family profiles now exist for Renoir/Cezanne/Lucienne,
+Rembrandt/Phoenix, Mendocino, Dragon/Fire Range, Krackan/Strix Point,
+Strix Halo, and older Vega-based mobile families. They improve target bounds
+and diagnostics, but remain **Unverified** until device-level write, read-back,
+and restore evidence is recorded.
+
 ## RyzenAdj Family Detection Versus Project Support
 
 The pinned RyzenAdj commit contains code paths for these CPU families:
@@ -33,11 +39,12 @@ Current development laptop:
 - SMU BIOS interface `15`
 - PM table `4c0009`
 
-The current quiet-mode firmware exposes AC limits around STAPM 25 W and
-Fast/Slow 45 W. A requested 45 W can read back as STAPM 25 W with Fast/Slow
-45 W because the firmware clamps sustained package power. This is why the GUI
-shows actual power and the current firmware limit separately from the requested
-target.
+The quiet and balanced BIOS profiles expose dynamic STAPM behavior while the
+PPT Fast/Slow limits remain the required effective cap. A 45 W request can
+read back as a lower sustained STAPM value with Fast/Slow at 45 W, or a 12 W
+request can hold live package power near 12 W with Fast/Slow at 12 W. The GUI
+therefore treats Fast/Slow as required and shows STAPM separately as a
+firmware-managed diagnostic/control value.
 
 ## Supported Parameters
 
@@ -54,11 +61,20 @@ clock controls.
 
 The worker reports:
 
-- Processor name and CPU family.
+- Processor name, CPUID family/model when available, and RyzenAdj family
+  number/name.
 - SMU BIOS interface and PM table version.
 - Supported limit fields.
 - AC or battery power-line state.
 - Requested targets, effective limits, and firmware clamps.
+- All loaded profiles, the matched profile, diagnostic schema/protocol version,
+  hardware/write gates, and runtime executable hashes through diagnostics
+  export.
+
+The operating system reports many USB-C power banks as external/AC power. A
+power bank therefore triggers AC-profile behavior and cannot currently be
+distinguished from a wall adapter by the application. Use a manual conservative
+target when the power source matters.
 
 Supported capabilities do not prove stable write behavior. A platform remains
 experimental until the supervised test in `HARDWARE_TEST_PROCEDURE.md` passes

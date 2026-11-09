@@ -30,6 +30,80 @@ artifacts/packages/amd-mobile-power-v0.1.0-win-x64-lite.zip
 - Source commit: `624d959`.
 - Working tree at build time: clean.
 
+Current `0.1.1-dev` integration candidate:
+
+```text
+artifacts/packages/amd-mobile-power-v0.1.1-dev-win-x64-lite.zip
+```
+
+- Size: 464,709 bytes.
+- SHA256:
+  `44b0602ef43c45738b974ed0ee52b2e62023f2d0dda85e28c9ec40e25c4332f0`.
+- Source commit: `4c4462a`.
+- Working tree at build time: dirty; this is not release evidence.
+- Framework-dependent and requires the Microsoft .NET 8 Desktop Runtime x64.
+- Isolated install and uninstall passed under `artifacts`.
+- Read-only package smoke passed: the packaged GUI started, the packaged
+  worker connected through the named pipe, and AC telemetry reported 10W
+  STAPM/Fast/Slow limits.
+
+Current `0.1.2-dev` integration candidate:
+
+```text
+artifacts/packages/amd-mobile-power-v0.1.2-dev-win-x64-lite.zip
+```
+
+- Size: 554,191 bytes.
+- SHA256:
+  `38a258e9ca47a10b98593c629715e4f4912366d3fd5ced614a0c8a2b44c592cf`.
+- Source commit: `4c4462a`.
+- Working tree at build time: dirty; this is not release evidence.
+- Framework-dependent and requires the Microsoft .NET 8 Desktop Runtime x64.
+- All 30 staged SHA256 entries verified.
+- Isolated install and uninstall passed under `artifacts`.
+- Packaged read-only startup passed and launched the packaged worker.
+- GUI and worker both report product version `0.1.2-dev` and file version
+  `0.1.2.0`.
+
+Current `0.1.3-dev` integration candidate:
+
+```text
+artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
+```
+
+- Size: 564,349 bytes.
+- SHA256:
+  `d6c1046a30505d76f2777018d8f572ef73fe8e85658035a7ae053c4e11f800eb`.
+- Source commit: `4c4462a`.
+- Working tree at build time: dirty; this is not release evidence.
+- Framework-dependent and requires the Microsoft .NET 8 Desktop Runtime x64.
+- All 37 staged SHA256 entries verified.
+- Includes nine conservative profiles, including seven unverified multi-
+  generation family profiles.
+- Isolated install and uninstall passed under `artifacts`.
+- Packed read-only startup passed and launched the packed worker.
+- Packed diagnostics export reported schema 1, protocol 1, `Hawk Point`,
+  `hawk-point-8845hs`, nine profiles, five runtime-file hashes, hardware
+  adapter present, and write controls disabled.
+- GUI and worker both report product version `0.1.3-dev` and file version
+  `0.1.3.0`.
+
+## Embedded Version Metadata
+
+`Directory.Build.props` is the source of truth for product identity and version:
+
+- Product: `AMD Mobile Power`
+- Default version prefix: `0.1.1`
+- Company: `AMD Mobile Power contributors`
+- Copyright: `Copyright (c) 2026 AMD Mobile Power contributors`
+- Application icon: `assets/amd-mobile-power.ico`
+- Repository URL: `https://github.com/syttys123/amd-mobile-power`
+
+`build-package.ps1 -Version <version>` overrides the SDK `Version` for both GUI
+and worker publishes. The SDK derives `FileVersion` from that value. The GUI
+footer reads `Application.ProductVersion`, so it does not require another
+hardcoded version string.
+
 Output:
 
 ```text

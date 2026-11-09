@@ -31,8 +31,8 @@ This document separates the current implementation from the longer-term target.
 - Rejects invalid or unsupported commands.
 - Detects known hardware owners and holds
   `Local\AmdMobilePower.HardwareOwner.v1`.
-- Attempts to restore all three previous limits when a write or read-back
-  fails.
+- Attempts to restore previous required Fast/Slow limits when a write or
+  read-back fails.
 
 ### AmdMobilePower.Core
 
@@ -57,6 +57,8 @@ Protocol requirements:
 - Explicit timeout and cancellation.
 - No arbitrary command-line execution.
 - The pipe uses `PipeOptions.CurrentUserOnly`.
+- An incomplete client connection is isolated to that request and cannot
+  terminate the worker.
 - All commands have request IDs and structured errors.
 
 Implemented commands:
@@ -79,11 +81,13 @@ Current installed and portable mode:
 ```text
 %LocalAppData%\AmdMobilePower\ui-state.json
 %LocalAppData%\AmdMobilePower\diagnostics\
+%LocalAppData%\AmdMobilePower\logs\
 ```
 
 RyzenAdj profiles are read from `worker\profiles` in packaged builds. The
-current implementation has no persistent worker config, ProgramData directory,
-or diagnostic log file.
+current implementation has no persistent worker config or ProgramData
+directory. GUI and worker diagnostic logs are local rolling daily files and are
+included as recent excerpts in exported diagnostics.
 
 Future service or machine-wide deployment may use:
 
@@ -123,10 +127,13 @@ The GUI must show unsupported capabilities rather than writing blindly.
 ## Hardware Safety
 
 - No skin-temperature, current, voltage, or clock changes in the initial scope.
-- Apply only STAPM, Fast, and Slow power limits.
+- Apply PPT Fast and Slow as the required power caps. Attempt STAPM as a
+  best-effort diagnostic/control value because firmware may manage it
+  dynamically or reject low values independently.
 - Read back every value.
-- If a firmware clamp is detected, keep the command successful but surface the
-  effective limit and warning.
+- Require Fast and Slow transport success and read-back to match. If STAPM is
+  clamped or rejected, keep the command successful but surface the effective
+  limit and warning.
 - Use conservative defaults and a hard user-configurable ceiling.
 - Refuse concurrent ownership with known RyzenAdj-based tools or another
   AMD Mobile Power worker.

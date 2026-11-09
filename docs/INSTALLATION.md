@@ -42,6 +42,18 @@ The install script:
 - Registers a current-user uninstall entry.
 - Preserves `%LocalAppData%\AmdMobilePower\ui-state.json` during upgrades.
 
+Development builds that use RyzenAdj hardware access also require WinRing0.
+From an elevated PowerShell session, run:
+
+```powershell
+.\install-driver-bootstrap.ps1
+```
+
+This copies the driver to `%ProgramData%\AmdMobilePower\driver`, configures the
+`WinRing0_1_2_0` demand-start service, and creates a small
+`\AmdMobilePower\StartWinRing0` logon task. The task elevates only
+`Start-Service`; it does not run the GUI or worker elevated.
+
 Use `-InstallDirectory` to select another destination. Paths at a filesystem
 root or with fewer than two segments below the root are rejected.
 
@@ -108,6 +120,16 @@ state broken.
 RyzenAdj requires low-level Windows driver access. Security software may block
 or unload WinRing0. Do not disable security controls just to make a development
 build run. Record the conflict and continue on a controlled test machine.
+
+If diagnostics report `WinRing0 status=2 (driver not loaded)`, verify both:
+
+```powershell
+Get-Service WinRing0_1_2_0
+Get-ScheduledTask -TaskPath "\AmdMobilePower\" -TaskName "StartWinRing0"
+```
+
+The service may be demand-start and therefore stopped before login. The logon
+task must bring it to `Running` before the AMD Mobile Power worker initializes.
 
 ### Read-only controls
 

@@ -17,9 +17,13 @@ diagnostics.
 - App version or source commit:
 - Read-only snapshot works: yes / no
 - Power line during test: AC / battery
+- RyzenAdj family number and name:
 - SMU BIOS interface:
 - PM table:
 - Matched profile:
+- Available profile IDs:
+- Hardware adapter configured: yes / no
+- Worker write controls enabled: yes / no
 - STAPM actual/limit:
 - PPT Fast actual/limit:
 - PPT Slow actual/limit:
@@ -34,8 +38,14 @@ diagnostics.
 
 ## Diagnostics
 
+- Diagnostics schema version:
+- Worker/protocol version:
+- Worker executable SHA256:
+- Packaged read-only diagnostic export attached: yes / no
 - Diagnostics JSON attached: yes / no
 - Runtime-file hashes included: yes / no
+- GUI/worker log excerpts included: yes / no
+- Log directory:
 - Sensitive information reviewed and removed: yes / no
 
 ## Stability

@@ -66,3 +66,12 @@ Stop testing and restore the previous deployment if:
 - Keep the worker behind an explicit hardware flag during development.
 - Do not promote the build to `C:\RyzenAdj` until GUI and packaging checks also
   pass.
+
+Completed development evidence:
+
+- Device: MECHREVO WUJIE15 PRO, Ryzen 7 8845HS.
+- Package: `amd-mobile-power-v0.1.3-dev-win-x64-lite.zip`.
+- Result: 12/12/12 W initial, requested, read-back, and final limits; no restore,
+  firmware clamp, or STAPM warning; packaged GUI/worker stopped afterward.
+- Summary:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-2026-11-10.json`.

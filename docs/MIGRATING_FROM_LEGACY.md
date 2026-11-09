@@ -9,6 +9,7 @@ enough to release the hardware owner.
 The legacy deployment uses:
 
 - `RyzenPower.exe` for the visible GUI.
+- `Ryzen Power.lnk` in the current user's Startup folder.
 - `\AMD\RyzenAdjWatch` as an enabled logon task.
 - `wscript.exe` and a hidden elevated `pwsh.exe` for the persistent worker.
 - `Local\RyzenAdjPowerWorker` as its hardware-owner mutex.
@@ -31,6 +32,14 @@ $taskName = "RyzenAdjWatch"
 Disable-ScheduledTask -TaskName $taskName -TaskPath $taskPath
 Stop-ScheduledTask -TaskName $taskName -TaskPath $taskPath
 
+$startup = [Environment]::GetFolderPath("Startup")
+$shortcut = Join-Path $startup "Ryzen Power.lnk"
+if (Test-Path -LiteralPath $shortcut) {
+    Move-Item `
+        -LiteralPath $shortcut `
+        -Destination "$shortcut.disabled"
+}
+
 Get-ScheduledTask -TaskName $taskName -TaskPath $taskPath |
     Select-Object TaskName, TaskPath, State
 ```
@@ -43,8 +52,9 @@ The repository includes the same operation as a preview-first helper:
 ```
 
 Without `-Apply`, the helper only prints current state. With `-Apply`, it
-requires elevation, disables the logon task, and stops the running task. It does
-not delete the task or files and does not reboot automatically.
+requires elevation, disables the logon task, stops the running task, and
+renames the legacy Startup-folder shortcut to `.disabled`. It does not delete
+the task or legacy files and does not reboot automatically.
 
 The expected task state is `Disabled`. Reboot Windows next. The reboot:
 
