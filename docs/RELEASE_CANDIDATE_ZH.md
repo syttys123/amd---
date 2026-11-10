@@ -8,23 +8,23 @@
 ## Source And Package
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
-- Current runtime source commit reviewed: `01fd3ae`
-- Package source commit: `01fd3ae`
-- Package: `artifacts/packages/amd-mobile-power-v1.0.1-win-x64-lite.zip`
-- Size: `593,759` bytes
-- SHA256: `296bbc58ae400d3bfd43bd0a4665ed9c06e78bf0b3c0cdde582e21cdd11e118c`
+- Current runtime source commit reviewed: `9fb180a`
+- Package source commit: `9fb180a`
+- Package: `artifacts/packages/amd-mobile-power-v1.0.2-win-x64-lite.zip`
+- Size: `594,482` bytes
+- SHA256: `ddf5d70bcfd802e1db317dbacbd40ab63eba024fc3d2c7db175829ee5d2f6f93`
 - Files / checksums / profiles / licenses: `40 / 39 / 9 / 4`
 - Runtime: Microsoft .NET 8 Desktop Runtime x64
 
-The ZIP was rebuilt from a clean `01fd3ae` worktree with .NET SDK `10.0.400`,
-matching the pinned CI toolchain. The package includes the simple-mode UI fix
-that removes the overlapping bottom `详情` entry. Later documentation-only
-commits do not change the packaged runtime files.
+The ZIP was rebuilt from a clean `9fb180a` worktree with .NET SDK `10.0.400`,
+matching the pinned CI toolchain. The package includes the tray-restore
+re-entry fix and worker parent-exit cleanup. Later documentation-only commits do
+not change the packaged runtime files.
 
 ## Local Verification
 
 Evidence:
-`docs/evidence/packaging/v1.0.1-clean-2026-11-10.json`
+`docs/evidence/packaging/v1.0.2-clean-2026-11-10.json`
 
 - Build warnings / errors: `0 / 0`
 - SDK: `10.0.400`
@@ -35,6 +35,8 @@ Evidence:
 - Start menu, uninstall entry, startup fallback: PASS
 - Tray menu direction: up
 - Tray menu bounds and horizontal anchoring: PASS
+- Tray single-click, double-click, and menu restore: PASS
+- GUI parent exit leaves no orphaned worker: PASS
 - Graceful tray exit: PASS
 - Packaged simple dashboard gray-dot and power-line check: PASS
 - Bottom `详情` button absent and write-state/status bounds overlap check: PASS
@@ -60,8 +62,9 @@ launch copy, safety documents, manifest, and SHA256 list under
 - Earlier `25/25/25 W` and a 45 W request were recorded; firmware may clamp
   STAPM while Fast/Slow remain the enforceable limit.
 - Packaged no-change write gate: `12/12/12 W -> 12/12/12 W`.
-- `1.0.1` packaged battery no-change write:
-  `25/25/20 W -> 25/25/20 W`, live power near `20 W`, graceful shutdown.
+- `1.0.2` packaged battery no-change write:
+  `12/12/12 W -> 12/12/12 W`, actual power below the ceiling, graceful
+  shutdown.
 
 ### Real battery read-only baseline
 
@@ -141,7 +144,7 @@ docs/assets/bilibili-cover-2026-11-10.png
 - GitHub Actions cannot be used as release evidence until the repository
   account billing/spending-limit issue is resolved.
 - At least one second AMD laptop still needs read-only compatibility evidence.
-- Any runtime or packaging change after `01fd3ae` requires a new clean package,
+- Any runtime or packaging change after `9fb180a` requires a new clean package,
   SHA256, and release evidence.
 - Project owner must review final video voice, pacing, claims, and cover.
 - GitHub tag/release, Bilibili login/upload, and public publication require
@@ -151,7 +154,7 @@ docs/assets/bilibili-cover-2026-11-10.png
 
 ```powershell
 .\verify-release.ps1 `
-  -Version 1.0.1 `
+  -Version 1.0.2 `
   -FrameworkDependent `
   -VerifyShellIntegration `
   -VerifyTrayMenu `

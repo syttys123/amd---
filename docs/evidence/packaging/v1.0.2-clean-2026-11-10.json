@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-10T15:40:23+08:00",
+  "version": "1.0.2",
+  "package": {
+    "path": "artifacts/packages/amd-mobile-power-v1.0.2-win-x64-lite.zip",
+    "sizeBytes": 594482,
+    "sha256": "ddf5d70bcfd802e1db317dbacbd40ab63eba024fc3d2c7db175829ee5d2f6f93",
+    "frameworkDependent": true
+  },
+  "source": {
+    "commit": "9fb180a560a2b2218437345de42d78c936b9b4ea",
+    "workingTree": "Clean",
+    "sdk": "10.0.400"
+  },
+  "contents": {
+    "files": 40,
+    "checksums": 39,
+    "profiles": 9,
+    "licenses": 4
+  },
+  "verification": {
+    "releaseGate": "PASS",
+    "buildWarnings": 0,
+    "buildErrors": 0,
+    "testsPassed": 71,
+    "testsFailed": 0,
+    "format": "PASS",
+    "dependencyAudit": {
+      "result": "PASS",
+      "projects": 6,
+      "vulnerablePackages": 0,
+      "deprecatedPackages": 0
+    },
+    "isolatedInstallOverwriteUninstall": "PASS",
+    "shellIntegration": {
+      "result": "PASS",
+      "startMenuShortcut": "Created and removed",
+      "uninstallEntry": "Created and removed",
+      "customDirectoryUninstallCommand": "Verified",
+      "logonBehavior": "Startup shortcut fallback created and removed"
+    },
+    "trayMenu": {
+      "result": "PASS",
+      "notificationText": "AMD Mobile Power | 电池 | 10.7 W",
+      "direction": "up",
+      "horizontalTrayGapPixels": 0,
+      "menuItems": 11,
+      "gracefulExit": "PASS",
+      "screenshot": "artifacts/verify/tray-menu-6a1b1594787d4533becb34d8ba0c4393.png",
+      "screenshotSha256": "53efb0adeb410327eed1492028096832d5cc7005c5e46630705ab98eeeb696ad"
+    },
+    "trayRecovery": {
+      "result": "PASS",
+      "singleClickRestore": "PASS",
+      "doubleClickRestore": "PASS",
+      "openFromMenu": "PASS"
+    },
+    "trayParentExit": {
+      "result": "PASS",
+      "orphanWorkerAfterGuiExit": false
+    },
+    "diagnostics": {
+      "result": "PASS",
+      "writeControlsEnabled": false,
+      "platformSupported": true,
+      "hardwareAdapterConfigured": true,
+      "shutdownProtocol": "PASS",
+      "report": "artifacts/verify/diagnostics-aed1b031818740a4a46f97aef72348dd.json"
+    },
+    "dashboard": {
+      "result": "PASS",
+      "powerLineText": "动态上限 12.0 W · 电池",
+      "targetLeftArtifactPixels": 0,
+      "statusBarDetailsButton": "Absent",
+      "statusBarOverlap": "PASS",
+      "screenshot": "artifacts/verify/dashboard-1200cfdbb0f44a3a98281018a52008ff.png",
+      "screenshotSha256": "5b6fde86a145cd1142cf672a213f8635e044085aed74d931ad02bc526c9c0cd5"
+    },
+    "noChangeHardwareWrite": {
+      "result": "PASS",
+      "powerLine": "battery",
+      "targetWatts": {
+        "stapm": 12,
+        "fast": 12,
+        "slow": 12
+      },
+      "evidence": "docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.2-2026-11-10.json"
+    }
+  },
+  "limitations": [
+    "This is a locally verified stable deployment for one physical AMD laptop.",
+    "The current host denied scheduled-task registration, so the Startup-folder fallback was exercised instead of task creation.",
+    "GitHub Actions remains blocked by repository billing state and did not execute the workflow.",
+    "Do not treat this package as universal AMD laptop support or a public release."
+  ]
+}

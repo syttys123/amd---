@@ -42,11 +42,12 @@ not authoritative.
 - The current development package was rebuilt from clean commit `71be9c8`:
   593,944 bytes, SHA256
   `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`.
-- The current local stable package is `1.0.1`: 593,759 bytes, SHA256
-  `296bbc58ae400d3bfd43bd0a4665ed9c06e78bf0b3c0cdde582e21cdd11e118c`,
-  built from clean commit `01fd3ae` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` now contains the verified `1.0.1` package. The previous
-  `1.0.0` deployment is preserved as
+- The current local stable package is `1.0.2`: 594,482 bytes, SHA256
+  `ddf5d70bcfd802e1db317dbacbd40ab63eba024fc3d2c7db175829ee5d2f6f93`,
+  built from clean commit `9fb180a` with .NET SDK `10.0.400`.
+- `C:\RyzenAdj` still contains the verified `1.0.1` package while the `1.0.2`
+  deployment gate is being completed. The previous `1.0.0` deployment is
+  preserved as
   `C:\RyzenAdj.before-v1.0.1-20261110-135925` and under
   `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.1-20261110-135925`.
 
@@ -647,6 +648,24 @@ third_party/
   read-only diagnostics reporting worker `1.0.1`, and a write-mode shortcut
   launch using both `C:\RyzenAdj` executables. Evidence:
   `docs/evidence/packaging/v1.0.1-deployment-2026-11-10.json`.
+- Diagnosed the `1.0.1` tray-restore failure from Windows Error Reporting:
+  repeated WinForms message re-entry caused `System.StackOverflowException`
+  (`0xc00000fd`). All tray restore paths now merge requests through
+  `RequestShowFromTray()` and `BeginInvoke` instead of showing the window
+  synchronously from the notification-icon callback.
+- Worker startup now receives `--parent-pid`; the worker watches the GUI parent
+  and performs a protocol shutdown within about two seconds if the GUI exits,
+  preventing orphaned hidden workers after a crash or forced termination.
+- Built and verified the clean `1.0.2` Lite package from commit `9fb180a`: zero
+  build warnings, 71/71 tests, dependency audit, isolated
+  install/overwrite/uninstall, shell integration, tray menu and graceful exit,
+  single-click/double-click/menu restore, worker parent-exit cleanup, read-only
+  diagnostics, and the packaged dashboard gate all passed. Evidence:
+  `docs/evidence/packaging/v1.0.2-clean-2026-11-10.json`.
+- Passed the packaged `1.0.2` battery no-change hardware write at `12/12/12 W`;
+  STAPM/Fast/Slow read back at the requested limits, actual power remained
+  below the ceiling, and worker shutdown used the graceful protocol. Evidence:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.2-2026-11-10.json`.
 
 Development screenshot:
 
@@ -668,9 +687,9 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Collect a read-only diagnostics report from a second AMD laptop before broad
-public support. Keep `C:\RyzenAdj` on `1.0.1` unless a newer package completes
-the same release and deployment gates.
+Promote the verified `1.0.2` package to `C:\RyzenAdj`, then verify the deployed
+write shortcut and tray lifecycle. After that, collect a read-only diagnostics
+report from a second AMD laptop before broad public support.
 
 ## Known Risks
 
@@ -699,7 +718,7 @@ Do not publish a stable release or promotional video until:
 - A release checklist and installation documentation exist.
 
 The controlled no-change write gate and supervised AC/battery policy transition
-are complete for the development 8845HS. The `1.0.1` release and deployment
-gates pass on this laptop. Broad public hardware support still requires a second
-verified AMD platform or generation.
+are complete for the development 8845HS. The `1.0.2` release gate passes on this
+laptop, and its deployment verification is in progress. Broad public hardware
+support still requires a second verified AMD platform or generation.
 

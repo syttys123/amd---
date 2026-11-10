@@ -4,14 +4,15 @@ AMD Mobile Power is an early-development Windows utility for monitoring and,
 after supervised validation, controlling firmware power limits on supported AMD
 thin-and-light laptops.
 
-> Status: no public release yet. A local `1.0.1` stable deployment is validated on
+> Status: no public release yet. A local `1.0.2` stable candidate is validated on
 > one AMD laptop. The normal GUI and packaged build are read-only unless launched
 > with the reviewed local write-control flag. Controlled 10 W and 12 W writes,
 > a packaged no-change write gate, and a supervised AC-to-battery-to-AC policy
-> transition passed on 2026-11-10. Public support still requires a second physical
+> transition passed on 2026-11-10. The `1.0.2` build also fixes tray restore
+> crashes and orphaned workers. Public support still requires a second physical
 > AMD laptop and the remaining publication gates.
 
-![AMD Mobile Power 1.0.1 status-bar dashboard](docs/assets/main-dashboard-v1.0.1-status-2026-11-10.png)
+![AMD Mobile Power status-bar dashboard](docs/assets/main-dashboard-v1.0.1-status-2026-11-10.png)
 
 ## Current Features
 
@@ -53,13 +54,13 @@ second hardware owner.
 The current local stable package is located at:
 
 ```text
-artifacts/packages/amd-mobile-power-v1.0.1-win-x64-lite.zip
+artifacts/packages/amd-mobile-power-v1.0.2-win-x64-lite.zip
 ```
 
 Extract the ZIP and run `AmdMobilePower.exe`. This starts in read-only mode by
 default. The locally validated write-control deployment is documented in
 `docs/DEPLOYMENT.md`; the current laptop deployment is `C:\RyzenAdj` version
-`1.0.1`.
+`1.0.2`.
 See `docs/INSTALLATION.md` before using `install.ps1`.
 
 The earlier self-contained development package remains available:

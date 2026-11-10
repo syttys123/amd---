@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "stable-package-no-change-write",
+  "capturedAt": "2026-11-10T15:40:22.2050368+08:00",
+  "package": {
+    "name": "amd-mobile-power-v1.0.2-win-x64-lite.zip",
+    "sha256": "ddf5d70bcfd802e1db317dbacbd40ab63eba024fc3d2c7db175829ee5d2f6f93",
+    "workerExecutableSha256": "46fe37d5f41d99427110e2a696b61baffce361af8752103e004cf412f529a20f"
+  },
+  "platform": {
+    "processor": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "vendor": "AuthenticAMD",
+    "ryzenAdjFamily": 10,
+    "ryzenAdjFamilyName": "Hawk Point",
+    "smuBiosVersion": "15",
+    "pmTableVersion": "4c0009"
+  },
+  "environment": {
+    "powerLine": "battery",
+    "hardwareWritesConfirmed": true,
+    "processCleanupVerified": true
+  },
+  "baseline": {
+    "requestedTargetWatts": {
+      "stapm": 12,
+      "fast": 12,
+      "slow": 12
+    },
+    "reportedLimitsWatts": {
+      "stapm": 12.000000953674316,
+      "fast": 12.000000953674316,
+      "slow": 12.000000953674316
+    },
+    "actualWatts": {
+      "stapm": 8.282678604125977,
+      "fast": 6.484414100646973,
+      "slow": 8.530263900756836
+    }
+  },
+  "requestedTargetWatts": {
+    "stapm": 12,
+    "fast": 12,
+    "slow": 12
+  },
+  "readbackWatts": {
+    "stapm": 12.000000953674316,
+    "fast": 12.000000953674316,
+    "slow": 12.000000953674316
+  },
+  "settledTelemetry": {
+    "stapmActual": 8.263083457946777,
+    "fastActual": 8.204368591308594,
+    "slowActual": 8.451678276062012,
+    "stapmLimit": 12.000000953674316,
+    "fastLimit": 12.000000953674316,
+    "slowLimit": 12.000000953674316,
+    "tctlValueCelsius": 42.785980224609375,
+    "tctlLimitCelsius": 95,
+    "powerLine": "battery"
+  },
+  "result": "PASS",
+  "cleanup": {
+    "shutdownProtocol": "PASS"
+  },
+  "notes": [
+    "The package worker wrote the same battery baseline back to hardware.",
+    "Required STAPM, Fast, and Slow limits matched the requested values within the read-back tolerance.",
+    "Live actual power remained below the configured ceiling while the host stayed on battery."
+  ],
+  "rawEvidence": "artifacts/verify/no-change-2d94f474993b4e46a6af10609cc927c4.json"
+}
