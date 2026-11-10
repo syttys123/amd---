@@ -767,18 +767,19 @@ third_party/
   notices, build metadata, SHA256 checksums, and isolated install/uninstall
   helpers, then extracts and reruns the GUI lifecycle, read-only worker,
   write-control UI, compatibility collector, and shell-integration
-  fingerprints in isolation. The current clean `0.5.0-native-preview.1` ZIP is
-  453,407 bytes with SHA256
-  `941ecc74f579ae2c91c15781e5ca8f95740aa1e454b58d17bf4b103472785d47`,
-  built from commit `ec5ff17`, with all checksum entries verified. Evidence:
-  `docs/evidence/packaging/v0.5.0-native-preview.1-clean-2026-11-10.json`.
+  fingerprints in isolation. The current internal native RC is
+  `0.6.0-native-rc.2`: 453,240 bytes with SHA256
+  `786c14bdc2e47c6386c14021ec2c2a87d745044eb0388d4501d3e8e8f46f92d4`,
+  built from clean commit `d571fc1`. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.2-release-gate-2026-11-10.json`.
+  The prior `0.5.0-native-preview.1` package remains historical evidence.
 - Added `native/verify-preview-shell-integration.ps1` and exercised the real
   current-user Start menu, Startup shortcut, and uninstall entry for the clean
-  `0.5.0-native-preview.1` package without launching the GUI. The verifier
+  `0.6.0-native-rc.2` package without launching the GUI. The verifier
   created the expected shortcuts and version metadata, then removed the
   install directory, both shortcuts, and the uninstall key with zero residual
   artifacts. Evidence:
-  `docs/evidence/packaging/v0.5.0-native-preview.1-shell-integration-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.2-shell-integration-2026-11-10.json`.
 - Added `native/collect-native-diagnostics.ps1` to the native preview package.
   It starts the bundled worker with read-only hardware access, queries health,
   capabilities, and telemetry over the v1 named pipe, writes a sanitized local
@@ -819,6 +820,9 @@ third_party/
   clean-worktree enforcement, build, hardware read-only/write-guard checks,
   policy checks, package verification, optional no-change policy write,
   optional real shell integration, and a consolidated JSON result.
+- Added `docs/NATIVE_RC_STATUS.md` to track the current
+  `0.6.0-native-rc.2` candidate, its passed gates, and the remaining
+  second-device and publication blockers.
 
 Development screenshot:
 

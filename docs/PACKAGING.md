@@ -71,6 +71,35 @@ entry were created with version `0.5.0-native-preview.1`, then all four tested
 paths and registry state were removed with zero residual artifacts. Evidence:
 `docs/evidence/packaging/v0.5.0-native-preview.1-shell-integration-2026-11-10.json`.
 
+### Native Release Candidate
+
+Current internal native release candidate:
+
+```text
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.2-win-x64-native-preview.zip
+```
+
+- Size: `453,240` bytes.
+- SHA256:
+  `786c14bdc2e47c6386c14021ec2c2a87d745044eb0388d4501d3e8e8f46f92d4`.
+- Source commit: `d571fc1b8599f5582081e71eee64364b80de1f1c`.
+- Working tree at build time: clean.
+- Runtime verification: hardware read-only/write-guard, GUI lifecycle, policy
+  save, compatibility collector, isolated install/uninstall, and real shell
+  integration passed.
+- No-change policy write: AC `45/45/45 W` read back as `45/45/45 W`.
+- Aggregate evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.2-release-gate-2026-11-10.json`.
+- Package evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.2-clean-2026-11-10.json`.
+- Hardware policy evidence:
+  `docs/evidence/hardware/v0.6.0-native-rc.2-power-policy-no-change-2026-11-10.json`.
+
+This RC is not yet the public stable release: a second physical AMD laptop
+still needs read-only compatibility evidence before promotion beyond the
+verified development device.
+Track the candidate's open gates in `docs/NATIVE_RC_STATUS.md`.
+
 ## Portable ZIP
 
 Build a self-contained Windows x64 portable package from a clean source tree:
