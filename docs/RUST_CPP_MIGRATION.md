@@ -117,6 +117,11 @@ gate is included in `verify-native.ps1`, and the supervised no-change path is
 available through `verify-power-policy.ps1`. The clean `c81a4f8` AC no-change
 run is recorded in
 `docs/evidence/hardware/mechrevo-wujie15-8845hs-native-power-policy-no-change-2026-11-10.json`.
+The Rust GUI exposes the policy through editable battery/AC targets, an enable
+checkbox, and a save button. It persists the last successful settings in
+`%LocalAppData%\AmdMobilePower\rust-ui-state.json` and displays the current
+policy state in the live status panel. GUI verification isolates
+`LOCALAPPDATA` and includes a safe save-path test.
 
 `native/build-package.ps1` creates a portable native preview ZIP with the GUI,
 C++ worker, runtime DLL/SYS files, notices, licenses, build metadata, and

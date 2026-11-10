@@ -3,9 +3,10 @@
 use amd_mobile_power_gui::lifecycle::{
     LifecycleAction, LifecycleEvent, LifecycleState, Transition, WindowVisibility,
 };
+use amd_mobile_power_gui::state;
 use amd_mobile_power_gui::worker::{
-    ApplyTargetResult, PowerLimitTarget, ProfilePayload, SnapshotPayload, WorkerClient,
-    DEFAULT_PIPE_NAME,
+    ApplyTargetResult, PowerLineState, PowerLimitTarget, PowerPolicySettings, PowerPolicyState,
+    ProfilePayload, SnapshotPayload, WorkerClient, DEFAULT_PIPE_NAME,
 };
 use std::ffi::c_void;
 use std::mem::size_of;
@@ -15,7 +16,7 @@ use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use windows_sys::Win32::Foundation::{
     CloseHandle, GetLastError, ERROR_ALREADY_EXISTS, HANDLE, HINSTANCE, HWND, LPARAM, LRESULT,
     WPARAM,
@@ -36,10 +37,11 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     MF_STRING, MSG, SIZE_MINIMIZED, SIZE_RESTORED, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL,
     TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION,
     WM_LBUTTONUP, WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOMMAND,
-    WNDCLASSEXW, WS_CHILD, WS_EX_APPWINDOW, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
+    WNDCLASSEXW, WS_CHILD, WS_EX_APPWINDOW, WS_OVERLAPPEDWINDOW, WS_VISIBLE, WS_BORDER,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    SendMessageW, BM_SETCHECK, BS_AUTORADIOBUTTON, SC_MINIMIZE, WS_TABSTOP,
+    GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_GETCHECK, BM_SETCHECK,
+    BS_AUTOCHECKBOX, BS_AUTORADIOBUTTON, ES_NUMBER, ES_RIGHT, SC_MINIMIZE, WS_TABSTOP,
 };
 
 const APP_TITLE: &str = "AMD Mobile Power - Rust GUI Preview";
@@ -50,12 +52,21 @@ const WM_APP_WAKE: u32 = WM_APP + 1;
 const WM_APP_TRAY: u32 = WM_APP + 2;
 const WM_APP_STATUS: u32 = WM_APP + 3;
 const WM_APP_APPLY_RESULT: u32 = WM_APP + 4;
+const WM_APP_POLICY_RESULT: u32 = WM_APP + 5;
 const MENU_SHOW: usize = 1;
 const MENU_EXIT: usize = 2;
 const PRESET_12: usize = 101;
 const PRESET_25: usize = 102;
 const PRESET_45: usize = 103;
 const APPLY_TARGET: usize = 104;
+const POLICY_SAVE: usize = 105;
+
+#[derive(Clone, Copy)]
+struct PolicyControls {
+    enabled: HWND,
+    battery_target: HWND,
+    ac_target: HWND,
+}
 
 struct GuiApp {
     state: LifecycleState,
@@ -68,8 +79,13 @@ struct GuiApp {
     write_enabled: bool,
     selected_target: PowerLimitTarget,
     apply_in_flight: bool,
+    policy_in_flight: bool,
     preset_watts: [i32; 3],
     preset_buttons: Option<[HWND; 3]>,
+    policy_controls: Option<PolicyControls>,
+    profile: Option<ProfilePayload>,
+    saved_policy: Option<PowerPolicySettings>,
+    policy_profile_applied: bool,
 }
 
 impl GuiApp {
@@ -85,8 +101,13 @@ impl GuiApp {
             write_enabled: false,
             selected_target: PowerLimitTarget::uniform(12),
             apply_in_flight: false,
+            policy_in_flight: false,
             preset_watts: [12, 25, 45],
             preset_buttons: None,
+            policy_controls: None,
+            profile: None,
+            saved_policy: None,
+            policy_profile_applied: false,
         }
     }
 }
@@ -156,7 +177,52 @@ fn format_celsius(value: Option<f64>) -> String {
     }
 }
 
-fn format_snapshot(snapshot: &SnapshotPayload) -> String {
+fn format_power_line(value: Option<PowerLineState>) -> &'static str {
+    match value {
+        Some(PowerLineState::Ac) => "AC",
+        Some(PowerLineState::Battery) => "battery",
+        Some(PowerLineState::Unknown) | None => "unknown",
+    }
+}
+
+fn format_policy_state(state: Option<&PowerPolicyState>) -> String {
+    let Some(state) = state else {
+        return "Auto policy: unavailable".to_owned();
+    };
+    let Some(settings) = state.settings else {
+        return "Auto policy: not configured".to_owned();
+    };
+    let status = if settings.enabled {
+        "enabled"
+    } else {
+        "disabled"
+    };
+    let last = match (
+        state.last_attempt_succeeded,
+        state.last_observed_power_line,
+    ) {
+        (Some(true), Some(line)) => format!("last apply: {} / success", format_power_line(Some(line))),
+        (Some(false), Some(line)) => format!("last apply: {} / failed", format_power_line(Some(line))),
+        (Some(false), None) => "last apply: failed".to_owned(),
+        (Some(true), None) => "last apply: success".to_owned(),
+        (None, _) => "last apply: not run".to_owned(),
+    };
+    let error = state
+        .last_error
+        .as_deref()
+        .map(|error| format!("\nPolicy error: {error}"))
+        .unwrap_or_default();
+    format!(
+        "Auto policy: {} (battery {} W / AC {} W)\n{}{}",
+        status,
+        settings.battery_target.stapm_watts,
+        settings.ac_target.stapm_watts,
+        last,
+        error
+    )
+}
+
+fn format_snapshot(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>) -> String {
     let cpu = &snapshot.platform.cpu;
     let limits = &snapshot.platform.limits;
     let telemetry = &snapshot.telemetry;
@@ -188,7 +254,7 @@ fn format_snapshot(snapshot: &SnapshotPayload) -> String {
         })
         .unwrap_or_else(|| "n/a".to_owned());
 
-    format!(
+    let status = format!(
         concat!(
             "Worker: connected\n",
             "CPU: {}\n",
@@ -227,7 +293,8 @@ fn format_snapshot(snapshot: &SnapshotPayload) -> String {
         support,
         telemetry.has_firmware_clamp,
         telemetry.updated_at.as_deref().unwrap_or("n/a")
-    )
+    );
+    format!("{status}\n\n{}", format_policy_state(policy))
 }
 
 fn parse_options() -> Result<Options, String> {
@@ -313,9 +380,10 @@ fn start_worker_monitor(
         let hwnd = hwnd_address as HWND;
         let client = WorkerClient::new(pipe_name);
         while !stop.load(Ordering::SeqCst) {
+            let policy = client.get_power_policy().ok();
             let update = match client.snapshot() {
                 Ok(snapshot) => StatusUpdate {
-                    text: format_snapshot(&snapshot),
+                    text: format_snapshot(&snapshot, policy.as_ref()),
                     profile: snapshot.platform.matched_profile.clone(),
                 },
                 Err(error) => StatusUpdate {
@@ -399,6 +467,188 @@ unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) -> [HWND; 3] {
     presets
 }
 
+unsafe fn get_control_text(hwnd: HWND) -> String {
+    if hwnd.is_null() {
+        return String::new();
+    }
+    let length = GetWindowTextLengthW(hwnd);
+    if length <= 0 {
+        return String::new();
+    }
+    let mut buffer = vec![0u16; length as usize + 1];
+    let copied = GetWindowTextW(hwnd, buffer.as_mut_ptr(), buffer.len() as i32);
+    if copied <= 0 {
+        return String::new();
+    }
+    String::from_utf16_lossy(&buffer[..copied as usize])
+}
+
+unsafe fn read_edit_watts(hwnd: HWND, fallback: i32, minimum: i32, maximum: i32) -> i32 {
+    let text = get_control_text(hwnd);
+    let parsed = text.trim().parse::<i32>().unwrap_or(fallback);
+    parsed.clamp(minimum, maximum)
+}
+
+unsafe fn set_edit_watts(hwnd: HWND, watts: i32) {
+    if hwnd.is_null() {
+        return;
+    }
+    let text = wide(&watts.to_string());
+    SetWindowTextW(hwnd, text.as_ptr());
+}
+
+unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyControls {
+    let static_class = wide("STATIC");
+    let edit_class = wide("EDIT");
+    let button_class = wide("BUTTON");
+    let battery_label = wide("Battery target");
+    let ac_label = wide("AC target");
+    let enabled_label = wide("Enabled");
+    let save_label = wide("Save policy");
+    let edit_style = WS_CHILD
+        | WS_VISIBLE
+        | WS_TABSTOP
+        | WS_BORDER
+        | ES_NUMBER as u32
+        | ES_RIGHT as u32;
+
+    CreateWindowExW(
+        0,
+        static_class.as_ptr(),
+        battery_label.as_ptr(),
+        WS_CHILD | WS_VISIBLE,
+        18,
+        382,
+        108,
+        22,
+        hwnd,
+        std::ptr::null_mut(),
+        instance,
+        std::ptr::null(),
+    );
+    let battery_target = CreateWindowExW(
+        0,
+        edit_class.as_ptr(),
+        wide("12").as_ptr(),
+        edit_style,
+        132,
+        378,
+        54,
+        26,
+        hwnd,
+        std::ptr::null_mut(),
+        instance,
+        std::ptr::null(),
+    );
+    CreateWindowExW(
+        0,
+        static_class.as_ptr(),
+        ac_label.as_ptr(),
+        WS_CHILD | WS_VISIBLE,
+        200,
+        382,
+        62,
+        22,
+        hwnd,
+        std::ptr::null_mut(),
+        instance,
+        std::ptr::null(),
+    );
+    let ac_target = CreateWindowExW(
+        0,
+        edit_class.as_ptr(),
+        wide("45").as_ptr(),
+        edit_style,
+        266,
+        378,
+        54,
+        26,
+        hwnd,
+        std::ptr::null_mut(),
+        instance,
+        std::ptr::null(),
+    );
+    let enabled = CreateWindowExW(
+        0,
+        button_class.as_ptr(),
+        enabled_label.as_ptr(),
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX as u32,
+        336,
+        378,
+        82,
+        26,
+        hwnd,
+        std::ptr::null_mut(),
+        instance,
+        std::ptr::null(),
+    );
+    let _save = CreateWindowExW(
+        0,
+        button_class.as_ptr(),
+        save_label.as_ptr(),
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+        428,
+        376,
+        120,
+        30,
+        hwnd,
+        POLICY_SAVE as usize as HMENU,
+        instance,
+        std::ptr::null(),
+    );
+
+    PolicyControls {
+        enabled,
+        battery_target,
+        ac_target,
+    }
+}
+
+fn format_policy_result(
+    settings: PowerPolicySettings,
+    result: Result<(), String>,
+) -> String {
+    match result {
+        Ok(()) => format!(
+            "Auto policy saved.\nBattery {} W / AC {} W.\n{}",
+            settings.battery_target.stapm_watts,
+            settings.ac_target.stapm_watts,
+            if settings.enabled {
+                "Enabled."
+            } else {
+                "Disabled."
+            }
+        ),
+        Err(error) => format!("Policy save failed.\n{error}"),
+    }
+}
+
+fn start_policy_save(
+    hwnd_address: usize,
+    pipe_name: String,
+    settings: PowerPolicySettings,
+) {
+    thread::spawn(move || {
+        let client = WorkerClient::new(pipe_name);
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while client.health().is_err() && Instant::now() < deadline {
+            thread::sleep(Duration::from_millis(200));
+        }
+        let result = client
+            .set_power_policy(settings)
+            .map(|_| ())
+            .and_then(|_| state::save_power_policy(settings));
+        let text = format_policy_result(settings, result);
+        unsafe {
+            let pointer = Box::into_raw(Box::new(text));
+            let hwnd = hwnd_address as HWND;
+            if PostMessageW(hwnd, WM_APP_POLICY_RESULT, 0, pointer as isize) == 0 {
+                drop(Box::from_raw(pointer));
+            }
+        }
+    });
+}
+
 fn format_apply_result(
     target: PowerLimitTarget,
     result: Result<ApplyTargetResult, String>,
@@ -442,12 +692,17 @@ fn start_apply(hwnd_address: usize, pipe_name: String, target: PowerLimitTarget)
     });
 }
 
-unsafe fn apply_profile_to_presets(app: &mut GuiApp, profile: &ProfilePayload) {
+unsafe fn apply_profile_to_presets(
+    app: &mut GuiApp,
+    hwnd: HWND,
+    profile: &ProfilePayload,
+) {
     let minimum = profile.minimum_watts;
     let maximum = profile.maximum_watts;
     if minimum > maximum {
         return;
     }
+    app.profile = Some(profile.clone());
     app.preset_watts = [
         12.clamp(minimum, maximum),
         25.clamp(minimum, maximum),
@@ -463,6 +718,42 @@ unsafe fn apply_profile_to_presets(app: &mut GuiApp, profile: &ProfilePayload) {
             }
             let text = wide(&format!("{} W", app.preset_watts[index]));
             SetWindowTextW(button, text.as_ptr());
+        }
+    }
+
+    if !app.policy_profile_applied {
+        if let Some(controls) = app.policy_controls {
+            let saved = app.saved_policy;
+            let battery = saved
+                .map(|settings| settings.battery_target.stapm_watts)
+                .unwrap_or(12)
+                .clamp(minimum, maximum);
+            let ac = saved
+                .map(|settings| settings.ac_target.stapm_watts)
+                .unwrap_or(45)
+                .clamp(minimum, maximum);
+            set_edit_watts(controls.battery_target, battery);
+            set_edit_watts(controls.ac_target, ac);
+            SendMessageW(
+                controls.enabled,
+                BM_SETCHECK,
+                if saved.map(|settings| settings.enabled).unwrap_or(false) {
+                    1
+                } else {
+                    0
+                },
+                0,
+            );
+            app.policy_profile_applied = true;
+            if saved.map(|settings| settings.enabled).unwrap_or(false) &&
+                !app.policy_in_flight {
+                app.policy_in_flight = true;
+                start_policy_save(
+                    hwnd as usize,
+                    app.worker_pipe.clone(),
+                    saved.unwrap(),
+                );
+            }
         }
     }
 }
@@ -610,13 +901,25 @@ unsafe extern "system" fn window_proc(
                     SetWindowTextW(app.status_label, text.as_ptr());
                 }
                 if let Some(profile) = &update.profile {
-                    apply_profile_to_presets(app, profile);
+                    apply_profile_to_presets(app, hwnd, profile);
                 }
             }
             0
         }
         WM_APP_APPLY_RESULT => {
             app.apply_in_flight = false;
+            let pointer = lparam as *mut String;
+            if !pointer.is_null() {
+                let text = Box::from_raw(pointer);
+                if !app.status_label.is_null() {
+                    let text = wide(&text);
+                    SetWindowTextW(app.status_label, text.as_ptr());
+                }
+            }
+            0
+        }
+        WM_APP_POLICY_RESULT => {
+            app.policy_in_flight = false;
             let pointer = lparam as *mut String;
             if !pointer.is_null() {
                 let text = Box::from_raw(pointer);
@@ -656,6 +959,50 @@ unsafe extern "system" fn window_proc(
                         SetWindowTextW(app.status_label, text.as_ptr());
                     }
                     start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target);
+                }
+                POLICY_SAVE if app.write_enabled && !app.policy_in_flight => {
+                    if let Some(controls) = app.policy_controls {
+                        let (minimum, maximum) = app
+                            .profile
+                            .as_ref()
+                            .map(|profile| (profile.minimum_watts, profile.maximum_watts))
+                            .unwrap_or((5, 60));
+                        let battery_target = read_edit_watts(
+                            controls.battery_target,
+                            12,
+                            minimum,
+                            maximum,
+                        );
+                        let ac_target = read_edit_watts(
+                            controls.ac_target,
+                            45,
+                            minimum,
+                            maximum,
+                        );
+                        set_edit_watts(controls.battery_target, battery_target);
+                        set_edit_watts(controls.ac_target, ac_target);
+                        let settings = PowerPolicySettings {
+                            enabled: SendMessageW(
+                                controls.enabled,
+                                BM_GETCHECK,
+                                0,
+                                0,
+                            ) != 0,
+                            battery_target: PowerLimitTarget::uniform(battery_target),
+                            ac_target: PowerLimitTarget::uniform(ac_target),
+                        };
+                        app.saved_policy = Some(settings);
+                        app.policy_in_flight = true;
+                        if !app.status_label.is_null() {
+                            let text = wide("Saving auto policy...");
+                            SetWindowTextW(app.status_label, text.as_ptr());
+                        }
+                        start_policy_save(
+                            hwnd as usize,
+                            app.worker_pipe.clone(),
+                            settings,
+                        );
+                    }
                 }
                 _ => {}
             }
@@ -723,7 +1070,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let window_height = if options.enable_write_controls {
-        420
+        520
     } else {
         360
     };
@@ -757,6 +1104,23 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         (*app).status_label = create_status_label(hwnd, instance);
         if options.enable_write_controls {
             (*app).preset_buttons = Some(create_action_buttons(hwnd, instance));
+            (*app).policy_controls = Some(create_policy_controls(hwnd, instance));
+            (*app).saved_policy = state::load_power_policy();
+            if let Some(saved) = (*app).saved_policy {
+                if let Some(controls) = (*app).policy_controls {
+                    set_edit_watts(
+                        controls.battery_target,
+                        saved.battery_target.stapm_watts,
+                    );
+                    set_edit_watts(controls.ac_target, saved.ac_target.stapm_watts);
+                    SendMessageW(
+                        controls.enabled,
+                        BM_SETCHECK,
+                        if saved.enabled { 1 } else { 0 },
+                        0,
+                    );
+                }
+            }
         }
     }
 

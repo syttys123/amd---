@@ -804,6 +804,11 @@ third_party/
   the current `45/45/45 W` state back, observing the worker's `ac` policy
   apply, disabling the policy, and shutting down cleanly. Evidence:
   `docs/evidence/hardware/mechrevo-wujie15-8845hs-native-power-policy-no-change-2026-11-10.json`.
+- Exposed the native policy in the Rust preview GUI with editable battery/AC
+  target fields, an enable checkbox, a save button, live policy status, and
+  `%LocalAppData%\AmdMobilePower\rust-ui-state.json` persistence. The GUI
+  verifier now isolates `%LocalAppData%` and covers the save path without
+  touching user state.
 
 Development screenshot:
 

@@ -3,6 +3,7 @@ param(
     [switch]$VerifyWorker,
     [switch]$VerifyWriteControls,
     [switch]$ExecuteNoChangePreset,
+    [switch]$ExecutePolicySave,
     [string]$GuiExecutable,
     [string]$WorkerExecutable,
     [string]$PipeName,
@@ -14,6 +15,9 @@ if ($ExecuteNoChangePreset) {
     $VerifyWriteControls = $true
     $VerifyWorker = $true
 }
+if ($ExecutePolicySave) {
+    $VerifyWriteControls = $true
+}
 
 $root = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $root
@@ -22,6 +26,18 @@ $executable = Join-Path $root "rust-gui\target\release\amd-mobile-power-gui.exe"
 if ($GuiExecutable) {
     $executable = (Resolve-Path -LiteralPath $GuiExecutable).Path
 }
+
+$artifactsRoot = [System.IO.Path]::GetFullPath(
+    (Join-Path $repositoryRoot "artifacts"))
+$isolatedLocalAppData = [System.IO.Path]::GetFullPath(
+    (Join-Path $artifactsRoot "native-build\rust-gui-state-$([Guid]::NewGuid().ToString('N'))"))
+if (-not $isolatedLocalAppData.StartsWith(
+    $artifactsRoot + [System.IO.Path]::DirectorySeparatorChar,
+    [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Unsafe isolated LOCALAPPDATA path: $isolatedLocalAppData"
+}
+$previousLocalAppData = $env:LOCALAPPDATA
+$env:LOCALAPPDATA = $isolatedLocalAppData
 
 if (-not $NoBuild) {
     & cargo build `
@@ -266,9 +282,37 @@ try {
     $writePresetResult = "Not requested"
     if ($VerifyWriteControls) {
         $childTexts = @(Get-GuiChildTexts -Window $window)
-        foreach ($required in @("12 W", "25 W", "45 W", "Apply")) {
+        foreach ($required in @(
+            "12 W",
+            "25 W",
+            "45 W",
+            "Apply",
+            "Battery target",
+            "AC target",
+            "Enabled",
+            "Save policy"
+        )) {
             if ($childTexts -notcontains $required) {
                 throw "Rust GUI write controls are missing '$required': $childTexts"
+            }
+        }
+
+        if ($ExecutePolicySave) {
+            Post-GuiMessage `
+                -Window $window `
+                -Message $wmCommand `
+                -WParam 105
+            $policySaved = $false
+            $deadline = [DateTime]::UtcNow.AddSeconds(5)
+            while ([DateTime]::UtcNow -lt $deadline) {
+                if ((Get-GuiStatusText -Window $window) -match "Auto policy saved\.") {
+                    $policySaved = $true
+                    break
+                }
+                Start-Sleep -Milliseconds 50
+            }
+            if (-not $policySaved) {
+                throw "Rust GUI did not report a successful policy save."
             }
         }
 
@@ -421,6 +465,7 @@ try {
         WorkerStatus = if ($VerifyWorker) { $workerStatus } else { $null }
         WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
         WritePreset = $writePresetResult
+        PolicySave = if ($ExecutePolicySave) { "PASS" } else { "Not requested" }
         Evidence = if ($EvidencePath) { $EvidencePath } else { $null }
         ExplicitExit = "PASS"
         ExitCode = $firstProcess.ExitCode
@@ -454,5 +499,9 @@ finally {
             }
             $process.Dispose()
         }
+    }
+    $env:LOCALAPPDATA = $previousLocalAppData
+    if (Test-Path -LiteralPath $isolatedLocalAppData) {
+        Remove-Item -LiteralPath $isolatedLocalAppData -Recurse -Force
     }
 }

@@ -84,6 +84,7 @@ Current installed and portable mode:
 
 ```text
 %LocalAppData%\AmdMobilePower\ui-state.json
+%LocalAppData%\AmdMobilePower\rust-ui-state.json
 %LocalAppData%\AmdMobilePower\diagnostics\
 %LocalAppData%\AmdMobilePower\logs\
 ```

@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.4.0-native-preview.1",
+    [string]$Version = "0.5.0-native-preview.1",
     [switch]$NoBuild,
     [switch]$NoVerify,
     [string]$EvidencePath
@@ -153,6 +153,7 @@ if (-not $NoVerify) {
             -NoBuild `
             -VerifyWorker `
             -VerifyWriteControls `
+            -ExecutePolicySave `
             -GuiExecutable $verifyGui
     }
     catch {

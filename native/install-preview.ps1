@@ -10,7 +10,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $sourceDirectory = $PSCommandPath | Split-Path -Parent
-$nativePreviewVersion = "0.4.0-native-preview.1"
+$nativePreviewVersion = "0.5.0-native-preview.1"
 $buildInfoPath = Join-Path $sourceDirectory "BUILD-INFO.txt"
 if (Test-Path -LiteralPath $buildInfoPath) {
     foreach ($line in Get-Content -LiteralPath $buildInfoPath) {

@@ -83,6 +83,9 @@ The native worker now implements the v1 `getPowerPolicy` and
 battery or AC target after a power-line change, skips duplicate writes, and
 backs off failed targets for five seconds. The controller is covered by
 fake-backend tests; the read-only IPC gate is part of `verify-native.ps1`.
+The Rust GUI exposes battery and AC target fields, an enable checkbox, and a
+save button when write controls are enabled. Saved settings live in
+`%LocalAppData%\AmdMobilePower\rust-ui-state.json` and are restored on launch.
 
 Check the policy read-only gate or run the supervised no-change hardware path:
 

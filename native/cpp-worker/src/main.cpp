@@ -26,7 +26,7 @@ namespace {
 
 constexpr wchar_t kDefaultPipeName[] =
     L"\\\\.\\pipe\\AmdMobilePower.NativeWorker.v1";
-constexpr std::string_view kWorkerVersion = "0.4.0-native";
+constexpr std::string_view kWorkerVersion = "0.5.0-native";
 constexpr auto kShutdownDelay = std::chrono::milliseconds(150);
 
 struct Request {
