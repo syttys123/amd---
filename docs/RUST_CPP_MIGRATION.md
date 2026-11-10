@@ -114,7 +114,9 @@ behind the worker write-controls flag. A one-second monitor applies the target
 for the current power line, skips duplicate writes, and applies a five-second
 backoff after failures. The controller has fake-backend tests, the read-only
 gate is included in `verify-native.ps1`, and the supervised no-change path is
-available through `verify-power-policy.ps1`.
+available through `verify-power-policy.ps1`. The clean `c81a4f8` AC no-change
+run is recorded in
+`docs/evidence/hardware/mechrevo-wujie15-8845hs-native-power-policy-no-change-2026-11-10.json`.
 
 `native/build-package.ps1` creates a portable native preview ZIP with the GUI,
 C++ worker, runtime DLL/SYS files, notices, licenses, build metadata, and

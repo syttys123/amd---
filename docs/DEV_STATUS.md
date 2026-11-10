@@ -800,8 +800,10 @@ third_party/
   state. Fake-backend tests cover battery-to-AC switching, duplicate-write
   suppression, failure backoff, disabled policy, and unknown power-line
   handling. `verify-native.ps1` now checks the read-only policy gate; the
-  supervised AC no-change path will be recorded from a clean commit in the
-  native power-policy evidence file.
+  supervised AC no-change path passed from clean commit `c81a4f8` by writing
+  the current `45/45/45 W` state back, observing the worker's `ac` policy
+  apply, disabling the policy, and shutting down cleanly. Evidence:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-native-power-policy-no-change-2026-11-10.json`.
 
 Development screenshot:
 

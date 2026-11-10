@@ -95,6 +95,8 @@ Check the policy read-only gate or run the supervised no-change hardware path:
 The no-change path reads the current limits, uses them as the active
 power-line target, sets the other power-line target to 12 W, verifies the
 worker-reported apply result, disables the policy, and shuts down the worker.
+The clean `c81a4f8` AC no-change result is recorded in
+`docs/evidence/hardware/mechrevo-wujie15-8845hs-native-power-policy-no-change-2026-11-10.json`.
 
 Build and verify the portable native preview ZIP:
 
