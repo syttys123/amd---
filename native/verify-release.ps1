@@ -5,6 +5,7 @@ param(
     [switch]$ExecuteNoChangePolicy,
     [switch]$VerifyShellIntegration,
     [switch]$AllowDirty,
+    [switch]$AllowBatteryWriteGuard,
     [string]$EvidencePath
 )
 
@@ -43,12 +44,17 @@ if (-not $NoBuild) {
     & (Join-Path $root "build.ps1") -Offline
 }
 
-& (Join-Path $root "verify-native.ps1") `
-    -NoBuild `
-    -VerifyHardware `
-    -VerifyRustGui `
-    -VerifyRustWorker `
-    -VerifyWriteGuard
+$nativeArguments = @{
+    NoBuild = $true
+    VerifyHardware = $true
+    VerifyRustGui = $true
+    VerifyRustWorker = $true
+    VerifyWriteGuard = $true
+}
+if ($AllowBatteryWriteGuard) {
+    $nativeArguments.AllowBatteryWriteGuard = $true
+}
+& (Join-Path $root "verify-native.ps1") @nativeArguments
 
 & (Join-Path $root "verify-power-policy.ps1") -NoBuild
 

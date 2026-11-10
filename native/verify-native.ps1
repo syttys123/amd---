@@ -4,6 +4,7 @@ param(
     [switch]$VerifyRustGui,
     [switch]$VerifyRustWorker,
     [switch]$VerifyWriteGuard,
+    [switch]$AllowBatteryWriteGuard,
     [string]$ExistingWorkerDirectory = "C:\RyzenAdj\worker"
 )
 
@@ -286,7 +287,14 @@ if ($VerifyRustGui) {
 
 $writeGuardResult = $null
 if ($VerifyWriteGuard) {
-    $writeGuardResult = (& (Join-Path $root "verify-write-controls.ps1") -NoBuild |
+    $writeGuardArguments = @{
+        NoBuild = $true
+    }
+    if ($AllowBatteryWriteGuard) {
+        $writeGuardArguments.AllowBattery = $true
+    }
+    $writeGuardResult = (& (Join-Path $root "verify-write-controls.ps1") `
+        @writeGuardArguments |
         Out-String).Trim()
 }
 
