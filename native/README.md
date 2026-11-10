@@ -93,6 +93,14 @@ export; clicking a preset applies it immediately when writes are enabled.
 Advanced mode restores editable presets and the battery/AC policy row. The same
 mode and topmost actions are available from the tray menu.
 
+Regenerate the reviewed simple/advanced screenshots without requesting a power
+write:
+
+```powershell
+.\native\capture-rust-gui-redesign.ps1 `
+  -EvidencePath .\artifacts\verify\native-redesign-capture.json
+```
+
 `导出诊断` is available in both read-only and write-enabled launches. It writes
 a schema-1 JSON document under
 `%LocalAppData%\AmdMobilePower\diagnostics\` containing the current sanitized

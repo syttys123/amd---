@@ -78,6 +78,9 @@ not authoritative.
 - A real `rc.9` to `rc.10` cross-version upgrade passed: every installed file
   matched the new package, the upgraded GUI/worker connected read-only, and
   uninstall removed the entire installation.
+- Native simple/advanced screenshots are now reproducible through
+  `native\capture-rust-gui-redesign.ps1`, which uses an isolated
+  `%LocalAppData%` and unique worker pipe and does not request a power write.
 
 ## Development Workflow
 

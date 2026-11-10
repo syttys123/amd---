@@ -281,6 +281,8 @@ At 125% Windows scaling:
 
 - Machine-readable evidence:
   `docs/evidence/ui/native-redesign-2026-11-11.json`.
+- Reproducible capture:
+  `native\capture-rust-gui-redesign.ps1 -EvidencePath <artifact-json>`.
 - Simple screenshot:
   `assets/native-gui-redesign-simple-2026-11-11.png` (`820x596` physical).
 - Advanced screenshot:

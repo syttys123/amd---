@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-11-11T02:08:36+08:00",
+  "capturedAt": "2026-11-11T02:48:09+08:00",
+  "captureScript": "native/capture-rust-gui-redesign.ps1",
   "platform": {
     "windowsScalePercent": 125,
     "processor": "AMD Ryzen 7 8845HS",
@@ -15,6 +16,7 @@
       "path": "assets/native-gui-redesign-simple-2026-11-11.png",
       "physicalWidth": 820,
       "physicalHeight": 596,
+      "sha256": "dd221e1f94bf0871884d1a7b2338e661de3f1358953c568c05dfc31f5b4532ef",
       "checks": {
         "structuralOverlap": false,
         "statusActionVisible": true,
@@ -28,6 +30,7 @@
       "path": "assets/native-gui-redesign-advanced-2026-11-11.png",
       "physicalWidth": 970,
       "physicalHeight": 899,
+      "sha256": "2b0193e5a1d2e8ad6a672944e7742204547e7f3c7c64dffab951fd8422d24e3c",
       "checks": {
         "structuralOverlap": false,
         "editablePresetsVisible": true,
