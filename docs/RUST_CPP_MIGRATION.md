@@ -103,4 +103,7 @@ see
 `native/build-package.ps1` creates a portable native preview ZIP with the GUI,
 C++ worker, runtime DLL/SYS files, notices, licenses, build metadata, and
 checksums. It extracts the ZIP and reruns the lifecycle/read-only/write-control
-UI gates before reporting success.
+UI gates before reporting success. The ZIP also contains
+`collect-native-diagnostics.ps1`, a read-only, sanitized compatibility
+collector that starts the bundled worker without write controls and writes a
+local JSON report.

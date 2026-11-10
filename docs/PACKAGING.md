@@ -11,7 +11,8 @@ Build a portable native preview without replacing the stable .NET deployment:
 The native preview contains the Rust GUI, C++ worker, RyzenAdj/WinRing0/InpOut
 runtime files, third-party notices, licenses, build metadata, and SHA256
 checksums. The build script extracts the ZIP into an isolated directory and
-reruns the GUI lifecycle, read-only worker, and write-control button gates.
+reruns the GUI lifecycle, read-only worker, write-control button, and
+read-only compatibility-collector gates.
 It is a migration artifact, not the stable `C:\RyzenAdj` deployment.
 
 Current clean native preview:
@@ -26,7 +27,8 @@ artifacts/native-packages/amd-mobile-power-v0.3.0-native-preview.1-win-x64-nativ
 - Source commit: `8aa18732d6cb72e618a5f7d784fdb944f2ecff05`.
 - Working tree at build time: clean.
 - Verification: package ZIP, extracted GUI lifecycle, read-only worker,
-  write-control buttons, and all 13 staged SHA256 entries passed.
+  write-control buttons, read-only compatibility collector, and all staged
+  SHA256 entries passed.
 - Evidence:
   `docs/evidence/packaging/v0.3.0-native-preview.1-clean-2026-11-10.json`.
 

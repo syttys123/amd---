@@ -770,6 +770,12 @@ third_party/
   `4d0919049fa7a0a3decd7a5e90e0d15c259cdddab4d0fc805e8eeb08edfe7c02`,
   built from commit `8aa1873`, with all 13 checksum entries verified. Evidence:
   `docs/evidence/packaging/v0.3.0-native-preview.1-clean-2026-11-10.json`.
+- Added `native/collect-native-diagnostics.ps1` to the native preview package.
+  It starts the bundled worker with read-only hardware access, queries health,
+  capabilities, and telemetry over the v1 named pipe, writes a sanitized local
+  JSON compatibility report, and never enables write controls or network
+  access. The package build gate now runs the collector against the extracted
+  package and rejects reports containing local package paths or pipe names.
 
 Development screenshot:
 

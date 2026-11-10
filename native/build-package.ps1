@@ -70,6 +70,8 @@ Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs\THIRD_PARTY_NOTICES.md")
     -Destination (Join-Path $stage "THIRD_PARTY_NOTICES.md") -Force
 Copy-Item -LiteralPath (Join-Path $root "portable-README.txt") `
     -Destination (Join-Path $stage "README.txt") -Force
+Copy-Item -LiteralPath (Join-Path $root "collect-native-diagnostics.ps1") `
+    -Destination (Join-Path $stage "collect-native-diagnostics.ps1") -Force
 
 $commit = (& git -C $repositoryRoot rev-parse HEAD).Trim()
 $statusText = (& git -C $repositoryRoot status --porcelain --ignore-submodules=dirty |
@@ -113,6 +115,27 @@ if (-not $NoVerify) {
     if ($LASTEXITCODE -ne 0) {
         throw "Extracted native package verification failed."
     }
+
+    $collector = Join-Path `
+        $verifyRoot `
+        "$stageName\collect-native-diagnostics.ps1"
+    $reportPath = Join-Path $verifyRoot "native-compatibility-report.json"
+    & $collector -OutputPath $reportPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Extracted native compatibility collector failed."
+    }
+    $reportText = Get-Content -LiteralPath $reportPath -Raw
+    $report = $reportText | ConvertFrom-Json
+    if ($report.collectionStatus -ne "PASS" -or
+        $report.worker.hardwareInitialized -ne $true -or
+        $report.worker.writeControlsEnabled -ne $false -or
+        $report.platform.isSupported -ne $true) {
+        throw "Native compatibility report did not pass its schema/hardware checks."
+    }
+    if ($reportText -match [regex]::Escape($repositoryRoot) -or
+        $reportText -match [regex]::Escape("\\.\pipe\")) {
+        throw "Native compatibility report contains a local path or pipe name."
+    }
 }
 
 $result = [pscustomobject]@{
@@ -121,6 +144,7 @@ $result = [pscustomobject]@{
     Size = (Get-Item -LiteralPath $zipPath).Length
     WorkingTree = $workingTree
     Verification = if ($NoVerify) { "Skipped" } else { "PASS" }
+    CompatibilityCollector = if ($NoVerify) { "Skipped" } else { "PASS" }
 }
 
 if ($EvidencePath) {
@@ -136,6 +160,7 @@ if ($EvidencePath) {
         SourceCommit = $commit
         WorkingTree = $workingTree
         Verification = $result.Verification
+        CompatibilityCollector = $result.CompatibilityCollector
         RecordedAt = (Get-Date).ToString("o")
     } |
         ConvertTo-Json -Depth 6 |

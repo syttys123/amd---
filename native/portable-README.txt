@@ -36,6 +36,16 @@ The worker loads a RyzenAdj/WinRing0 compatible kernel driver. Windows security
 software may block or warn about the driver. Review THIRD_PARTY_NOTICES.md and
 the licenses before distributing or using the package.
 
+Read-only compatibility report
+------------------------------
+
+Run the packaged collector without opening the GUI or enabling writes:
+
+  powershell -ExecutionPolicy Bypass -File .\collect-native-diagnostics.ps1
+
+The collector starts the adjacent worker with read-only hardware access, exports
+a local JSON report, and never connects to the network.
+
 Requirements
 ------------
 
