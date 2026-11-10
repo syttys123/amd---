@@ -43,6 +43,8 @@
   and direct tray-menu application commands.
 - [x] Add schema-1 native GUI diagnostics export with an explicit privacy block
   and no paths, process IDs, logs, or upload.
+- [x] Add persistent native simple/advanced modes, live compact dashboard,
+  immediate simple-mode presets, tray mode controls, and always-on-top.
 
 ## M4: Compatibility
 

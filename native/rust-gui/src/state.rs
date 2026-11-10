@@ -9,6 +9,10 @@ struct PersistedUiState {
     power_policy: Option<PowerPolicySettings>,
     #[serde(default = "default_presets")]
     presets: [i32; 3],
+    #[serde(default)]
+    mode: UiMode,
+    #[serde(default)]
+    top_most: bool,
 }
 
 impl Default for PersistedUiState {
@@ -16,8 +20,24 @@ impl Default for PersistedUiState {
         Self {
             power_policy: None,
             presets: default_presets(),
+            mode: UiMode::default(),
+            top_most: false,
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum UiMode {
+    Simple,
+    #[default]
+    Advanced,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WindowPreferences {
+    pub mode: UiMode,
+    pub top_most: bool,
 }
 
 fn default_presets() -> [i32; 3] {
@@ -59,6 +79,18 @@ pub fn load_presets() -> [i32; 3] {
     )
 }
 
+pub fn load_window_preferences() -> WindowPreferences {
+    load_state()
+        .map(|state| WindowPreferences {
+            mode: state.mode,
+            top_most: state.top_most,
+        })
+        .unwrap_or(WindowPreferences {
+            mode: UiMode::Advanced,
+            top_most: false,
+        })
+}
+
 pub fn save_power_policy(settings: PowerPolicySettings) -> Result<(), String> {
     update_state(|state| state.power_policy = Some(settings))
 }
@@ -66,6 +98,13 @@ pub fn save_power_policy(settings: PowerPolicySettings) -> Result<(), String> {
 pub fn save_presets(presets: [i32; 3]) -> Result<(), String> {
     let presets = sanitize_presets(presets);
     update_state(|state| state.presets = presets)
+}
+
+pub fn save_window_preferences(preferences: WindowPreferences) -> Result<(), String> {
+    update_state(|state| {
+        state.mode = preferences.mode;
+        state.top_most = preferences.top_most;
+    })
 }
 
 fn update_state(update: impl FnOnce(&mut PersistedUiState)) -> Result<(), String> {
@@ -86,7 +125,7 @@ fn update_state(update: impl FnOnce(&mut PersistedUiState)) -> Result<(), String
 
 #[cfg(test)]
 mod tests {
-    use super::{default_presets, sanitize_presets, PersistedUiState};
+    use super::{default_presets, sanitize_presets, PersistedUiState, UiMode, WindowPreferences};
     use crate::worker::{PowerLimitTarget, PowerPolicySettings};
 
     #[test]
@@ -99,11 +138,15 @@ mod tests {
         let encoded = serde_json::to_string(&PersistedUiState {
             power_policy: Some(settings),
             presets: [10, 20, 40],
+            mode: UiMode::Simple,
+            top_most: true,
         })
         .unwrap();
         let decoded: PersistedUiState = serde_json::from_str(&encoded).unwrap();
         assert_eq!(decoded.power_policy, Some(settings));
         assert_eq!(decoded.presets, [10, 20, 40]);
+        assert_eq!(decoded.mode, UiMode::Simple);
+        assert!(decoded.top_most);
     }
 
     #[test]
@@ -115,6 +158,8 @@ mod tests {
 
         assert!(decoded.power_policy.is_some());
         assert_eq!(decoded.presets, default_presets());
+        assert_eq!(decoded.mode, UiMode::Advanced);
+        assert!(!decoded.top_most);
     }
 
     #[test]
@@ -123,6 +168,8 @@ mod tests {
 
         assert_eq!(decoded.power_policy, None);
         assert_eq!(decoded.presets, [11, 22, 44]);
+        assert_eq!(decoded.mode, UiMode::Advanced);
+        assert!(!decoded.top_most);
     }
 
     #[test]
@@ -130,5 +177,26 @@ mod tests {
         assert_eq!(sanitize_presets([0, 25, 45]), default_presets());
         assert_eq!(sanitize_presets([12, 25, 256]), default_presets());
         assert_eq!(sanitize_presets([10, 20, 40]), [10, 20, 40]);
+    }
+
+    #[test]
+    fn window_preferences_are_independent_from_policy_and_presets() {
+        let preferences = WindowPreferences {
+            mode: UiMode::Simple,
+            top_most: true,
+        };
+        let encoded = serde_json::to_string(&PersistedUiState {
+            power_policy: None,
+            presets: [12, 25, 45],
+            mode: preferences.mode,
+            top_most: preferences.top_most,
+        })
+        .unwrap();
+        let decoded: PersistedUiState = serde_json::from_str(&encoded).unwrap();
+
+        assert_eq!(decoded.mode, UiMode::Simple);
+        assert!(decoded.top_most);
+        assert_eq!(decoded.presets, [12, 25, 45]);
+        assert_eq!(decoded.power_policy, None);
     }
 }

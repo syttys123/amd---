@@ -997,6 +997,17 @@ third_party/
   controlled AC no-change policy write on the live `10/10/10 W` state.
   Evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.9-release-gate-2026-11-11.json`.
+- Added persistent native `简洁` / `高级` / `置顶` controls to the title header
+  and tray menu. Simple mode now uses a compact live dashboard, applies quick
+  presets immediately, and keeps diagnostics access; advanced mode restores
+  editable presets and the battery/AC policy row. The window repaints with the
+  system background after resizing, eliminating stale advanced-row pixels.
+  Runtime verification checked both window sizes, every advanced control's
+  visibility, immediate compact text, `WS_EX_TOPMOST`, and persisted
+  `mode=advanced` / `topMost=true` state. Rust tests are now 26 in total
+  (`18` library + `8` GUI), and Clippy remains clean with `-D warnings`.
+  Screenshots: `assets/native-gui-simple-mode-2026-11-11.png` and
+  `assets/native-gui-advanced-mode-2026-11-11.png`.
 
 Development screenshot:
 
@@ -1007,6 +1018,10 @@ Development screenshot:
 ![Native preview read-only diagnostics](assets/native-gui-readonly-diagnostics-2026-11-11.png)
 
 ![Native preview write diagnostics](assets/native-gui-write-diagnostics-2026-11-11.png)
+
+![Native preview simple mode](assets/native-gui-simple-mode-2026-11-11.png)
+
+![Native preview advanced mode](assets/native-gui-advanced-mode-2026-11-11.png)
 
 ## In Progress
 

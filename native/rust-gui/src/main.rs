@@ -8,7 +8,6 @@ use amd_mobile_power_gui::worker::{
     ApplyTargetResult, PowerLimitTarget, PowerLineState, PowerPolicySettings, PowerPolicyState,
     ProfilePayload, SnapshotPayload, WorkerClient, DEFAULT_PIPE_NAME,
 };
-use std::ffi::c_void;
 use std::mem::size_of;
 use std::os::windows::process::CommandExt;
 use std::path::PathBuf;
@@ -21,7 +20,7 @@ use windows_sys::Win32::Foundation::{
     CloseHandle, GetLastError, ERROR_ALREADY_EXISTS, HANDLE, HINSTANCE, HWND, LPARAM, LRESULT,
     WPARAM,
 };
-use windows_sys::Win32::Graphics::Gdi::{UpdateWindow, HBRUSH};
+use windows_sys::Win32::Graphics::Gdi::{InvalidateRect, UpdateWindow, COLOR_WINDOW, HBRUSH};
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::SystemServices::SS_LEFT;
 use windows_sys::Win32::System::Threading::CreateMutexW;
@@ -29,15 +28,17 @@ use windows_sys::Win32::UI::Shell::{
     Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE, NOTIFYICONDATAW,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    AppendMenuW, CreatePopupMenu, CreateWindowExW, DefWindowProcW, DestroyMenu, DestroyWindow,
-    DispatchMessageW, FindWindowW, GetCursorPos, GetMessageW, GetWindowLongPtrW, LoadCursorW,
-    LoadIconW, PostMessageW, PostQuitMessage, RegisterClassExW, SetForegroundWindow,
-    SetWindowLongPtrW, SetWindowTextW, ShowWindow, TrackPopupMenu, TranslateMessage, CS_HREDRAW,
-    CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, HMENU, IDC_ARROW, IDI_APPLICATION, MF_SEPARATOR,
-    MF_STRING, MSG, SIZE_MINIMIZED, SIZE_RESTORED, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL,
-    TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION,
-    WM_LBUTTONUP, WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOMMAND,
-    WNDCLASSEXW, WS_BORDER, WS_CHILD, WS_EX_APPWINDOW, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
+    AppendMenuW, CheckMenuItem, CreatePopupMenu, CreateWindowExW, DefWindowProcW, DestroyMenu,
+    DestroyWindow, DispatchMessageW, FindWindowW, GetCursorPos, GetDlgItem, GetMessageW,
+    GetWindowLongPtrW, LoadCursorW, LoadIconW, PostMessageW, PostQuitMessage, RegisterClassExW,
+    SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, SetWindowTextW, ShowWindow,
+    TrackPopupMenu, TranslateMessage, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, HMENU,
+    HWND_NOTOPMOST, HWND_TOPMOST, IDC_ARROW, IDI_APPLICATION, MF_CHECKED, MF_SEPARATOR, MF_STRING,
+    MF_UNCHECKED, MSG, SIZE_MINIMIZED, SIZE_RESTORED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
+    SWP_NOZORDER, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP,
+    WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION, WM_LBUTTONUP,
+    WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOMMAND, WNDCLASSEXW,
+    WS_BORDER, WS_CHILD, WS_EX_APPWINDOW, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_GETCHECK, BM_SETCHECK, BS_AUTOCHECKBOX,
@@ -55,6 +56,9 @@ const WM_APP_APPLY_RESULT: u32 = WM_APP + 4;
 const WM_APP_POLICY_RESULT: u32 = WM_APP + 5;
 const MENU_SHOW: usize = 1;
 const MENU_EXIT: usize = 2;
+const MENU_SIMPLE_MODE: usize = 3;
+const MENU_ADVANCED_MODE: usize = 4;
+const MENU_TOPMOST: usize = 5;
 const PRESET_12: usize = 101;
 const PRESET_25: usize = 102;
 const PRESET_45: usize = 103;
@@ -62,8 +66,17 @@ const APPLY_TARGET: usize = 104;
 const POLICY_SAVE: usize = 105;
 const PRESET_SAVE: usize = 106;
 const EXPORT_DIAGNOSTICS: usize = 107;
+const SIMPLE_MODE: usize = 108;
+const ADVANCED_MODE: usize = 109;
+const TOPMOST_TOGGLE: usize = 110;
 const PRESET_MENU_START: usize = 201;
 const PRESET_EDIT_START: usize = 301;
+const PRESET_LABEL: usize = 310;
+const POLICY_BATTERY_LABEL: usize = 311;
+const POLICY_BATTERY_EDIT: usize = 312;
+const POLICY_AC_LABEL: usize = 313;
+const POLICY_AC_EDIT: usize = 314;
+const POLICY_ENABLED: usize = 315;
 const STATUS_HOLD: Duration = Duration::from_secs(5);
 
 #[derive(Clone, Copy)]
@@ -71,6 +84,13 @@ struct PolicyControls {
     enabled: HWND,
     battery_target: HWND,
     ac_target: HWND,
+}
+
+#[derive(Clone, Copy)]
+struct HeaderControls {
+    simple: HWND,
+    advanced: HWND,
+    topmost: HWND,
 }
 
 struct GuiApp {
@@ -97,11 +117,15 @@ struct GuiApp {
     latest_policy: Option<PowerPolicyState>,
     worker_error: Option<String>,
     status_hold_until: Instant,
+    view_mode: state::UiMode,
+    top_most: bool,
+    header_controls: Option<HeaderControls>,
 }
 
 impl GuiApp {
     fn new(mutex: HANDLE) -> Self {
         let preset_watts = state::load_presets();
+        let window_preferences = state::load_window_preferences();
         Self {
             state: LifecycleState::default(),
             _mutex: mutex,
@@ -126,6 +150,9 @@ impl GuiApp {
             latest_policy: None,
             worker_error: None,
             status_hold_until: Instant::now(),
+            view_mode: window_preferences.mode,
+            top_most: window_preferences.top_most,
+            header_controls: None,
         }
     }
 }
@@ -324,6 +351,30 @@ fn format_snapshot(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>
         telemetry.updated_at.as_deref().unwrap_or("未知")
     );
     format!("{status}\n{}", format_policy_state(policy))
+}
+
+fn format_snapshot_simple(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>) -> String {
+    let telemetry = &snapshot.telemetry;
+    format!(
+        concat!(
+            "已连接 worker · {}\n",
+            "{}\n",
+            "\n",
+            "STAPM / Fast / Slow 上限\n",
+            "{} / {} / {}\n",
+            "\n",
+            "目标功耗：{}    CPU：{}\n",
+            "{}"
+        ),
+        format_power_line_raw(&telemetry.power_line),
+        snapshot.platform.cpu.processor_name,
+        format_watts(telemetry.stapm_limit_watts),
+        format_watts(telemetry.fast_limit_watts),
+        format_watts(telemetry.slow_limit_watts),
+        format_watts(telemetry.target_watts),
+        format_celsius(telemetry.tctl_value_celsius),
+        format_policy_state(policy)
+    )
 }
 
 fn package_version_from_build_info() -> Option<String> {
@@ -543,13 +594,83 @@ unsafe fn create_title_label(
         WS_CHILD | WS_VISIBLE | SS_LEFT,
         18,
         12,
-        580,
+        300,
         22,
         hwnd,
         std::ptr::null_mut(),
         instance,
         std::ptr::null(),
     )
+}
+
+unsafe fn create_header_controls(
+    hwnd: HWND,
+    instance: HINSTANCE,
+    mode: state::UiMode,
+    top_most: bool,
+) -> HeaderControls {
+    let button_class = wide("BUTTON");
+    let labels = [
+        (SIMPLE_MODE, "简洁", 340),
+        (ADVANCED_MODE, "高级", 402),
+        (TOPMOST_TOGGLE, "置顶", 464),
+    ];
+    let mut controls = HeaderControls {
+        simple: std::ptr::null_mut(),
+        advanced: std::ptr::null_mut(),
+        topmost: std::ptr::null_mut(),
+    };
+    for (id, label, x) in labels {
+        let text = wide(label);
+        let style = WS_CHILD
+            | WS_VISIBLE
+            | WS_TABSTOP
+            | if id == TOPMOST_TOGGLE {
+                BS_AUTOCHECKBOX as u32
+            } else {
+                BS_AUTORADIOBUTTON as u32
+            };
+        let button = CreateWindowExW(
+            0,
+            button_class.as_ptr(),
+            text.as_ptr(),
+            style,
+            x,
+            8,
+            56,
+            28,
+            hwnd,
+            id as HMENU,
+            instance,
+            std::ptr::null(),
+        );
+        match id {
+            SIMPLE_MODE => {
+                controls.simple = button;
+                SendMessageW(
+                    button,
+                    BM_SETCHECK,
+                    usize::from(mode == state::UiMode::Simple),
+                    0,
+                );
+            }
+            ADVANCED_MODE => {
+                controls.advanced = button;
+                SendMessageW(
+                    button,
+                    BM_SETCHECK,
+                    usize::from(mode == state::UiMode::Advanced),
+                    0,
+                );
+            }
+            TOPMOST_TOGGLE => {
+                controls.topmost = button;
+                SendMessageW(button, BM_SETCHECK, usize::from(top_most), 0);
+            }
+            _ => {}
+        }
+    }
+    controls
 }
 
 unsafe fn create_action_buttons(
@@ -625,7 +746,7 @@ unsafe fn create_preset_controls(
         76,
         22,
         hwnd,
-        std::ptr::null_mut(),
+        PRESET_LABEL as HMENU,
         instance,
         std::ptr::null(),
     );
@@ -767,7 +888,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         108,
         22,
         hwnd,
-        std::ptr::null_mut(),
+        POLICY_BATTERY_LABEL as HMENU,
         instance,
         std::ptr::null(),
     );
@@ -781,7 +902,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         54,
         26,
         hwnd,
-        std::ptr::null_mut(),
+        POLICY_BATTERY_EDIT as HMENU,
         instance,
         std::ptr::null(),
     );
@@ -795,7 +916,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         62,
         22,
         hwnd,
-        std::ptr::null_mut(),
+        POLICY_AC_LABEL as HMENU,
         instance,
         std::ptr::null(),
     );
@@ -809,7 +930,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         54,
         26,
         hwnd,
-        std::ptr::null_mut(),
+        POLICY_AC_EDIT as HMENU,
         instance,
         std::ptr::null(),
     );
@@ -823,7 +944,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         82,
         26,
         hwnd,
-        std::ptr::null_mut(),
+        POLICY_ENABLED as HMENU,
         instance,
         std::ptr::null(),
     );
@@ -867,6 +988,172 @@ fn format_policy_result(settings: PowerPolicySettings, result: Result<(), String
 
 fn hold_status(app: &mut GuiApp) {
     app.status_hold_until = Instant::now() + STATUS_HOLD;
+}
+
+unsafe fn set_control_visible(hwnd: HWND, id: usize, visible: bool) {
+    let control = GetDlgItem(hwnd, id as i32);
+    if !control.is_null() {
+        ShowWindow(control, if visible { SW_SHOWNORMAL } else { SW_HIDE });
+    }
+}
+
+unsafe fn refresh_status_for_mode(app: &GuiApp) {
+    if app.status_label.is_null() {
+        return;
+    }
+    let Some(snapshot) = app.latest_snapshot.as_ref() else {
+        return;
+    };
+    let text = match app.view_mode {
+        state::UiMode::Simple => format_snapshot_simple(snapshot, app.latest_policy.as_ref()),
+        state::UiMode::Advanced => format_snapshot(snapshot, app.latest_policy.as_ref()),
+    };
+    let text = wide(&text);
+    SetWindowTextW(app.status_label, text.as_ptr());
+}
+
+unsafe fn apply_topmost_style(hwnd: HWND, enabled: bool) {
+    SetWindowPos(
+        hwnd,
+        if enabled {
+            HWND_TOPMOST
+        } else {
+            HWND_NOTOPMOST
+        },
+        0,
+        0,
+        0,
+        0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
+    );
+}
+
+unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
+    let advanced_controls = [
+        APPLY_TARGET,
+        POLICY_SAVE,
+        PRESET_SAVE,
+        PRESET_EDIT_START,
+        PRESET_EDIT_START + 1,
+        PRESET_EDIT_START + 2,
+        PRESET_LABEL,
+        POLICY_BATTERY_LABEL,
+        POLICY_BATTERY_EDIT,
+        POLICY_AC_LABEL,
+        POLICY_AC_EDIT,
+        POLICY_ENABLED,
+    ];
+    app.view_mode = mode;
+    let advanced = mode == state::UiMode::Advanced;
+    for id in advanced_controls {
+        set_control_visible(hwnd, id, advanced);
+    }
+    for id in [PRESET_12, PRESET_25, PRESET_45] {
+        set_control_visible(hwnd, id, true);
+    }
+    set_control_visible(hwnd, EXPORT_DIAGNOSTICS, true);
+
+    if let Some(controls) = app.header_controls {
+        SendMessageW(
+            controls.simple,
+            BM_SETCHECK,
+            usize::from(mode == state::UiMode::Simple),
+            0,
+        );
+        SendMessageW(
+            controls.advanced,
+            BM_SETCHECK,
+            usize::from(mode == state::UiMode::Advanced),
+            0,
+        );
+    }
+
+    let height = match (mode, app.write_enabled) {
+        (state::UiMode::Simple, _) => 360,
+        (state::UiMode::Advanced, true) => 580,
+        (state::UiMode::Advanced, false) => 420,
+    };
+    SetWindowPos(
+        hwnd,
+        std::ptr::null_mut(),
+        0,
+        0,
+        620,
+        height,
+        SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE,
+    );
+    if !app.status_label.is_null() {
+        SetWindowPos(
+            app.status_label,
+            std::ptr::null_mut(),
+            0,
+            0,
+            580,
+            if advanced { 290 } else { 220 },
+            SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE,
+        );
+    }
+    for (index, id) in [PRESET_12, PRESET_25, PRESET_45].into_iter().enumerate() {
+        let button = GetDlgItem(hwnd, id as i32);
+        if !button.is_null() {
+            SetWindowPos(
+                button,
+                std::ptr::null_mut(),
+                18 + index as i32 * 98,
+                if advanced { 348 } else { 270 },
+                90,
+                32,
+                SWP_NOZORDER | SWP_NOACTIVATE,
+            );
+        }
+    }
+    let export_button = GetDlgItem(hwnd, EXPORT_DIAGNOSTICS as i32);
+    if !export_button.is_null() {
+        let (x, y) = if advanced { (428, 390) } else { (360, 270) };
+        SetWindowPos(
+            export_button,
+            std::ptr::null_mut(),
+            x,
+            y,
+            120,
+            30,
+            SWP_NOZORDER | SWP_NOACTIVATE,
+        );
+    }
+    InvalidateRect(hwnd, std::ptr::null(), 1);
+    UpdateWindow(hwnd);
+    refresh_status_for_mode(app);
+
+    let preferences = state::WindowPreferences {
+        mode,
+        top_most: app.top_most,
+    };
+    if let Err(error) = state::save_window_preferences(preferences) {
+        if !app.status_label.is_null() {
+            hold_status(app);
+            let text = wide(&format!("窗口设置保存失败。\n{error}"));
+            SetWindowTextW(app.status_label, text.as_ptr());
+        }
+    }
+}
+
+unsafe fn toggle_topmost(app: &mut GuiApp, hwnd: HWND) {
+    app.top_most = !app.top_most;
+    apply_topmost_style(hwnd, app.top_most);
+    if let Some(controls) = app.header_controls {
+        SendMessageW(controls.topmost, BM_SETCHECK, usize::from(app.top_most), 0);
+    }
+    let preferences = state::WindowPreferences {
+        mode: app.view_mode,
+        top_most: app.top_most,
+    };
+    if let Err(error) = state::save_window_preferences(preferences) {
+        if !app.status_label.is_null() {
+            hold_status(app);
+            let text = wide(&format!("置顶设置保存失败。\n{error}"));
+            SetWindowTextW(app.status_label, text.as_ptr());
+        }
+    }
 }
 
 unsafe fn save_preset_edits(app: &mut GuiApp) -> Result<(), String> {
@@ -1100,8 +1387,42 @@ unsafe fn show_tray_menu(hwnd: HWND, app: &GuiApp) {
     }
 
     let show_text = wide("显示主界面");
+    let simple_text = wide("简洁模式");
+    let advanced_text = wide("高级模式");
+    let topmost_text = wide("窗口置顶");
     let exit_text = wide("退出");
     AppendMenuW(menu, MF_STRING, MENU_SHOW, show_text.as_ptr());
+    AppendMenuW(menu, MF_SEPARATOR, 0, std::ptr::null());
+    AppendMenuW(menu, MF_STRING, MENU_SIMPLE_MODE, simple_text.as_ptr());
+    AppendMenuW(menu, MF_STRING, MENU_ADVANCED_MODE, advanced_text.as_ptr());
+    AppendMenuW(menu, MF_STRING, MENU_TOPMOST, topmost_text.as_ptr());
+    CheckMenuItem(
+        menu,
+        MENU_SIMPLE_MODE as u32,
+        if app.view_mode == state::UiMode::Simple {
+            MF_CHECKED
+        } else {
+            MF_UNCHECKED
+        },
+    );
+    CheckMenuItem(
+        menu,
+        MENU_ADVANCED_MODE as u32,
+        if app.view_mode == state::UiMode::Advanced {
+            MF_CHECKED
+        } else {
+            MF_UNCHECKED
+        },
+    );
+    CheckMenuItem(
+        menu,
+        MENU_TOPMOST as u32,
+        if app.top_most {
+            MF_CHECKED
+        } else {
+            MF_UNCHECKED
+        },
+    );
     if app.write_enabled {
         AppendMenuW(menu, MF_SEPARATOR, 0, std::ptr::null());
         for (index, watts) in app.preset_watts.into_iter().enumerate() {
@@ -1187,8 +1508,14 @@ unsafe extern "system" fn window_proc(
             let pointer = lparam as *mut StatusUpdate;
             if !pointer.is_null() {
                 let update = Box::from_raw(pointer);
+                let display_text = match (&update.snapshot, app.view_mode) {
+                    (Some(snapshot), state::UiMode::Simple) => {
+                        format_snapshot_simple(snapshot, update.policy.as_ref())
+                    }
+                    _ => update.text.clone(),
+                };
                 if !app.status_label.is_null() && Instant::now() >= app.status_hold_until {
-                    let text = wide(&update.text);
+                    let text = wide(&display_text);
                     SetWindowTextW(app.status_label, text.as_ptr());
                 }
                 if let Some(profile) = &update.profile {
@@ -1235,6 +1562,15 @@ unsafe extern "system" fn window_proc(
                 MENU_EXIT => {
                     dispatch(app, hwnd, LifecycleEvent::TrayExitRequested);
                 }
+                MENU_SIMPLE_MODE | SIMPLE_MODE => {
+                    apply_view_mode(app, hwnd, state::UiMode::Simple);
+                }
+                MENU_ADVANCED_MODE | ADVANCED_MODE => {
+                    apply_view_mode(app, hwnd, state::UiMode::Advanced);
+                }
+                MENU_TOPMOST | TOPMOST_TOGGLE => {
+                    toggle_topmost(app, hwnd);
+                }
                 PRESET_12 | PRESET_25 | PRESET_45 if app.write_enabled => {
                     let preset_index = match command {
                         PRESET_12 => 0,
@@ -1242,7 +1578,11 @@ unsafe extern "system" fn window_proc(
                         PRESET_45 => 2,
                         _ => 0,
                     };
-                    select_preset(app, preset_index);
+                    if app.view_mode == state::UiMode::Simple {
+                        start_preset_apply(app, hwnd, preset_index);
+                    } else {
+                        select_preset(app, preset_index);
+                    }
                 }
                 PRESET_SAVE if app.write_enabled => {
                     let result = save_preset_edits(app);
@@ -1355,7 +1695,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         lpfnWndProc: Some(window_proc),
         hInstance: instance,
         hCursor: unsafe { LoadCursorW(std::ptr::null_mut(), IDC_ARROW) },
-        hbrBackground: std::ptr::null_mut::<c_void>() as HBRUSH,
+        hbrBackground: (COLOR_WINDOW + 1) as HBRUSH,
         lpszClassName: class_name.as_ptr(),
         ..Default::default()
     };
@@ -1382,10 +1722,11 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    let window_height = if options.enable_write_controls {
-        580
-    } else {
-        420
+    let initial_mode = state::load_window_preferences().mode;
+    let window_height = match (initial_mode, options.enable_write_controls) {
+        (state::UiMode::Simple, _) => 360,
+        (state::UiMode::Advanced, true) => 580,
+        (state::UiMode::Advanced, false) => 420,
     };
     let hwnd = unsafe {
         CreateWindowExW(
@@ -1415,6 +1756,12 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, app as isize);
         (*app).write_enabled = options.enable_write_controls;
         let _ = create_title_label(hwnd, instance);
+        (*app).header_controls = Some(create_header_controls(
+            hwnd,
+            instance,
+            (*app).view_mode,
+            (*app).top_most,
+        ));
         (*app).status_label = create_status_label(hwnd, instance);
         if options.enable_write_controls {
             (*app).preset_buttons =
@@ -1438,6 +1785,8 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         } else {
             let _ = create_export_button(hwnd, instance, 18, 348, 120);
         }
+        apply_topmost_style(hwnd, (*app).top_most);
+        apply_view_mode(&mut *app, hwnd, (*app).view_mode);
     }
 
     match start_worker(&options) {
@@ -1495,7 +1844,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 mod tests {
     use super::{
         clamp_preset_values, diagnostics_document, format_policy_state, format_snapshot,
-        preset_menu_label,
+        format_snapshot_simple, preset_menu_label,
     };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
@@ -1662,5 +2011,16 @@ mod tests {
         assert_eq!(document["privacy"]["uploaded"], false);
         assert!(!text.contains(r"\\.\pipe\"));
         assert!(!text.contains(r"C:\"));
+    }
+
+    #[test]
+    fn simple_dashboard_keeps_the_live_values_visible() {
+        let text = format_snapshot_simple(&sample_snapshot(), None);
+
+        assert!(text.contains("已连接 worker · 电池"), "{text}");
+        assert!(text.contains("10.00 W / 10.00 W / 10.00 W"), "{text}");
+        assert!(text.contains("目标功耗：10.00 W"), "{text}");
+        assert!(text.contains("CPU：44.9 °C"), "{text}");
+        assert!(!text.contains("PM 表"), "{text}");
     }
 }

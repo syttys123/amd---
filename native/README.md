@@ -87,6 +87,12 @@ current target, with every value clamped to the active platform profile.
 Right-clicking the tray icon also exposes the same presets as direct
 `应用预设` commands when write controls are enabled.
 
+The title header provides persistent `简洁`, `高级`, and `置顶` controls. Simple
+mode keeps the compact live dashboard, three quick presets, and diagnostics
+export; clicking a preset applies it immediately when writes are enabled.
+Advanced mode restores editable presets and the battery/AC policy row. The same
+mode and topmost actions are available from the tray menu.
+
 `导出诊断` is available in both read-only and write-enabled launches. It writes
 a schema-1 JSON document under
 `%LocalAppData%\AmdMobilePower\diagnostics\` containing the current sanitized
@@ -130,11 +136,10 @@ and verifies that the real Startup-folder and current-user uninstall registry
 integration does not change. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
 
-The current internal release candidate is `0.6.0-native-rc.9`; its hash and
+The current internal release candidate is `0.6.0-native-rc.10`; its hash and
 evidence are recorded in `docs/PACKAGING.md` and
-`docs/evidence/packaging/v0.6.0-native-rc.9-release-gate-2026-11-11.json`.
-The verified ZIP is `474,790` bytes with SHA256
-`c4a3bfaf872a43a0a258f579a0f532ff87514816aec51827eb8b4c314fbba9b5`.
+`docs/evidence/packaging/v0.6.0-native-rc.10-release-gate-2026-11-11.json`.
+The exact size and SHA256 will be recorded after the rc.10 aggregate gate.
 
 Exercise the real Start menu, Startup shortcut, and current-user uninstall
 entry without launching the GUI:

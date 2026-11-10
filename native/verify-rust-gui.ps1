@@ -71,6 +71,12 @@ public static class AmdMobilePowerRustGuiNative {
     [DllImport("user32.dll")]
     public static extern bool IsIconic(IntPtr hWnd);
 
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+
+    [DllImport("user32.dll")]
+    public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool PostMessage(
         IntPtr hWnd,
@@ -106,6 +112,13 @@ public static class AmdMobilePowerRustGuiNative {
         uint msg,
         UIntPtr wParam,
         string lParam);
+
+    public struct RECT {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
 }
 "@
 
@@ -117,6 +130,8 @@ $wmLButtonUp = 0x0202
 $swMinimize = 6
 $swRestore = 9
 $menuExit = 2
+$gwlExStyle = -20
+$wsExTopMost = 0x00000008
 
 function Wait-ProcessWindow {
     param(
@@ -346,6 +361,154 @@ try {
         }
         $diagnosticsExportResult = "PASS"
     }
+
+    $viewModeResult = "Not requested"
+    $topMostResult = "Not requested"
+    $simpleButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+            $window,
+            108)
+        $advancedButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+            $window,
+            109)
+        $topMostButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+            $window,
+            110)
+        if ($simpleButton -eq [IntPtr]::Zero -or
+            $advancedButton -eq [IntPtr]::Zero -or
+            $topMostButton -eq [IntPtr]::Zero) {
+            throw "Rust GUI mode or topmost controls are missing."
+        }
+
+        $advancedRect = New-Object AmdMobilePowerRustGuiNative+RECT
+        [AmdMobilePowerRustGuiNative]::GetWindowRect(
+            $window,
+            [ref]$advancedRect) | Out-Null
+        $advancedHeight = $advancedRect.Bottom - $advancedRect.Top
+
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $simpleButton,
+            0x00F5,
+            [UIntPtr]108,
+            [IntPtr]::Zero) | Out-Null
+        Wait-Until `
+            -Description "simple mode resize" `
+            -Condition {
+                $rect = New-Object AmdMobilePowerRustGuiNative+RECT
+                [AmdMobilePowerRustGuiNative]::GetWindowRect(
+                    $window,
+                    [ref]$rect) | Out-Null
+                ($rect.Bottom - $rect.Top) -lt $advancedHeight
+            }
+        if ($VerifyWriteControls) {
+            $presetEdit = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+                $window,
+                301)
+            $presetButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+                $window,
+                101)
+            if ([AmdMobilePowerRustGuiNative]::IsWindowVisible($presetEdit) -or
+                -not [AmdMobilePowerRustGuiNative]::IsWindowVisible($presetButton)) {
+                throw "Simple mode did not hide advanced fields and keep quick presets."
+            }
+            foreach ($advancedControl in @(
+                104,
+                105,
+                106,
+                302,
+                303,
+                310,
+                311,
+                312,
+                313,
+                314,
+                315
+            )) {
+                $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+                    $window,
+                    $advancedControl)
+                if ([AmdMobilePowerRustGuiNative]::IsWindowVisible($control)) {
+                    throw "Simple mode left advanced control $advancedControl visible."
+                }
+            }
+        }
+        if ($VerifyWorker) {
+            $deadline = [DateTime]::UtcNow.AddSeconds(4)
+            $simpleStatus = ""
+            while ([DateTime]::UtcNow -lt $deadline) {
+                $simpleStatus = Get-GuiStatusText -Window $window
+                if ($simpleStatus -match "STAPM / Fast / Slow 上限" -and
+                    $simpleStatus -notmatch "PM 表") {
+                    break
+                }
+                Start-Sleep -Milliseconds 50
+            }
+            if ($simpleStatus -notmatch "STAPM / Fast / Slow 上限" -or
+                $simpleStatus -match "PM 表") {
+                throw "Simple mode dashboard was not compact: $simpleStatus"
+            }
+        }
+
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $topMostButton,
+            0x00F5,
+            [UIntPtr]110,
+            [IntPtr]::Zero) | Out-Null
+        $extendedStyle = [AmdMobilePowerRustGuiNative]::GetWindowLongPtr(
+            $window,
+            $gwlExStyle).ToInt64()
+        if (($extendedStyle -band $wsExTopMost) -eq 0) {
+            throw "Rust GUI topmost toggle did not set WS_EX_TOPMOST."
+        }
+
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $advancedButton,
+            0x00F5,
+            [UIntPtr]109,
+            [IntPtr]::Zero) | Out-Null
+        Wait-Until `
+            -Description "advanced mode resize" `
+            -Condition {
+                $rect = New-Object AmdMobilePowerRustGuiNative+RECT
+                [AmdMobilePowerRustGuiNative]::GetWindowRect(
+                    $window,
+                    [ref]$rect) | Out-Null
+                ($rect.Bottom - $rect.Top) -ge $advancedHeight
+            }
+        if ($VerifyWriteControls) {
+            foreach ($advancedControl in @(
+                104,
+                105,
+                106,
+                301,
+                302,
+                303,
+                310,
+                311,
+                312,
+                313,
+                314,
+                315
+            )) {
+                $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+                    $window,
+                    $advancedControl)
+                if (-not [AmdMobilePowerRustGuiNative]::IsWindowVisible($control)) {
+                    throw "Advanced mode did not restore control $advancedControl."
+                }
+            }
+        }
+
+        $windowStatePath = Join-Path `
+            $isolatedLocalAppData `
+            "AmdMobilePower\rust-ui-state.json"
+        $windowState = Get-Content -LiteralPath $windowStatePath -Raw |
+            ConvertFrom-Json
+        if ($windowState.mode -ne "advanced" -or
+            $windowState.topMost -ne $true) {
+            throw "Window preferences were not persisted: $($windowState | ConvertTo-Json -Depth 6)"
+        }
+    $viewModeResult = "PASS"
+    $topMostResult = "PASS"
 
     $writePresetResult = "Not requested"
     $presetEditingResult = "Not requested"
@@ -585,6 +748,8 @@ try {
             }
             WorkerStatus = $workerStatus
             DiagnosticsExport = $diagnosticsExportResult
+            ViewModes = $viewModeResult
+            TopMost = $topMostResult
             TargetWatts = if ($ExecuteNoChangePreset) { "45/45/45" } else { $null }
             WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
             PresetEditing = $presetEditingResult
@@ -606,6 +771,8 @@ try {
         WorkerReadOnly = if ($VerifyWorker) { "PASS" } else { "Not requested" }
         WorkerStatus = if ($VerifyWorker) { $workerStatus } else { $null }
         DiagnosticsExport = $diagnosticsExportResult
+        ViewModes = $viewModeResult
+        TopMost = $topMostResult
         WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
         PresetEditing = $presetEditingResult
         WritePreset = $writePresetResult
