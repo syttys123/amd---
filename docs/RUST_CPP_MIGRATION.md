@@ -96,4 +96,6 @@ back, read back `45/45/45 W`, and shut down without restore; see
 The Rust GUI now exposes the same gate: without `--enable-write-controls` it is
 read-only. With the flag it shows 12 W, 25 W, and 45 W presets plus Apply, and
 runs the write in a background thread so the window and tray remain responsive.
-The 45 W preset was exercised as a supervised no-change apply on the 8845HS.
+The 45 W preset was exercised as a supervised no-change apply on the 8845HS;
+see
+`docs/evidence/hardware/mechrevo-wujie15-8845hs-native-gui-no-change-2026-11-10T12-24-30Z.json`.

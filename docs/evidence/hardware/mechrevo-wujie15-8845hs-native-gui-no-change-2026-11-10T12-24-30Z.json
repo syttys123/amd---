@@ -1,0 +1,11 @@
+{
+  "SourceCommit": "9e971e6983421531dfe1835241a1573973c4161d",
+  "Verification": "PASS",
+  "Path": "Rust GUI -> C++ worker -> RyzenAdj",
+  "Processor": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+  "WorkerStatus": "Worker: connected\nCPU: AMD Ryzen 7 8845HS w/ Radeon 780M Graphics     \nFamily: 10 Hawk Point\nPM table: 4c0009\nPower source: ac\n\nTarget: n/a\nSTAPM like target: 45.00 W\nFast limit: 45.00 W\nSlow limit: 45.00 W\nTemperature: 56.6 C\n\nCapabilities: STAPM=true Fast=true Slow=true\nPlatform: supported\nFirmware clamp: false\nUpdated: 2026-11-10T12:23:53Z",
+  "TargetWatts": "45/45/45",
+  "WriteControls": "PASS",
+  "WritePreset": "PASS",
+  "RecordedAt": "2026-11-10T20:23:54.4567528+08:00"
+}

@@ -760,7 +760,8 @@ third_party/
   `applyTarget` from a background thread, keeps tray/window interaction
   responsive, and reports readback/clamp/restore status. A supervised
   `45/45/45 W` no-change preset through the full Rust GUI -> C++ worker ->
-  RyzenAdj path passed with no restore attempt.
+  RyzenAdj path passed with no restore attempt. Evidence:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-native-gui-no-change-2026-11-10T12-24-30Z.json`.
 
 Development screenshot:
 
