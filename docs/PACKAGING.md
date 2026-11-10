@@ -1,5 +1,19 @@
 # Packaging
 
+## Native Rust/C++ Preview
+
+Build a portable native preview without replacing the stable .NET deployment:
+
+```powershell
+.\native\build-package.ps1
+```
+
+The native preview contains the Rust GUI, C++ worker, RyzenAdj/WinRing0/InpOut
+runtime files, third-party notices, licenses, build metadata, and SHA256
+checksums. The build script extracts the ZIP into an isolated directory and
+reruns the GUI lifecycle, read-only worker, and write-control button gates.
+It is a migration artifact, not the stable `C:\RyzenAdj` deployment.
+
 ## Portable ZIP
 
 Build a self-contained Windows x64 portable package from a clean source tree:

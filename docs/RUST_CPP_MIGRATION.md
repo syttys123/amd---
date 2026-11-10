@@ -99,3 +99,8 @@ runs the write in a background thread so the window and tray remain responsive.
 The 45 W preset was exercised as a supervised no-change apply on the 8845HS;
 see
 `docs/evidence/hardware/mechrevo-wujie15-8845hs-native-gui-no-change-2026-11-10T12-24-30Z.json`.
+
+`native/build-package.ps1` creates a portable native preview ZIP with the GUI,
+C++ worker, runtime DLL/SYS files, notices, licenses, build metadata, and
+checksums. It extracts the ZIP and reruns the lifecycle/read-only/write-control
+UI gates before reporting success.

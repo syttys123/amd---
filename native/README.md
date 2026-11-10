@@ -73,6 +73,16 @@ The Rust GUI write controls are also opt-in:
 
 Without `-ExecuteNoChangePreset`, this only checks that the controls exist.
 
+Build and verify the portable native preview ZIP:
+
+```powershell
+.\native\build-package.ps1 -NoBuild
+```
+
+The resulting package is under `artifacts\native-packages`; the script extracts
+the ZIP and reruns the GUI lifecycle, read-only worker, and write-control
+button checks.
+
 ## Current Native Slice
 
 The native slice verifies the process boundary and the existing v1 JSON-lines
