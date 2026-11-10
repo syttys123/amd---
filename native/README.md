@@ -129,6 +129,15 @@ Build and verify the portable native preview ZIP:
 .\native\build-package.ps1 -NoBuild
 ```
 
+For a clean package gate that exercises the extracted GUI/worker and
+compatibility collector without executing the policy-save write:
+
+```powershell
+.\native\build-package.ps1 -NoBuild `
+  -Version 0.6.0-native-rc.10 `
+  -ReadOnlyRuntimeVerification
+```
+
 The resulting package is under `artifacts\native-packages`; the script extracts
 the ZIP and reruns the GUI lifecycle, read-only worker, and write-control
 button checks. It also exercises the packaged isolated install/uninstall flow
@@ -136,10 +145,12 @@ and verifies that the real Startup-folder and current-user uninstall registry
 integration does not change. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
 
-The current internal release candidate is `0.6.0-native-rc.10`; its hash and
-evidence are recorded in `docs/PACKAGING.md` and
-`docs/evidence/packaging/v0.6.0-native-rc.10-release-gate-2026-11-11.json`.
-The exact size and SHA256 will be recorded after the rc.10 aggregate gate.
+The current internal release candidate is `0.6.0-native-rc.10`: 524,702 bytes,
+SHA256
+`d59bf80b5b8874d52d77413a14490e171cb432d73fa26687c8c3cf04468e1e86`.
+Its read-only package gate is recorded in
+`docs/evidence/packaging/v0.6.0-native-rc.10-readonly-gate-2026-11-11.json`.
+The write-enabled no-change gate remains pending.
 
 Exercise the real Start menu, Startup shortcut, and current-user uninstall
 entry without launching the GUI:
@@ -150,8 +161,8 @@ entry without launching the GUI:
 
 The verifier refuses to overwrite an existing native-preview entry, records
 the result under `docs\evidence\packaging`, and removes every created artifact
-in a `finally` path. The recorded clean run is
-`docs/evidence/packaging/v0.6.0-native-rc.4-shell-integration-2026-11-10.json`.
+in a `finally` path. The current clean run is
+`docs/evidence/packaging/v0.6.0-native-rc.10-shell-integration-2026-11-11.json`.
 
 ## Current Native Slice
 

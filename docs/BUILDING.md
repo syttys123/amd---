@@ -154,6 +154,12 @@ The package path and hardware evidence requirements are documented in
 `-SkipRuntimeVerification` to `native\build-package.ps1`; the resulting ZIP is
 not a substitute for the hardware release gate.
 
+For a real-device package gate that verifies the extracted GUI, worker,
+compatibility collector, and install flow without executing a policy save, add
+`-ReadOnlyRuntimeVerification`. This records
+`PolicyWriteVerification=Skipped`; the normal write-enabled gate is still
+required before promotion.
+
 Run the native release gate from a clean worktree with a unique release
 version:
 

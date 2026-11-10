@@ -52,10 +52,15 @@ if (-not $NoBuild) {
 
 & (Join-Path $root "verify-power-policy.ps1") -NoBuild
 
-$null = & (Join-Path $root "build-package.ps1") `
-    -NoBuild `
-    -Version $Version `
-    -EvidencePath $packageEvidence
+$packageArguments = @{
+    NoBuild = $true
+    Version = $Version
+    EvidencePath = $packageEvidence
+}
+if (-not $ExecuteNoChangePolicy) {
+    $packageArguments.ReadOnlyRuntimeVerification = $true
+}
+$null = & (Join-Path $root "build-package.ps1") @packageArguments
 
 $shellStatus = "Not requested"
 if ($VerifyShellIntegration) {

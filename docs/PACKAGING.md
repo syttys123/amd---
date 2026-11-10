@@ -33,6 +33,21 @@ install/uninstall. It explicitly reports `RuntimeVerification=Skipped` and
 `CompatibilityCollector=Skipped`; those hardware gates remain required before
 promotion or release evidence.
 
+On a real device where the complete package must be verified without executing
+the policy-save write, use the read-only runtime gate:
+
+```powershell
+.\native\build-package.ps1 `
+  -NoBuild `
+  -ReadOnlyRuntimeVerification `
+  -Version 0.6.0-native-rc.10
+```
+
+This runs the extracted GUI/worker, write-control UI, diagnostics export,
+compatibility collector, checksums, and isolated install/uninstall flow while
+reporting `PolicyWriteVerification=Skipped`. The normal write-enabled path
+remains required before hardware promotion.
+
 For a local release candidate, run the aggregate native gate from a clean
 worktree:
 

@@ -11,21 +11,22 @@ The native package is not a drop-in replacement and will only be considered
 for promotion if it reaches feature and UI parity without regressing the
 current experience.
 
-Note (2026-11-11): `rc.9` supersedes `rc.8`. It adds schema-1 GUI diagnostics
-export in both read-only and write-enabled modes on top of the Chinese
-dashboard, editable quick presets, persistence, and tray-menu preset commands.
-Earlier evidence stays valid for the exact bytes each candidate describes.
+Note (2026-11-11): `rc.10` supersedes `rc.9`. It replaces the incremental native
+dashboard with a clean-room double-buffered UI, adds packaged read-only runtime
+verification that never enables a policy write, and closes the native simple/
+advanced UI parity gate. Earlier evidence stays valid for the exact bytes each
+candidate describes.
 
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.9-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.10-win-x64-native-preview.zip
 ```
 
-- Size: `474,790` bytes.
+- Size: `524,702` bytes.
 - SHA256:
-  `c4a3bfaf872a43a0a258f579a0f532ff87514816aec51827eb8b4c314fbba9b5`.
-- Source commit: `bdb0995298268faabf44ecb24492e0bbc7a70ef5`.
+  `d59bf80b5b8874d52d77413a14490e171cb432d73fa26687c8c3cf04468e1e86`.
+- Source commit: `e44b76195ade1b6479a71b486625e3e675909533`.
 - Working tree at build time: clean.
 
 ## Passed Gates
@@ -41,6 +42,13 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.9-win-x64-native-pre
 - GUI diagnostics export in read-only and write-enabled modes: schema-1 JSON
   parsed on the 8845HS AC snapshot, privacy fields verified, and no local path
   or pipe name present.
+- Clean-room native UI with a double-buffered custom canvas, four-region simple
+  mode, three-panel advanced mode, stable tabular telemetry, keyboard
+  navigation, focus rings, and the embedded title/taskbar/tray icon.
+- `0.6.0-native-rc.10` clean package verification with 16 checksum entries,
+  isolated install/uninstall, extracted GUI/worker read-only verification,
+  compatibility JSON/Markdown collection, and no policy write:
+  `PolicyWriteVerification=Skipped`.
 - GUI policy save with isolated `%LocalAppData%`.
 - Packaged compatibility collector with sanitized JSON.
 - Staged checksum verification for every package file.
@@ -57,19 +65,19 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.9-win-x64-native-pre
 
 Evidence:
 
-- `docs/evidence/packaging/v0.6.0-native-rc.9-release-gate-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.9-clean-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.9-shell-integration-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.10-readonly-gate-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.10-shell-integration-2026-11-11.json`
 - `docs/evidence/hardware/v0.6.0-native-rc.9-power-policy-no-change-2026-11-11.json`
 - `docs/evidence/ui/native-gui-editable-presets-2026-11-11.json`
 - `docs/evidence/ui/native-gui-diagnostics-export-2026-11-11.json`
+- `docs/evidence/ui/native-redesign-2026-11-11.json`
 
-Superseded candidates `0.6.0-native-rc.8` and earlier keep their own evidence.
+Superseded candidates `0.6.0-native-rc.9` and earlier keep their own evidence.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v0.6.0-native-rc.9
+artifacts/native-release-review/v0.6.0-native-rc.10
 ```
 
 Generate it with `native/prepare-release-review.ps1`; the bundle is
@@ -77,10 +85,12 @@ Generate it with `native/prepare-release-review.ps1`; the bundle is
 
 ## Open Gates
 
-- Feature and UI parity with the `.NET` GUI: the native preview still lacks the
-  `.NET` simple/advanced mode switch and the final structured layout.
 - At least one second physical AMD laptop must provide read-only compatibility
   evidence using `collect-native-diagnostics.ps1`.
+- Run the supervised `rc.10` no-change hardware policy/write gate with the
+  normal write-enabled release verifier before treating the UI redesign as
+  hardware-promotable. The current clean package gate deliberately skipped
+  policy writes.
 - Windows CI must be able to run after the repository account billing or
   spending-limit issue is resolved; the local and workflow definitions are
   already in place.

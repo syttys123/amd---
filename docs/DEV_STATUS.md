@@ -61,6 +61,16 @@ not authoritative.
 - Current redesign evidence is recorded in `docs/NATIVE_UI_REWRITE.md` with
   simple/advanced screenshots at 125% scaling. The native rewrite is not yet a
   stable deployment and has not replaced `C:\RyzenAdj`.
+- The clean native candidate is now `0.6.0-native-rc.10`: 524,702 bytes,
+  SHA256
+  `d59bf80b5b8874d52d77413a14490e171cb432d73fa26687c8c3cf04468e1e86`,
+  built from clean commit `e44b76195ade1b6479a71b486625e3e675909533`.
+- The rc.10 package passed 16-entry checksum verification, extracted GUI/worker
+  read-only verification, dialog/lifecycle checks, sanitized compatibility
+  JSON/Markdown generation, isolated install/uninstall, and real current-user
+  Start menu/Startup/uninstall-entry create-cleanup. Policy-write verification
+  was intentionally skipped in the clean read-only gate and remains the next
+  supervised hardware gate.
 
 ## Development Workflow
 
@@ -1051,18 +1061,16 @@ Development screenshot:
 - Broaden the packaged native worker's hardware matrix beyond the 8845HS and
   collect a second-device write/read-back smoke test; keep `1.0.4` as the
   stable fallback.
-- Bring the native Rust preview GUI to parity with the `.NET` GUI (simple and
-  advanced modes, final structured layout) before any promotion discussion.
-  Localized copy, policy editing, editable presets, persistence, tray preset
-  commands, and GUI diagnostics export already exist in the preview.
+- Run the supervised `rc.10` write-enabled no-change policy gate on the
+  8845HS before promotion. The clean package currently proves the complete
+  read-only runtime and install flow with `PolicyWriteVerification=Skipped`.
 
 ## Next Concrete Task
 
-Collect a read-only compatibility report from a second physical AMD laptop
-while `C:\RyzenAdj` stays on the verified `1.0.4` rollback point. Keep the
-existing named-pipe protocol and hardware-safety boundaries as the migration
-contract, and use the recorded native-preview packaging evidence as the
-baseline before promoting anything beyond the current stable deployment.
+Repeat the native redesign at 100% and 150% Windows scaling, then run the
+supervised `rc.10` no-change policy gate on the development 8845HS. Keep
+`C:\RyzenAdj` on the verified `1.0.4` rollback point and do not promote a dirty
+or write-unverified native package.
 
 The `.NET` GUI remains the shipped product. Native parity work continues on the
 side branch and does not gate `.NET` fixes or releases.

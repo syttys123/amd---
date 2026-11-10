@@ -75,10 +75,32 @@ The lite package is roughly 581 KB without the .NET runtime and requires the
 Microsoft .NET 8 Desktop Runtime x64. See `docs/PACKAGING.md` for build and
 runtime details.
 
+## Native Preview
+
+The `main` line now includes a clean-room Rust GUI with a
+C++ worker. The current read-only-verified candidate is
+`0.6.0-native-rc.10`:
+
+```text
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.10-win-x64-native-preview.zip
+```
+
+It is an internal candidate, not a replacement for the stable `C:\RyzenAdj`
+deployment. Its clean package gate passed extracted GUI/worker read-only
+verification, sanitized diagnostics, checksums, isolated install/uninstall,
+and current-user shell integration. The supervised policy-write gate remains
+open.
+
+![Native simple redesign](assets/native-gui-redesign-simple-2026-11-11.png)
+
+![Native advanced redesign](assets/native-gui-redesign-advanced-2026-11-11.png)
+
 ## Documentation
 
 - `docs/README.md` is the documentation index and authority order.
 - `docs/DEV_STATUS.md` records the current implementation and next task.
+- `docs/NATIVE_RC_STATUS.md` tracks the native candidate and release gates.
+- `docs/NATIVE_UI_REWRITE.md` records the clean-room native UI architecture.
 - `docs/UI_DESIGN_DATABASE.md` records the local design-system evidence and
   compact-window UI contracts.
 - `docs/SUPPORTED_HARDWARE.md` explains current compatibility evidence.
