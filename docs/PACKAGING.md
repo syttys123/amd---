@@ -51,7 +51,7 @@ After the release gate passes and the evidence is committed, create a local
 review-only bundle:
 
 ```powershell
-.\native\prepare-release-review.ps1 -Version 0.6.0-native-rc.3
+.\native\prepare-release-review.ps1 -Version 0.6.0-native-rc.4
 ```
 
 The command writes the ZIP, release gate, policy/shell evidence, notices,

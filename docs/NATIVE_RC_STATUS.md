@@ -41,7 +41,7 @@ Evidence:
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v0.6.0-native-rc.3
+artifacts/native-release-review/v0.6.0-native-rc.4
 ```
 
 Generate it with `native/prepare-release-review.ps1`; the bundle is
