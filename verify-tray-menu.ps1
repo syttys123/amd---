@@ -486,31 +486,38 @@ try {
     Start-Sleep -Milliseconds 350
 
     if ($VerifyShowFromTray -or $VerifyDoubleClickFromTray) {
-        Invoke-MouseClick -X $trayX -Y $trayY -RightButton $false
-        if ($VerifyDoubleClickFromTray) {
-            Start-Sleep -Milliseconds 120
-            Invoke-MouseClick -X $trayX -Y $trayY -RightButton $false
-        }
-        $deadline = [DateTime]::UtcNow.AddSeconds(8)
         $visibleWindow = $null
-        while ([DateTime]::UtcNow -lt $deadline) {
-            $gui.Refresh()
-            if ($gui.HasExited) {
-                throw "Packaged GUI exited after a tray-icon click."
+        for ($clickAttempt = 1; $clickAttempt -le 3; $clickAttempt++) {
+            Invoke-MouseClick -X $trayX -Y $trayY -RightButton $false
+            if ($VerifyDoubleClickFromTray) {
+                Start-Sleep -Milliseconds 120
+                Invoke-MouseClick -X $trayX -Y $trayY -RightButton $false
             }
-            $visibleWindow = Get-NativeWindows |
-                Where-Object {
-                    $_.ProcessId -eq [uint32]$gui.Id -and
-                    $_.Visible -and
-                    $_.ClassName.StartsWith(
-                        "WindowsForms10.Window.",
-                        [StringComparison]::Ordinal)
-                } |
-                Select-Object -First 1
+
+            $deadline = [DateTime]::UtcNow.AddSeconds(3)
+            while ([DateTime]::UtcNow -lt $deadline) {
+                $gui.Refresh()
+                if ($gui.HasExited) {
+                    throw "Packaged GUI exited after a tray-icon click."
+                }
+                $visibleWindow = Get-NativeWindows |
+                    Where-Object {
+                        $_.ProcessId -eq [uint32]$gui.Id -and
+                        $_.Visible -and
+                        $_.ClassName.StartsWith(
+                            "WindowsForms10.Window.",
+                            [StringComparison]::Ordinal)
+                    } |
+                    Select-Object -First 1
+                if ($visibleWindow) {
+                    break
+                }
+                Start-Sleep -Milliseconds 150
+            }
             if ($visibleWindow) {
                 break
             }
-            Start-Sleep -Milliseconds 150
+            Start-Sleep -Milliseconds 250
         }
         if (-not $visibleWindow) {
             throw "Packaged GUI did not become visible after a tray-icon click."
