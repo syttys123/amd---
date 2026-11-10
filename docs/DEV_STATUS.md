@@ -887,6 +887,16 @@ third_party/
   non-empty labels, family `16` must stay unsupported, and the catalog must
   expose at least eight distinct generations. This mirrors the `.NET`
   compatibility-matrix guarantee on the native side. Both C++ suites pass.
+- Enriched `native/collect-native-diagnostics.ps1` so a second-device report is
+  directly usable in `HARDWARE_MATRIX.md`: it now records `host.manufacturer`,
+  `host.model`, `host.biosVersion`, Windows edition/version/build, a
+  `privacy` block that declares no paths, PIDs, account names, serial numbers,
+  logs, or upload, and Markdown lines for system, BIOS, Windows, unsupported
+  reason, and per-limit capability flags. Verified by running the collector
+  beside the staged runtime: the host block resolved
+  `MECHREVO WUJIE15 PRO` / `T153_HPT_V05` / Windows `10.0.26300` and the
+  Markdown rendered the new sections. Hardware collection still fails closed
+  while the shipped `.NET` app owns RyzenAdj.
 
 Development screenshot:
 

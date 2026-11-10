@@ -129,11 +129,30 @@ finally {
 $build = Get-BuildInfo
 $platform = if ($null -ne $capabilities) { $capabilities.platform } else { $null }
 $telemetry = if ($null -ne $snapshot) { $snapshot.telemetry } else { $null }
+$computer = Get-CimInstance Win32_ComputerSystem -ErrorAction SilentlyContinue
+$bios = Get-CimInstance Win32_BIOS -ErrorAction SilentlyContinue
+$operatingSystem = Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue
 $report = [ordered]@{
     schemaVersion = 1
     reportType = "amd-mobile-power-native-compatibility"
     collectionStatus = if ($collectionError) { "FAILED" } else { "PASS" }
     collectedAt = (Get-Date).ToString("o")
+    privacy = [ordered]@{
+        localPathsIncluded = $false
+        processIdIncluded = $false
+        accountNamesIncluded = $false
+        serialNumbersIncluded = $false
+        recentLogsIncluded = $false
+        networkUploadPerformed = $false
+    }
+    host = [ordered]@{
+        manufacturer = if ($null -ne $computer) { $computer.Manufacturer } else { $null }
+        model = if ($null -ne $computer) { $computer.Model } else { $null }
+        biosVersion = if ($null -ne $bios) { $bios.SMBIOSBIOSVersion } else { $null }
+        windowsEdition = if ($null -ne $operatingSystem) { $operatingSystem.Caption } else { $null }
+        windowsVersion = if ($null -ne $operatingSystem) { $operatingSystem.Version } else { $null }
+        windowsBuild = if ($null -ne $operatingSystem) { $operatingSystem.BuildNumber } else { $null }
+    }
     package = [ordered]@{
         name = $build["Name"]
         version = $build["Version"]
@@ -228,6 +247,19 @@ if (-not [string]::IsNullOrWhiteSpace($MarkdownPath)) {
     else {
         "Unavailable"
     }
+    $systemName = if ($null -ne $computer) {
+        "$($computer.Manufacturer) $($computer.Model)".Trim()
+    }
+    else {
+        "Unavailable"
+    }
+    $limitCapabilities = if ($null -ne $platform) {
+        "STAPM=$($platform.limits.supportsStapm) Fast=$($platform.limits.supportsFast) " +
+            "Slow=$($platform.limits.supportsSlow) any=$($platform.limits.supportsAny)"
+    }
+    else {
+        "Unavailable"
+    }
     $lines = @(
         "# AMD Mobile Power Compatibility Report",
         "",
@@ -235,12 +267,17 @@ if (-not [string]::IsNullOrWhiteSpace($MarkdownPath)) {
         "- Collected at: $($report.collectedAt)",
         "- Package version: $($report.package.version)",
         "- Package source commit: $($report.package.sourceCommit)",
+        "- System: $systemName",
+        "- BIOS: $($report.host.biosVersion)",
+        "- Windows: $($report.host.windowsEdition) $($report.host.windowsBuild)",
         "- CPU: $processorName",
         "- RyzenAdj family: $familyName",
         "- SMU BIOS interface: $(if ($null -ne $platform) { $platform.cpu.smuBiosVersion } else { 'Unavailable' })",
         "- PM table: $(if ($null -ne $platform) { $platform.cpu.pmTableVersion } else { 'Unavailable' })",
         "- Matched profile: $profileName",
         "- Platform supported: $(if ($null -ne $platform) { $platform.isSupported } else { $false })",
+        "- Unsupported reason: $(if ($null -ne $platform -and $platform.unsupportedReason) { $platform.unsupportedReason } else { 'None' })",
+        "- Limit capabilities: $limitCapabilities",
         "- Power line: $(if ($null -ne $telemetry) { $telemetry.powerLine } else { 'Unavailable' })",
         "- Worker version: $($report.worker.version)",
         "- Hardware initialized: $($report.worker.hardwareInitialized)",
@@ -260,6 +297,8 @@ if (-not [string]::IsNullOrWhiteSpace($MarkdownPath)) {
 
 [pscustomobject]@{
     CollectionStatus = $report.collectionStatus
+    System = "$($report.host.manufacturer) $($report.host.model)".Trim()
+    BiosVersion = $report.host.biosVersion
     OutputPath = $OutputPath
     Processor = if ($null -ne $platform) {
         $platform.cpu.processorName.Trim()
