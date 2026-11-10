@@ -248,9 +248,9 @@ internal sealed class WorkerProcessController : IAsyncDisposable
             UseShellExecute = false,
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden,
-            Arguments = _allowHardwareWrites
-                ? "--enable-hardware --enable-write-controls"
-                : "--enable-hardware"
+            Arguments =
+                $"--parent-pid {Environment.ProcessId} --enable-hardware" +
+                (_allowHardwareWrites ? " --enable-write-controls" : string.Empty)
         };
 
         _workerProcess = _startWorkerProcess(startInfo);

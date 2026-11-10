@@ -1,7 +1,11 @@
 ﻿param(
     [string]$PackageDirectory = "artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite",
     [string]$ScreenshotPath = "docs\assets\tray-menu-clean-package-2026-11-10.png",
-    [switch]$VerifyGracefulExit
+    [switch]$VerifyGracefulExit,
+    [switch]$VerifyShowFromTray,
+    [switch]$VerifyOpenFromMenu,
+    [switch]$VerifyDoubleClickFromTray,
+    [switch]$VerifyParentExit
 )
 
 $ErrorActionPreference = "Stop"
@@ -340,6 +344,40 @@ try {
         throw "Packaged GUI exited before registering its tray icon."
     }
 
+    if ($VerifyParentExit) {
+        $worker = Get-Process -Name "AmdMobilePower.Worker" -ErrorAction SilentlyContinue |
+            Where-Object {
+                try {
+                    $_.Path.StartsWith(
+                        $packagePath + [IO.Path]::DirectorySeparatorChar,
+                        [StringComparison]::OrdinalIgnoreCase)
+                }
+                catch {
+                    $false
+                }
+            } |
+            Select-Object -First 1
+        if (-not $worker) {
+            throw "Packaged worker was not running before the parent-exit test."
+        }
+
+        Stop-Process -Id $gui.Id -Force
+        $deadline = [DateTime]::UtcNow.AddSeconds(8)
+        while ([DateTime]::UtcNow -lt $deadline) {
+            if (-not (Get-Process -Id $worker.Id -ErrorAction SilentlyContinue)) {
+                [pscustomobject]@{
+                    Verification = "PASS"
+                    GuiPid = $gui.Id
+                    WorkerPid = $worker.Id
+                    WorkerStopped = $true
+                } | Format-List
+                return
+            }
+            Start-Sleep -Milliseconds 200
+        }
+        throw "Packaged worker remained after the GUI process was terminated."
+    }
+
     $screenWidth = [AmdTrayNative]::GetSystemMetrics(0)
     $screenHeight = [AmdTrayNative]::GetSystemMetrics(1)
     [AmdTrayNative]::SetCursorPos(
@@ -446,6 +484,58 @@ try {
     $trayY = [int]($trayBounds.Top + ($trayBounds.Height / 2))
     [AmdTrayNative]::SetCursorPos($trayX, $trayY) | Out-Null
     Start-Sleep -Milliseconds 350
+
+    if ($VerifyShowFromTray -or $VerifyDoubleClickFromTray) {
+        Invoke-MouseClick -X $trayX -Y $trayY -RightButton $false
+        if ($VerifyDoubleClickFromTray) {
+            Start-Sleep -Milliseconds 120
+            Invoke-MouseClick -X $trayX -Y $trayY -RightButton $false
+        }
+        $deadline = [DateTime]::UtcNow.AddSeconds(8)
+        $visibleWindow = $null
+        while ([DateTime]::UtcNow -lt $deadline) {
+            $gui.Refresh()
+            if ($gui.HasExited) {
+                throw "Packaged GUI exited after a tray-icon click."
+            }
+            $visibleWindow = Get-NativeWindows |
+                Where-Object {
+                    $_.ProcessId -eq [uint32]$gui.Id -and
+                    $_.Visible -and
+                    $_.ClassName.StartsWith(
+                        "WindowsForms10.Window.",
+                        [StringComparison]::Ordinal)
+                } |
+                Select-Object -First 1
+            if ($visibleWindow) {
+                break
+            }
+            Start-Sleep -Milliseconds 150
+        }
+        if (-not $visibleWindow) {
+            throw "Packaged GUI did not become visible after a tray-icon click."
+        }
+        [pscustomobject]@{
+            Verification = "PASS"
+            NotificationText = $trayNotificationText
+            TrayIconBounds = (
+                "{0},{1},{2},{3}" -f
+                    [int]$trayBounds.Left,
+                    [int]$trayBounds.Top,
+                    [int]$trayBounds.Right,
+                    [int]$trayBounds.Bottom
+            )
+            WindowBounds = (
+                "{0},{1},{2},{3}" -f
+                    $visibleWindow.Rect.Left,
+                    $visibleWindow.Rect.Top,
+                    $visibleWindow.Rect.Right,
+                    $visibleWindow.Rect.Bottom
+            )
+        } | Format-List
+        return
+    }
+
     $menu = $null
     for ($attempt = 1; $attempt -le 3 -and -not $menu; $attempt++) {
         try {
@@ -491,6 +581,13 @@ try {
             $_.Current.Name -eq "退出"
         } |
         Select-Object -First 1
+    $openItem = $menuChildren |
+        Where-Object {
+            $_.Current.ControlType -eq
+                [System.Windows.Automation.ControlType]::MenuItem -and
+            $_.Current.Name -eq "打开 AMD Mobile Power"
+        } |
+        Select-Object -First 1
     foreach ($required in @(
         "打开 AMD Mobile Power",
         "刷新状态",
@@ -506,6 +603,59 @@ try {
     }
     if (@($menuItems | Where-Object { $_ -match "^\d+ W$" }).Count -ne 3) {
         throw "Tray menu must expose exactly three editable power presets."
+    }
+
+    if ($VerifyOpenFromMenu) {
+        if ($null -eq $openItem) {
+            throw "Tray open menu item is unavailable."
+        }
+        $invokePattern = $openItem.GetCurrentPattern(
+            [System.Windows.Automation.InvokePattern]::Pattern)
+        $invokePattern.Invoke()
+        $menuVisible = $false
+        $deadline = [DateTime]::UtcNow.AddSeconds(8)
+        $visibleWindow = $null
+        while ([DateTime]::UtcNow -lt $deadline) {
+            $gui.Refresh()
+            if ($gui.HasExited) {
+                throw "Packaged GUI exited after invoking the tray open action."
+            }
+            $visibleWindow = Get-NativeWindows |
+                Where-Object {
+                    $_.ProcessId -eq [uint32]$gui.Id -and
+                    $_.Visible -and
+                    $_.ClassName.StartsWith(
+                        "WindowsForms10.Window.",
+                        [StringComparison]::Ordinal)
+                } |
+                Select-Object -First 1
+            if ($visibleWindow) {
+                break
+            }
+            Start-Sleep -Milliseconds 150
+        }
+        if (-not $visibleWindow) {
+            throw "Packaged GUI did not become visible after the tray open action."
+        }
+        [pscustomobject]@{
+            Verification = "PASS"
+            NotificationText = $trayNotificationText
+            TrayIconBounds = (
+                "{0},{1},{2},{3}" -f
+                    [int]$trayBounds.Left,
+                    [int]$trayBounds.Top,
+                    [int]$trayBounds.Right,
+                    [int]$trayBounds.Bottom
+            )
+            WindowBounds = (
+                "{0},{1},{2},{3}" -f
+                    $visibleWindow.Rect.Left,
+                    $visibleWindow.Rect.Top,
+                    $visibleWindow.Rect.Right,
+                    $visibleWindow.Rect.Bottom
+            )
+        } | Format-List
+        return
     }
 
     $menuRect = $menu.Rect

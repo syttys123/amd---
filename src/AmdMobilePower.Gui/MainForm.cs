@@ -94,6 +94,7 @@ internal sealed class MainForm : Form
     private bool _applying;
     private bool _trayHintShown;
     private bool _exitRequested;
+    private bool _showQueued;
     private bool _syncingTargets;
     private UiMode _uiMode;
     private bool _topMost = UiStateStore.LoadTopMost();
@@ -1906,7 +1907,7 @@ internal sealed class MainForm : Form
         {
             Font = AppTheme.BodyBold
         };
-        openItem.Click += delegate { ShowFromTray(); };
+        openItem.Click += delegate { RequestShowFromTray(); };
         _trayMenu.Items.Add(openItem);
 
         ToolStripMenuItem refreshItem = new("刷新状态");
@@ -1964,11 +1965,11 @@ internal sealed class MainForm : Form
         {
             if (eventArgs.Button == MouseButtons.Left)
             {
-                ShowFromTray();
+                RequestShowFromTray();
             }
         };
-        _notifyIcon.DoubleClick += delegate { ShowFromTray(); };
-        _notifyIcon.BalloonTipClicked += delegate { ShowFromTray(); };
+        _notifyIcon.DoubleClick += delegate { RequestShowFromTray(); };
+        _notifyIcon.BalloonTipClicked += delegate { RequestShowFromTray(); };
         UpdatePresetButtons();
         UpdateDisplayModeControls();
     }
@@ -3052,16 +3053,44 @@ internal sealed class MainForm : Form
 
     private void ShowFromTray()
     {
-        if (IsDisposed)
+        if (IsDisposed || _exitRequested)
         {
             return;
         }
+        if (WindowState == FormWindowState.Minimized)
+        {
+            WindowState = FormWindowState.Normal;
+        }
         ShowInTaskbar = true;
         Opacity = 1;
-        Show();
-        WindowState = FormWindowState.Normal;
+        if (!Visible)
+        {
+            Show();
+        }
         Activate();
         BringToFront();
+    }
+
+    private void RequestShowFromTray()
+    {
+        if (IsDisposed || _exitRequested || _showQueued)
+        {
+            return;
+        }
+
+        _showQueued = true;
+        try
+        {
+            BeginInvoke(delegate
+            {
+                _showQueued = false;
+                ShowFromTray();
+            });
+        }
+        catch (InvalidOperationException)
+        {
+            _showQueued = false;
+        }
     }
 
     private void HideToTray()

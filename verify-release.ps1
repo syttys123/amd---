@@ -226,6 +226,8 @@ try {
     }
 
     $trayMenu = "Not requested"
+    $trayRecovery = "Not requested"
+    $trayParentExit = "Not requested"
     $trayMenuScreenshot = $null
     if ($VerifyTrayMenu) {
         $trayVerifyDirectory = Join-Path $artifacts "verify"
@@ -238,6 +240,26 @@ try {
             -ScreenshotPath $trayMenuScreenshot `
             -VerifyGracefulExit:$VerifyTrayExit
         $trayMenu = "PASS"
+
+        & (Join-Path $root "verify-tray-menu.ps1") `
+            -PackageDirectory $stage `
+            -ScreenshotPath $trayMenuScreenshot `
+            -VerifyShowFromTray | Out-Null
+        & (Join-Path $root "verify-tray-menu.ps1") `
+            -PackageDirectory $stage `
+            -ScreenshotPath $trayMenuScreenshot `
+            -VerifyDoubleClickFromTray | Out-Null
+        & (Join-Path $root "verify-tray-menu.ps1") `
+            -PackageDirectory $stage `
+            -ScreenshotPath $trayMenuScreenshot `
+            -VerifyOpenFromMenu | Out-Null
+        $trayRecovery = "PASS"
+
+        & (Join-Path $root "verify-tray-menu.ps1") `
+            -PackageDirectory $stage `
+            -ScreenshotPath $trayMenuScreenshot `
+            -VerifyParentExit | Out-Null
+        $trayParentExit = "PASS"
     }
 
     $diagnostics = "Not requested"
@@ -342,6 +364,8 @@ try {
         Licenses = $licenses.Count
         ShellIntegration = $shellIntegration
         TrayMenu = $trayMenu
+        TrayRecovery = $trayRecovery
+        TrayParentExit = $trayParentExit
         TrayExit = if ($VerifyTrayExit) { "PASS" } else { "Not requested" }
         TrayMenuScreenshot = $trayMenuScreenshot
         Diagnostics = $diagnostics

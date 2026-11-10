@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using AmdMobilePower.Core.Contracts;
 using AmdMobilePower.Core.Diagnostics;
 using AmdMobilePower.Core.Hardware;
@@ -9,6 +10,7 @@ bool enableHardware = false;
 bool enableWrites = false;
 string? ryzenAdjDirectory = null;
 string? profilesDirectory = null;
+int? parentProcessId = null;
 for (int index = 0; index < args.Length - 1; index++)
 {
     if (args[index] == "--pipe-name")
@@ -22,6 +24,11 @@ for (int index = 0; index < args.Length - 1; index++)
     else if (args[index] == "--profiles-dir")
     {
         profilesDirectory = args[index + 1];
+    }
+    else if (args[index] == "--parent-pid" &&
+        int.TryParse(args[index + 1], out int parsedParentProcessId))
+    {
+        parentProcessId = parsedParentProcessId;
     }
 }
 for (int index = 0; index < args.Length; index++)
@@ -98,6 +105,7 @@ profilesDirectory ??= Directory.Exists(Path.Combine(AppContext.BaseDirectory, "p
 IReadOnlyList<PlatformProfile> profiles = ProfileRepository.LoadDirectory(profilesDirectory);
 
 using CancellationTokenSource shutdown = new();
+StartParentProcessMonitor(parentProcessId, shutdown);
 Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs eventArgs)
 {
     eventArgs.Cancel = true;
@@ -141,4 +149,41 @@ static string FormatHardwareOwner(HardwareProcessConflict conflict)
     return conflict.ProcessId is { } processId
         ? $"{conflict.ProcessName} (PID {processId})"
         : conflict.ProcessName;
+}
+
+static void StartParentProcessMonitor(
+    int? parentProcessId,
+    CancellationTokenSource shutdown)
+{
+    if (parentProcessId is not int parentId || parentId <= 0)
+    {
+        return;
+    }
+
+    Thread monitor = new((ThreadStart)delegate
+    {
+        try
+        {
+            using Process parent = Process.GetProcessById(parentId);
+            parent.WaitForExit();
+        }
+        catch (ArgumentException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+
+        if (!shutdown.IsCancellationRequested)
+        {
+            AppDiagnostics.Worker.Warning(
+                $"Parent GUI process {parentId} exited; shutting down worker.");
+            shutdown.Cancel();
+        }
+    })
+    {
+        IsBackground = true,
+        Name = "AMD Mobile Power parent monitor"
+    };
+    monitor.Start();
 }
