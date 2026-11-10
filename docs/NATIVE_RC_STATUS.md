@@ -8,18 +8,19 @@ the already deployed .NET `1.0.4` stable package.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.4-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.5-win-x64-native-preview.zip
 ```
 
-- Size: `453,796` bytes.
+- Size: `453,798` bytes.
 - SHA256:
-  `98858df304ad4507a842176e8237bb75ac4059926bca43ac05d9e8b4c0f05933`.
-- Source commit: `d6af6a931f4ccc63faef30b3515b4253309c5111`.
+  `d94879ba6c1b1d508ec00868a18212480c045f1e6cc6a7fa46ca7fc9f666f50d`.
+- Source commit: `358835fce7cb6f972f899077db4cc1c6b6095bab`.
 - Working tree at build time: clean.
 
 ## Passed Gates
 
-- Rust GUI lifecycle, tray restore, close-to-tray, and single-instance wake-up.
+- Rust GUI lifecycle, three Win32 minimize/restore cycles, tray restore,
+  close-to-tray, and single-instance wake-up.
 - C++ power-limit policy and battery/AC policy tests.
 - Read-only hardware capability and telemetry probe on Ryzen 7 8845HS.
 - Native write-control guard and profile-aware target validation.
@@ -28,20 +29,23 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.4-win-x64-native-pre
 - Staged checksum verification for every package file.
 - Isolated install and uninstall.
 - Real Start menu, Startup shortcut, and uninstall-entry create/remove cycle.
-- AC `45/45/45 W` no-change policy write/read-back, disable, and graceful
-  worker shutdown.
+- Read-only AC and battery policy plan with the write gate rejecting
+  `setPowerPolicy` while writes are disabled.
 
 Evidence:
 
-- `docs/evidence/packaging/v0.6.0-native-rc.4-release-gate-2026-11-10.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.4-clean-2026-11-10.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.4-shell-integration-2026-11-10.json`
-- `docs/evidence/hardware/v0.6.0-native-rc.4-power-policy-no-change-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.5-release-gate-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.5-clean-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.5-shell-integration-2026-11-10.json`
+
+Superseded candidate `0.6.0-native-rc.4` kept its AC `45/45/45 W` no-change
+policy write/read-back in
+`docs/evidence/hardware/v0.6.0-native-rc.4-power-policy-no-change-2026-11-10.json`.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v0.6.0-native-rc.4
+artifacts/native-release-review/v0.6.0-native-rc.5
 ```
 
 Generate it with `native/prepare-release-review.ps1`; the bundle is
@@ -49,6 +53,10 @@ Generate it with `native/prepare-release-review.ps1`; the bundle is
 
 ## Open Gates
 
+- A controlled AC session must rerun the no-change hardware policy write for
+  `rc.5` at `45/45/45 W`. The `rc.4` run is preserved, but the current read-only
+  plan rounds the firmware-dynamic STAPM limit, so the write test is not run
+  unattended.
 - At least one second physical AMD laptop must provide read-only compatibility
   evidence using `collect-native-diagnostics.ps1`.
 - Windows CI must be able to run after the repository account billing or

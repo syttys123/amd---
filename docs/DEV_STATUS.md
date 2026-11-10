@@ -829,6 +829,24 @@ third_party/
   bundle containing the current RC package, evidence, notices, documentation,
   manifest, and SHA256 list without uploading or changing the stable
   deployment.
+- Made `native/verify-release.ps1` drift-aware: a verified package stays valid
+  while HEAD only advances over `docs/` or root-level Markdown, and any change
+  to runtime, build, CI, or packaging paths still invalidates it. Previously a
+  single documentation commit invalidated an otherwise identical package and
+  forced a rebuild.
+- Rebuilt the native candidate as `0.6.0-native-rc.5` from clean commit
+  `358835f`. The local gate passed the offline build, C++ policy tests, 14 Rust
+  GUI tests, read-only 8845HS hardware capability/telemetry
+  (`43.45/45/45 W` on AC), the write-control guard, the read-only policy plan
+  and write gate, package checksum verification, isolated install/uninstall,
+  and real Start menu/Startup/uninstall-entry integration. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.5-release-gate-2026-11-10.json`.
+- Left the `rc.5` hardware no-change policy write for a controlled AC session
+  instead of running it unattended. `verify-power-policy.ps1
+  -ExecuteNoChangePolicy` derives its STAPM target from
+  `get_stapm_limit`, which this firmware reports dynamically (`43.45 W` right
+  now), so the "no-change" writer can round STAPM down and pin it below the
+  `45 W` that `rc.4` recorded. The `rc.4` no-change evidence is preserved.
 
 Development screenshot:
 

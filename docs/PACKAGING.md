@@ -87,24 +87,26 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 Current internal native release candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.4-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.5-win-x64-native-preview.zip
 ```
 
-- Size: `453,796` bytes.
+- Size: `453,798` bytes.
 - SHA256:
-  `98858df304ad4507a842176e8237bb75ac4059926bca43ac05d9e8b4c0f05933`.
-- Source commit: `d6af6a931f4ccc63faef30b3515b4253309c5111`.
+  `d94879ba6c1b1d508ec00868a18212480c045f1e6cc6a7fa46ca7fc9f666f50d`.
+- Source commit: `358835fce7cb6f972f899077db4cc1c6b6095bab`.
 - Working tree at build time: clean.
-- Runtime verification: hardware read-only/write-guard, GUI lifecycle, policy
-  save, compatibility collector, isolated install/uninstall, and real shell
-  integration passed.
-- No-change policy write: AC `45/45/45 W` read back as `45/45/45 W`.
+- Runtime verification: hardware read-only/write-guard, GUI lifecycle with
+  three Win32 minimize/restore cycles, policy read-only plan, compatibility
+  collector, isolated install/uninstall, and real shell integration passed.
+- Hardware policy write: deferred to a controlled AC session. The read-only
+  plan rounds the firmware-dynamic STAPM limit, so the automatic no-change
+  writer is not run unattended.
 - Aggregate evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.4-release-gate-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.5-release-gate-2026-11-10.json`.
 - Package evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.4-clean-2026-11-10.json`.
-- Hardware policy evidence:
-  `docs/evidence/hardware/v0.6.0-native-rc.4-power-policy-no-change-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.5-clean-2026-11-10.json`.
+- Shell evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.5-shell-integration-2026-11-10.json`.
 
 This RC is not yet the public stable release: a second physical AMD laptop
 still needs read-only compatibility evidence before promotion beyond the
