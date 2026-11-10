@@ -719,6 +719,23 @@ third_party/
   exit, dashboard, read-only diagnostics, a write-mode GUI/worker launch, and a
   deployed no-change hardware test. Evidence:
   `docs/evidence/packaging/v1.0.4-deployment-2026-11-10.json`.
+- Re-verified the deployed `C:\RyzenAdj` package in place: all 39 SHA-256
+  entries matched, and the packaged read-only dashboard gate passed with the
+  complete `AMD Mobile Power` header, `动态上限 45.0 W · 电源`, an absent bottom
+  `详情` button, status overlap PASS, and zero target-left artifact pixels.
+- Fixed two defects found during that re-verification. `verify-dashboard.ps1`
+  was not DPI aware, so at 125% scaling `GetWindowRect` and `CopyFromScreen`
+  returned virtualized logical pixels and captured a `574x438` crop of the real
+  `718x547` window. The `简洁/高级/置顶` header controls and the connection badge
+  sat outside the capture, so the automated checks never covered them. The
+  verifier now calls `SetProcessDpiAwarenessContext(PER_MONITOR_AWARE_V2)`
+  before launching the GUI and captures the full physical window.
+- The simple-mode `快捷功耗` strip label wrapped to two lines and clipped its
+  second line in a fixed 52 px column. The column is now sized from
+  `TextRenderer.MeasureText` so the label renders on one line at 125% scaling.
+  Verified by rebuilding the Lite package, re-running `verify-dashboard.ps1`
+  against it, and confirming the full-window capture in
+  `assets/main-dashboard-simple-dpi-2026-11-10.png` with 71/71 tests passing.
 
 Development screenshot:
 
@@ -740,11 +757,17 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Start the Rust GUI and C++ privileged-worker migration in a separate branch
-while `C:\RyzenAdj` stays on the verified `1.0.4` rollback point. Keep the
-existing named-pipe protocol and hardware-safety boundaries as the migration
-contract, and require the same lifecycle, tray, diagnostics, and no-change
-hardware gates before replacing the stable deployment.
+The `.NET` GUI at `C:\RyzenAdj` (`1.0.4`) remains the shipped product and daily
+driver. Continue hardening it on `main`: keep the dashboard, tray, lifecycle,
+diagnostics, and no-change hardware gates green for every change, and ship the
+next patch as a normal verified package with a recoverable backup of the
+previous deployment.
+
+The Rust GUI and C++ privileged-worker migration continues in the separate
+`main` branch as an experimental preview. It must reach
+feature and UI parity and pass the same lifecycle, tray, diagnostics, and
+no-change hardware gates before it is considered for replacing the stable
+deployment.
 
 ## Known Risks
 

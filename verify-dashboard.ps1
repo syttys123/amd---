@@ -56,8 +56,24 @@ public static class AmdDashboardNative
 
     [DllImport("user32.dll")]
     public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
+
+    public static readonly IntPtr DpiAwarenessPerMonitorV2 = new IntPtr(-4);
 }
 '@
+
+# GetWindowRect and CopyFromScreen return virtualized logical pixels unless the
+# verification process is DPI-aware. Without this, a 125% display yields a
+# cropped screenshot that silently skips the header mode controls and the
+# connection badge on the right edge of the window.
+try {
+    [AmdDashboardNative]::SetProcessDpiAwarenessContext(
+        [AmdDashboardNative]::DpiAwarenessPerMonitorV2) | Out-Null
+}
+catch {
+}
 
 function Stop-PackageProcesses {
     Get-Process -Name "AmdMobilePower", "AmdMobilePower.Worker" -ErrorAction SilentlyContinue |
