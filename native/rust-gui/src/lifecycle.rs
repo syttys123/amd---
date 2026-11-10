@@ -133,9 +133,7 @@ impl LifecycleState {
                         self.visibility = WindowVisibility::Minimized;
                         Transition::accepted(vec![LifecycleAction::MinimizeWindow])
                     }
-                    WindowVisibility::Minimized | WindowVisibility::Hidden => {
-                        Transition::ignored()
-                    }
+                    WindowVisibility::Minimized | WindowVisibility::Hidden => Transition::ignored(),
                 }
             }
             LifecycleEvent::WindowMinimized => {
@@ -206,9 +204,7 @@ impl LifecycleState {
                     LifecycleAction::BringToForeground,
                 ])
             }
-            LifecycleEvent::TrayExitRequested | LifecycleEvent::ExitRequested => {
-                self.stop()
-            }
+            LifecycleEvent::TrayExitRequested | LifecycleEvent::ExitRequested => self.stop(),
         }
     }
 
@@ -252,9 +248,8 @@ mod tests {
     fn startup_can_hide_directly_to_tray() {
         let mut state = LifecycleState::default();
 
-        let transition = state.handle_event(LifecycleEvent::StartupRequested {
-            start_hidden: true,
-        });
+        let transition =
+            state.handle_event(LifecycleEvent::StartupRequested { start_hidden: true });
 
         assert_eq!(
             transition,

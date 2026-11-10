@@ -3,29 +3,38 @@
 use amd_mobile_power_gui::lifecycle::{
     LifecycleAction, LifecycleEvent, LifecycleState, Transition, WindowVisibility,
 };
+use amd_mobile_power_gui::worker::{SnapshotPayload, WorkerClient, DEFAULT_PIPE_NAME};
 use std::ffi::c_void;
 use std::mem::size_of;
+use std::os::windows::process::CommandExt;
+use std::path::PathBuf;
+use std::process::{Child, Command, Stdio};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::thread::{self, JoinHandle};
+use std::time::Duration;
 use windows_sys::Win32::Foundation::{
     CloseHandle, GetLastError, ERROR_ALREADY_EXISTS, HANDLE, HWND, LPARAM, LRESULT, WPARAM,
 };
 use windows_sys::Win32::Graphics::Gdi::{UpdateWindow, HBRUSH};
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
+use windows_sys::Win32::System::SystemServices::SS_LEFT;
 use windows_sys::Win32::System::Threading::CreateMutexW;
 use windows_sys::Win32::UI::Shell::{
     Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE, NOTIFYICONDATAW,
 };
+use windows_sys::Win32::UI::WindowsAndMessaging::SC_MINIMIZE;
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     AppendMenuW, CreatePopupMenu, CreateWindowExW, DefWindowProcW, DestroyMenu, DestroyWindow,
     DispatchMessageW, FindWindowW, GetCursorPos, GetMessageW, GetWindowLongPtrW, LoadCursorW,
     LoadIconW, PostMessageW, PostQuitMessage, RegisterClassExW, SetForegroundWindow,
-    SetWindowLongPtrW, ShowWindow, TrackPopupMenu, TranslateMessage, CW_USEDEFAULT,
-    CS_HREDRAW, CS_VREDRAW, GWLP_USERDATA, HMENU, IDC_ARROW, IDI_APPLICATION, MF_SEPARATOR,
+    SetWindowLongPtrW, SetWindowTextW, ShowWindow, TrackPopupMenu, TranslateMessage, CS_HREDRAW,
+    CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, HMENU, IDC_ARROW, IDI_APPLICATION, MF_SEPARATOR,
     MF_STRING, MSG, SIZE_MINIMIZED, SIZE_RESTORED, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL,
     TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION,
     WM_LBUTTONUP, WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOMMAND,
-    WNDCLASSEXW, WS_EX_APPWINDOW, WS_OVERLAPPEDWINDOW,
+    WNDCLASSEXW, WS_CHILD, WS_EX_APPWINDOW, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
 };
-use windows_sys::Win32::UI::WindowsAndMessaging::SC_MINIMIZE;
 
 const APP_TITLE: &str = "AMD Mobile Power - Rust GUI Preview";
 const WINDOW_CLASS: &str = "AmdMobilePower.RustGui.Migration.v1";
@@ -33,12 +42,18 @@ const MUTEX_NAME: &str = "Local\\AmdMobilePower.RustGui.Migration.v1";
 const TRAY_ICON_ID: u32 = 1;
 const WM_APP_WAKE: u32 = WM_APP + 1;
 const WM_APP_TRAY: u32 = WM_APP + 2;
+const WM_APP_STATUS: u32 = WM_APP + 3;
 const MENU_SHOW: usize = 1;
 const MENU_EXIT: usize = 2;
 
 struct GuiApp {
     state: LifecycleState,
     _mutex: HANDLE,
+    status_label: HWND,
+    stop_monitor: Arc<AtomicBool>,
+    monitor_thread: Option<JoinHandle<()>>,
+    worker_child: Option<Child>,
+    worker_pipe: String,
 }
 
 impl GuiApp {
@@ -46,6 +61,45 @@ impl GuiApp {
         Self {
             state: LifecycleState::default(),
             _mutex: mutex,
+            status_label: std::ptr::null_mut(),
+            stop_monitor: Arc::new(AtomicBool::new(false)),
+            monitor_thread: None,
+            worker_child: None,
+            worker_pipe: String::new(),
+        }
+    }
+}
+
+impl Drop for GuiApp {
+    fn drop(&mut self) {
+        self.stop_monitor.store(true, Ordering::SeqCst);
+        if let Some(thread) = self.monitor_thread.take() {
+            let _ = thread.join();
+        }
+        if let Some(mut child) = self.worker_child.take() {
+            if !self.worker_pipe.is_empty() {
+                let _ = WorkerClient::new(self.worker_pipe.clone()).shutdown();
+            }
+            let _ = child.try_wait();
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Options {
+    start_hidden: bool,
+    pipe_name: String,
+    worker_executable: Option<PathBuf>,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            start_hidden: false,
+            pipe_name: DEFAULT_PIPE_NAME.to_owned(),
+            worker_executable: None,
         }
     }
 }
@@ -60,8 +114,183 @@ fn write_wide(buffer: &mut [u16], value: &str) {
     buffer[encoded.len()] = 0;
 }
 
+fn format_watts(value: Option<f64>) -> String {
+    match value {
+        Some(value) => format!("{value:.2} W"),
+        None => "n/a".to_owned(),
+    }
+}
+
+fn format_celsius(value: Option<f64>) -> String {
+    match value {
+        Some(value) => format!("{value:.1} C"),
+        None => "n/a".to_owned(),
+    }
+}
+
+fn format_snapshot(snapshot: &SnapshotPayload) -> String {
+    let cpu = &snapshot.platform.cpu;
+    let limits = &snapshot.platform.limits;
+    let telemetry = &snapshot.telemetry;
+    let support = if snapshot.platform.is_supported {
+        "supported"
+    } else {
+        snapshot
+            .platform
+            .unsupported_reason
+            .as_deref()
+            .unwrap_or("unsupported")
+    };
+
+    format!(
+        concat!(
+            "Worker: connected\n",
+            "CPU: {}\n",
+            "Family: {} {}\n",
+            "PM table: {}\n",
+            "Power source: {}\n",
+            "\n",
+            "Target: {}\n",
+            "STAPM like target: {}\n",
+            "Fast limit: {}\n",
+            "Slow limit: {}\n",
+            "Temperature: {}\n",
+            "\n",
+            "Capabilities: STAPM={} Fast={} Slow={}\n",
+            "Platform: {}\n",
+            "Firmware clamp: {}\n",
+            "Updated: {}"
+        ),
+        cpu.processor_name,
+        cpu.ryzen_adj_family
+            .map(|value| value.to_string())
+            .unwrap_or_else(|| "n/a".to_owned()),
+        cpu.ryzen_adj_family_name.as_deref().unwrap_or(""),
+        cpu.pm_table_version.as_deref().unwrap_or("n/a"),
+        telemetry.power_line,
+        format_watts(telemetry.target_watts),
+        format_watts(telemetry.stapm_limit_watts),
+        format_watts(telemetry.fast_limit_watts),
+        format_watts(telemetry.slow_limit_watts),
+        format_celsius(telemetry.tctl_value_celsius),
+        limits.supports_stapm,
+        limits.supports_fast,
+        limits.supports_slow,
+        support,
+        telemetry.has_firmware_clamp,
+        telemetry.updated_at.as_deref().unwrap_or("n/a")
+    )
+}
+
+fn parse_options() -> Result<Options, String> {
+    let mut options = Options::default();
+    let mut arguments = std::env::args().skip(1);
+    while let Some(argument) = arguments.next() {
+        match argument.as_str() {
+            "--tray" => options.start_hidden = true,
+            "--pipe-name" => {
+                options.pipe_name = arguments
+                    .next()
+                    .ok_or_else(|| "--pipe-name requires a value".to_owned())?;
+            }
+            "--worker-executable" => {
+                options.worker_executable =
+                    Some(PathBuf::from(arguments.next().ok_or_else(|| {
+                        "--worker-executable requires a value".to_owned()
+                    })?));
+            }
+            value => return Err(format!("unknown argument: {value}")),
+        }
+    }
+    Ok(options)
+}
+
+fn worker_executable_path(options: &Options) -> Option<PathBuf> {
+    if let Some(path) = &options.worker_executable {
+        return path.is_file().then(|| path.clone());
+    }
+
+    std::env::current_exe()
+        .ok()
+        .and_then(|path| path.parent().map(|parent| parent.to_path_buf()))
+        .map(|directory| directory.join("amdmobilepower_native_worker.exe"))
+        .filter(|path| path.is_file())
+}
+
+fn start_worker(options: &Options) -> Result<Option<Child>, String> {
+    let client = WorkerClient::new(options.pipe_name.clone());
+    if client.health().is_ok() {
+        return Ok(None);
+    }
+
+    let Some(executable) = worker_executable_path(options) else {
+        return Ok(None);
+    };
+    let child = Command::new(&executable)
+        .arg("--pipe-name")
+        .arg(&options.pipe_name)
+        .arg("--enable-hardware")
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .creation_flags(0x08000000)
+        .spawn()
+        .map_err(|error| format!("unable to start {}: {error}", executable.display()))?;
+    Ok(Some(child))
+}
+
 unsafe fn app_from_window(hwnd: HWND) -> *mut GuiApp {
     GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut GuiApp
+}
+
+unsafe fn post_status(hwnd: HWND, text: String) {
+    let pointer = Box::into_raw(Box::new(text));
+    if PostMessageW(hwnd, WM_APP_STATUS, 0, pointer as isize) == 0 {
+        drop(Box::from_raw(pointer));
+    }
+}
+
+fn start_worker_monitor(
+    hwnd_address: usize,
+    pipe_name: String,
+    stop: Arc<AtomicBool>,
+) -> JoinHandle<()> {
+    thread::spawn(move || {
+        let hwnd = hwnd_address as HWND;
+        let client = WorkerClient::new(pipe_name);
+        while !stop.load(Ordering::SeqCst) {
+            let text = match client.snapshot() {
+                Ok(snapshot) => format_snapshot(&snapshot),
+                Err(error) => format!("Worker: unavailable\n{error}"),
+            };
+            unsafe {
+                post_status(hwnd, text);
+            }
+            thread::sleep(Duration::from_secs(1));
+        }
+    })
+}
+
+unsafe fn create_status_label(
+    hwnd: HWND,
+    instance: windows_sys::Win32::Foundation::HINSTANCE,
+) -> HWND {
+    let class_name = wide("STATIC");
+    let text = wide("Connecting to worker...");
+    CreateWindowExW(
+        0,
+        class_name.as_ptr(),
+        text.as_ptr(),
+        WS_CHILD | WS_VISIBLE | SS_LEFT,
+        18,
+        18,
+        580,
+        300,
+        hwnd,
+        std::ptr::null_mut(),
+        instance,
+        std::ptr::null(),
+    )
 }
 
 unsafe fn apply_actions(hwnd: HWND, transition: Transition) {
@@ -89,11 +318,7 @@ unsafe fn apply_actions(hwnd: HWND, transition: Transition) {
     }
 }
 
-unsafe fn dispatch(
-    app: &mut GuiApp,
-    hwnd: HWND,
-    event: LifecycleEvent,
-) -> Transition {
+unsafe fn dispatch(app: &mut GuiApp, hwnd: HWND, event: LifecycleEvent) -> Transition {
     let transition = app.state.handle_event(event);
     apply_actions(hwnd, transition.clone());
     transition
@@ -202,6 +427,17 @@ unsafe extern "system" fn window_proc(
             }
             0
         }
+        WM_APP_STATUS => {
+            let pointer = lparam as *mut String;
+            if !pointer.is_null() {
+                let text = Box::from_raw(pointer);
+                if !app.status_label.is_null() {
+                    let text = wide(&text);
+                    SetWindowTextW(app.status_label, text.as_ptr());
+                }
+            }
+            0
+        }
         WM_COMMAND => {
             match wparam & 0xFFFF {
                 MENU_SHOW => {
@@ -236,6 +472,7 @@ fn main() {
 }
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let options = parse_options()?;
     let instance = unsafe { GetModuleHandleW(std::ptr::null()) };
     if instance.is_null() {
         return Err("GetModuleHandleW returned null".into());
@@ -300,16 +537,35 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let app = Box::into_raw(Box::new(GuiApp::new(mutex)));
     unsafe {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, app as isize);
+        (*app).status_label = create_status_label(hwnd, instance);
     }
 
-    let start_hidden = std::env::args().any(|argument| argument == "--tray");
+    match start_worker(&options) {
+        Ok(child) => unsafe {
+            (*app).worker_child = child;
+            (*app).worker_pipe = options.pipe_name.clone();
+        },
+        Err(error) => unsafe {
+            let text = wide(&format!("Worker start failed\n{error}"));
+            SetWindowTextW((*app).status_label, text.as_ptr());
+        },
+    }
+    let monitor = start_worker_monitor(hwnd as usize, options.pipe_name.clone(), unsafe {
+        (*app).stop_monitor.clone()
+    });
+    unsafe {
+        (*app).monitor_thread = Some(monitor);
+    }
+
     unsafe {
         dispatch(
             &mut *app,
             hwnd,
-            LifecycleEvent::StartupRequested { start_hidden },
+            LifecycleEvent::StartupRequested {
+                start_hidden: options.start_hidden,
+            },
         );
-        if !start_hidden {
+        if !options.start_hidden {
             ShowWindow(hwnd, SW_SHOWNORMAL);
             UpdateWindow(hwnd);
         }

@@ -23,7 +23,7 @@ Run the native interoperability gate:
 Run the read-only hardware gate after building the RyzenAdj runtime:
 
 ```powershell
-.\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui
+.\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui -VerifyRustWorker
 ```
 
 Run the Rust GUI lifecycle gate:
@@ -40,6 +40,10 @@ The script builds:
 - `native\rust-gui` with Cargo and runs its lifecycle state-machine tests.
 - `native\rust-probe` with Cargo.
 - `native\cpp-worker` with the Visual Studio CMake toolchain.
+
+When the RyzenAdj runtime is staged, `native\build.ps1` also creates
+`artifacts\native-build\gui-runtime` with the Rust GUI, C++ worker, and required
+hardware DLL/Driver files beside each other.
 
 ## First Vertical Slice
 

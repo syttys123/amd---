@@ -1,5 +1,9 @@
 param(
-    [switch]$NoBuild
+    [switch]$NoBuild,
+    [switch]$VerifyWorker,
+    [string]$GuiExecutable,
+    [string]$WorkerExecutable,
+    [string]$PipeName
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,6 +12,9 @@ $root = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $root
 $manifest = Join-Path $root "rust-gui\Cargo.toml"
 $executable = Join-Path $root "rust-gui\target\release\amd-mobile-power-gui.exe"
+if ($GuiExecutable) {
+    $executable = (Resolve-Path -LiteralPath $GuiExecutable).Path
+}
 
 if (-not $NoBuild) {
     & cargo build `
@@ -26,9 +33,12 @@ if (-not (Test-Path -LiteralPath $executable)) {
 
 Add-Type @"
 using System;
+using System.Text;
 using System.Runtime.InteropServices;
 
 public static class AmdMobilePowerRustGuiNative {
+    public delegate bool EnumChildProc(IntPtr hwnd, IntPtr lparam);
+
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 
@@ -44,13 +54,24 @@ public static class AmdMobilePowerRustGuiNative {
         uint msg,
         UIntPtr wParam,
         IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    public static extern bool EnumChildWindows(
+        IntPtr parent,
+        EnumChildProc callback,
+        IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetWindowText(
+        IntPtr hWnd,
+        StringBuilder text,
+        int count);
 }
 "@
 
 $wmCommand = 0x0111
 $wmClose = 0x0010
 $wmApp = 0x8000
-$wmAppWake = $wmApp + 1
 $wmAppTray = $wmApp + 2
 $wmLButtonUp = 0x0202
 $swMinimize = 6
@@ -112,21 +133,97 @@ function Post-GuiMessage {
     }
 }
 
+function Get-GuiStatusText {
+    param(
+        [IntPtr]$Window
+    )
+
+    $script:statusText = ""
+    $callback = [AmdMobilePowerRustGuiNative+EnumChildProc]{
+        param($child, $lparam)
+        $text = New-Object System.Text.StringBuilder 8192
+        [AmdMobilePowerRustGuiNative]::GetWindowText(
+            $child,
+            $text,
+            $text.Capacity) | Out-Null
+        $value = $text.ToString()
+        if (-not [string]::IsNullOrWhiteSpace($value)) {
+            $script:statusText = $value
+        }
+        return $true
+    }
+    [AmdMobilePowerRustGuiNative]::EnumChildWindows(
+        $Window,
+        $callback,
+        [IntPtr]::Zero) | Out-Null
+    return $script:statusText
+}
+
 $firstProcess = $null
 $secondProcess = $null
+$existingWorkerIds = @(
+    Get-Process `
+        -Name "amdmobilepower_native_worker" `
+        -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty Id
+)
 try {
     Get-Process `
         -Name "amd-mobile-power-gui" `
         -ErrorAction SilentlyContinue |
         Stop-Process -Force
 
+    $startArguments = @()
+    if ($PipeName) {
+        $startArguments += @("--pipe-name", $PipeName)
+    }
+    if (-not $WorkerExecutable -and $VerifyWorker) {
+        $adjacentWorker = Join-Path `
+            (Split-Path -Parent $executable) `
+            "amdmobilepower_native_worker.exe"
+        $WorkerExecutable = if (Test-Path -LiteralPath $adjacentWorker) {
+            $adjacentWorker
+        }
+        else {
+            Join-Path `
+                $repositoryRoot `
+                "artifacts\native-build\worker-runtime\amdmobilepower_native_worker.exe"
+        }
+    }
+    if ($WorkerExecutable) {
+        $startArguments += @("--worker-executable", $WorkerExecutable)
+    }
+
     $firstProcess = Start-Process `
         -FilePath $executable `
         -WorkingDirectory (Split-Path -Parent $executable) `
+        -ArgumentList $startArguments `
         -PassThru
     $window = Wait-ProcessWindow -Process $firstProcess
     if ($firstProcess.MainWindowTitle -notlike "AMD Mobile Power*") {
         throw "Unexpected Rust GUI window title: $($firstProcess.MainWindowTitle)"
+    }
+
+    $workerStatus = ""
+    if ($VerifyWorker) {
+        if (-not (Test-Path -LiteralPath $WorkerExecutable)) {
+            throw "Worker executable was not found: $WorkerExecutable"
+        }
+        $deadline = [DateTime]::UtcNow.AddSeconds(15)
+        while ([DateTime]::UtcNow -lt $deadline) {
+            $workerStatus = Get-GuiStatusText -Window $window
+            if ($workerStatus -match "Worker: connected") {
+                break
+            }
+            Start-Sleep -Milliseconds 200
+        }
+        if ($workerStatus -notmatch "Worker: connected") {
+            throw "Rust GUI did not connect to the read-only worker: $workerStatus"
+        }
+        if ($workerStatus -notmatch "Power source:" -or
+            $workerStatus -notmatch "Fast limit:") {
+            throw "Rust GUI worker status is incomplete: $workerStatus"
+        }
     }
 
     for ($cycle = 1; $cycle -le 3; $cycle++) {
@@ -183,6 +280,7 @@ try {
     $secondProcess = Start-Process `
         -FilePath $executable `
         -WorkingDirectory (Split-Path -Parent $executable) `
+        -ArgumentList $startArguments `
         -PassThru
     if (-not $secondProcess.WaitForExit(5000)) {
         throw "Second Rust GUI instance did not exit."
@@ -211,11 +309,27 @@ try {
         CloseToTray = "PASS"
         TrayRestore = "PASS"
         SingleInstanceWake = "PASS"
+        WorkerReadOnly = if ($VerifyWorker) { "PASS" } else { "Not requested" }
+        WorkerStatus = if ($VerifyWorker) { $workerStatus } else { $null }
         ExplicitExit = "PASS"
         ExitCode = $firstProcess.ExitCode
     } | Format-List
 }
 finally {
+    try {
+        $currentWorkerProcesses = @(
+            Get-Process `
+                -Name "amdmobilepower_native_worker" `
+                -ErrorAction SilentlyContinue
+        )
+        foreach ($workerProcess in $currentWorkerProcesses) {
+            if ($existingWorkerIds -notcontains $workerProcess.Id) {
+                Stop-Process -Id $workerProcess.Id -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+    catch {
+    }
     foreach ($process in @($secondProcess, $firstProcess)) {
         if ($null -ne $process) {
             try {

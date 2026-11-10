@@ -47,6 +47,11 @@ The first migration slice adds:
   explicit exit. The Win32 shell now uses that state machine for a real window,
   notification-area icon, tray menu, and second-instance wake-up. Unit tests
   cover the state machine and `verify-rust-gui.ps1` covers the live lifecycle.
+  The GUI also contains a v1 named-pipe worker client and a one-second
+  read-only status loop. It normalizes short pipe names to `\\.\pipe\...`,
+  starts the C++ worker from the executable directory when present, displays
+  CPU/family/PM table/power source/STAPM/Fast/Slow/temperature, and never
+  exposes a hardware write command.
 - `native/rust-probe`: a dependency-light Rust named-pipe client that sends
   `getHealth` and parses the v1 response.
 - `native/cpp-worker`: a Windows named-pipe worker skeleton that implements
@@ -67,3 +72,8 @@ The Rust GUI lifecycle layer intentionally separates `MinimizeWindow` from
 or an explicit hide request moves it to the notification area. A second
 instance queues a wake request for the UI thread instead of manipulating the
 window from the pipe callback thread.
+
+`native/build.ps1` stages a development `gui-runtime` directory containing the
+Rust GUI, C++ worker, RyzenAdj DLL, WinRing0 DLL/SYS, and InpOut DLL. The
+`-VerifyWorker` gate starts the staged pair and verifies the GUI displays a live
+read-only snapshot.

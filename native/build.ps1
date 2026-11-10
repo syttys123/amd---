@@ -67,6 +67,7 @@ if (-not $cmake) {
 
 $cppBuild = Join-Path $repositoryRoot "artifacts\native-build\cpp-worker"
 $workerRuntime = Join-Path $repositoryRoot "artifacts\native-build\worker-runtime"
+$guiRuntime = Join-Path $repositoryRoot "artifacts\native-build\gui-runtime"
 $ryzenAdjRuntime = Join-Path $repositoryRoot "artifacts\ryzenadj-runtime"
 $rustGuiManifest = Join-Path $root "rust-gui\Cargo.toml"
 Push-Location $repositoryRoot
@@ -133,6 +134,16 @@ try {
                 -Destination $workerRuntime `
                 -Force
         }
+
+        New-Item -ItemType Directory -Path $guiRuntime -Force | Out-Null
+        Copy-Item `
+            -LiteralPath (Join-Path $root "rust-gui\target\release\amd-mobile-power-gui.exe") `
+            -Destination $guiRuntime `
+            -Force
+        Copy-Item `
+            -Path (Join-Path $workerRuntime "*") `
+            -Destination $guiRuntime `
+            -Force
     }
 }
 finally {

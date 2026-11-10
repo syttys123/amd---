@@ -2,6 +2,7 @@ param(
     [switch]$NoBuild,
     [switch]$VerifyHardware,
     [switch]$VerifyRustGui,
+    [switch]$VerifyRustWorker,
     [string]$ExistingWorkerDirectory = "C:\RyzenAdj\worker"
 )
 
@@ -214,6 +215,9 @@ if ($VerifyRustGui) {
     $rustGuiArguments = @{
         NoBuild = $true
     }
+    if ($VerifyRustWorker) {
+        $rustGuiArguments.VerifyWorker = $true
+    }
     $rustGuiResult = (& (Join-Path $root "verify-rust-gui.ps1") @rustGuiArguments |
         Out-String).Trim()
 }
@@ -272,5 +276,6 @@ if ($VerifyRustGui) {
         "Not run"
     }
     RustGuiLifecycle = if ($rustGuiResult) { "PASS" } else { "Not requested" }
+    RustGuiWorker = if ($VerifyRustWorker) { "PASS" } else { "Not requested" }
     RustGuiDetails = if ($rustGuiResult) { $rustGuiResult } else { $null }
 } | Format-List

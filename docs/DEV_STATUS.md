@@ -733,6 +733,15 @@ third_party/
   and explicit exit with code 0. The combined native gate also passed read-only
   C++ hardware capability/snapshot reads on the 8845HS. C:\RyzenAdj remains
   unchanged at `1.0.4`.
+- Connected the Rust GUI to the C++ worker's version 1 named-pipe protocol for
+  read-only `getSnapshot` polling. The GUI now normalizes short pipe names,
+  starts a same-directory native worker when present, and displays CPU, family,
+  PM table, AC/battery state, target power, STAPM/Fast/Slow limits,
+  temperature, capability flags, and firmware-clamp state once per second. The
+  worker remains without a write function. `native/build.ps1` now stages
+  `artifacts\native-build\gui-runtime` with the GUI, native worker, and required
+  RyzenAdj/WinRing0/InpOut runtime files. The staged pair passed the full
+  lifecycle gate plus `WorkerReadOnly = PASS` on the 8845HS.
 
 Development screenshot:
 
@@ -752,16 +761,17 @@ Development screenshot:
 - Resolve GitHub Actions account billing/visibility and complete final public
   release review.
 - Continue the Rust GUI + C++ worker migration by connecting the Rust GUI to
-  the C++ worker's `getHealth`, `getCapabilities`, and `getSnapshot` commands,
-  then port validated hardware writes; keep `1.0.4` as the stable fallback.
+  the C++ worker's validated `applyTarget` path, including range checks,
+  read-back verification, and restore-on-failure; keep `1.0.4` as the stable
+  fallback.
 
 ## Next Concrete Task
 
-Connect the Rust GUI to the C++ worker's read-only named-pipe commands while
-`C:\RyzenAdj` stays on the verified `1.0.4` rollback point. Keep the existing
-named-pipe protocol and hardware-safety boundaries as the migration contract,
-and require the same lifecycle, tray, diagnostics, and no-change hardware gates
-before replacing the stable deployment.
+Port the validated hardware write path to the C++ worker while `C:\RyzenAdj`
+stays on the verified `1.0.4` rollback point. Keep the existing named-pipe
+protocol and hardware-safety boundaries as the migration contract, and require
+the same lifecycle, tray, diagnostics, and no-change hardware gates before
+replacing the stable deployment.
 
 ## Known Risks
 
