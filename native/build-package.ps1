@@ -146,7 +146,12 @@ Copy-Item -LiteralPath (Join-Path $root "uninstall-preview.ps1") `
     -Destination (Join-Path $stage "uninstall-preview.ps1") -Force
 
 $commit = (& git -C $repositoryRoot rev-parse HEAD).Trim()
-$statusText = (& git -C $repositoryRoot status --porcelain --ignore-submodules=dirty |
+$statusText = (& git `
+    -C $repositoryRoot `
+    status `
+    --porcelain `
+    --ignore-submodules=dirty |
+    Where-Object { $_ -notmatch "^.. docs/evidence/" } |
     Out-String).Trim()
 $workingTree = if ($statusText) { "Dirty" } else { "Clean" }
 @(

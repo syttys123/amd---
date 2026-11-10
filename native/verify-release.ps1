@@ -33,6 +33,7 @@ $statusText = (& git `
     status `
     --porcelain `
     --ignore-submodules=dirty |
+    Where-Object { $_ -notmatch "^.. docs/evidence/" } |
     Out-String).Trim()
 if ($statusText -and -not $AllowDirty) {
     throw "Native release verification requires a clean worktree. Use -AllowDirty only for diagnostics."

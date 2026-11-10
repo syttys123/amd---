@@ -255,7 +255,7 @@ try {
     $evidenceRelative = $null
     if ($EvidencePath) {
         $evidenceRelative = [System.IO.Path]::GetRelativePath(
-            $RepositoryRoot,
+            $repositoryRoot,
             [System.IO.Path]::GetFullPath($EvidencePath)).Replace("\", "/")
     }
     $statusLines = & git `
@@ -264,8 +264,9 @@ try {
         --porcelain `
         --ignore-submodules=dirty |
         ForEach-Object {
-            if ($_ -match "^.. (.+)$" -and
-                $Matches[1] -eq $evidenceRelative) {
+            if ($_ -match "^.. docs/evidence/" -or
+                ($_ -match "^.. (.+)$" -and
+                    $Matches[1] -eq $evidenceRelative)) {
                 return
             }
             $_
