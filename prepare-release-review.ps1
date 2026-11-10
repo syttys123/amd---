@@ -1,6 +1,6 @@
 param(
-    [string]$Version = "0.1.3-dev",
-    [string]$PackagePath = "artifacts\packages\amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
+    [string]$Version = "1.0.0",
+    [string]$PackagePath = "artifacts\packages\amd-mobile-power-v1.0.0-win-x64-lite.zip",
     [string]$VideoPath = "artifacts\media\amd-mobile-power-promo-draft-2026-11-10\amd-mobile-power-intro-draft-2026-11-10.mp4",
     [string]$CaptionsPath = "artifacts\media\amd-mobile-power-promo-draft-2026-11-10\captions-zh.srt",
     [string]$BilibiliCoverPath = "docs\assets\bilibili-cover-2026-11-10.png",

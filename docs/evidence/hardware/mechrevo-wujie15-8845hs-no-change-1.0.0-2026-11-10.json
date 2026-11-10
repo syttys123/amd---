@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "stable-package-no-change-write",
+  "capturedAt": "2026-11-10T13:16:37.7657829+08:00",
+  "package": {
+    "name": "amd-mobile-power-v1.0.0-win-x64-lite.zip",
+    "sha256": "8faa541d06421522119de861f252baf612ee39517e2669350623d05b39b02320",
+    "workerExecutableSha256": "cf043c0f09e05db4cc8af7a0deb5b0097c8ab619ae5ec7e17ef879b08260caaa"
+  },
+  "platform": {
+    "vendor": "MECHREVO",
+    "model": "WUJIE15 PRO",
+    "processor": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "bios": "T153_HPT_V05",
+    "ryzenAdjFamily": 10,
+    "ryzenAdjFamilyName": "Hawk Point",
+    "smuBiosVersion": "15",
+    "pmTableVersion": "4c0009",
+    "matchedProfile": "hawk-point-8845hs"
+  },
+  "environment": {
+    "powerLine": "battery",
+    "hardwareWritesConfirmed": true,
+    "processCleanupVerified": true
+  },
+  "requestedTargetWatts": {
+    "stapm": 25,
+    "fast": 25,
+    "slow": 20
+  },
+  "readbackWatts": {
+    "stapm": 25.000001907348633,
+    "fast": 25.000001907348633,
+    "slow": 20
+  },
+  "settledTelemetry": {
+    "stapmActual": 20.007104873657227,
+    "stapmLimit": 25.000001907348633,
+    "fastLimit": 25.000001907348633,
+    "slowLimit": 20
+  },
+  "result": "PASS",
+  "cleanup": {
+    "shutdownProtocol": "PASS",
+    "hardwareOwnerRemaining": false
+  },
+  "notes": [
+    "The package worker wrote the same battery baseline back to hardware.",
+    "Required Fast/Slow limits matched the requested values within the read-back tolerance.",
+    "STAPM logic remained firmware-managed while this host stayed on battery."
+  ]
+}

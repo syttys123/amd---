@@ -8,25 +8,25 @@
 ## Source And Package
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
-- Current source commit reviewed: `71be9c8`
-- Package source commit: `71be9c8`
-- Package: `artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip`
-- Size: `593,944` bytes
-- SHA256: `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`
+- Current source commit reviewed: `c65611b`
+- Package source commit: `c65611b`
+- Package: `artifacts/packages/amd-mobile-power-v1.0.0-win-x64-lite.zip`
+- Size: `593,857` bytes
+- SHA256: `8faa541d06421522119de861f252baf612ee39517e2669350623d05b39b02320`
 - Files / checksums / profiles / licenses: `40 / 39 / 9 / 4`
 - Runtime: Microsoft .NET 8 Desktop Runtime x64
 
-The ZIP was rebuilt from a clean `71be9c8` worktree with .NET SDK `8.0.427`,
-matching the pinned CI toolchain. Later documentation-only commits do not change
-the packaged runtime files.
+The ZIP was rebuilt from a clean `c65611b` worktree with .NET SDK `10.0.400`,
+matching the pinned CI toolchain. Later documentation and verification-script
+commits do not change the packaged runtime files.
 
 ## Local Verification
 
 Evidence:
-`docs/evidence/packaging/v0.1.3-dev-family-matrix-2026-11-10.json`
+`docs/evidence/packaging/v1.0.0-clean-2026-11-10.json`
 
 - Build warnings / errors: `0 / 0`
-- SDK: `8.0.427`
+- SDK: `10.0.400`
 - Tests: `71 passed, 0 failed`
 - Formatting verification: PASS
 - NuGet dependency audit: PASS (`6` projects, `0` advisories, `0` deprecated packages)
@@ -37,6 +37,7 @@ Evidence:
 - Graceful tray exit: PASS
 - Packaged simple dashboard gray-dot and power-line check: PASS
 - Packaged read-only diagnostics collector: PASS
+- Packaged stable-package no-change hardware write: PASS
 - GUI and collector diagnostic field whitelist / path redaction: PASS
 - RyzenAdj family `0-15` profile coverage: PASS
 
@@ -57,6 +58,8 @@ launch copy, safety documents, manifest, and SHA256 list under
 - Earlier `25/25/25 W` and a 45 W request were recorded; firmware may clamp
   STAPM while Fast/Slow remain the enforceable limit.
 - Packaged no-change write gate: `12/12/12 W -> 12/12/12 W`.
+- `1.0.0` packaged battery no-change write:
+  `25/25/20 W -> 25/25/20 W`, live power near `20 W`, graceful shutdown.
 
 ### Real battery read-only baseline
 
@@ -67,6 +70,18 @@ launch copy, safety documents, manifest, and SHA256 list under
 - Planned target: `12/12/12 W`
 - Hardware writes: `0`
 - Worker shutdown: `PASS`
+
+### Supervised battery policy transition
+
+- Evidence:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-policy-2026-11-10.json`
+- AC baseline: `39/45/25 W`
+- Battery baseline: `25/25/20 W`
+- Battery target: `12/12/12 W`
+- Fast/Slow read-back: `12/12 W`
+- Settled live STAPM: about `12.52 W`
+- AC restore: Fast/Slow `45/25 W`
+- Final restore and worker shutdown: `PASS`
 
 Dashboard capture:
 
@@ -121,10 +136,8 @@ docs/assets/bilibili-cover-2026-11-10.png
 
 - GitHub Actions cannot be used as release evidence until the repository
   account billing/spending-limit issue is resolved.
-- The supervised full AC -> battery -> AC policy transition still needs a human
-  operator and explicit confirmation phrase.
 - At least one second AMD laptop still needs read-only compatibility evidence.
-- Any runtime or packaging change after `71be9c8` requires a new clean package,
+- Any runtime or packaging change after `c65611b` requires a new clean package,
   SHA256, and release evidence.
 - Project owner must review final video voice, pacing, claims, and cover.
 - GitHub tag/release, Bilibili login/upload, and public publication require
@@ -134,7 +147,7 @@ docs/assets/bilibili-cover-2026-11-10.png
 
 ```powershell
 .\verify-release.ps1 `
-  -Version 0.1.3-dev `
+  -Version 1.0.0 `
   -FrameworkDependent `
   -VerifyShellIntegration `
   -VerifyTrayMenu `

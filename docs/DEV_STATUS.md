@@ -42,8 +42,9 @@ not authoritative.
 - The current development package was rebuilt from clean commit `71be9c8`:
   593,944 bytes, SHA256
   `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`.
-- The first local stable package is `1.0.0`; its final clean-build hash and
-  deployment verification are recorded below after the release gate.
+- The current local stable package is `1.0.0`: 593,857 bytes, SHA256
+  `8faa541d06421522119de861f252baf612ee39517e2669350623d05b39b02320`,
+  built from clean commit `c65611b` with .NET SDK `10.0.400`.
 
 ## Development Workflow
 
@@ -600,6 +601,20 @@ third_party/
   Both baselines were restored and worker shutdown used the graceful protocol.
   Evidence:
   `docs/evidence/hardware/mechrevo-wujie15-8845hs-policy-2026-11-10.json`.
+- Migrated the local test entry point to the .NET 10 Microsoft.Testing.Platform
+  runner through `global.json`; `dotnet test --solution AmdMobilePower.sln`
+  passes all 71 tests. CI and the release gate are now pinned to SDK `10.0.400`
+  while product projects continue to target .NET 8 APIs.
+- Built the clean `1.0.0` Lite package and passed the full local release gate:
+  zero build warnings, 71/71 tests, dependency audit, format verification,
+  isolated install/overwrite/uninstall, shell integration, tray menu/exit,
+  read-only diagnostics, and the packaged dashboard gate. Evidence:
+  `docs/evidence/packaging/v1.0.0-clean-2026-11-10.json`.
+- Passed a packaged `1.0.0` no-change hardware write on battery: the worker
+  wrote `25/25/20 W` back to the same baseline, read back all three limits at
+  their requested values, kept live power near 20 W, and shut down through the
+  protocol. Evidence:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.0-2026-11-10.json`.
 
 Development screenshot:
 
@@ -621,11 +636,10 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Build and deploy the clean local `1.0.0` package, verify the C: deployment, and
-then collect a read-only diagnostics report from a second AMD laptop. Do not
-promote a family to broadly supported until a physical laptop supplies the
-capability, telemetry, write, read-back, and restore evidence required by
-`HARDWARE_TEST_PROCEDURE.md`.
+Deploy the verified `1.0.0` package to `C:\RyzenAdj` after a full recoverable
+backup, then verify GUI launch, worker health, tray behavior, diagnostics, and
+safe read-back from the deployed path. Collect a read-only diagnostics report
+from a second AMD laptop before broad public support.
 
 ## Known Risks
 

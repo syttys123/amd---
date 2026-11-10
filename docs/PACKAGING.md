@@ -94,7 +94,7 @@ artifacts/packages/amd-mobile-power-v0.1.2-dev-win-x64-lite.zip
 - GUI and worker both report product version `0.1.2-dev` and file version
   `0.1.2.0`.
 
-Current `0.1.3-dev` integration candidate:
+Historical `0.1.3-dev` integration candidate:
 
 ```text
 artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
@@ -135,6 +135,28 @@ artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
   `动态上限 25.0 W · 电源`; the target-left artifact pixel count was zero.
 - GUI and worker both report product version `0.1.3-dev` and file version
   `0.1.3.0`.
+
+Current `1.0.0` local stable package:
+
+```text
+artifacts/packages/amd-mobile-power-v1.0.0-win-x64-lite.zip
+```
+
+- Size: 593,857 bytes.
+- SHA256:
+  `8faa541d06421522119de861f252baf612ee39517e2669350623d05b39b02320`.
+- Source commit: `c65611b37ef55564346a441907a9f1be3a3d932c`.
+- Build SDK: .NET `10.0.400`; product assemblies still target .NET 8 APIs.
+- Working tree at build time: clean.
+- Contents: 40 files, 39 checksum entries, nine profiles, four license files.
+- Full local gate: zero warnings, 71/71 tests, dependency audit, format,
+  isolated install/overwrite/uninstall, shell integration, tray menu and
+  graceful exit, read-only diagnostics, and packaged dashboard checks passed.
+- Packaged battery no-change write: `25/25/20 W` requested and read back;
+  live power stayed near `20 W` and worker shutdown was graceful.
+- Evidence:
+  `docs/evidence/packaging/v1.0.0-clean-2026-11-10.json` and
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.0-2026-11-10.json`.
 
 ## Embedded Version Metadata
 
@@ -278,13 +300,13 @@ and closes the menu without clicking a power action. With
 `-VerifyGracefulExit`, it invokes `退出` after the screenshot and verifies clean
 GUI/worker teardown.
 
-The current verified local development package uses SHA256:
+The current verified local stable package uses SHA256:
 
 ```text
-020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b
+8faa541d06421522119de861f252baf612ee39517e2669350623d05b39b02320
 ```
 
-It was built from clean commit `71be9c8` with .NET SDK `8.0.427`.
+It was built from clean commit `c65611b` with .NET SDK `10.0.400`.
 
 Rebuilds may produce a different hash because embedded timestamps can change.
 Always use the hash generated with the current build.
@@ -314,6 +336,7 @@ dirty worktree, a mismatched ZIP sidecar, a package commit outside the current
 branch, runtime-sensitive changes after the package commit, or a failed media
 gate. It never logs in or uploads.
 
-The `v0.1.0` packages are retained as historical development artifacts. The
-current `v0.1.3-dev` candidate is recorded above. None of these files is a public
-release until the remaining human gates are explicitly approved.
+The `v0.1.0` and `v0.1.3-dev` packages are retained as historical development
+artifacts. The current `v1.0.0` package is a locally verified stable deployment
+for one physical AMD laptop, not a public release. Public hardware support still
+needs a second AMD platform and the remaining human gates.

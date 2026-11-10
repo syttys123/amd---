@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-10T13:08:19+08:00",
+  "version": "1.0.0",
+  "package": {
+    "path": "artifacts/packages/amd-mobile-power-v1.0.0-win-x64-lite.zip",
+    "sizeBytes": 593857,
+    "sha256": "8faa541d06421522119de861f252baf612ee39517e2669350623d05b39b02320",
+    "frameworkDependent": true
+  },
+  "source": {
+    "commit": "c65611b37ef55564346a441907a9f1be3a3d932c",
+    "workingTree": "Clean",
+    "sdk": "10.0.400"
+  },
+  "contents": {
+    "files": 40,
+    "checksums": 39,
+    "profiles": 9,
+    "licenses": 4
+  },
+  "verification": {
+    "releaseGate": "PASS",
+    "buildWarnings": 0,
+    "buildErrors": 0,
+    "testsPassed": 71,
+    "testsFailed": 0,
+    "format": "PASS",
+    "dependencyAudit": {
+      "result": "PASS",
+      "projects": 6,
+      "vulnerablePackages": 0,
+      "deprecatedPackages": 0
+    },
+    "isolatedInstallOverwriteUninstall": "PASS",
+    "shellIntegration": {
+      "result": "PASS",
+      "startMenuShortcut": "Created and removed",
+      "uninstallEntry": "Created and removed",
+      "customDirectoryUninstallCommand": "Verified",
+      "logonBehavior": "Startup shortcut fallback created and removed"
+    },
+    "trayMenu": {
+      "result": "PASS",
+      "direction": "up",
+      "horizontalTrayGapPixels": 0,
+      "gracefulExit": "PASS"
+    },
+    "diagnostics": {
+      "result": "PASS",
+      "writeControlsEnabled": false,
+      "shutdownProtocol": "PASS"
+    },
+    "dashboard": {
+      "result": "PASS",
+      "powerLineText": "动态上限 25.0 W · 电池",
+      "targetLeftArtifactPixels": 0
+    },
+    "noChangeHardwareWrite": {
+      "result": "PASS",
+      "powerLine": "battery",
+      "targetWatts": {
+        "stapm": 25,
+        "fast": 25,
+        "slow": 20
+      },
+      "evidence": "docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.0-2026-11-10.json"
+    }
+  },
+  "limitations": [
+    "This is a locally verified stable deployment for one physical AMD laptop.",
+    "The current host denied scheduled-task registration, so the Startup-folder fallback was exercised instead of task creation.",
+    "GitHub Actions remains blocked by repository billing state and did not execute the workflow.",
+    "Do not treat this package as universal AMD laptop support or a public release."
+  ]
+}
