@@ -79,6 +79,13 @@ public static class AmdMobilePowerRustGuiNative {
         IntPtr lParam);
 
     [DllImport("user32.dll")]
+    public static extern IntPtr SendMessage(
+        IntPtr hWnd,
+        uint msg,
+        UIntPtr wParam,
+        IntPtr lParam);
+
+    [DllImport("user32.dll")]
     public static extern bool EnumChildWindows(
         IntPtr parent,
         EnumChildProc callback,
@@ -89,6 +96,16 @@ public static class AmdMobilePowerRustGuiNative {
         IntPtr hWnd,
         StringBuilder text,
         int count);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetDlgItem(IntPtr hDlg, int nIDDlgItem);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "SendMessageW")]
+    public static extern IntPtr SendMessageText(
+        IntPtr hWnd,
+        uint msg,
+        UIntPtr wParam,
+        string lParam);
 }
 "@
 
@@ -280,6 +297,7 @@ try {
     }
 
     $writePresetResult = "Not requested"
+    $presetEditingResult = "Not requested"
     if ($VerifyWriteControls) {
         $childTexts = @(Get-GuiChildTexts -Window $window)
         foreach ($required in @(
@@ -287,6 +305,8 @@ try {
             "25 W",
             "45 W",
             "应用",
+            "快捷预设",
+            "保存预设",
             "电池目标",
             "交流目标",
             "启用",
@@ -295,6 +315,64 @@ try {
             if ($childTexts -notcontains $required) {
                 throw "Rust GUI write controls are missing '$required': $childTexts"
             }
+        }
+
+        if (-not $ExecuteNoChangePreset) {
+            $editedPresets = @("11", "24", "43")
+            for ($index = 0; $index -lt $editedPresets.Count; $index++) {
+                $edit = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+                    $window,
+                    301 + $index)
+                if ($edit -eq [IntPtr]::Zero) {
+                    throw "Rust GUI preset edit $($index + 1) was not found."
+                }
+                [AmdMobilePowerRustGuiNative]::SendMessageText(
+                    $edit,
+                    0x000C,
+                    [UIntPtr]::Zero,
+                    $editedPresets[$index]) | Out-Null
+            }
+            $savePresetButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+                $window,
+                106)
+            if ($savePresetButton -eq [IntPtr]::Zero) {
+                throw "Rust GUI save-preset button was not found."
+            }
+            [AmdMobilePowerRustGuiNative]::SendMessage(
+                $savePresetButton,
+                0x00F5,
+                [UIntPtr]106,
+                [IntPtr]::Zero) | Out-Null
+            $statePath = Join-Path `
+                $isolatedLocalAppData `
+                "AmdMobilePower\rust-ui-state.json"
+            $presetSaved = $false
+            $deadline = [DateTime]::UtcNow.AddSeconds(5)
+            while ([DateTime]::UtcNow -lt $deadline) {
+                $childTexts = @(Get-GuiChildTexts -Window $window)
+                if ($childTexts -contains "11 W" -and
+                    $childTexts -contains "24 W" -and
+                    $childTexts -contains "43 W") {
+                    $presetSaved = $true
+                    break
+                }
+                Start-Sleep -Milliseconds 50
+            }
+            if (-not $presetSaved) {
+                $stateText = if (Test-Path -LiteralPath $statePath) {
+                    Get-Content -LiteralPath $statePath -Raw
+                }
+                else {
+                    "<missing>"
+                }
+                throw "Rust GUI did not save and display edited presets: $childTexts`nState: $stateText"
+            }
+            $presetState = Get-Content -LiteralPath $statePath -Raw |
+                ConvertFrom-Json
+            if (($presetState.presets -join ",") -ne "11,24,43") {
+                throw "Rust GUI preset state was not persisted: $($presetState | ConvertTo-Json -Depth 6)"
+            }
+            $presetEditingResult = "PASS"
         }
 
         if ($ExecutePolicySave) {
@@ -313,6 +391,16 @@ try {
             }
             if (-not $policySaved) {
                 throw "Rust GUI did not report a successful policy save."
+            }
+            if ($presetEditingResult -eq "PASS") {
+                $statePath = Join-Path `
+                    $isolatedLocalAppData `
+                    "AmdMobilePower\rust-ui-state.json"
+                $policyState = Get-Content -LiteralPath $statePath -Raw |
+                    ConvertFrom-Json
+                if (($policyState.presets -join ",") -ne "11,24,43") {
+                    throw "Saving the power policy discarded edited presets: $($policyState | ConvertTo-Json -Depth 6)"
+                }
             }
         }
 
@@ -429,7 +517,7 @@ try {
         throw "Rust GUI exited with code $($firstProcess.ExitCode)."
     }
 
-    if ($EvidencePath -and $ExecuteNoChangePreset) {
+    if ($EvidencePath) {
         $evidenceDirectory = Split-Path -Parent $EvidencePath
         if ($evidenceDirectory) {
             New-Item -ItemType Directory -Path $evidenceDirectory -Force | Out-Null
@@ -438,16 +526,18 @@ try {
             SourceCommit = (git -C $repositoryRoot rev-parse HEAD).Trim()
             Verification = "PASS"
             Path = "Rust GUI -> C++ worker -> RyzenAdj"
-            Processor = if ($workerStatus -match "CPU: ([^\r\n]+)") {
+            Processor = if ($workerStatus -match "处理器：([^\r\n]+)") {
                 $Matches[1].Trim()
             }
             else {
                 $null
             }
             WorkerStatus = $workerStatus
-            TargetWatts = "45/45/45"
-            WriteControls = "PASS"
+            TargetWatts = if ($ExecuteNoChangePreset) { "45/45/45" } else { $null }
+            WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
+            PresetEditing = $presetEditingResult
             WritePreset = $writePresetResult
+            PolicySave = if ($ExecutePolicySave) { "PASS" } else { "Not requested" }
             RecordedAt = (Get-Date).ToString("o")
         } |
             ConvertTo-Json -Depth 8 |
@@ -464,6 +554,7 @@ try {
         WorkerReadOnly = if ($VerifyWorker) { "PASS" } else { "Not requested" }
         WorkerStatus = if ($VerifyWorker) { $workerStatus } else { $null }
         WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
+        PresetEditing = $presetEditingResult
         WritePreset = $writePresetResult
         PolicySave = if ($ExecutePolicySave) { "PASS" } else { "Not requested" }
         Evidence = if ($EvidencePath) { $EvidencePath } else { $null }

@@ -39,6 +39,8 @@
   four-column telemetry matrix, and persistent write-state status bar.
 - [x] Verify compact mode at 125% scaling with real screenshots and controlled
   10 W/12 W write/readback tests.
+- [x] Add editable native quick presets with backward-compatible persistence
+  and direct tray-menu application commands.
 
 ## M4: Compatibility
 

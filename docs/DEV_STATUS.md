@@ -943,10 +943,31 @@ third_party/
   integration PASS, AC no-change write PASS on the live `10/10/10 W` state, and
   `WorkerReadOnly = PASS` with the complete localized dashboard. Evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.7-release-gate-2026-11-10.json`.
+- Closed the next native parity gap on 2026-11-11. The Rust preview now has
+  three editable quick presets, initially `12/25/45 W`; saving them updates the
+  radio-button labels and active target, clamps values to the matched profile,
+  and persists them in `rust-ui-state.json` without discarding the existing
+  battery/AC policy. The tray menu exposes the same values as direct
+  `应用预设` commands while write controls are enabled. The state reader keeps
+  backward compatibility with older policy-only files and falls back to safe
+  defaults for corrupt preset arrays. Rust tests are now 23 in total
+  (`17` library + `6` GUI), and Clippy passes all targets with
+  `-D warnings`. The runtime verifier edited `11/24/43 W` under an isolated
+  `%LocalAppData%`, confirmed the button labels and persisted JSON, saved the
+  policy without losing the presets, and passed the one-worker lifecycle gate
+  on AC with live `10/10/10 W` limits. Screenshot:
+  `assets/native-gui-editable-presets-2026-11-11.png`. Evidence:
+  `docs/evidence/ui/native-gui-editable-presets-2026-11-11.json`.
+- Re-ran the packaged rc.7 read-only collector after the stable GUI released
+  RyzenAdj. It reported `PASS` on the MECHREVO WUJIE15 PRO / 8845HS, AC power,
+  family `10`, PM table `4c0009`, and live `10/10/10 W` limits:
+  `artifacts/verify/native-rc7-diagnostics-post-exit-2026-11-11.json`.
 
 Development screenshot:
 
 ![Compact mode at 12 W](assets/gui-simple-12w-2026-11-10.png)
+
+![Native preview editable presets](assets/native-gui-editable-presets-2026-11-11.png)
 
 ## In Progress
 

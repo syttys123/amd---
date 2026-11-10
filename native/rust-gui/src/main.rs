@@ -5,7 +5,7 @@ use amd_mobile_power_gui::lifecycle::{
 };
 use amd_mobile_power_gui::state;
 use amd_mobile_power_gui::worker::{
-    ApplyTargetResult, PowerLineState, PowerLimitTarget, PowerPolicySettings, PowerPolicyState,
+    ApplyTargetResult, PowerLimitTarget, PowerLineState, PowerPolicySettings, PowerPolicyState,
     ProfilePayload, SnapshotPayload, WorkerClient, DEFAULT_PIPE_NAME,
 };
 use std::ffi::c_void;
@@ -37,11 +37,11 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     MF_STRING, MSG, SIZE_MINIMIZED, SIZE_RESTORED, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL,
     TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION,
     WM_LBUTTONUP, WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOMMAND,
-    WNDCLASSEXW, WS_CHILD, WS_EX_APPWINDOW, WS_OVERLAPPEDWINDOW, WS_VISIBLE, WS_BORDER,
+    WNDCLASSEXW, WS_BORDER, WS_CHILD, WS_EX_APPWINDOW, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_GETCHECK, BM_SETCHECK,
-    BS_AUTOCHECKBOX, BS_AUTORADIOBUTTON, ES_NUMBER, ES_RIGHT, SC_MINIMIZE, WS_TABSTOP,
+    GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_GETCHECK, BM_SETCHECK, BS_AUTOCHECKBOX,
+    BS_AUTORADIOBUTTON, ES_NUMBER, ES_RIGHT, SC_MINIMIZE, WS_TABSTOP,
 };
 
 const APP_TITLE: &str = "AMD Mobile Power（原生预览）";
@@ -60,6 +60,9 @@ const PRESET_25: usize = 102;
 const PRESET_45: usize = 103;
 const APPLY_TARGET: usize = 104;
 const POLICY_SAVE: usize = 105;
+const PRESET_SAVE: usize = 106;
+const PRESET_MENU_START: usize = 201;
+const PRESET_EDIT_START: usize = 301;
 
 #[derive(Clone, Copy)]
 struct PolicyControls {
@@ -82,6 +85,8 @@ struct GuiApp {
     policy_in_flight: bool,
     preset_watts: [i32; 3],
     preset_buttons: Option<[HWND; 3]>,
+    preset_edits: Option<[HWND; 3]>,
+    selected_preset: Option<usize>,
     policy_controls: Option<PolicyControls>,
     profile: Option<ProfilePayload>,
     saved_policy: Option<PowerPolicySettings>,
@@ -90,6 +95,7 @@ struct GuiApp {
 
 impl GuiApp {
     fn new(mutex: HANDLE) -> Self {
+        let preset_watts = state::load_presets();
         Self {
             state: LifecycleState::default(),
             _mutex: mutex,
@@ -99,11 +105,13 @@ impl GuiApp {
             worker_child: None,
             worker_pipe: String::new(),
             write_enabled: false,
-            selected_target: PowerLimitTarget::uniform(12),
+            selected_target: PowerLimitTarget::uniform(preset_watts[0]),
             apply_in_flight: false,
             policy_in_flight: false,
-            preset_watts: [12, 25, 45],
+            preset_watts,
             preset_buttons: None,
+            preset_edits: None,
+            selected_preset: Some(0),
             policy_controls: None,
             profile: None,
             saved_policy: None,
@@ -213,10 +221,7 @@ fn format_policy_state(state: Option<&PowerPolicyState>) -> String {
     } else {
         "已停用"
     };
-    let last = match (
-        state.last_attempt_succeeded,
-        state.last_observed_power_line,
-    ) {
+    let last = match (state.last_attempt_succeeded, state.last_observed_power_line) {
         (Some(true), Some(line)) => format!("上次应用：{} · 成功", format_power_line(Some(line))),
         (Some(false), Some(line)) => format!("上次应用：{} · 失败", format_power_line(Some(line))),
         (Some(false), None) => "上次应用：失败".to_owned(),
@@ -230,11 +235,7 @@ fn format_policy_state(state: Option<&PowerPolicyState>) -> String {
         .unwrap_or_default();
     format!(
         "自动策略：{}（电池 {} W / 交流 {} W）\n{}{}",
-        status,
-        settings.battery_target.stapm_watts,
-        settings.ac_target.stapm_watts,
-        last,
-        error
+        status, settings.battery_target.stapm_watts, settings.ac_target.stapm_watts, last, error
     )
 }
 
@@ -458,18 +459,22 @@ unsafe fn create_title_label(
     )
 }
 
-unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) -> [HWND; 3] {
+unsafe fn create_action_buttons(
+    hwnd: HWND,
+    instance: HINSTANCE,
+    preset_watts: [i32; 3],
+) -> [HWND; 3] {
     let button_class = wide("BUTTON");
     let controls = [
-        (PRESET_12, "12 W", 18, 348, 90),
-        (PRESET_25, "25 W", 116, 348, 90),
-        (PRESET_45, "45 W", 214, 348, 90),
-        (APPLY_TARGET, "应用", 360, 348, 120),
+        (PRESET_12, format!("{} W", preset_watts[0]), 18, 348, 90),
+        (PRESET_25, format!("{} W", preset_watts[1]), 116, 348, 90),
+        (PRESET_45, format!("{} W", preset_watts[2]), 214, 348, 90),
+        (APPLY_TARGET, "应用".to_owned(), 360, 348, 120),
     ];
     let mut presets = [std::ptr::null_mut(); 3];
     let mut first_preset = true;
     for (index, (id, label, x, y, width)) in controls.into_iter().enumerate() {
-        let text = wide(label);
+        let text = wide(&label);
         let is_apply = id == APPLY_TARGET;
         let style = WS_CHILD
             | WS_VISIBLE
@@ -489,7 +494,7 @@ unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) -> [HWND; 3] {
             width,
             32,
             hwnd,
-            id as usize as HMENU,
+            id as HMENU,
             instance,
             std::ptr::null(),
         );
@@ -502,6 +507,71 @@ unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) -> [HWND; 3] {
         }
     }
     presets
+}
+
+unsafe fn create_preset_controls(
+    hwnd: HWND,
+    instance: HINSTANCE,
+    preset_watts: [i32; 3],
+) -> [HWND; 3] {
+    let static_class = wide("STATIC");
+    let edit_class = wide("EDIT");
+    let button_class = wide("BUTTON");
+    let label_text = wide("快捷预设");
+    let save_text = wide("保存预设");
+    let edit_style =
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_NUMBER as u32 | ES_RIGHT as u32;
+
+    CreateWindowExW(
+        0,
+        static_class.as_ptr(),
+        label_text.as_ptr(),
+        WS_CHILD | WS_VISIBLE,
+        18,
+        396,
+        76,
+        22,
+        hwnd,
+        std::ptr::null_mut(),
+        instance,
+        std::ptr::null(),
+    );
+
+    let mut edits = [std::ptr::null_mut(); 3];
+    for (index, watts) in preset_watts.into_iter().enumerate() {
+        let value = wide(&watts.to_string());
+        edits[index] = CreateWindowExW(
+            0,
+            edit_class.as_ptr(),
+            value.as_ptr(),
+            edit_style,
+            98 + index as i32 * 72,
+            392,
+            58,
+            26,
+            hwnd,
+            (PRESET_EDIT_START + index) as HMENU,
+            instance,
+            std::ptr::null(),
+        );
+    }
+
+    CreateWindowExW(
+        0,
+        button_class.as_ptr(),
+        save_text.as_ptr(),
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+        320,
+        390,
+        100,
+        30,
+        hwnd,
+        PRESET_SAVE as HMENU,
+        instance,
+        std::ptr::null(),
+    );
+
+    edits
 }
 
 unsafe fn get_control_text(hwnd: HWND) -> String {
@@ -534,6 +604,30 @@ unsafe fn set_edit_watts(hwnd: HWND, watts: i32) {
     SetWindowTextW(hwnd, text.as_ptr());
 }
 
+fn clamp_preset_values(presets: [i32; 3], minimum: i32, maximum: i32) -> [i32; 3] {
+    presets.map(|watts| watts.clamp(minimum, maximum))
+}
+
+fn preset_menu_label(index: usize, watts: i32) -> String {
+    format!("应用预设 {}：{} W", index + 1, watts)
+}
+
+unsafe fn refresh_preset_controls(app: &GuiApp) {
+    if let Some(buttons) = app.preset_buttons {
+        for (index, button) in buttons.into_iter().enumerate() {
+            if !button.is_null() {
+                let text = wide(&format!("{} W", app.preset_watts[index]));
+                SetWindowTextW(button, text.as_ptr());
+            }
+        }
+    }
+    if let Some(edits) = app.preset_edits {
+        for (index, edit) in edits.into_iter().enumerate() {
+            set_edit_watts(edit, app.preset_watts[index]);
+        }
+    }
+}
+
 unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyControls {
     let static_class = wide("STATIC");
     let edit_class = wide("EDIT");
@@ -542,12 +636,8 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
     let ac_label = wide("交流目标");
     let enabled_label = wide("启用");
     let save_label = wide("保存策略");
-    let edit_style = WS_CHILD
-        | WS_VISIBLE
-        | WS_TABSTOP
-        | WS_BORDER
-        | ES_NUMBER as u32
-        | ES_RIGHT as u32;
+    let edit_style =
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_NUMBER as u32 | ES_RIGHT as u32;
 
     CreateWindowExW(
         0,
@@ -555,7 +645,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         battery_label.as_ptr(),
         WS_CHILD | WS_VISIBLE,
         18,
-        400,
+        440,
         108,
         22,
         hwnd,
@@ -569,7 +659,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         wide("12").as_ptr(),
         edit_style,
         132,
-        396,
+        436,
         54,
         26,
         hwnd,
@@ -583,7 +673,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         ac_label.as_ptr(),
         WS_CHILD | WS_VISIBLE,
         200,
-        400,
+        440,
         62,
         22,
         hwnd,
@@ -597,7 +687,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         wide("45").as_ptr(),
         edit_style,
         266,
-        396,
+        436,
         54,
         26,
         hwnd,
@@ -611,7 +701,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         enabled_label.as_ptr(),
         WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX as u32,
         336,
-        396,
+        436,
         82,
         26,
         hwnd,
@@ -625,11 +715,11 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         save_label.as_ptr(),
         WS_CHILD | WS_VISIBLE | WS_TABSTOP,
         428,
-        394,
+        434,
         120,
         30,
         hwnd,
-        POLICY_SAVE as usize as HMENU,
+        POLICY_SAVE as HMENU,
         instance,
         std::ptr::null(),
     );
@@ -641,10 +731,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
     }
 }
 
-fn format_policy_result(
-    settings: PowerPolicySettings,
-    result: Result<(), String>,
-) -> String {
+fn format_policy_result(settings: PowerPolicySettings, result: Result<(), String>) -> String {
     match result {
         Ok(()) => format!(
             "自动策略已保存。\n电池 {} W / 交流 {} W。\n{}",
@@ -660,11 +747,28 @@ fn format_policy_result(
     }
 }
 
-fn start_policy_save(
-    hwnd_address: usize,
-    pipe_name: String,
-    settings: PowerPolicySettings,
-) {
+unsafe fn save_preset_edits(app: &mut GuiApp) -> Result<(), String> {
+    let Some(edits) = app.preset_edits else {
+        return Err("预设编辑框尚未创建。".to_owned());
+    };
+    let (minimum, maximum) = app
+        .profile
+        .as_ref()
+        .map(|profile| (profile.minimum_watts, profile.maximum_watts))
+        .unwrap_or((5, 60));
+    let mut presets = app.preset_watts;
+    for (index, edit) in edits.into_iter().enumerate() {
+        presets[index] = read_edit_watts(edit, presets[index], minimum, maximum);
+    }
+    app.preset_watts = presets;
+    refresh_preset_controls(app);
+    if let Some(index) = app.selected_preset {
+        select_preset(app, index);
+    }
+    state::save_presets(presets)
+}
+
+fn start_policy_save(hwnd_address: usize, pipe_name: String, settings: PowerPolicySettings) {
     thread::spawn(move || {
         let client = WorkerClient::new(pipe_name);
         let deadline = Instant::now() + Duration::from_secs(10);
@@ -729,34 +833,56 @@ fn start_apply(hwnd_address: usize, pipe_name: String, target: PowerLimitTarget)
     });
 }
 
-unsafe fn apply_profile_to_presets(
-    app: &mut GuiApp,
-    hwnd: HWND,
-    profile: &ProfilePayload,
-) {
+unsafe fn select_preset(app: &mut GuiApp, index: usize) {
+    if index >= app.preset_watts.len() {
+        return;
+    }
+    app.selected_preset = Some(index);
+    app.selected_target = PowerLimitTarget::uniform(app.preset_watts[index]);
+    if let Some(buttons) = app.preset_buttons {
+        for (button_index, button) in buttons.into_iter().enumerate() {
+            if !button.is_null() {
+                SendMessageW(button, BM_SETCHECK, usize::from(button_index == index), 0);
+            }
+        }
+    }
+}
+
+unsafe fn start_preset_apply(app: &mut GuiApp, hwnd: HWND, index: usize) {
+    if !app.write_enabled || app.apply_in_flight || index >= app.preset_watts.len() {
+        return;
+    }
+    select_preset(app, index);
+    app.apply_in_flight = true;
+    if !app.status_label.is_null() {
+        let text = wide(&format!(
+            "正在应用预设 {}：{} W / {} W / {} W…",
+            index + 1,
+            app.selected_target.stapm_watts,
+            app.selected_target.fast_watts,
+            app.selected_target.slow_watts
+        ));
+        SetWindowTextW(app.status_label, text.as_ptr());
+    }
+    start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target);
+}
+
+unsafe fn apply_profile_to_presets(app: &mut GuiApp, hwnd: HWND, profile: &ProfilePayload) {
     let minimum = profile.minimum_watts;
     let maximum = profile.maximum_watts;
     if minimum > maximum {
         return;
     }
     app.profile = Some(profile.clone());
-    app.preset_watts = [
-        12.clamp(minimum, maximum),
-        25.clamp(minimum, maximum),
-        45.clamp(minimum, maximum),
-    ];
-    if app.selected_target.stapm_watts < minimum || app.selected_target.stapm_watts > maximum {
+    app.preset_watts = clamp_preset_values(app.preset_watts, minimum, maximum);
+    if let Some(index) = app.selected_preset {
+        app.selected_target = PowerLimitTarget::uniform(app.preset_watts[index]);
+    } else if app.selected_target.stapm_watts < minimum || app.selected_target.stapm_watts > maximum
+    {
         app.selected_target = PowerLimitTarget::uniform(app.preset_watts[0]);
+        app.selected_preset = Some(0);
     }
-    if let Some(buttons) = app.preset_buttons {
-        for (index, button) in buttons.into_iter().enumerate() {
-            if button.is_null() {
-                continue;
-            }
-            let text = wide(&format!("{} W", app.preset_watts[index]));
-            SetWindowTextW(button, text.as_ptr());
-        }
-    }
+    refresh_preset_controls(app);
 
     if !app.policy_profile_applied {
         if let Some(controls) = app.policy_controls {
@@ -782,14 +908,9 @@ unsafe fn apply_profile_to_presets(
                 0,
             );
             app.policy_profile_applied = true;
-            if saved.map(|settings| settings.enabled).unwrap_or(false) &&
-                !app.policy_in_flight {
+            if saved.map(|settings| settings.enabled).unwrap_or(false) && !app.policy_in_flight {
                 app.policy_in_flight = true;
-                start_policy_save(
-                    hwnd as usize,
-                    app.worker_pipe.clone(),
-                    saved.unwrap(),
-                );
+                start_policy_save(hwnd as usize, app.worker_pipe.clone(), saved.unwrap());
             }
         }
     }
@@ -827,26 +948,30 @@ unsafe fn dispatch(app: &mut GuiApp, hwnd: HWND, event: LifecycleEvent) -> Trans
 }
 
 unsafe fn add_tray_icon(hwnd: HWND) {
-    let mut data = NOTIFYICONDATAW::default();
-    data.cbSize = size_of::<NOTIFYICONDATAW>() as u32;
-    data.hWnd = hwnd;
-    data.uID = TRAY_ICON_ID;
-    data.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
-    data.uCallbackMessage = WM_APP_TRAY;
-    data.hIcon = LoadIconW(std::ptr::null_mut(), IDI_APPLICATION);
+    let mut data = NOTIFYICONDATAW {
+        cbSize: size_of::<NOTIFYICONDATAW>() as u32,
+        hWnd: hwnd,
+        uID: TRAY_ICON_ID,
+        uFlags: NIF_MESSAGE | NIF_ICON | NIF_TIP,
+        uCallbackMessage: WM_APP_TRAY,
+        hIcon: LoadIconW(std::ptr::null_mut(), IDI_APPLICATION),
+        ..Default::default()
+    };
     write_wide(&mut data.szTip, APP_TITLE);
     Shell_NotifyIconW(NIM_ADD, &data);
 }
 
 unsafe fn remove_tray_icon(hwnd: HWND) {
-    let mut data = NOTIFYICONDATAW::default();
-    data.cbSize = size_of::<NOTIFYICONDATAW>() as u32;
-    data.hWnd = hwnd;
-    data.uID = TRAY_ICON_ID;
+    let data = NOTIFYICONDATAW {
+        cbSize: size_of::<NOTIFYICONDATAW>() as u32,
+        hWnd: hwnd,
+        uID: TRAY_ICON_ID,
+        ..Default::default()
+    };
     Shell_NotifyIconW(NIM_DELETE, &data);
 }
 
-unsafe fn show_tray_menu(hwnd: HWND) {
+unsafe fn show_tray_menu(hwnd: HWND, app: &GuiApp) {
     let menu: HMENU = CreatePopupMenu();
     if menu.is_null() {
         return;
@@ -855,6 +980,13 @@ unsafe fn show_tray_menu(hwnd: HWND) {
     let show_text = wide("显示主界面");
     let exit_text = wide("退出");
     AppendMenuW(menu, MF_STRING, MENU_SHOW, show_text.as_ptr());
+    if app.write_enabled {
+        AppendMenuW(menu, MF_SEPARATOR, 0, std::ptr::null());
+        for (index, watts) in app.preset_watts.into_iter().enumerate() {
+            let label = wide(&preset_menu_label(index, watts));
+            AppendMenuW(menu, MF_STRING, PRESET_MENU_START + index, label.as_ptr());
+        }
+    }
     AppendMenuW(menu, MF_SEPARATOR, 0, std::ptr::null());
     AppendMenuW(menu, MF_STRING, MENU_EXIT, exit_text.as_ptr());
 
@@ -925,7 +1057,7 @@ unsafe extern "system" fn window_proc(
             if mouse_message == WM_LBUTTONUP {
                 dispatch(app, hwnd, LifecycleEvent::TrayShowRequested);
             } else if mouse_message == WM_RBUTTONUP || mouse_message == WM_CONTEXTMENU {
-                show_tray_menu(hwnd);
+                show_tray_menu(hwnd, app);
             }
             0
         }
@@ -968,7 +1100,8 @@ unsafe extern "system" fn window_proc(
             0
         }
         WM_COMMAND => {
-            match wparam & 0xFFFF {
+            let command = wparam & 0xFFFF;
+            match command {
                 MENU_SHOW => {
                     dispatch(app, hwnd, LifecycleEvent::TrayShowRequested);
                 }
@@ -976,13 +1109,27 @@ unsafe extern "system" fn window_proc(
                     dispatch(app, hwnd, LifecycleEvent::TrayExitRequested);
                 }
                 PRESET_12 | PRESET_25 | PRESET_45 if app.write_enabled => {
-                    let preset_index = match wparam & 0xFFFF {
+                    let preset_index = match command {
                         PRESET_12 => 0,
                         PRESET_25 => 1,
                         PRESET_45 => 2,
                         _ => 0,
                     };
-                    app.selected_target = PowerLimitTarget::uniform(app.preset_watts[preset_index]);
+                    select_preset(app, preset_index);
+                }
+                PRESET_SAVE if app.write_enabled => {
+                    let result = save_preset_edits(app);
+                    let message = match result {
+                        Ok(()) => format!(
+                            "快捷预设已保存：{} W / {} W / {} W。",
+                            app.preset_watts[0], app.preset_watts[1], app.preset_watts[2]
+                        ),
+                        Err(error) => format!("快捷预设保存失败。\n{error}"),
+                    };
+                    if !app.status_label.is_null() {
+                        let text = wide(&message);
+                        SetWindowTextW(app.status_label, text.as_ptr());
+                    }
                 }
                 APPLY_TARGET if app.write_enabled && !app.apply_in_flight => {
                     app.apply_in_flight = true;
@@ -1004,27 +1151,13 @@ unsafe extern "system" fn window_proc(
                             .as_ref()
                             .map(|profile| (profile.minimum_watts, profile.maximum_watts))
                             .unwrap_or((5, 60));
-                        let battery_target = read_edit_watts(
-                            controls.battery_target,
-                            12,
-                            minimum,
-                            maximum,
-                        );
-                        let ac_target = read_edit_watts(
-                            controls.ac_target,
-                            45,
-                            minimum,
-                            maximum,
-                        );
+                        let battery_target =
+                            read_edit_watts(controls.battery_target, 12, minimum, maximum);
+                        let ac_target = read_edit_watts(controls.ac_target, 45, minimum, maximum);
                         set_edit_watts(controls.battery_target, battery_target);
                         set_edit_watts(controls.ac_target, ac_target);
                         let settings = PowerPolicySettings {
-                            enabled: SendMessageW(
-                                controls.enabled,
-                                BM_GETCHECK,
-                                0,
-                                0,
-                            ) != 0,
+                            enabled: SendMessageW(controls.enabled, BM_GETCHECK, 0, 0) != 0,
                             battery_target: PowerLimitTarget::uniform(battery_target),
                             ac_target: PowerLimitTarget::uniform(ac_target),
                         };
@@ -1034,12 +1167,13 @@ unsafe extern "system" fn window_proc(
                             let text = wide("正在保存自动策略…");
                             SetWindowTextW(app.status_label, text.as_ptr());
                         }
-                        start_policy_save(
-                            hwnd as usize,
-                            app.worker_pipe.clone(),
-                            settings,
-                        );
+                        start_policy_save(hwnd as usize, app.worker_pipe.clone(), settings);
                     }
+                }
+                _ if app.write_enabled
+                    && (PRESET_MENU_START..PRESET_MENU_START + 3).contains(&command) =>
+                {
+                    start_preset_apply(app, hwnd, command - PRESET_MENU_START);
                 }
                 _ => {}
             }
@@ -1075,14 +1209,16 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let class_name = wide(WINDOW_CLASS);
     let window_title = wide(APP_TITLE);
-    let mut window_class = WNDCLASSEXW::default();
-    window_class.cbSize = size_of::<WNDCLASSEXW>() as u32;
-    window_class.style = CS_HREDRAW | CS_VREDRAW;
-    window_class.lpfnWndProc = Some(window_proc);
-    window_class.hInstance = instance;
-    window_class.hCursor = unsafe { LoadCursorW(std::ptr::null_mut(), IDC_ARROW) };
-    window_class.hbrBackground = std::ptr::null_mut::<c_void>() as HBRUSH;
-    window_class.lpszClassName = class_name.as_ptr();
+    let window_class = WNDCLASSEXW {
+        cbSize: size_of::<WNDCLASSEXW>() as u32,
+        style: CS_HREDRAW | CS_VREDRAW,
+        lpfnWndProc: Some(window_proc),
+        hInstance: instance,
+        hCursor: unsafe { LoadCursorW(std::ptr::null_mut(), IDC_ARROW) },
+        hbrBackground: std::ptr::null_mut::<c_void>() as HBRUSH,
+        lpszClassName: class_name.as_ptr(),
+        ..Default::default()
+    };
     if unsafe { RegisterClassExW(&window_class) } == 0 {
         return Err("RegisterClassExW failed".into());
     }
@@ -1107,7 +1243,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let window_height = if options.enable_write_controls {
-        540
+        580
     } else {
         380
     };
@@ -1141,15 +1277,14 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         let _ = create_title_label(hwnd, instance);
         (*app).status_label = create_status_label(hwnd, instance);
         if options.enable_write_controls {
-            (*app).preset_buttons = Some(create_action_buttons(hwnd, instance));
+            (*app).preset_buttons =
+                Some(create_action_buttons(hwnd, instance, (*app).preset_watts));
+            (*app).preset_edits = Some(create_preset_controls(hwnd, instance, (*app).preset_watts));
             (*app).policy_controls = Some(create_policy_controls(hwnd, instance));
             (*app).saved_policy = state::load_power_policy();
             if let Some(saved) = (*app).saved_policy {
                 if let Some(controls) = (*app).policy_controls {
-                    set_edit_watts(
-                        controls.battery_target,
-                        saved.battery_target.stapm_watts,
-                    );
+                    set_edit_watts(controls.battery_target, saved.battery_target.stapm_watts);
                     set_edit_watts(controls.ac_target, saved.ac_target.stapm_watts);
                     SendMessageW(
                         controls.enabled,
@@ -1215,7 +1350,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{format_policy_state, format_snapshot};
+    use super::{clamp_preset_values, format_policy_state, format_snapshot, preset_menu_label};
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
         PowerPolicySettings, PowerPolicyState, ProfilePayload, SnapshotPayload, TelemetryPayload,
@@ -1272,7 +1407,10 @@ mod tests {
 
         assert!(text.contains("已连接 worker"), "{text}");
         assert!(text.contains("处理器：AMD Ryzen 7 8845HS"), "{text}");
-        assert!(text.contains("平台配置：Hawk Point 8845HS development profile [5-60 W]"), "{text}");
+        assert!(
+            text.contains("平台配置：Hawk Point 8845HS development profile [5-60 W]"),
+            "{text}"
+        );
         assert!(text.contains("供电：电池"), "{text}");
         assert!(text.contains("目标功耗：10.00 W"), "{text}");
         assert!(text.contains("Fast 上限：10.00 W"), "{text}");
@@ -1280,7 +1418,10 @@ mod tests {
         assert!(text.contains("平台状态：支持写入"), "{text}");
         assert!(text.contains("自动策略：不可用"), "{text}");
         assert!(text.contains("固件钳制：否"), "{text}");
-        assert!(text.contains("可写字段：STAPM=是 Fast=是 Slow=是"), "{text}");
+        assert!(
+            text.contains("可写字段：STAPM=是 Fast=是 Slow=是"),
+            "{text}"
+        );
         assert!(!text.contains("Worker: connected"), "{text}");
         assert!(!text.contains("Power source"), "{text}");
     }
@@ -1314,12 +1455,26 @@ mod tests {
 
         let text = format_policy_state(Some(&state));
 
-        assert!(text.contains("自动策略：已启用（电池 10 W / 交流 12 W）"), "{text}");
+        assert!(
+            text.contains("自动策略：已启用（电池 10 W / 交流 12 W）"),
+            "{text}"
+        );
         assert!(text.contains("上次应用：电池 · 成功"), "{text}");
     }
 
     #[test]
     fn missing_policy_surfaces_chinese_placeholder() {
         assert_eq!(format_policy_state(None), "自动策略：不可用");
+    }
+
+    #[test]
+    fn presets_are_clamped_to_the_active_profile() {
+        assert_eq!(clamp_preset_values([2, 25, 80], 5, 60), [5, 25, 60]);
+    }
+
+    #[test]
+    fn tray_preset_labels_include_their_editable_value() {
+        assert_eq!(preset_menu_label(0, 10), "应用预设 1：10 W");
+        assert_eq!(preset_menu_label(2, 43), "应用预设 3：43 W");
     }
 }

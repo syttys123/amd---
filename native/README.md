@@ -76,7 +76,16 @@ The Rust GUI write controls are also opt-in:
     -GuiExecutable .\artifacts\native-build\gui-runtime\amd-mobile-power-gui.exe
 ```
 
-Without `-ExecuteNoChangePreset`, this only checks that the controls exist.
+Without `-ExecuteNoChangePreset`, the verifier edits the three quick presets in
+an isolated `%LocalAppData%`, saves them, checks the rewritten button labels,
+and verifies the persisted JSON. With `-ExecutePolicySave`, it also confirms
+that saving the battery/AC policy does not discard those presets.
+
+The write-control page exposes three editable quick presets, initially `12`,
+`25`, and `45 W`. Saving a preset updates the radio-button labels and the
+current target, with every value clamped to the active platform profile.
+Right-clicking the tray icon also exposes the same presets as direct
+`应用预设` commands when write controls are enabled.
 
 The native worker now implements the v1 `getPowerPolicy` and
 `setPowerPolicy` commands. When enabled, a one-second policy loop applies the
@@ -114,9 +123,9 @@ and verifies that the real Startup-folder and current-user uninstall registry
 integration does not change. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
 
-The current internal release candidate is `0.6.0-native-rc.4`; its hash and
+The current internal release candidate is `0.6.0-native-rc.8`; its hash and
 evidence are recorded in `docs/PACKAGING.md` and
-`docs/evidence/packaging/v0.6.0-native-rc.4-release-gate-2026-11-10.json`.
+`docs/evidence/packaging/v0.6.0-native-rc.8-release-gate-2026-11-11.json`.
 
 Exercise the real Start menu, Startup shortcut, and current-user uninstall
 entry without launching the GUI:
