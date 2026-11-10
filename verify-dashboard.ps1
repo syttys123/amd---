@@ -205,6 +205,91 @@ try {
 
     $width = $windowRect.Right - $windowRect.Left
     $height = $windowRect.Bottom - $windowRect.Top
+    $targetBounds = $null
+    $left = $null
+    $right = $null
+    $top = $null
+    $bottom = $null
+    $lastCandidateBounds = $null
+    $lastCandidateRegion = $null
+    $lastAcceptedRegion = $null
+    $stableRegionReads = 0
+    $deadline = [DateTime]::UtcNow.AddSeconds(3)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $candidateBounds = $targetLabel.Current.BoundingRectangle
+        $lastCandidateBounds = $candidateBounds
+        $candidateLeft = [Math]::Max(
+            0,
+            [int]($candidateBounds.Left - $windowRect.Left) - 42)
+        $candidateRight = [Math]::Min(
+            $width - 1,
+            [int]($candidateBounds.Left - $windowRect.Left) - 5)
+        $candidateTop = [Math]::Max(
+            0,
+            [int]($candidateBounds.Top - $windowRect.Top))
+        $candidateBottom = [Math]::Min(
+            $height - 1,
+            [int]($candidateBounds.Bottom - $windowRect.Top) - 1)
+        $candidateRegion =
+            "{0},{1},{2},{3}" -f
+                $candidateLeft,
+                $candidateTop,
+                $candidateRight,
+                $candidateBottom
+        $lastCandidateRegion = $candidateRegion
+        # Some WinForms text peers report an overly wide right edge. The
+        # left/top/bottom anchor and the clipped sampling region are what this
+        # pixel check actually depends on.
+        $boundsUsable =
+            $candidateBounds.Width -gt 0 -and
+            $candidateBounds.Height -gt 0 -and
+            $candidateBounds.Left -ge $windowRect.Left -and
+            $candidateBounds.Left -lt $windowRect.Right -and
+            $candidateBounds.Top -ge $windowRect.Top -and
+            $candidateBounds.Bottom -le $windowRect.Bottom -and
+            $candidateRight -ge $candidateLeft -and
+            $candidateBottom -ge $candidateTop
+        if ($boundsUsable -and $lastAcceptedRegion -eq $candidateRegion) {
+            $stableRegionReads++
+        }
+        elseif ($boundsUsable) {
+            $lastAcceptedRegion = $candidateRegion
+            $stableRegionReads = 1
+        }
+        else {
+            $lastAcceptedRegion = $null
+            $stableRegionReads = 0
+        }
+        if ($stableRegionReads -ge 2) {
+            $targetBounds = $candidateBounds
+            $left = $candidateLeft
+            $right = $candidateRight
+            $top = $candidateTop
+            $bottom = $candidateBottom
+            break
+        }
+        Start-Sleep -Milliseconds 100
+    }
+    if ($stableRegionReads -lt 2) {
+        $message = (
+            "Target-left pixel region could not be stabilized inside the " +
+            "dashboard capture. Window={0},{1},{2},{3}; Target={4},{5},{6},{7}; " +
+            "Region={8}; StableReads={9}; BoundsUsable={10}."
+        ) -f
+                $windowRect.Left,
+                $windowRect.Top,
+                $windowRect.Right,
+                $windowRect.Bottom,
+                $lastCandidateBounds.Left,
+                $lastCandidateBounds.Top,
+                $lastCandidateBounds.Right,
+                $lastCandidateBounds.Bottom,
+                $lastCandidateRegion,
+                $stableRegionReads,
+                $boundsUsable
+        throw $message
+    }
+
     $bitmap = New-Object System.Drawing.Bitmap $width, $height
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     try {
@@ -214,24 +299,6 @@ try {
             0,
             0,
             $bitmap.Size)
-
-        $targetBounds = $targetLabel.Current.BoundingRectangle
-        $left = [Math]::Max(
-            0,
-            [int]($targetBounds.Left - $windowRect.Left) - 42)
-        $right = [Math]::Min(
-            $width - 1,
-            [int]($targetBounds.Left - $windowRect.Left) - 5)
-        $top = [Math]::Max(
-            0,
-            [int]($targetBounds.Top - $windowRect.Top))
-        $bottom = [Math]::Min(
-            $height - 1,
-            [int]($targetBounds.Bottom - $windowRect.Top) - 1)
-
-        if ($right -lt $left -or $bottom -lt $top) {
-            throw "Target-left pixel region is outside the dashboard capture."
-        }
 
         $targetLeftArtifactPixels = 0
         for ($y = $top; $y -le $bottom; $y++) {
