@@ -39,6 +39,10 @@ Runtime layout checks also passed for compact and advanced mode:
   no policy was enabled and no power-limit write was invoked.
 - The tray screenshot can be reproduced with `verify-tray-menu.ps1` on an
   interactive Windows desktop.
+- The simple dashboard runtime check can be reproduced with
+  `verify-dashboard.ps1`: it waits for live worker telemetry, requires
+  `动态上限 ... · 电源/电池`, and fails if any non-background pixel appears
+  immediately left of `目标功耗`.
 - No security controls, driver services, or hardware limits were changed.
 
 No required dashboard capture remains. The release checklist still requires the

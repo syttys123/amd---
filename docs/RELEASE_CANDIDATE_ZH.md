@@ -8,15 +8,15 @@
 ## Source And Package
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
-- Current source commit reviewed: `6cb020a`
-- Package source commit: `6cb020a`
+- Current source commit reviewed: `71be9c8`
+- Package source commit: `71be9c8`
 - Package: `artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip`
-- Size: `593,854` bytes
-- SHA256: `5bfad4a16d15612d44a47e56cbe4c9d0196e15d75b52b5e3b04a5f9eb596584a`
+- Size: `593,944` bytes
+- SHA256: `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`
 - Files / checksums / profiles / licenses: `40 / 39 / 9 / 4`
 - Runtime: Microsoft .NET 8 Desktop Runtime x64
 
-The ZIP was rebuilt from a clean `6cb020a` worktree with .NET SDK `8.0.427`,
+The ZIP was rebuilt from a clean `71be9c8` worktree with .NET SDK `8.0.427`,
 matching the pinned CI toolchain. Later documentation-only commits do not change
 the packaged runtime files.
 
@@ -35,6 +35,7 @@ Evidence:
 - Tray menu direction: up
 - Tray menu bounds and horizontal anchoring: PASS
 - Graceful tray exit: PASS
+- Packaged simple dashboard gray-dot and power-line check: PASS
 - Packaged read-only diagnostics collector: PASS
 - GUI and collector diagnostic field whitelist / path redaction: PASS
 - RyzenAdj family `0-15` profile coverage: PASS
@@ -123,7 +124,7 @@ docs/assets/bilibili-cover-2026-11-10.png
 - The supervised full AC -> battery -> AC policy transition still needs a human
   operator and explicit confirmation phrase.
 - At least one second AMD laptop still needs read-only compatibility evidence.
-- Any runtime or packaging change after `6cb020a` requires a new clean package,
+- Any runtime or packaging change after `71be9c8` requires a new clean package,
   SHA256, and release evidence.
 - Project owner must review final video voice, pacing, claims, and cover.
 - GitHub tag/release, Bilibili login/upload, and public publication require
@@ -138,6 +139,7 @@ docs/assets/bilibili-cover-2026-11-10.png
   -VerifyShellIntegration `
   -VerifyTrayMenu `
   -VerifyTrayExit `
+  -VerifyDashboard `
   -VerifyDiagnostics
 ```
 

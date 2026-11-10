@@ -17,6 +17,7 @@ For the full release gate, use:
   -VerifyShellIntegration `
   -VerifyTrayMenu `
   -VerifyTrayExit `
+  -VerifyDashboard `
   -VerifyDiagnostics
 ```
 
@@ -29,6 +30,9 @@ uninstall command, and either the logon task or Startup-folder fallback.
 interactive desktop; its runtime screenshot stays under `artifacts/verify`.
 `-VerifyTrayExit` also invokes the menu's Exit action and requires both GUI and
 worker processes to disappear within eight seconds.
+`-VerifyDashboard` opens the packaged simple dashboard, waits for live worker
+telemetry, checks the unified `电源/电池` label, and requires zero
+non-background pixels immediately left of `目标功耗`.
 `-VerifyDiagnostics` runs the packaged collector against the packaged worker,
 requires a schema-1 JSON report, read-only mode, graceful worker shutdown, and
 the absence of local paths, process IDs, log excerpts, and account data.
@@ -96,10 +100,10 @@ Current `0.1.3-dev` integration candidate:
 artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
 ```
 
-- Size: 593,854 bytes.
+- Size: 593,944 bytes.
 - SHA256:
-  `5bfad4a16d15612d44a47e56cbe4c9d0196e15d75b52b5e3b04a5f9eb596584a`.
-- Source commit: `6cb020a`.
+  `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`.
+- Source commit: `71be9c8`.
 - Working tree at build time: clean.
 - Framework-dependent and requires the Microsoft .NET 8 Desktop Runtime x64.
 - All 39 staged SHA256 entries verified across 40 files.
@@ -127,6 +131,8 @@ artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
   passed under Windows PowerShell 5.1 and PowerShell 7.
 - The full local gate passed with 71/71 tests after adding regressions for
   sanitized GUI diagnostics and complete RyzenAdj family coverage.
+- The dashboard gate passed with live worker telemetry at
+  `动态上限 25.0 W · 电源`; the target-left artifact pixel count was zero.
 - GUI and worker both report product version `0.1.3-dev` and file version
   `0.1.3.0`.
 
@@ -275,10 +281,10 @@ GUI/worker teardown.
 The current verified local development package uses SHA256:
 
 ```text
-5bfad4a16d15612d44a47e56cbe4c9d0196e15d75b52b5e3b04a5f9eb596584a
+020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b
 ```
 
-It was built from clean commit `6cb020a` with .NET SDK `8.0.427`.
+It was built from clean commit `71be9c8` with .NET SDK `8.0.427`.
 
 Rebuilds may produce a different hash because embedded timestamps can change.
 Always use the hash generated with the current build.

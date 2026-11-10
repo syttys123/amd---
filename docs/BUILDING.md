@@ -48,6 +48,7 @@ install/overwrite/uninstall checks, and current-user shell integration:
   -FrameworkDependent `
   -VerifyShellIntegration `
   -VerifyTrayMenu `
+  -VerifyDashboard `
   -VerifyDiagnostics
 ```
 
@@ -58,7 +59,9 @@ entry already exists. `-VerifyTrayMenu` requires an interactive desktop and
 writes its runtime screenshot under `artifacts/verify`, not into tracked media.
 `-VerifyDiagnostics` launches the packaged worker in read-only mode, exports a
 sanitized compatibility report through the packaged collector, and requires
-graceful shutdown.
+graceful shutdown. `-VerifyDashboard` validates the packaged simple-mode
+dashboard with live worker telemetry and checks the target-power left region
+for the historical gray `--` artifact.
 
 Prepare a local, upload-review-only bundle after the package and media gates
 pass:

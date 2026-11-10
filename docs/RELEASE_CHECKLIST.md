@@ -52,6 +52,10 @@
       closes its worker through the shutdown protocol.
       Evidence: `verify-release.ps1 -VerifyDiagnostics`; PowerShell 5.1 and 7
       host-side smoke tests.
+- [x] Packaged simple dashboard has no target-left gray placeholder and reports
+      the unified power-line label.
+      Evidence: `verify-release.ps1 -VerifyDashboard`; live worker telemetry
+      displayed `动态上限 25.0 W · 电源` with zero target-left artifact pixels.
 - [x] No machine-specific diagnostics, logs, or user data are included.
 
 ## Documentation And Media

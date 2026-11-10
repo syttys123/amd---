@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "evidenceType": "clean-release-verification",
-  "generatedAt": "2026-11-10T07:55:30.000+08:00",
-  "sourceCommit": "6cb020a278877e961b8f4dbbf95a19335be1dc2d",
+  "generatedAt": "2026-11-10T07:56:08.841+08:00",
+  "sourceCommit": "71be9c8594fed7eccd9392bbb76b150f713af56a",
   "workingTree": "Clean",
-  "verificationCommand": ".\\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent -VerifyShellIntegration -VerifyTrayMenu -VerifyTrayExit -VerifyDiagnostics",
+  "verificationCommand": ".\\verify-release.ps1 -Version 0.1.3-dev -FrameworkDependent -VerifyShellIntegration -VerifyTrayMenu -VerifyTrayExit -VerifyDiagnostics -VerifyDashboard",
   "package": {
     "name": "amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
-    "sizeBytes": 593854,
-    "sha256": "5bfad4a16d15612d44a47e56cbe4c9d0196e15d75b52b5e3b04a5f9eb596584a",
+    "sizeBytes": 593944,
+    "sha256": "020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b",
     "files": 40,
     "checksums": 39,
     "profiles": 9,
@@ -44,8 +44,14 @@
     "trayMenuItems": 11,
     "trayMenuHorizontalGap": 0,
     "trayGracefulExit": "PASS",
-    "trayNotificationText": "AMD Mobile Power AMD Mobile Power | 电源 | 25.0 W",
-    "trayScreenshotSha256": "6d3b36eeb9483dd5e68bdbda69296d3ceebaab6ae929cea4d891ee50b3ddf12b"
+    "trayNotificationText": "AMD Mobile Power AMD Mobile Power | 电源 | 23.7 W",
+    "trayScreenshotSha256": "a02341bda0aad690a8a897003783970543740e6177096819e96c78658cffd75c"
+  },
+  "dashboard": {
+    "verification": "PASS",
+    "powerLineText": "动态上限 25.0 W · 电源",
+    "targetLeftArtifactPixels": 0,
+    "screenshotSha256": "4102c54eada13d1c06f712c1fad39eedc703d4327f549eca170224d77488ae35"
   },
   "diagnostics": {
     "collectionStatus": "PASS",

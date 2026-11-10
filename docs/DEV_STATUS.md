@@ -33,15 +33,15 @@ not authoritative.
 - Baseline commit `f9d1be5` was pushed to `origin/main`.
 - The intended project name is `amd-mobile-power`. The GitHub repository still
   uses the original `amd-mobile-power` URL because GitHub CLI is not installed locally.
-- The current Release build has 62 passing tests across Core, Worker, and GUI.
+- The current Release build has 71 passing tests across Core, Worker, and GUI.
 - A real hardware read-only probe against the development laptop succeeded.
 - The repository GUI now reads through the named pipe and updates every second.
 - The GUI defaults to read-only; hardware writes require the explicit
   `--enable-write-controls` development flag.
 - A self-contained Windows x64 portable ZIP now builds reproducibly.
-- The current development package was rebuilt from clean commit `783e0e0` and
-  includes hidden-legacy-worker conflict detection plus reviewed third-party
-  license texts.
+- The current development package was rebuilt from clean commit `71be9c8`:
+  593,944 bytes, SHA256
+  `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`.
 
 ## Development Workflow
 
@@ -544,10 +544,10 @@ third_party/
   and requires graceful protocol shutdown. Release verification can exercise
   this path with `-VerifyDiagnostics`.
 - Rebuilt the clean Lite package after adding product analyzer hardening and
-  the dependency vulnerability and deprecation gate. The package is 593,854
+  the dependency vulnerability and deprecation gate. The package is 593,944
   bytes with SHA256
-  `5bfad4a16d15612d44a47e56cbe4c9d0196e15d75b52b5e3b04a5f9eb596584a`,
-  built from commit `6cb020a` with .NET SDK `8.0.427`, and contains 40 files
+  `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`,
+  built from commit `71be9c8` with .NET SDK `8.0.427`, and contains 40 files
   with 39 checksum entries.
   The full local gate passed with 0 build warnings, 71/71 tests, shell
   integration, tray-menu placement, graceful tray exit, and read-only
@@ -555,6 +555,11 @@ third_party/
   six projects with zero advisories. PowerShell 5.1 and PowerShell 7 both
   produced a `PASS` diagnostic report with no local drive paths or forbidden
   process/log fields.
+- Added `verify-dashboard.ps1` and the `-VerifyDashboard` release gate. It
+  starts the packaged read-only GUI in explicit simple mode, waits for live
+  worker telemetry, verifies `动态上限 ... · 电源/电池`, and requires zero
+  non-background pixels immediately left of `目标功耗`. The packaged dashboard
+  pass used `动态上限 25.0 W · 电源`.
 - Added `prepare-release-review.ps1`, a no-upload review bundle generator. It
   validates the package sidecar and embedded commit, rejects runtime-sensitive
   drift after the package source commit, reruns the full media gate, copies
