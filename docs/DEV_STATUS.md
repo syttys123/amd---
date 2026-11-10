@@ -750,8 +750,11 @@ third_party/
   tests pass. The worker accepts `applyTarget` only with both
   `--enable-hardware --enable-write-controls`; the default gate returns
   `hardware_writes_disabled`, and a 4 W target on the write-enabled worker
-  returned `invalid_target` before any DLL write. No real power-limit write was
-  performed in this migration step.
+  returned `invalid_target` before any DLL write. The supervised no-change
+  hardware gate then wrote the current AC state back as `45/45/45 W`, read back
+  `45/45/45 W`, did not trigger restore, and shut the worker down cleanly.
+  Evidence:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-native-no-change-2026-11-10T12-16-14Z.json`.
 
 Development screenshot:
 

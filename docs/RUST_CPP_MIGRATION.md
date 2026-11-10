@@ -88,4 +88,7 @@ read-only snapshot.
 The native worker's `applyTarget` command is implemented but disabled unless
 `--enable-write-controls` is passed in addition to `--enable-hardware`.
 Out-of-range targets are rejected before any DLL write call. A real hardware
-write/read-back gate is still separate from the read-only migration gate.
+write/read-back gate is separate from the read-only migration gate. The first
+supervised no-change test on the 8845HS wrote the current AC `45/45/45 W` state
+back, read back `45/45/45 W`, and shut down without restore; see
+`docs/evidence/hardware/mechrevo-wujie15-8845hs-native-no-change-2026-11-10T12-16-14Z.json`.

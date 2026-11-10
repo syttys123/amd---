@@ -1,0 +1,66 @@
+{
+  "SourceCommit": "e5d7f420025ed321709ab2c7acb4535f76f0375f",
+  "Verification": "PASS",
+  "Processor": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics     ",
+  "RyzenAdjFamily": 10,
+  "RyzenAdjFamilyName": "Hawk Point",
+  "PmTableVersion": "4c0009",
+  "PowerLine": "ac",
+  "TargetWatts": {
+    "fastWatts": 45,
+    "slowWatts": 45,
+    "stapmWatts": 45
+  },
+  "BeforeLimitsWatts": {
+    "slow": 45,
+    "stapm": 45,
+    "fast": 45
+  },
+  "AfterLimitsWatts": {
+    "slow": 45,
+    "stapm": 45,
+    "fast": 45
+  },
+  "ApplyResult": {
+    "error": null,
+    "hasFirmwareClamp": false,
+    "hasStapmWarning": false,
+    "isSuccessful": true,
+    "previousTarget": {
+      "fastWatts": 45,
+      "slowWatts": 45,
+      "stapmWatts": 45
+    },
+    "readbacks": [
+      {
+        "driverResultCode": 0,
+        "effectiveWatts": 45,
+        "kind": 0,
+        "requestedWatts": 45
+      },
+      {
+        "driverResultCode": 0,
+        "effectiveWatts": 45,
+        "kind": 1,
+        "requestedWatts": 45
+      },
+      {
+        "driverResultCode": 0,
+        "effectiveWatts": 45,
+        "kind": 2,
+        "requestedWatts": 45
+      }
+    ],
+    "restoreAttempted": false,
+    "restoreReadbacks": [],
+    "restoredPreviousLimits": false,
+    "target": {
+      "fastWatts": 45,
+      "slowWatts": 45,
+      "stapmWatts": 45
+    }
+  },
+  "InvalidTargetGuard": "PASS",
+  "Shutdown": "{\"status\":\"shutting_down\"}",
+  "RecordedAt": "2026-11-10T20:16:14.8366922+08:00"
+}
