@@ -766,9 +766,9 @@ third_party/
   package stages the Rust GUI, C++ worker, runtime DLL/SYS files, licenses,
   notices, build metadata, SHA256 checksums, then extracts and reruns the GUI
   lifecycle, read-only worker, and write-control UI gates in isolation.
-  The clean `0.3.0-native-preview.1` ZIP is 406,845 bytes with SHA256
-  `566f5a1cfe96bd743e3de5ff87a4d27d5a2fe2f8224d81dfd1030741e86d9035`,
-  built from commit `3094414`, with all checksum entries verified. Evidence:
+  The clean `0.3.0-native-preview.1` ZIP is 414,716 bytes with SHA256
+  `0a5b4390c74c206376224386d88b601f4ec1886bd877ea4a52b659d5b0e43dd9`,
+  built from commit `b0bef13`, with all checksum entries verified. Evidence:
   `docs/evidence/packaging/v0.3.0-native-preview.1-clean-2026-11-10.json`.
 - Added `native/collect-native-diagnostics.ps1` to the native preview package.
   It starts the bundled worker with read-only hardware access, queries health,

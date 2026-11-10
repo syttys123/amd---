@@ -21,10 +21,10 @@ Current clean native preview:
 artifacts/native-packages/amd-mobile-power-v0.3.0-native-preview.1-win-x64-native-preview.zip
 ```
 
-- Size: `406,845` bytes.
+- Size: `414,716` bytes.
 - SHA256:
-  `566f5a1cfe96bd743e3de5ff87a4d27d5a2fe2f8224d81dfd1030741e86d9035`.
-- Source commit: `3094414a35f1852995e1ba8a7694408f6fb26ec8`.
+  `0a5b4390c74c206376224386d88b601f4ec1886bd877ea4a52b659d5b0e43dd9`.
+- Source commit: `b0bef13ff60ef35b578eaecf8146698fd839394b`.
 - Working tree at build time: clean.
 - Verification: package ZIP, extracted GUI lifecycle, read-only worker,
   write-control buttons, read-only compatibility collector, and all staged
