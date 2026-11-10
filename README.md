@@ -58,7 +58,8 @@ artifacts/packages/amd-mobile-power-v1.0.0-win-x64-lite.zip
 
 Extract the ZIP and run `AmdMobilePower.exe`. This starts in read-only mode by
 default. The locally validated write-control deployment is documented in
-`docs/DEPLOYMENT.md`.
+`docs/DEPLOYMENT.md`; the current laptop deployment is `C:\RyzenAdj` version
+`1.0.0`.
 See `docs/INSTALLATION.md` before using `install.ps1`.
 
 The earlier self-contained development package remains available:

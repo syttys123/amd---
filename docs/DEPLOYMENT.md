@@ -32,3 +32,23 @@ D:\amd-mobile-power
 ```
 
 No source changes are made directly in `C:\RyzenAdj`.
+
+## Current Deployment Evidence
+
+On 2026-11-10, the clean `1.0.0` Lite package was promoted to `C:\RyzenAdj`
+after copying and hashing the legacy deployment to a recoverable D: backup.
+
+- Package SHA256:
+  `8faa541d06421522119de861f252baf612ee39517e2669350623d05b39b02320`
+- Package source commit: `c65611b37ef55564346a441907a9f1be3a3d932c`
+- Legacy rollback directory:
+  `C:\RyzenAdj.legacy-before-v1.0.0-20261110-132006`
+- Recoverable D: backup:
+  `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.0-20261110-132006`
+- Local write launcher:
+  `C:\RyzenAdj\启动 AMD Mobile Power（稳定写入）.lnk`
+- Deployment evidence:
+  `docs/evidence/packaging/v1.0.0-deployment-2026-11-10.json`
+
+Deployed file hashes, dashboard telemetry, read-only diagnostics, and a
+write-enabled GUI/worker launch all passed after promotion.

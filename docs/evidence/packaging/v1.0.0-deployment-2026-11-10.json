@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "local-stable-deployment",
+  "capturedAt": "2026-11-10T13:22:23+08:00",
+  "target": "C:\\RyzenAdj",
+  "package": {
+    "name": "amd-mobile-power-v1.0.0-win-x64-lite.zip",
+    "sha256": "8faa541d06421522119de861f252baf612ee39517e2669350623d05b39b02320",
+    "sourceCommit": "c65611b37ef55564346a441907a9f1be3a3d932c",
+    "workingTree": "Clean",
+    "sdk": "10.0.400"
+  },
+  "backup": {
+    "legacyDirectory": "C:\\RyzenAdj.legacy-before-v1.0.0-20261110-132006",
+    "recoverableBackup": "D:\\amd-mobile-power\\artifacts\\deployment-backups\\C-RyzenAdj-before-v1.0.0-20261110-132006",
+    "files": 47,
+    "bytes": 761937,
+    "verification": "PASS"
+  },
+  "deployment": {
+    "files": 40,
+    "bytes": 1167487,
+    "packageFileHashVerification": "PASS",
+    "writeLauncher": "C:\\RyzenAdj\\启动 AMD Mobile Power（稳定写入）.lnk",
+    "writeLauncherArguments": "--enable-write-controls --simple-mode"
+  },
+  "verification": {
+    "dashboard": {
+      "result": "PASS",
+      "powerLineText": "动态上限 25.0 W · 电池",
+      "targetLeftArtifactPixels": 0,
+      "screenshot": "artifacts/verify/deployed-dashboard-20261110-132156.png",
+      "screenshotSha256": "0b49a6f88a1ad5ad941468ace2e87ed8b0b81e9e26a2a45edb12e710a20400d6"
+    },
+    "diagnostics": {
+      "result": "PASS",
+      "workerVersion": "1.0.0",
+      "hardwareAdapterConfigured": true,
+      "writeControlsEnabled": false,
+      "shutdownProtocol": "PASS",
+      "report": "artifacts/verify/deployed-diagnostics-20261110-132209.json"
+    },
+    "writeModeLaunch": {
+      "guiPath": "C:\\RyzenAdj\\AmdMobilePower.exe",
+      "workerPath": "C:\\RyzenAdj\\worker\\AmdMobilePower.Worker.exe",
+      "guiLogWritesEnabled": true,
+      "workerLogWritesEnabled": true
+    }
+  },
+  "result": "PASS",
+  "limitations": [
+    "This is a local stable deployment for one physical AMD laptop.",
+    "Public hardware support still requires a second AMD platform.",
+    "The launcher enables the reviewed local write controls explicitly; the executable itself remains read-only by default."
+  ]
+}

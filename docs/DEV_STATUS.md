@@ -45,6 +45,9 @@ not authoritative.
 - The current local stable package is `1.0.0`: 593,857 bytes, SHA256
   `8faa541d06421522119de861f252baf612ee39517e2669350623d05b39b02320`,
   built from clean commit `c65611b` with .NET SDK `10.0.400`.
+- `C:\RyzenAdj` now contains the verified `1.0.0` package. The previous legacy
+  directory is preserved as `C:\RyzenAdj.legacy-before-v1.0.0-20261110-132006`
+  and under the D: deployment-backup directory.
 
 ## Development Workflow
 
@@ -615,6 +618,11 @@ third_party/
   their requested values, kept live power near 20 W, and shut down through the
   protocol. Evidence:
   `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.0-2026-11-10.json`.
+- Promoted the verified `1.0.0` package to `C:\RyzenAdj` after a full
+  recoverable legacy backup. The deployed package passed file-hash comparison,
+  the packaged dashboard gate, read-only diagnostics, and a write-mode launch
+  where both GUI and worker logs reported writes enabled. Evidence:
+  `docs/evidence/packaging/v1.0.0-deployment-2026-11-10.json`.
 
 Development screenshot:
 
@@ -636,10 +644,9 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Deploy the verified `1.0.0` package to `C:\RyzenAdj` after a full recoverable
-backup, then verify GUI launch, worker health, tray behavior, diagnostics, and
-safe read-back from the deployed path. Collect a read-only diagnostics report
-from a second AMD laptop before broad public support.
+Collect a read-only diagnostics report from a second AMD laptop before broad
+public support. Keep `C:\RyzenAdj` on `1.0.0` unless a newer package completes
+the same release and deployment gates.
 
 ## Known Risks
 
