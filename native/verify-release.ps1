@@ -78,11 +78,29 @@ $headCommit = (& git -C $repositoryRoot rev-parse HEAD).Trim()
 if ($package.Version -ne $Version) {
     throw "Package evidence version mismatch: $($package.Version) != $Version"
 }
-if ($package.SourceCommit -ne $headCommit) {
-    throw "Package evidence source commit mismatch: $($package.SourceCommit) != $headCommit"
-}
 if ($package.WorkingTree -ne "Clean") {
     throw "Package evidence was not produced from a clean worktree."
+}
+
+# A verified package stays valid while HEAD only moves forward over
+# documentation. Any change to runtime, build, CI, or packaging paths after the
+# recorded source commit invalidates the package and requires a rebuild.
+if ($package.SourceCommit -ne $headCommit) {
+    & git -C $repositoryRoot merge-base --is-ancestor $package.SourceCommit $headCommit
+    if ($LASTEXITCODE -ne 0) {
+        throw "Package source commit is not an ancestor of HEAD: $($package.SourceCommit)"
+    }
+    $driftPaths = @(
+        & git -C $repositoryRoot diff `
+            --name-only `
+            $package.SourceCommit `
+            $headCommit |
+            Where-Object { $_ -and $_ -notmatch "^docs/" -and $_ -notmatch "^[^/]+\.md$" }
+    )
+    if ($driftPaths.Count -gt 0) {
+        throw ("Package evidence is stale: HEAD changed non-documentation " +
+            "paths after the package source commit: " + ($driftPaths -join ", "))
+    }
 }
 if ($VerifyShellIntegration) {
     $shell = Get-Content -LiteralPath $shellEvidence -Raw | ConvertFrom-Json
