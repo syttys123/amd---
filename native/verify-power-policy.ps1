@@ -246,8 +246,25 @@ try {
     }
 
     $commit = (& git -C $repositoryRoot rev-parse HEAD).Trim()
-    $statusText = (& git -C $repositoryRoot status --porcelain --ignore-submodules=dirty |
-        Out-String).Trim()
+    $evidenceRelative = $null
+    if ($EvidencePath) {
+        $evidenceRelative = [System.IO.Path]::GetRelativePath(
+            $RepositoryRoot,
+            [System.IO.Path]::GetFullPath($EvidencePath)).Replace("\", "/")
+    }
+    $statusLines = & git `
+        -C $repositoryRoot `
+        status `
+        --porcelain `
+        --ignore-submodules=dirty |
+        ForEach-Object {
+            if ($_ -match "^.. (.+)$" -and
+                $Matches[1] -eq $evidenceRelative) {
+                return
+            }
+            $_
+        }
+    $statusText = ($statusLines | Out-String).Trim()
     $workingTree = if ($statusText) { "Dirty" } else { "Clean" }
     $result = [ordered]@{
         SourceCommit = $commit
