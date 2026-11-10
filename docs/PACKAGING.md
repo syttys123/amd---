@@ -90,10 +90,10 @@ Current internal native release candidate:
 artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.5-win-x64-native-preview.zip
 ```
 
-- Size: `453,798` bytes.
+- Size: `453,794` bytes.
 - SHA256:
-  `d94879ba6c1b1d508ec00868a18212480c045f1e6cc6a7fa46ca7fc9f666f50d`.
-- Source commit: `358835fce7cb6f972f899077db4cc1c6b6095bab`.
+  `d0b4f09f1b3239b3780f89f51a87694d1b108fb7e934eb839c6b3867b36a71ac`.
+- Source commit: `6f2386a6df4617cea09ad295f536121be20847ff`.
 - Working tree at build time: clean.
 - Runtime verification: hardware read-only/write-guard, GUI lifecycle with
   three Win32 minimize/restore cycles, policy read-only plan, compatibility

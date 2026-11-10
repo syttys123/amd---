@@ -835,7 +835,7 @@ third_party/
   single documentation commit invalidated an otherwise identical package and
   forced a rebuild.
 - Rebuilt the native candidate as `0.6.0-native-rc.5` from clean commit
-  `358835f`. The local gate passed the offline build, C++ policy tests, 14 Rust
+  `6f2386a`. The local gate passed the offline build, C++ policy tests, 14 Rust
   GUI tests, read-only 8845HS hardware capability/telemetry
   (`43.45/45/45 W` on AC), the write-control guard, the read-only policy plan
   and write gate, package checksum verification, isolated install/uninstall,
@@ -847,6 +847,11 @@ third_party/
   `get_stapm_limit`, which this firmware reports dynamically (`43.45 W` right
   now), so the "no-change" writer can round STAPM down and pin it below the
   `45 W` that `rc.4` recorded. The `rc.4` no-change evidence is preserved.
+- Taught `native/prepare-release-review.ps1` to include the hardware
+  no-change evidence only when the aggregate gate recorded
+  `NoChangePolicy = PASS`, and to surface that field in its manifest. A
+  candidate that intentionally skipped the hardware write no longer fails
+  bundle generation with a missing-file error.
 
 Development screenshot:
 
