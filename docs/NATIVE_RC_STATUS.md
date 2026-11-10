@@ -8,13 +8,13 @@ the already deployed .NET `1.0.4` stable package.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.3-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.4-win-x64-native-preview.zip
 ```
 
-- Size: `453,241` bytes.
+- Size: `453,796` bytes.
 - SHA256:
-  `d4b686e8e8220e8fb69fac796e85d0a3d5c9d4ffe080b578baab1692a98dd121`.
-- Source commit: `103603d92df8eb451c102c6d933eabaa4a1e4501`.
+  `98858df304ad4507a842176e8237bb75ac4059926bca43ac05d9e8b4c0f05933`.
+- Source commit: `d6af6a931f4ccc63faef30b3515b4253309c5111`.
 - Working tree at build time: clean.
 
 ## Passed Gates
@@ -33,10 +33,10 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.3-win-x64-native-pre
 
 Evidence:
 
-- `docs/evidence/packaging/v0.6.0-native-rc.3-release-gate-2026-11-10.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.3-clean-2026-11-10.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.3-shell-integration-2026-11-10.json`
-- `docs/evidence/hardware/v0.6.0-native-rc.3-power-policy-no-change-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.4-release-gate-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.4-clean-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.4-shell-integration-2026-11-10.json`
+- `docs/evidence/hardware/v0.6.0-native-rc.4-power-policy-no-change-2026-11-10.json`
 
 Local review bundle:
 

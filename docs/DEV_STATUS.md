@@ -768,18 +768,18 @@ third_party/
   helpers, then extracts and reruns the GUI lifecycle, read-only worker,
   write-control UI, compatibility collector, and shell-integration
   fingerprints in isolation. The current internal native RC is
-  `0.6.0-native-rc.3`: 453,241 bytes with SHA256
-  `d4b686e8e8220e8fb69fac796e85d0a3d5c9d4ffe080b578baab1692a98dd121`,
-  built from clean commit `103603d`. Evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.3-release-gate-2026-11-10.json`.
+  `0.6.0-native-rc.4`: 453,796 bytes with SHA256
+  `98858df304ad4507a842176e8237bb75ac4059926bca43ac05d9e8b4c0f05933`,
+  built from clean commit `d6af6a9`. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.4-release-gate-2026-11-10.json`.
   The prior `0.5.0-native-preview.1` package remains historical evidence.
 - Added `native/verify-preview-shell-integration.ps1` and exercised the real
   current-user Start menu, Startup shortcut, and uninstall entry for the clean
-  `0.6.0-native-rc.3` package without launching the GUI. The verifier
+  `0.6.0-native-rc.4` package without launching the GUI. The verifier
   created the expected shortcuts and version metadata, then removed the
   install directory, both shortcuts, and the uninstall key with zero residual
   artifacts. Evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.3-shell-integration-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.4-shell-integration-2026-11-10.json`.
 - Added `native/collect-native-diagnostics.ps1` to the native preview package.
   It starts the bundled worker with read-only hardware access, queries health,
   capabilities, and telemetry over the v1 named pipe, writes a sanitized local
@@ -823,7 +823,7 @@ third_party/
   policy checks, package verification, optional no-change policy write,
   optional real shell integration, and a consolidated JSON result.
 - Added `docs/NATIVE_RC_STATUS.md` to track the current
-  `0.6.0-native-rc.3` candidate, its passed gates, and the remaining
+  `0.6.0-native-rc.4` candidate, its passed gates, and the remaining
   second-device and publication blockers.
 - Added `native/prepare-release-review.ps1` to create a local review-only
   bundle containing the current RC package, evidence, notices, documentation,

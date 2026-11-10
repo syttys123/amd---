@@ -87,24 +87,24 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 Current internal native release candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.3-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.4-win-x64-native-preview.zip
 ```
 
-- Size: `453,241` bytes.
+- Size: `453,796` bytes.
 - SHA256:
-  `d4b686e8e8220e8fb69fac796e85d0a3d5c9d4ffe080b578baab1692a98dd121`.
-- Source commit: `103603d92df8eb451c102c6d933eabaa4a1e4501`.
+  `98858df304ad4507a842176e8237bb75ac4059926bca43ac05d9e8b4c0f05933`.
+- Source commit: `d6af6a931f4ccc63faef30b3515b4253309c5111`.
 - Working tree at build time: clean.
 - Runtime verification: hardware read-only/write-guard, GUI lifecycle, policy
   save, compatibility collector, isolated install/uninstall, and real shell
   integration passed.
 - No-change policy write: AC `45/45/45 W` read back as `45/45/45 W`.
 - Aggregate evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.3-release-gate-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.4-release-gate-2026-11-10.json`.
 - Package evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.3-clean-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.4-clean-2026-11-10.json`.
 - Hardware policy evidence:
-  `docs/evidence/hardware/v0.6.0-native-rc.3-power-policy-no-change-2026-11-10.json`.
+  `docs/evidence/hardware/v0.6.0-native-rc.4-power-policy-no-change-2026-11-10.json`.
 
 This RC is not yet the public stable release: a second physical AMD laptop
 still needs read-only compatibility evidence before promotion beyond the
