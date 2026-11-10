@@ -869,6 +869,15 @@ third_party/
   Verified by rebuilding the Lite package, re-running `verify-dashboard.ps1`
   against it, and confirming the full-window capture
   (`assets/main-dashboard-simple-dpi-2026-11-10.png`) plus 71/71 tests.
+- Localized the native Rust GUI preview to Chinese and reworked its
+  information block into a labeled dashboard: `已连接 worker`, `处理器`, `家族`,
+  `平台配置`, `PM 表`, `供电`, `目标功耗`, `STAPM/Fast/Slow 上限`, `CPU 温度`,
+  `可写字段`, `平台状态`, `固件钳制`, `更新时间`, and a Chinese auto-policy
+  line. Buttons, policy labels, tray menu, and apply/save result messages are
+  localized too, and the window title is now `AMD Mobile Power（原生预览）`.
+  Verified without touching live hardware by adding four `format_snapshot` /
+  `format_policy_state` unit tests, so the rendered text is asserted even while
+  the shipped `.NET` app owns RyzenAdj. Rust tests are now 18/18.
 
 Development screenshot:
 

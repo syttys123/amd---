@@ -11,6 +11,11 @@ The native package is not a drop-in replacement and will only be considered
 for promotion if it reaches feature and UI parity without regressing the
 current experience.
 
+Note (2026-11-10): the Rust GUI has since been localized to Chinese, so the
+`rc.5` package below predates that runtime change and must be rebuilt as a new
+candidate before it is quoted as current. The recorded `rc.5` evidence stays
+valid for the exact bytes it describes.
+
 ## Current Candidate
 
 ```text

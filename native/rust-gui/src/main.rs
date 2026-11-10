@@ -44,7 +44,7 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     BS_AUTOCHECKBOX, BS_AUTORADIOBUTTON, ES_NUMBER, ES_RIGHT, SC_MINIMIZE, WS_TABSTOP,
 };
 
-const APP_TITLE: &str = "AMD Mobile Power - Rust GUI Preview";
+const APP_TITLE: &str = "AMD Mobile Power（原生预览）";
 const WINDOW_CLASS: &str = "AmdMobilePower.RustGui.Migration.v1";
 const MUTEX_NAME: &str = "Local\\AmdMobilePower.RustGui.Migration.v1";
 const TRAY_ICON_ID: u32 = 1;
@@ -163,57 +163,73 @@ fn write_wide(buffer: &mut [u16], value: &str) {
     buffer[encoded.len()] = 0;
 }
 
+fn format_power_line_raw(value: &str) -> &'static str {
+    match value {
+        "ac" => "交流电",
+        "battery" => "电池",
+        _ => "未知",
+    }
+}
+
+fn format_flag(value: bool) -> &'static str {
+    if value {
+        "是"
+    } else {
+        "否"
+    }
+}
+
 fn format_watts(value: Option<f64>) -> String {
     match value {
         Some(value) => format!("{value:.2} W"),
-        None => "n/a".to_owned(),
+        None => "无数据".to_owned(),
     }
 }
 
 fn format_celsius(value: Option<f64>) -> String {
     match value {
-        Some(value) => format!("{value:.1} C"),
-        None => "n/a".to_owned(),
+        Some(value) => format!("{value:.1} °C"),
+        None => "无数据".to_owned(),
     }
 }
 
 fn format_power_line(value: Option<PowerLineState>) -> &'static str {
     match value {
-        Some(PowerLineState::Ac) => "AC",
-        Some(PowerLineState::Battery) => "battery",
-        Some(PowerLineState::Unknown) | None => "unknown",
+        Some(PowerLineState::Ac) => "交流电",
+        Some(PowerLineState::Battery) => "电池",
+        Some(PowerLineState::Unknown) | None => "未知",
     }
 }
 
 fn format_policy_state(state: Option<&PowerPolicyState>) -> String {
     let Some(state) = state else {
-        return "Auto policy: unavailable".to_owned();
+        return "自动策略：不可用".to_owned();
     };
     let Some(settings) = state.settings else {
-        return "Auto policy: not configured".to_owned();
+        return "自动策略：未配置".to_owned();
     };
     let status = if settings.enabled {
-        "enabled"
+        "已启用"
     } else {
-        "disabled"
+        "已停用"
     };
     let last = match (
         state.last_attempt_succeeded,
         state.last_observed_power_line,
     ) {
-        (Some(true), Some(line)) => format!("last apply: {} / success", format_power_line(Some(line))),
-        (Some(false), Some(line)) => format!("last apply: {} / failed", format_power_line(Some(line))),
-        (Some(false), None) => "last apply: failed".to_owned(),
-        (Some(true), None) => "last apply: success".to_owned(),
-        (None, _) => "last apply: not run".to_owned(),
+        (Some(true), Some(line)) => format!("上次应用：{} · 成功", format_power_line(Some(line))),
+        (Some(false), Some(line)) => format!("上次应用：{} · 失败", format_power_line(Some(line))),
+        (Some(false), None) => "上次应用：失败".to_owned(),
+        (Some(true), None) => "上次应用：成功".to_owned(),
+        (None, _) => "上次应用：未执行".to_owned(),
     };
     let error = state
         .last_error
         .as_deref()
-        .map(|error| format!("\nPolicy error: {error}"))
+        .map(|error| format!("\n策略错误：{error}"))
         .unwrap_or_default();
     format!(
-        "Auto policy: {} (battery {} W / AC {} W)\n{}{}",
+        "自动策略：{}（电池 {} W / 交流 {} W）\n{}{}",
         status,
         settings.battery_target.stapm_watts,
         settings.ac_target.stapm_watts,
@@ -227,13 +243,13 @@ fn format_snapshot(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>
     let limits = &snapshot.platform.limits;
     let telemetry = &snapshot.telemetry;
     let support = if snapshot.platform.is_supported {
-        "supported"
+        "支持写入"
     } else {
         snapshot
             .platform
             .unsupported_reason
             .as_deref()
-            .unwrap_or("unsupported")
+            .unwrap_or("不支持写入")
     };
     let profile = snapshot
         .platform
@@ -248,51 +264,51 @@ fn format_snapshot(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>
                 if profile.is_verified {
                     ""
                 } else {
-                    " (unverified)"
+                    "（未验证）"
                 }
             )
         })
-        .unwrap_or_else(|| "n/a".to_owned());
+        .unwrap_or_else(|| "无匹配配置".to_owned());
 
     let status = format!(
         concat!(
-            "Worker: connected\n",
-            "CPU: {}\n",
-            "Family: {} {}\n",
-            "Profile: {}\n",
-            "PM table: {}\n",
-            "Power source: {}\n",
+            "已连接 worker\n",
+            "处理器：{}\n",
+            "家族：{} {}\n",
+            "平台配置：{}\n",
+            "PM 表：{}\n",
+            "供电：{}\n",
             "\n",
-            "Target: {}\n",
-            "STAPM like target: {}\n",
-            "Fast limit: {}\n",
-            "Slow limit: {}\n",
-            "Temperature: {}\n",
+            "目标功耗：{}\n",
+            "STAPM 上限：{}\n",
+            "Fast 上限：{}\n",
+            "Slow 上限：{}\n",
+            "CPU 温度：{}\n",
             "\n",
-            "Capabilities: STAPM={} Fast={} Slow={}\n",
-            "Platform: {}\n",
-            "Firmware clamp: {}\n",
-            "Updated: {}"
+            "可写字段：STAPM={} Fast={} Slow={}\n",
+            "平台状态：{}\n",
+            "固件钳制：{}\n",
+            "更新时间：{}"
         ),
         cpu.processor_name,
         cpu.ryzen_adj_family
             .map(|value| value.to_string())
-            .unwrap_or_else(|| "n/a".to_owned()),
+            .unwrap_or_else(|| "未知".to_owned()),
         cpu.ryzen_adj_family_name.as_deref().unwrap_or(""),
         profile,
-        cpu.pm_table_version.as_deref().unwrap_or("n/a"),
-        telemetry.power_line,
+        cpu.pm_table_version.as_deref().unwrap_or("未知"),
+        format_power_line_raw(&telemetry.power_line),
         format_watts(telemetry.target_watts),
         format_watts(telemetry.stapm_limit_watts),
         format_watts(telemetry.fast_limit_watts),
         format_watts(telemetry.slow_limit_watts),
         format_celsius(telemetry.tctl_value_celsius),
-        limits.supports_stapm,
-        limits.supports_fast,
-        limits.supports_slow,
+        format_flag(limits.supports_stapm),
+        format_flag(limits.supports_fast),
+        format_flag(limits.supports_slow),
         support,
-        telemetry.has_firmware_clamp,
-        telemetry.updated_at.as_deref().unwrap_or("n/a")
+        format_flag(telemetry.has_firmware_clamp),
+        telemetry.updated_at.as_deref().unwrap_or("未知")
     );
     format!("{status}\n\n{}", format_policy_state(policy))
 }
@@ -387,7 +403,7 @@ fn start_worker_monitor(
                     profile: snapshot.platform.matched_profile.clone(),
                 },
                 Err(error) => StatusUpdate {
-                    text: format!("Worker: unavailable\n{error}"),
+                    text: format!("worker 不可用\n{error}"),
                     profile: None,
                 },
             };
@@ -404,7 +420,7 @@ unsafe fn create_status_label(
     instance: windows_sys::Win32::Foundation::HINSTANCE,
 ) -> HWND {
     let class_name = wide("STATIC");
-    let text = wide("Connecting to worker...");
+    let text = wide("正在连接 worker…");
     CreateWindowExW(
         0,
         class_name.as_ptr(),
@@ -427,7 +443,7 @@ unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) -> [HWND; 3] {
         (PRESET_12, "12 W", 18, 330, 90),
         (PRESET_25, "25 W", 116, 330, 90),
         (PRESET_45, "45 W", 214, 330, 90),
-        (APPLY_TARGET, "Apply", 360, 330, 120),
+        (APPLY_TARGET, "应用", 360, 330, 120),
     ];
     let mut presets = [std::ptr::null_mut(); 3];
     let mut first_preset = true;
@@ -501,10 +517,10 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
     let static_class = wide("STATIC");
     let edit_class = wide("EDIT");
     let button_class = wide("BUTTON");
-    let battery_label = wide("Battery target");
-    let ac_label = wide("AC target");
-    let enabled_label = wide("Enabled");
-    let save_label = wide("Save policy");
+    let battery_label = wide("电池目标");
+    let ac_label = wide("交流目标");
+    let enabled_label = wide("启用");
+    let save_label = wide("保存策略");
     let edit_style = WS_CHILD
         | WS_VISIBLE
         | WS_TABSTOP
@@ -610,16 +626,16 @@ fn format_policy_result(
 ) -> String {
     match result {
         Ok(()) => format!(
-            "Auto policy saved.\nBattery {} W / AC {} W.\n{}",
+            "自动策略已保存。\n电池 {} W / 交流 {} W。\n{}",
             settings.battery_target.stapm_watts,
             settings.ac_target.stapm_watts,
             if settings.enabled {
-                "Enabled."
+                "已启用。"
             } else {
-                "Disabled."
+                "已停用。"
             }
         ),
-        Err(error) => format!("Policy save failed.\n{error}"),
+        Err(error) => format!("策略保存失败。\n{error}"),
     }
 }
 
@@ -656,25 +672,25 @@ fn format_apply_result(
     match result {
         Ok(result) if result.is_successful => {
             let mut text = format!(
-                "Applied {} W / {} W / {} W.\n",
+                "已应用 {} W / {} W / {} W。\n",
                 target.stapm_watts, target.fast_watts, target.slow_watts
             );
             if result.has_firmware_clamp || result.has_stapm_warning {
-                text.push_str("Firmware reported a clamp or STAPM warning.");
+                text.push_str("固件报告了钳制或 STAPM 警告。");
             } else {
-                text.push_str("Readback verified.");
+                text.push_str("回读校验通过。");
             }
             text
         }
         Ok(result) => format!(
-            "Apply failed.\n{}\nRestore attempted: {}\nRestore succeeded: {}",
+            "应用失败。\n{}\n已尝试恢复：{}\n恢复成功：{}",
             result
                 .error
-                .unwrap_or_else(|| "worker returned an unsuccessful result".to_owned()),
+                .unwrap_or_else(|| "worker 返回了未成功的结果".to_owned()),
             result.restore_attempted,
             result.restored_previous_limits
         ),
-        Err(error) => format!("Apply failed.\n{error}"),
+        Err(error) => format!("应用失败。\n{error}"),
     }
 }
 
@@ -815,8 +831,8 @@ unsafe fn show_tray_menu(hwnd: HWND) {
         return;
     }
 
-    let show_text = wide("Show");
-    let exit_text = wide("Exit");
+    let show_text = wide("显示主界面");
+    let exit_text = wide("退出");
     AppendMenuW(menu, MF_STRING, MENU_SHOW, show_text.as_ptr());
     AppendMenuW(menu, MF_SEPARATOR, 0, std::ptr::null());
     AppendMenuW(menu, MF_STRING, MENU_EXIT, exit_text.as_ptr());
@@ -951,7 +967,7 @@ unsafe extern "system" fn window_proc(
                     app.apply_in_flight = true;
                     if !app.status_label.is_null() {
                         let text = wide(&format!(
-                            "Applying {} W / {} W / {} W...",
+                            "正在应用 {} W / {} W / {} W…",
                             app.selected_target.stapm_watts,
                             app.selected_target.fast_watts,
                             app.selected_target.slow_watts
@@ -994,7 +1010,7 @@ unsafe extern "system" fn window_proc(
                         app.saved_policy = Some(settings);
                         app.policy_in_flight = true;
                         if !app.status_label.is_null() {
-                            let text = wide("Saving auto policy...");
+                            let text = wide("正在保存自动策略…");
                             SetWindowTextW(app.status_label, text.as_ptr());
                         }
                         start_policy_save(
@@ -1173,4 +1189,115 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         CloseHandle(mutex);
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{format_policy_state, format_snapshot};
+    use amd_mobile_power_gui::worker::{
+        CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
+        PowerPolicySettings, PowerPolicyState, ProfilePayload, SnapshotPayload, TelemetryPayload,
+    };
+
+    fn sample_snapshot() -> SnapshotPayload {
+        SnapshotPayload {
+            platform: PlatformPayload {
+                cpu: CpuPayload {
+                    processor_name: "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics".to_owned(),
+                    vendor: "AuthenticAMD".to_owned(),
+                    ryzen_adj_family: Some(10),
+                    ryzen_adj_family_name: Some("Hawk Point".to_owned()),
+                    smu_bios_version: Some("15".to_owned()),
+                    pm_table_version: Some("4c0009".to_owned()),
+                },
+                limits: LimitsPayload {
+                    supports_stapm: true,
+                    supports_fast: true,
+                    supports_slow: true,
+                    supports_any: true,
+                },
+                matched_profile: Some(ProfilePayload {
+                    id: "hawk-point-8845hs".to_owned(),
+                    display_name: "Hawk Point 8845HS development profile".to_owned(),
+                    minimum_watts: 5,
+                    maximum_watts: 60,
+                    default_watts: 25,
+                    is_verified: true,
+                }),
+                is_supported: true,
+                unsupported_reason: None,
+            },
+            telemetry: TelemetryPayload {
+                target_watts: Some(10.0),
+                stapm_value_watts: Some(9.99),
+                fast_value_watts: Some(10.0),
+                slow_value_watts: Some(10.0),
+                stapm_limit_watts: Some(10.0),
+                fast_limit_watts: Some(10.0),
+                slow_limit_watts: Some(10.0),
+                tctl_value_celsius: Some(44.9),
+                tctl_limit_celsius: Some(95.0),
+                power_line: "battery".to_owned(),
+                updated_at: Some("2026-11-10T15:10:00Z".to_owned()),
+                has_firmware_clamp: false,
+            },
+        }
+    }
+
+    #[test]
+    fn snapshot_dashboard_is_localized() {
+        let text = format_snapshot(&sample_snapshot(), None);
+
+        assert!(text.contains("已连接 worker"), "{text}");
+        assert!(text.contains("处理器：AMD Ryzen 7 8845HS"), "{text}");
+        assert!(text.contains("平台配置：Hawk Point 8845HS development profile [5-60 W]"), "{text}");
+        assert!(text.contains("供电：电池"), "{text}");
+        assert!(text.contains("目标功耗：10.00 W"), "{text}");
+        assert!(text.contains("Fast 上限：10.00 W"), "{text}");
+        assert!(text.contains("CPU 温度：44.9 °C"), "{text}");
+        assert!(text.contains("平台状态：支持写入"), "{text}");
+        assert!(text.contains("自动策略：不可用"), "{text}");
+        assert!(text.contains("固件钳制：否"), "{text}");
+        assert!(text.contains("可写字段：STAPM=是 Fast=是 Slow=是"), "{text}");
+        assert!(!text.contains("Worker: connected"), "{text}");
+        assert!(!text.contains("Power source"), "{text}");
+    }
+
+    #[test]
+    fn unverified_profile_is_marked_in_chinese() {
+        let mut snapshot = sample_snapshot();
+        if let Some(profile) = snapshot.platform.matched_profile.as_mut() {
+            profile.is_verified = false;
+        }
+
+        let text = format_snapshot(&snapshot, None);
+
+        assert!(text.contains("（未验证）"), "{text}");
+    }
+
+    #[test]
+    fn policy_state_is_localized() {
+        let state = PowerPolicyState {
+            settings: Some(PowerPolicySettings {
+                enabled: true,
+                battery_target: PowerLimitTarget::uniform(10),
+                ac_target: PowerLimitTarget::uniform(12),
+            }),
+            last_observed_power_line: Some(PowerLineState::Battery),
+            last_applied_target: Some(PowerLimitTarget::uniform(10)),
+            last_attempt_at: Some("2026-11-10T15:10:00Z".to_owned()),
+            last_attempt_succeeded: Some(true),
+            last_error: None,
+        };
+
+        let text = format_policy_state(Some(&state));
+
+        assert!(text.contains("自动策略：已启用（电池 10 W / 交流 12 W）"), "{text}");
+        assert!(text.contains("上次应用：电池 · 成功"), "{text}");
+    }
+
+    #[test]
+    fn missing_policy_surfaces_chinese_placeholder() {
+        assert_eq!(format_policy_state(None), "自动策略：不可用");
+    }
 }
