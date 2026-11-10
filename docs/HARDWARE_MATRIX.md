@@ -92,6 +92,20 @@ Verified on 2026-11-09:
 
 ## Required Capture
 
+Run the packaged read-only collector from the extracted portable package; it
+does not enable writes or upload anything:
+
+```powershell
+powershell -ExecutionPolicy Bypass `
+  -File .\collect-native-diagnostics.ps1 `
+  -OutputPath .\compatibility.json `
+  -MarkdownPath .\compatibility.md
+```
+
+The JSON `host` block already fills vendor, model, BIOS version, and Windows
+build, and the `privacy` block declares that no paths, process IDs, account
+names, serial numbers, logs, or upload are included.
+
 For every tested device record:
 
 - Laptop vendor and model.
@@ -101,6 +115,9 @@ For every tested device record:
 - PM table version.
 - Windows build.
 - RyzenAdj version or commit.
+- Per-limit capability flags (STAPM, Fast, Slow, and `supportsAny`).
+- Platform supported state and, when unsupported, the reported reason.
+- Matched profile id plus its minimum and maximum watts.
 - Requested and effective limits.
 - Temperature and stability observations.
 

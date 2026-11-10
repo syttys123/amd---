@@ -897,6 +897,14 @@ third_party/
   `MECHREVO WUJIE15 PRO` / `T153_HPT_V05` / Windows `10.0.26300` and the
   Markdown rendered the new sections. Hardware collection still fails closed
   while the shipped `.NET` app owns RyzenAdj.
+- Re-verified the promo draft without re-rendering: `verify-media.ps1` reported
+  `DRAFT_FOR_HUMAN_REVIEW`, 77.1 s, 1920x1080 at 25 fps, full decode PASS,
+  mean/peak audio `-21.2 / -1.3 dB`, 7 scenes, evidence hashes PASS, review
+  assets PASS, and Bilibili cover PASS. The file is unchanged at SHA256
+  `5fa82dabe9030f0328095023d80413f281e48f9b876ae7c68d715ea14e334380`.
+- Expanded `docs/HARDWARE_MATRIX.md` "Required Capture" with the packaged
+  collector command plus the per-limit capability flags, supported state and
+  reason, and matched profile range that a second device must record.
 
 Development screenshot:
 
