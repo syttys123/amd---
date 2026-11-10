@@ -64,11 +64,11 @@ not authoritative.
   now verifies foreground ownership before copying the DWM frame, preventing
   unrelated desktop content from entering UI evidence. The native rewrite is
   not yet a stable deployment and has not replaced `C:\RyzenAdj`.
-- The clean native candidate is now `0.6.0-native-rc.10`: 525,189 bytes,
+- The clean native candidate is now `0.6.0-native-rc.11`: 526,293 bytes,
   SHA256
-  `dae33a20bd58e6c41235be650c47380b8a9a60f8750b603303d2f1b035ac1f52`,
-  built from clean commit `035e3088d45f3f489a64c899d385eae72bb6584c`.
-- The rc.10 package passed 16-entry checksum verification, extracted GUI/worker
+  `5ed81fdb74fdcedb9c1f145eb43ca015665467aab622205067585e28e1d92a22`,
+  built from clean commit `bbdf44a75930838226e4792f79cbb809ffd8a814`.
+- The rc.11 package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user
   Start menu/Startup/uninstall-entry create-cleanup. Policy-write verification
@@ -81,6 +81,8 @@ not authoritative.
 - A real `rc.9` to `rc.10` cross-version upgrade passed: every installed file
   matched the new package, the upgraded GUI/worker connected read-only, and
   uninstall removed the entire installation.
+- A real `rc.10` to `rc.11` cross-version upgrade also passed with the same
+  payload-hash, upgraded read-only runtime, and uninstall checks.
 - Native simple/advanced screenshots are now reproducible through
   `native\capture-rust-gui-redesign.ps1`, which uses an isolated
   `%LocalAppData%` and unique worker pipe and does not request a power write.
@@ -1066,6 +1068,17 @@ third_party/
   `assets/native-gui-redesign-advanced-2026-11-11.png`, and the matching
   `readonly` pair. Evidence:
   `docs/evidence/ui/native-redesign-2026-11-11.json`.
+- Built and fully gated `0.6.0-native-rc.11` from clean commit
+  `bbdf44a75930838226e4792f79cbb809ffd8a814`. The package is 526,293 bytes
+  with SHA256
+  `5ed81fdb74fdcedb9c1f145eb43ca015665467aab622205067585e28e1d92a22`.
+  The aggregate read-only gate passed C++ tests, 26 Rust tests, Clippy,
+  hardware capability/telemetry, native write rejection, a battery-authorized
+  dry-run write guard, GUI lifecycle, compatibility JSON/Markdown, checksums,
+  isolated install/uninstall, and real shell integration. It recorded
+  `NoChangePolicy=Not requested`. The `rc.10` to `rc.11` upgrade passed payload
+  matching, upgraded read-only runtime, and uninstall cleanup. Review bundle:
+  `artifacts/native-release-review/v0.6.0-native-rc.11`.
 
 Development screenshot:
 
@@ -1107,14 +1120,14 @@ Historical development screenshots:
 - Broaden the packaged native worker's hardware matrix beyond the 8845HS and
   collect a second-device write/read-back smoke test; keep `1.0.4` as the
   stable fallback.
-- Run the supervised `rc.10` write-enabled no-change policy gate on the
+- Run the supervised `rc.11` write-enabled no-change policy gate on the
   8845HS before promotion. The clean package currently proves the complete
   read-only runtime and install flow with `PolicyWriteVerification=Skipped`.
 
 ## Next Concrete Task
 
 Repeat the native redesign at 100% and 150% Windows scaling, then run the
-supervised `rc.10` no-change policy gate on the development 8845HS. Keep
+supervised `rc.11` no-change policy gate on the development 8845HS. Keep
 `C:\RyzenAdj` on the verified `1.0.4` rollback point and do not promote a dirty
 or write-unverified native package.
 

@@ -79,10 +79,10 @@ runtime details.
 
 The `main` line now includes a clean-room Rust GUI with a
 C++ worker. The current read-only-verified candidate is
-`0.6.0-native-rc.10`:
+`0.6.0-native-rc.11`:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.10-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.11-win-x64-native-preview.zip
 ```
 
 It is an internal candidate, not a replacement for the stable `C:\RyzenAdj`

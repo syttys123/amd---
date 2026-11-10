@@ -7,105 +7,91 @@ the already deployed .NET `1.0.4` stable package.
 
 Decision (2026-11-10): the native line stays an experimental preview. The
 `.NET` GUI remains the product and daily driver, and it keeps `C:\RyzenAdj`.
-The native package is not a drop-in replacement and will only be considered
-for promotion if it reaches feature and UI parity without regressing the
-current experience.
 
-Note (2026-11-11): `rc.10` supersedes `rc.9`. It replaces the incremental native
-dashboard with a clean-room double-buffered UI, adds packaged read-only runtime
-verification that never enables a policy write, and closes the native simple/
-advanced UI parity gate. Earlier evidence stays valid for the exact bytes each
-candidate describes.
+Note (2026-11-11): `rc.11` supersedes `rc.10`. It contains the complete
+break-and-rebuild UI: one continuous dark command deck shared by simple and
+advanced modes, a flat simple telemetry ledger, a split advanced workspace,
+and live STAPM/Fast/Slow read-back. Fresh UI state now defaults to simple mode.
 
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.10-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.11-win-x64-native-preview.zip
 ```
 
-- Size: `525,189` bytes.
+- Size: `526,293` bytes.
 - SHA256:
-  `dae33a20bd58e6c41235be650c47380b8a9a60f8750b603303d2f1b035ac1f52`.
-- Source commit: `035e3088d45f3f489a64c899d385eae72bb6584c`.
+  `5ed81fdb74fdcedb9c1f145eb43ca015665467aab622205067585e28e1d92a22`.
+- Source commit: `bbdf44a75930838226e4792f79cbb809ffd8a814`.
 - Working tree at build time: clean.
-
-## Passed Gates
-
-- Rust GUI lifecycle, three Win32 minimize/restore cycles, tray restore,
-  close-to-tray, and single-instance wake-up.
-- C++ power-limit policy and battery/AC policy tests.
-- Read-only hardware capability and telemetry probe on Ryzen 7 8845HS.
-- Native write-control guard and profile-aware target validation.
-- Editable `11/24/43 W` presets in an isolated `%LocalAppData%`: labels and
-  JSON persistence verified, then policy save verified without losing the
-  presets.
-- GUI diagnostics export in read-only and write-enabled modes: schema-1 JSON
-  parsed on the 8845HS AC snapshot, privacy fields verified, and no local path
-  or pipe name present.
-- Clean-room native UI with a double-buffered custom canvas, four-region simple
-  mode, three-panel advanced mode, stable tabular telemetry, keyboard
-  navigation, focus rings, and the embedded title/taskbar/tray icon.
-- `0.6.0-native-rc.10` clean package verification with 16 checksum entries,
-  isolated install/uninstall, extracted GUI/worker read-only verification,
-  compatibility JSON/Markdown collection, and no policy write:
-  `PolicyWriteVerification=Skipped`.
-- GUI policy save with isolated `%LocalAppData%`.
-- Packaged compatibility collector with sanitized JSON.
-- Staged checksum verification for every package file.
-- Isolated install and uninstall.
-- Real Start menu, Startup shortcut, and uninstall-entry create/remove cycle.
-- Cross-version upgrade from `rc.9` to `rc.10`: staged replacement passed,
-  installed payload hashes matched the new archive, upgraded GUI/worker passed
-  read-only verification, and uninstall left no install directory.
-- Read-only AC and battery policy plan with the write gate rejecting
-  `setPowerPolicy` while writes are disabled.
-- Chinese dashboard and title header verified through `verify-rust-gui.ps1`
-  `-VerifyWorker`, which reads `WorkerReadOnly = PASS` and the localized
-  `已连接 worker` / `供电` / `Fast 上限` fields.
-- Controlled AC no-change power-policy write: requested the live `10/10/10 W`
-  state, applied and verified, policy disabled, worker shut down through the
-  graceful protocol.
-
-Evidence:
-
-- `docs/evidence/packaging/v0.6.0-native-rc.10-clean-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.10-release-gate-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.10-shell-integration-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.10-install-upgrade-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.10-cross-version-upgrade-2026-11-11.json`
-- `docs/evidence/hardware/v0.6.0-native-rc.9-power-policy-no-change-2026-11-11.json`
-- `docs/evidence/ui/native-gui-editable-presets-2026-11-11.json`
-- `docs/evidence/ui/native-gui-diagnostics-export-2026-11-11.json`
-- `docs/evidence/ui/native-redesign-2026-11-11.json`
-
-Superseded candidates `0.6.0-native-rc.9` and earlier keep their own evidence.
+- Policy write verification: intentionally skipped in the clean package gate.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v0.6.0-native-rc.10
+artifacts/native-release-review/v0.6.0-native-rc.11
 ```
 
-Generate it with `native/prepare-release-review.ps1`; the bundle is
-`REVIEW_ONLY` and is not a public release.
+The bundle is `REVIEW_ONLY` and is not a public release.
+
+## Passed Gates
+
+- Rust GUI lifecycle, three Win32 minimize/restore cycles, close-to-tray, tray
+  restore, single-instance wake-up, diagnostics export, view switching,
+  topmost, and editable preset persistence.
+- Rust unit tests: 26/26 passed.
+- Rust formatting and Clippy with `-D warnings`.
+- C++ power-limit policy and battery/AC policy tests.
+- Read-only hardware capability and telemetry probe on Ryzen 7 8845HS while on
+  battery: Hawk Point family `10`, PM table `4c0009`, profile
+  `hawk-point-8845hs`, limits `25/25/20 W`.
+- Native read-only write guard: invalid target rejected, no write requested.
+- Battery-authorized dry-run write guard: PASS with
+  `ExecuteNoChangeWrite=Not requested`.
+- `0.6.0-native-rc.11` clean package verification with 16 checksum entries,
+  isolated install/overwrite/uninstall, extracted GUI/worker read-only
+  verification, compatibility JSON/Markdown collection, and
+  `PolicyWriteVerification=Skipped`.
+- Real current-user Start menu, Startup shortcut, and uninstall-entry
+  create/remove cycle.
+- Cross-version upgrade from `rc.10` to `rc.11`: installed payload matched the
+  new archive, upgraded GUI/worker passed read-only verification, and uninstall
+  removed the installation directory.
+- Foreground-verified screenshot capture for simple, advanced, and read-only
+  states at 125% Windows scaling.
+
+## Evidence
+
+- `docs/evidence/packaging/v0.6.0-native-rc.11-clean-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.11-release-gate-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.11-shell-integration-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.11-cross-version-upgrade-2026-11-11.json`
+- `docs/evidence/ui/native-redesign-2026-11-11.json`
+- `assets/native-gui-redesign-simple-2026-11-11.png`
+- `assets/native-gui-redesign-advanced-2026-11-11.png`
+- `assets/native-gui-redesign-readonly-simple-2026-11-11.png`
+- `assets/native-gui-redesign-readonly-advanced-2026-11-11.png`
+
+Superseded candidates keep their exact historical package and evidence.
 
 ## Open Gates
 
-- At least one second physical AMD laptop must provide read-only compatibility
-  evidence using `collect-native-diagnostics.ps1`.
-- Run the supervised `rc.10` no-change hardware policy/write gate with the
-  normal write-enabled release verifier before treating the UI redesign as
-  hardware-promotable. The current clean package gate deliberately skipped
-  policy writes.
-- Windows CI must be able to run after the repository account billing or
-  spending-limit issue is resolved; the local and workflow definitions are
-  already in place.
-- The package must not replace `C:\RyzenAdj` until the second-device evidence,
-  a fresh promotion backup, and the final human review pass.
-- GitHub release and Bilibili publication require explicit human approval.
+- Run the supervised `rc.11` write-enabled no-change hardware policy gate. The
+  clean package gate deliberately performed no hardware write.
+- Obtain read-only compatibility evidence from a second physical AMD laptop or
+  a different AMD generation.
+- Repeat the UI screenshot matrix at 100% and 150% Windows scaling, plus
+  focused-input, firmware-clamp, worker-offline, unsupported-platform, and
+  long-error states.
+- Observe a successful hosted Windows CI run. The current external blocker is
+  the repository account billing/spending limit.
+- Verify WinRing0 behavior under a clean Windows security baseline.
+- Final human review before any promotion or public release.
 
 ## Promotion Rule
 
 The native package is a candidate, not a stable deployment. Keep
 `C:\RyzenAdj` on the verified .NET `1.0.4` package until the open gates above
-are closed.
+are closed and a fresh rollback backup exists.
+
+Public GitHub Release and Bilibili upload remain unapproved.
