@@ -878,6 +878,15 @@ third_party/
   Verified without touching live hardware by adding four `format_snapshot` /
   `format_policy_state` unit tests, so the rendered text is asserted even while
   the shipped `.NET` app owns RyzenAdj. Rust tests are now 18/18.
+- Synced `native/verify-rust-gui.ps1` to the Chinese UI text so the lifecycle
+  gate keeps checking `已连接 worker`, `供电`, `Fast 上限`, `应用`, `电池目标`,
+  `交流目标`, `启用`, `保存策略`, `自动策略已保存。`, and the verified-apply
+  result. The no-hardware run passed with `WriteControls = PASS`.
+- Added `ProfileCatalogCoversEveryKnownFamily` to the native C++ policy tests:
+  RyzenAdj families `0-15` must each map to a profile with sane bounds and
+  non-empty labels, family `16` must stay unsupported, and the catalog must
+  expose at least eight distinct generations. This mirrors the `.NET`
+  compatibility-matrix guarantee on the native side. Both C++ suites pass.
 
 Development screenshot:
 

@@ -279,6 +279,50 @@ bool ProfileCatalogSelectsVerifiedAndConservativeFamilies() {
             "unknown family must remain unsupported");
 }
 
+bool ProfileCatalogCoversEveryKnownFamily() {
+    bool covered = true;
+    bool sane = true;
+    std::vector<std::string> ids;
+
+    for (int family = 0; family <= 15; ++family) {
+        const auto* profile = amd_mobile_power::FindPlatformProfile(
+            family,
+            "AMD Ryzen Generic",
+            "unknown");
+        covered = Expect(
+                      profile != nullptr,
+                      "every RyzenAdj family 0-15 must map to a profile") &&
+            covered;
+        if (profile == nullptr) {
+            continue;
+        }
+
+        sane = Expect(
+                   !profile->id.empty() &&
+                       !profile->display_name.empty() &&
+                       profile->minimum_watts >= 5 &&
+                       profile->maximum_watts <= 65 &&
+                       profile->minimum_watts < profile->maximum_watts,
+                   "family profile bounds and labels must stay sane") &&
+            sane;
+
+        if (std::find(ids.begin(), ids.end(), profile->id) == ids.end()) {
+            ids.push_back(profile->id);
+        }
+    }
+
+    const bool unknown_unsupported = Expect(
+        amd_mobile_power::FindPlatformProfile(
+            16,
+            "AMD Ryzen Generic",
+            "unknown") == nullptr,
+        "an unlisted family must remain unsupported");
+    const bool distinct = Expect(
+        ids.size() >= 8,
+        "family profiles should cover several distinct generations");
+    return covered && sane && unknown_unsupported && distinct;
+}
+
 }  // namespace
 
 int main() {
@@ -291,7 +335,8 @@ int main() {
         InvalidTargetIsRejectedBeforeWrite() &&
         UnsupportedFastIsRejectedBeforeWrite() &&
         InvalidPreviousReadbackIsRejectedBeforeWrite() &&
-        ProfileCatalogSelectsVerifiedAndConservativeFamilies();
+        ProfileCatalogSelectsVerifiedAndConservativeFamilies() &&
+        ProfileCatalogCoversEveryKnownFamily();
     if (!passed) {
         return 1;
     }
