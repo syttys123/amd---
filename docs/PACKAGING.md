@@ -87,13 +87,13 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 Current internal native release candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.8-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.9-win-x64-native-preview.zip
 ```
 
-- Size: `459,023` bytes.
+- Size: `474,790` bytes.
 - SHA256:
-  `3938c1853703b03c5c914d449d1e6319c202e478cb1113ec60a8a1cd5532fadd`.
-- Source commit: `c00836b0ded53446e5c20080ab94a4f93870dd42`.
+  `c4a3bfaf872a43a0a258f579a0f532ff87514816aec51827eb8b4c314fbba9b5`.
+- Source commit: `bdb0995298268faabf44ecb24492e0bbc7a70ef5`.
 - Working tree at build time: clean.
 - Runtime verification: hardware read-only/write-guard, GUI lifecycle with
   three Win32 minimize/restore cycles, editable preset persistence, policy
@@ -104,17 +104,20 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.8-win-x64-native-pre
 - Three editable quick presets (`12/25/45 W` initially) are clamped to the
   platform profile, persisted without replacing the battery/AC policy, and
   exposed as direct `应用预设` commands in the tray menu.
+- `导出诊断` works in read-only and write-enabled modes, writing schema-1 JSON
+  with an explicit privacy block and no paths, process IDs, logs, pipe names,
+  or upload path.
 - Hardware policy write: controlled AC no-change write passed by applying the
   live `10/10/10 W` state, verifying it, disabling the policy, and shutting the
   worker down through the protocol.
 - Aggregate evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.8-release-gate-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.9-release-gate-2026-11-11.json`.
 - Package evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.8-clean-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.9-clean-2026-11-11.json`.
 - Shell evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.8-shell-integration-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.9-shell-integration-2026-11-11.json`.
 - Hardware policy evidence:
-  `docs/evidence/hardware/v0.6.0-native-rc.8-power-policy-no-change-2026-11-11.json`.
+  `docs/evidence/hardware/v0.6.0-native-rc.9-power-policy-no-change-2026-11-11.json`.
 
 This RC is not yet the public stable release. The `.NET` GUI remains the
 deployed product, and the native preview still needs UI parity plus read-only

@@ -11,21 +11,21 @@ The native package is not a drop-in replacement and will only be considered
 for promotion if it reaches feature and UI parity without regressing the
 current experience.
 
-Note (2026-11-11): `rc.8` supersedes `rc.7`. It keeps the Chinese dashboard and
-title header, then adds three editable quick presets with backward-compatible
-state persistence and direct tray-menu preset commands. Earlier evidence stays
-valid for the exact bytes each candidate describes.
+Note (2026-11-11): `rc.9` supersedes `rc.8`. It adds schema-1 GUI diagnostics
+export in both read-only and write-enabled modes on top of the Chinese
+dashboard, editable quick presets, persistence, and tray-menu preset commands.
+Earlier evidence stays valid for the exact bytes each candidate describes.
 
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.8-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.9-win-x64-native-preview.zip
 ```
 
-- Size: `459,023` bytes.
+- Size: `474,790` bytes.
 - SHA256:
-  `3938c1853703b03c5c914d449d1e6319c202e478cb1113ec60a8a1cd5532fadd`.
-- Source commit: `c00836b0ded53446e5c20080ab94a4f93870dd42`.
+  `c4a3bfaf872a43a0a258f579a0f532ff87514816aec51827eb8b4c314fbba9b5`.
+- Source commit: `bdb0995298268faabf44ecb24492e0bbc7a70ef5`.
 - Working tree at build time: clean.
 
 ## Passed Gates
@@ -38,6 +38,9 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.8-win-x64-native-pre
 - Editable `11/24/43 W` presets in an isolated `%LocalAppData%`: labels and
   JSON persistence verified, then policy save verified without losing the
   presets.
+- GUI diagnostics export in read-only and write-enabled modes: schema-1 JSON
+  parsed on the 8845HS AC snapshot, privacy fields verified, and no local path
+  or pipe name present.
 - GUI policy save with isolated `%LocalAppData%`.
 - Packaged compatibility collector with sanitized JSON.
 - Staged checksum verification for every package file.
@@ -54,18 +57,19 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.8-win-x64-native-pre
 
 Evidence:
 
-- `docs/evidence/packaging/v0.6.0-native-rc.8-release-gate-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.8-clean-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.8-shell-integration-2026-11-11.json`
-- `docs/evidence/hardware/v0.6.0-native-rc.8-power-policy-no-change-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.9-release-gate-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.9-clean-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.9-shell-integration-2026-11-11.json`
+- `docs/evidence/hardware/v0.6.0-native-rc.9-power-policy-no-change-2026-11-11.json`
 - `docs/evidence/ui/native-gui-editable-presets-2026-11-11.json`
+- `docs/evidence/ui/native-gui-diagnostics-export-2026-11-11.json`
 
-Superseded candidates `0.6.0-native-rc.7` and earlier keep their own evidence.
+Superseded candidates `0.6.0-native-rc.8` and earlier keep their own evidence.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v0.6.0-native-rc.8
+artifacts/native-release-review/v0.6.0-native-rc.9
 ```
 
 Generate it with `native/prepare-release-review.ps1`; the bundle is
@@ -74,8 +78,7 @@ Generate it with `native/prepare-release-review.ps1`; the bundle is
 ## Open Gates
 
 - Feature and UI parity with the `.NET` GUI: the native preview still lacks the
-  `.NET` simple/advanced mode switch, packaged diagnostics export from the GUI,
-  and the final structured layout.
+  `.NET` simple/advanced mode switch and the final structured layout.
 - At least one second physical AMD laptop must provide read-only compatibility
   evidence using `collect-native-diagnostics.ps1`.
 - Windows CI must be able to run after the repository account billing or

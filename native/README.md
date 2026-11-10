@@ -130,11 +130,11 @@ and verifies that the real Startup-folder and current-user uninstall registry
 integration does not change. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
 
-The current internal release candidate is `0.6.0-native-rc.8`; its hash and
+The current internal release candidate is `0.6.0-native-rc.9`; its hash and
 evidence are recorded in `docs/PACKAGING.md` and
-`docs/evidence/packaging/v0.6.0-native-rc.8-release-gate-2026-11-11.json`.
-The verified ZIP is `459,023` bytes with SHA256
-`3938c1853703b03c5c914d449d1e6319c202e478cb1113ec60a8a1cd5532fadd`.
+`docs/evidence/packaging/v0.6.0-native-rc.9-release-gate-2026-11-11.json`.
+The verified ZIP is `474,790` bytes with SHA256
+`c4a3bfaf872a43a0a258f579a0f532ff87514816aec51827eb8b4c314fbba9b5`.
 
 Exercise the real Start menu, Startup shortcut, and current-user uninstall
 entry without launching the GUI:

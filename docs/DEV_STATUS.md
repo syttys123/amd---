@@ -1,6 +1,6 @@
 # Development Status
 
-Last updated: 2026-11-10
+Last updated: 2026-11-11
 
 ## Objective
 
@@ -986,6 +986,17 @@ third_party/
   seconds instead of being replaced by the next telemetry tick. Screenshots:
   `assets/native-gui-readonly-diagnostics-2026-11-11.png` and
   `assets/native-gui-write-diagnostics-2026-11-11.png`.
+- Built and fully gated `0.6.0-native-rc.9` from clean commit
+  `bdb0995298268faabf44ecb24492e0bbc7a70ef5`. The ZIP is `474,790` bytes with
+  SHA256
+  `c4a3bfaf872a43a0a258f579a0f532ff87514816aec51827eb8b4c314fbba9b5`.
+  The aggregate gate passed 24 Rust tests, both C++ suites, Clippy,
+  read-only/write-guard hardware probes, GUI lifecycle, editable preset and
+  policy persistence, GUI diagnostics export, compatibility collection,
+  checksums, isolated install/uninstall, real shell integration, and a
+  controlled AC no-change policy write on the live `10/10/10 W` state.
+  Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.9-release-gate-2026-11-11.json`.
 
 Development screenshot:
 
@@ -1014,9 +1025,9 @@ Development screenshot:
   collect a second-device write/read-back smoke test; keep `1.0.4` as the
   stable fallback.
 - Bring the native Rust preview GUI to parity with the `.NET` GUI (simple and
-  advanced modes, packaged diagnostics export, final structured layout) before
-  any promotion discussion. Localized copy, policy editing, editable presets,
-  persistence, and tray preset commands already exist in the preview.
+  advanced modes, final structured layout) before any promotion discussion.
+  Localized copy, policy editing, editable presets, persistence, tray preset
+  commands, and GUI diagnostics export already exist in the preview.
 
 ## Next Concrete Task
 

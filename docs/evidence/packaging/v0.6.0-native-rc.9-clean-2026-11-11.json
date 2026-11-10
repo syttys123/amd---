@@ -1,0 +1,15 @@
+{
+  "Version": "0.6.0-native-rc.9",
+  "Package": "amd-mobile-power-v0.6.0-native-rc.9-win-x64-native-preview.zip",
+  "SHA256": "c4a3bfaf872a43a0a258f579a0f532ff87514816aec51827eb8b4c314fbba9b5",
+  "Size": 474790,
+  "SourceCommit": "bdb0995298268faabf44ecb24492e0bbc7a70ef5",
+  "WorkingTree": "Clean",
+  "Verification": "PASS",
+  "ChecksumEntries": 16,
+  "RuntimeVerification": "PASS",
+  "CompatibilityCollector": "PASS",
+  "CompatibilityMarkdown": "PASS",
+  "InstallFlow": "PASS",
+  "RecordedAt": "2026-11-11T00:36:07.6026196+08:00"
+}
