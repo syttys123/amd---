@@ -33,6 +33,20 @@ install/uninstall. It explicitly reports `RuntimeVerification=Skipped` and
 `CompatibilityCollector=Skipped`; those hardware gates remain required before
 promotion or release evidence.
 
+For a local release candidate, run the aggregate native gate from a clean
+worktree:
+
+```powershell
+.\native\verify-release.ps1 `
+  -Version 0.6.0-native-rc.1 `
+  -ExecuteNoChangePolicy `
+  -VerifyShellIntegration
+```
+
+The wrapper requires a unique version, produces the package and evidence
+files, and rejects a dirty worktree unless `-AllowDirty` is explicitly passed
+for diagnostics.
+
 Current clean native preview:
 
 ```text

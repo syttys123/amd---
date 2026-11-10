@@ -154,4 +154,19 @@ The package path and hardware evidence requirements are documented in
 `-SkipRuntimeVerification` to `native\build-package.ps1`; the resulting ZIP is
 not a substitute for the hardware release gate.
 
+Run the native release gate from a clean worktree with a unique release
+version:
+
+```powershell
+.\native\verify-release.ps1 `
+  -Version 0.6.0-native-rc.1 `
+  -ExecuteNoChangePolicy `
+  -VerifyShellIntegration
+```
+
+The wrapper runs the build, hardware read-only/write-guard gates, policy
+read-only checks, full package verification, optional no-change policy write,
+optional real shell integration, and writes an aggregate release-gate JSON.
+Omit `-ExecuteNoChangePolicy` for a fully read-only diagnostic run.
+
 Build output is intentionally ignored by Git.

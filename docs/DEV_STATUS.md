@@ -815,6 +815,10 @@ third_party/
   headless runners. `native/build-package.ps1` now validates every staged
   checksum entry before zipping and exposes `RuntimeVerification` /
   `CompatibilityCollector` evidence fields.
+- Added `native/verify-release.ps1` as the aggregate native release gate:
+  clean-worktree enforcement, build, hardware read-only/write-guard checks,
+  policy checks, package verification, optional no-change policy write,
+  optional real shell integration, and a consolidated JSON result.
 
 Development screenshot:
 
