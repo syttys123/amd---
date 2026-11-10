@@ -284,7 +284,6 @@ fn format_snapshot(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>
             "Fast 上限：{}\n",
             "Slow 上限：{}\n",
             "CPU 温度：{}\n",
-            "\n",
             "可写字段：STAPM={} Fast={} Slow={}\n",
             "平台状态：{}\n",
             "固件钳制：{}\n",
@@ -310,7 +309,7 @@ fn format_snapshot(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>
         format_flag(telemetry.has_firmware_clamp),
         telemetry.updated_at.as_deref().unwrap_or("未知")
     );
-    format!("{status}\n\n{}", format_policy_state(policy))
+    format!("{status}\n{}", format_policy_state(policy))
 }
 
 fn parse_options() -> Result<Options, String> {
@@ -429,7 +428,7 @@ unsafe fn create_status_label(
         18,
         40,
         580,
-        272,
+        290,
         hwnd,
         std::ptr::null_mut(),
         instance,
@@ -462,10 +461,10 @@ unsafe fn create_title_label(
 unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) -> [HWND; 3] {
     let button_class = wide("BUTTON");
     let controls = [
-        (PRESET_12, "12 W", 18, 330, 90),
-        (PRESET_25, "25 W", 116, 330, 90),
-        (PRESET_45, "45 W", 214, 330, 90),
-        (APPLY_TARGET, "应用", 360, 330, 120),
+        (PRESET_12, "12 W", 18, 348, 90),
+        (PRESET_25, "25 W", 116, 348, 90),
+        (PRESET_45, "45 W", 214, 348, 90),
+        (APPLY_TARGET, "应用", 360, 348, 120),
     ];
     let mut presets = [std::ptr::null_mut(); 3];
     let mut first_preset = true;
@@ -556,7 +555,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         battery_label.as_ptr(),
         WS_CHILD | WS_VISIBLE,
         18,
-        382,
+        400,
         108,
         22,
         hwnd,
@@ -570,7 +569,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         wide("12").as_ptr(),
         edit_style,
         132,
-        378,
+        396,
         54,
         26,
         hwnd,
@@ -584,7 +583,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         ac_label.as_ptr(),
         WS_CHILD | WS_VISIBLE,
         200,
-        382,
+        400,
         62,
         22,
         hwnd,
@@ -598,7 +597,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         wide("45").as_ptr(),
         edit_style,
         266,
-        378,
+        396,
         54,
         26,
         hwnd,
@@ -612,7 +611,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         enabled_label.as_ptr(),
         WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX as u32,
         336,
-        378,
+        396,
         82,
         26,
         hwnd,
@@ -626,7 +625,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         save_label.as_ptr(),
         WS_CHILD | WS_VISIBLE | WS_TABSTOP,
         428,
-        376,
+        394,
         120,
         30,
         hwnd,
@@ -1108,9 +1107,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let window_height = if options.enable_write_controls {
-        520
+        540
     } else {
-        360
+        380
     };
     let hwnd = unsafe {
         CreateWindowExW(
