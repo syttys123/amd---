@@ -61,10 +61,10 @@ not authoritative.
 - Current redesign evidence is recorded in `docs/NATIVE_UI_REWRITE.md` with
   simple/advanced screenshots at 125% scaling. The native rewrite is not yet a
   stable deployment and has not replaced `C:\RyzenAdj`.
-- The clean native candidate is now `0.6.0-native-rc.10`: 524,702 bytes,
+- The clean native candidate is now `0.6.0-native-rc.10`: 524,700 bytes,
   SHA256
-  `d59bf80b5b8874d52d77413a14490e171cb432d73fa26687c8c3cf04468e1e86`,
-  built from clean commit `e44b76195ade1b6479a71b486625e3e675909533`.
+  `112cc0eb0af0de8f9ac8f77673fb482f127f53da35362db0230c35702c09c6bc`,
+  built from clean commit `466c3b273564becaad4af3f94f4beea5192d49ec`.
 - The rc.10 package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user

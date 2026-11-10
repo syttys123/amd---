@@ -23,10 +23,10 @@ candidate describes.
 artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.10-win-x64-native-preview.zip
 ```
 
-- Size: `524,702` bytes.
+- Size: `524,700` bytes.
 - SHA256:
-  `d59bf80b5b8874d52d77413a14490e171cb432d73fa26687c8c3cf04468e1e86`.
-- Source commit: `e44b76195ade1b6479a71b486625e3e675909533`.
+  `112cc0eb0af0de8f9ac8f77673fb482f127f53da35362db0230c35702c09c6bc`.
+- Source commit: `466c3b273564becaad4af3f94f4beea5192d49ec`.
 - Working tree at build time: clean.
 
 ## Passed Gates
@@ -65,7 +65,8 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.10-win-x64-native-pr
 
 Evidence:
 
-- `docs/evidence/packaging/v0.6.0-native-rc.10-readonly-gate-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.10-clean-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.10-release-gate-2026-11-11.json`
 - `docs/evidence/packaging/v0.6.0-native-rc.10-shell-integration-2026-11-11.json`
 - `docs/evidence/hardware/v0.6.0-native-rc.9-power-policy-no-change-2026-11-11.json`
 - `docs/evidence/ui/native-gui-editable-presets-2026-11-11.json`

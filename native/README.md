@@ -145,11 +145,11 @@ and verifies that the real Startup-folder and current-user uninstall registry
 integration does not change. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
 
-The current internal release candidate is `0.6.0-native-rc.10`: 524,702 bytes,
+The current internal release candidate is `0.6.0-native-rc.10`: 524,700 bytes,
 SHA256
-`d59bf80b5b8874d52d77413a14490e171cb432d73fa26687c8c3cf04468e1e86`.
-Its read-only package gate is recorded in
-`docs/evidence/packaging/v0.6.0-native-rc.10-readonly-gate-2026-11-11.json`.
+`112cc0eb0af0de8f9ac8f77673fb482f127f53da35362db0230c35702c09c6bc`.
+Its aggregate read-only gate is recorded in
+`docs/evidence/packaging/v0.6.0-native-rc.10-release-gate-2026-11-11.json`.
 The write-enabled no-change gate remains pending.
 
 Exercise the real Start menu, Startup shortcut, and current-user uninstall

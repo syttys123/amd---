@@ -137,7 +137,8 @@ GUI/worker, diagnostics, compatibility collector, and install flow without
 executing the policy-save write; the default verification still includes the
 supervised policy-save path. The current clean `0.6.0-native-rc.10` package is
 recorded in
-`docs/evidence/packaging/v0.6.0-native-rc.10-readonly-gate-2026-11-11.json`;
+`docs/evidence/packaging/v0.6.0-native-rc.10-clean-2026-11-11.json` and
+`docs/evidence/packaging/v0.6.0-native-rc.10-release-gate-2026-11-11.json`;
 the real current-user Start menu, Startup, and uninstall-entry lifecycle is
 recorded in
 `docs/evidence/packaging/v0.6.0-native-rc.10-shell-integration-2026-11-11.json`.
