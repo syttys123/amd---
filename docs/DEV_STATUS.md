@@ -786,6 +786,8 @@ third_party/
   JSON compatibility report, and never enables write controls or network
   access. The package build gate now runs the collector against the extracted
   package and rejects reports containing local package paths or pipe names.
+  The collector can also emit an issue-ready Markdown summary through
+  `-MarkdownPath`, with the same read-only and sanitization boundary.
 - Added a native conservative family/profile catalog for RyzenAdj families
   `2/3/5`, `7`, `8`, `9`, `10`, `11/15`, `12/13`, `14`, and legacy
   `0/1/4/6`. The `8845HS + 4c0009` development match is the only verified

@@ -213,11 +213,13 @@ if (-not $NoVerify) {
             $verifyRoot `
             "$stageName\collect-native-diagnostics.ps1"
         $reportPath = Join-Path $verifyRoot "native-compatibility-report.json"
+        $reportMarkdownPath = Join-Path $verifyRoot "native-compatibility-report.md"
         $collectorOutput = & powershell.exe `
             -NoProfile `
             -ExecutionPolicy Bypass `
             -File $collector `
-            -OutputPath $reportPath 2>&1
+            -OutputPath $reportPath `
+            -MarkdownPath $reportMarkdownPath 2>&1
         $collectorExitCode = $LASTEXITCODE
         if ($collectorExitCode -ne 0) {
             throw "Extracted native compatibility collector failed: $collectorOutput"
@@ -234,6 +236,12 @@ if (-not $NoVerify) {
         if ($reportText -match [regex]::Escape($repositoryRoot) -or
             $reportText -match [regex]::Escape("\\.\pipe\")) {
             throw "Native compatibility report contains a local path or pipe name."
+        }
+        $reportMarkdown = Get-Content -LiteralPath $reportMarkdownPath -Raw
+        if ($reportMarkdown -notmatch "AMD Mobile Power Compatibility Report" -or
+            $reportMarkdown -match [regex]::Escape($repositoryRoot) -or
+            $reportMarkdown -match [regex]::Escape("\\.\pipe\")) {
+            throw "Native compatibility Markdown report failed its sanitization checks."
         }
     }
 
@@ -297,6 +305,12 @@ $result = [pscustomobject]@{
     else {
         "PASS"
     }
+    CompatibilityMarkdown = if ($SkipRuntimeVerification -or $NoVerify) {
+        "Skipped"
+    }
+    else {
+        "PASS"
+    }
     InstallFlow = if ($NoVerify) { "Skipped" } else { "PASS" }
 }
 
@@ -316,6 +330,7 @@ if ($EvidencePath) {
         ChecksumEntries = $result.ChecksumEntries
         RuntimeVerification = $result.RuntimeVerification
         CompatibilityCollector = $result.CompatibilityCollector
+        CompatibilityMarkdown = $result.CompatibilityMarkdown
         InstallFlow = $result.InstallFlow
         RecordedAt = (Get-Date).ToString("o")
     } |

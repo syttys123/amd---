@@ -1,5 +1,6 @@
 param(
-    [string]$OutputPath
+    [string]$OutputPath,
+    [string]$MarkdownPath
 )
 
 $ErrorActionPreference = "Stop"
@@ -204,6 +205,59 @@ $report |
     ConvertTo-Json -Depth 10 |
     Set-Content -LiteralPath $OutputPath -Encoding UTF8
 
+if (-not [string]::IsNullOrWhiteSpace($MarkdownPath)) {
+    $markdownDirectory = Split-Path -Parent $MarkdownPath
+    if ($markdownDirectory) {
+        New-Item -ItemType Directory -Path $markdownDirectory -Force | Out-Null
+    }
+    $processorName = if ($null -ne $platform) {
+        $platform.cpu.processorName.Trim()
+    }
+    else {
+        "Unavailable"
+    }
+    $familyName = if ($null -ne $platform) {
+        "$($platform.cpu.ryzenAdjFamily) $($platform.cpu.ryzenAdjFamilyName)"
+    }
+    else {
+        "Unavailable"
+    }
+    $profileName = if ($null -ne $platform -and $null -ne $platform.matchedProfile) {
+        "$($platform.matchedProfile.id) [$($platform.matchedProfile.minimumWatts)-$($platform.matchedProfile.maximumWatts) W]"
+    }
+    else {
+        "Unavailable"
+    }
+    $lines = @(
+        "# AMD Mobile Power Compatibility Report",
+        "",
+        "- Collection status: ``$($report.collectionStatus)``",
+        "- Collected at: $($report.collectedAt)",
+        "- Package version: $($report.package.version)",
+        "- Package source commit: $($report.package.sourceCommit)",
+        "- CPU: $processorName",
+        "- RyzenAdj family: $familyName",
+        "- SMU BIOS interface: $(if ($null -ne $platform) { $platform.cpu.smuBiosVersion } else { 'Unavailable' })",
+        "- PM table: $(if ($null -ne $platform) { $platform.cpu.pmTableVersion } else { 'Unavailable' })",
+        "- Matched profile: $profileName",
+        "- Platform supported: $(if ($null -ne $platform) { $platform.isSupported } else { $false })",
+        "- Power line: $(if ($null -ne $telemetry) { $telemetry.powerLine } else { 'Unavailable' })",
+        "- Worker version: $($report.worker.version)",
+        "- Hardware initialized: $($report.worker.hardwareInitialized)",
+        "- Write controls enabled: ``$($report.worker.writeControlsEnabled)``",
+        "- STAPM limit: $(if ($null -ne $telemetry) { $telemetry.stapmLimitWatts } else { 'Unavailable' }) W",
+        "- Fast limit: $(if ($null -ne $telemetry) { $telemetry.fastLimitWatts } else { 'Unavailable' }) W",
+        "- Slow limit: $(if ($null -ne $telemetry) { $telemetry.slowLimitWatts } else { 'Unavailable' }) W",
+        "- Temperature: $(if ($null -ne $telemetry) { $telemetry.tctlValueCelsius } else { 'Unavailable' }) C",
+        "- Firmware clamp: $(if ($null -ne $telemetry) { $telemetry.hasFirmwareClamp } else { 'Unavailable' })",
+        "- Error: $(if ($collectionError) { $collectionError } else { 'None' })",
+        "",
+        "This report was collected read-only. Review it for personal information before attaching it to a public issue."
+    )
+    $lines |
+        Set-Content -LiteralPath $MarkdownPath -Encoding UTF8
+}
+
 [pscustomobject]@{
     CollectionStatus = $report.collectionStatus
     OutputPath = $OutputPath
@@ -220,6 +274,7 @@ $report |
         $null
     }
     PowerLine = if ($null -ne $telemetry) { $telemetry.powerLine } else { $null }
+    MarkdownPath = $MarkdownPath
     Error = $collectionError
 } | Format-List
 

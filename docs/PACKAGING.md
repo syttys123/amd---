@@ -71,8 +71,8 @@ artifacts/native-packages/amd-mobile-power-v0.5.0-native-preview.1-win-x64-nativ
 - Working tree at build time: clean.
 - Verification: package ZIP, extracted GUI lifecycle, read-only worker,
   write-control buttons, GUI policy save, read-only compatibility collector,
-  isolated install/uninstall, unchanged real Startup/registry integration, and
-  all staged SHA256 entries passed.
+  sanitized compatibility Markdown, isolated install/uninstall, unchanged real
+  Startup/registry integration, and all staged SHA256 entries passed.
 - Evidence:
   `docs/evidence/packaging/v0.5.0-native-preview.1-clean-2026-11-10.json`.
 

@@ -7,12 +7,16 @@ diagnostics.
 Generate the read-only report from the extracted portable package:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\collect-diagnostics.ps1
+powershell -ExecutionPolicy Bypass `
+  -File .\collect-native-diagnostics.ps1 `
+  -OutputPath .\compatibility.json `
+  -MarkdownPath .\compatibility.md
 ```
 
 The collector does not enable power-limit writes, does not upload data, and
 uses a field whitelist plus path sanitization. Review the JSON before attaching
-it publicly.
+it publicly. The optional Markdown file is an issue-ready summary; review it
+before attaching it to a public issue.
 
 ## Device
 
