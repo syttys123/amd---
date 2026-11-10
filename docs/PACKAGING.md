@@ -209,6 +209,33 @@ artifacts/packages/amd-mobile-power-v1.0.2-win-x64-lite.zip
   `docs/evidence/packaging/v1.0.2-clean-2026-11-10.json` and
   `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.2-2026-11-10.json`.
 
+Current `1.0.3` local stable package:
+
+```text
+artifacts/packages/amd-mobile-power-v1.0.3-win-x64-lite.zip
+```
+
+- Size: `594,475` bytes.
+- SHA256:
+  `795be664e991915a38457feb8d47c41879b2baaa2db03af559032736a7595a1c`.
+- Source commit: `335b42031876826567870fa7aebcdb659de578d3`.
+- Build SDK: .NET `10.0.400`; product assemblies still target .NET 8 APIs.
+- Working tree at build time: clean.
+- Contents: 40 files, 39 checksum entries, nine profiles, four license files.
+- Simple mode now shows the complete `AMD Mobile Power` header, sizes the title
+  at runtime for the active DPI, and narrows the write-state status cell from
+  92 px to 78 px.
+- Full local gate: zero warnings, 71/71 tests, dependency audit, format,
+  isolated install/overwrite/uninstall, shell integration, tray menu, graceful
+  exit, single-click restore with ghost-icon retry protection, worker
+  parent-exit cleanup, read-only diagnostics, and packaged dashboard checks
+  passed.
+- Packaged battery no-change write: `12/12/12 W` requested and read back; worker
+  shutdown was graceful.
+- Evidence:
+  `docs/evidence/packaging/v1.0.3-clean-2026-11-10.json` and
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.3-2026-11-10.json`.
+
 ## Embedded Version Metadata
 
 `Directory.Build.props` is the source of truth for product identity and version:
@@ -354,10 +381,10 @@ GUI/worker teardown.
 The current verified local stable package uses SHA256:
 
 ```text
-ddf5d70bcfd802e1db317dbacbd40ab63eba024fc3d2c7db175829ee5d2f6f93
+795be664e991915a38457feb8d47c41879b2baaa2db03af559032736a7595a1c
 ```
 
-It was built from clean commit `9fb180a` with .NET SDK `10.0.400`.
+It was built from clean commit `335b420` with .NET SDK `10.0.400`.
 
 Rebuilds may produce a different hash because embedded timestamps can change.
 Always use the hash generated with the current build.
@@ -387,8 +414,8 @@ dirty worktree, a mismatched ZIP sidecar, a package commit outside the current
 branch, runtime-sensitive changes after the package commit, or a failed media
 gate. It never logs in or uploads.
 
-The `v0.1.0`, `v0.1.3-dev`, `v1.0.0`, and `v1.0.1` packages are retained as
-historical development/stable artifacts. The current `v1.0.2` package is a
-locally verified stable deployment for one physical AMD laptop, not a public
-release. Public hardware support still needs a second AMD platform and the
-remaining human gates.
+The `v0.1.0`, `v0.1.3-dev`, `v1.0.0`, `v1.0.1`, and `v1.0.2` packages are
+retained as historical development/stable artifacts. The current `v1.0.3`
+package is a locally verified stable deployment for one physical AMD laptop,
+not a public release. Public hardware support still needs a second AMD platform
+and the remaining human gates.

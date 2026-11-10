@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "stable-package-no-change-write",
+  "capturedAt": "2026-11-10T16:32:13.5824973+08:00",
+  "package": {
+    "name": "amd-mobile-power-v1.0.3-win-x64-lite.zip",
+    "sha256": "795be664e991915a38457feb8d47c41879b2baaa2db03af559032736a7595a1c",
+    "workerExecutableSha256": "0102e2a68bb36f22dbbed0bf68f2fa9490c5bd7b5a1ab62031990be44b95a2df"
+  },
+  "platform": {
+    "processor": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "vendor": "AuthenticAMD",
+    "ryzenAdjFamily": 10,
+    "ryzenAdjFamilyName": "Hawk Point",
+    "smuBiosVersion": "15",
+    "pmTableVersion": "4c0009"
+  },
+  "environment": {
+    "powerLine": "battery",
+    "hardwareWritesConfirmed": true,
+    "processCleanupVerified": true
+  },
+  "baseline": {
+    "requestedTargetWatts": {
+      "stapm": 12,
+      "fast": 12,
+      "slow": 12
+    },
+    "reportedLimitsWatts": {
+      "stapm": 12.000000953674316,
+      "fast": 12.000000953674316,
+      "slow": 12.000000953674316
+    },
+    "actualWatts": {
+      "stapm": 11.999016761779785,
+      "fast": 11.978475570678711,
+      "slow": 11.997697830200195
+    }
+  },
+  "requestedTargetWatts": {
+    "stapm": 12,
+    "fast": 12,
+    "slow": 12
+  },
+  "readbackWatts": {
+    "stapm": 12.000000953674316,
+    "fast": 12.000000953674316,
+    "slow": 12.000000953674316
+  },
+  "settledTelemetry": {
+    "stapmActual": 11.999617576599121,
+    "fastActual": 12.001333236694336,
+    "slowActual": 11.99824047088623,
+    "stapmLimit": 12.000000953674316,
+    "fastLimit": 12.000000953674316,
+    "slowLimit": 12.000000953674316,
+    "tctlValueCelsius": 45.24923324584961,
+    "tctlLimitCelsius": 95,
+    "powerLine": "battery"
+  },
+  "result": "PASS",
+  "cleanup": {
+    "shutdownProtocol": "PASS"
+  },
+  "notes": [
+    "The package worker wrote the same battery baseline back to hardware.",
+    "STAPM, Fast, and Slow limits matched the requested values within the read-back tolerance.",
+    "Live power settled at approximately 12 W while the host stayed on battery."
+  ],
+  "rawEvidence": "artifacts/verify/no-change-8d94d206575e4d2fa4ea9701e36d9fe9.json"
+}

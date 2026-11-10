@@ -42,13 +42,13 @@ not authoritative.
 - The current development package was rebuilt from clean commit `71be9c8`:
   593,944 bytes, SHA256
   `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`.
-- The current local stable package is `1.0.2`: 594,482 bytes, SHA256
-  `ddf5d70bcfd802e1db317dbacbd40ab63eba024fc3d2c7db175829ee5d2f6f93`,
-  built from clean commit `9fb180a` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` now contains the verified `1.0.2` package. The previous `1.0.1`
-  deployment is preserved as `C:\RyzenAdj.before-v1.0.2-20261110-154346` and
+- The current local stable package is `1.0.3`: 594,475 bytes, SHA256
+  `795be664e991915a38457feb8d47c41879b2baaa2db03af559032736a7595a1c`,
+  built from clean commit `335b420` with .NET SDK `10.0.400`.
+- `C:\RyzenAdj` now contains the verified `1.0.3` package. The previous `1.0.2`
+  deployment is preserved as `C:\RyzenAdj.before-v1.0.3-20261110-163339` and
   under
-  `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.2-20261110-154346`.
+  `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.3-20261110-163339`.
 
 ## Development Workflow
 
@@ -671,6 +671,26 @@ third_party/
   and a write-mode shortcut launch where both GUI and worker came from
   `C:\RyzenAdj` and logged `writes=True`. Evidence:
   `docs/evidence/packaging/v1.0.2-deployment-2026-11-10.json`.
+- Fixed the compact-mode header and status layout: the top title now uses the
+  complete `AMD Mobile Power` text and runtime DPI auto-sizing, while the
+  write-state status cell shrank from 92 px to 78 px. The dashboard verifier now
+  checks the full title text, title-to-mode-control gap, status width ratio, and
+  ghost-icon retry behavior for tray recovery.
+- Built and verified the clean `1.0.3` Lite package from commits `57d719c` and
+  `335b420`: zero build warnings, 71/71 tests, dependency audit, format,
+  isolated install/overwrite/uninstall, shell integration, tray menu, tray
+  recovery, parent-exit cleanup, read-only diagnostics, and the packaged
+  dashboard gate all passed. Evidence:
+  `docs/evidence/packaging/v1.0.3-clean-2026-11-10.json`.
+- Passed the packaged `1.0.3` battery no-change hardware write at `12/12/12 W`;
+  STAPM/Fast/Slow read back at the requested limits and worker shutdown used the
+  graceful protocol. Evidence:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.3-2026-11-10.json`.
+- Promoted `1.0.3` to `C:\RyzenAdj` after a hash-verified 42-file backup. The
+  deployed dashboard showed the complete title, a 245 px right gap, a 78 px
+  write-state cell, read-only diagnostics reporting worker `1.0.3`, and a
+  write-mode launch from both GUI and worker under `C:\RyzenAdj`. Evidence:
+  `docs/evidence/packaging/v1.0.3-deployment-2026-11-10.json`.
 - Verified the deployed tray lifecycle: single-click restore passed, the tray
   menu opened with 11 items and exited gracefully, and terminating the GUI left
   no orphaned worker process.
@@ -696,7 +716,7 @@ Development screenshot:
 ## Next Concrete Task
 
 Collect a read-only diagnostics report from a second AMD laptop before broad
-public support. Keep `C:\RyzenAdj` on `1.0.2` unless a newer package completes
+public support. Keep `C:\RyzenAdj` on `1.0.3` unless a newer package completes
 the same release and deployment gates.
 
 ## Known Risks
@@ -726,7 +746,7 @@ Do not publish a stable release or promotional video until:
 - A release checklist and installation documentation exist.
 
 The controlled no-change write gate and supervised AC/battery policy transition
-are complete for the development 8845HS. The `1.0.2` release gate passes on this
-laptop, and its deployment verification also passes. Broad public hardware
-support still requires a second verified AMD platform or generation.
+are complete for the development 8845HS. The `1.0.3` release and deployment
+gates pass on this laptop. Broad public hardware support still requires a second
+verified AMD platform or generation.
 

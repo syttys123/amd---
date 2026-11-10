@@ -6,6 +6,8 @@ Machine-readable evidence:
 `docs/evidence/ui/screenshot-baseline-2026-11-10.json`.
 The deployed `1.0.1` status-bar fix has separate evidence:
 `docs/evidence/ui/v1.0.1-dashboard-2026-11-10.json`.
+The current deployed `1.0.3` compact layout check is recorded in
+`docs/evidence/packaging/v1.0.3-deployment-2026-11-10.json`.
 
 ## Captured States
 
@@ -18,6 +20,7 @@ The deployed `1.0.1` status-bar fix has separate evidence:
 | Clean-package dashboard | `assets/main-dashboard-clean-package-2026-11-10.png` | Packaged read-only GUI connected to its bundled worker, `动态上限 12.0 W · 电源`, zero visible boundary violations |
 | Real battery dashboard | `assets/main-dashboard-battery-2026-11-10.png` | Packaged read-only GUI and worker on battery, `动态上限 25.0 W · 电池`, zero visible boundary violations |
 | Deployed `1.0.1` status bar | `assets/main-dashboard-v1.0.1-status-2026-11-10.png` | `C:\RyzenAdj` package on battery, `动态上限 25.0 W · 电池`, bottom `详情` absent, write-state/status non-overlap PASS, target-left artifact pixels 0 |
+| Deployed `1.0.3` compact header/status | `artifacts/verify/deployed-dashboard-v1.0.3-20261110.png` | Complete `AMD Mobile Power` header, 245 px right gap, 78 px write-state cell, status overlap PASS, target-left artifact pixels 0 |
 | Tray context menu | `assets/tray-menu-clean-package-2026-11-10.png` | `verify-tray-menu.ps1` found the real hidden-tray icon, opened the upward anchored menu, read 11 items, captured the visible bounds, invoked Exit, and confirmed no GUI/worker remained |
 
 All screenshots were captured on the development laptop at 125% scaling.

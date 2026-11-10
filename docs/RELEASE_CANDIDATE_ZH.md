@@ -8,23 +8,23 @@
 ## Source And Package
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
-- Current runtime source commit reviewed: `9fb180a`
-- Package source commit: `9fb180a`
-- Package: `artifacts/packages/amd-mobile-power-v1.0.2-win-x64-lite.zip`
-- Size: `594,482` bytes
-- SHA256: `ddf5d70bcfd802e1db317dbacbd40ab63eba024fc3d2c7db175829ee5d2f6f93`
+- Current runtime source commit reviewed: `335b420`
+- Package source commit: `335b420`
+- Package: `artifacts/packages/amd-mobile-power-v1.0.3-win-x64-lite.zip`
+- Size: `594,475` bytes
+- SHA256: `795be664e991915a38457feb8d47c41879b2baaa2db03af559032736a7595a1c`
 - Files / checksums / profiles / licenses: `40 / 39 / 9 / 4`
 - Runtime: Microsoft .NET 8 Desktop Runtime x64
 
-The ZIP was rebuilt from a clean `9fb180a` worktree with .NET SDK `10.0.400`,
-matching the pinned CI toolchain. The package includes the tray-restore
-re-entry fix and worker parent-exit cleanup. Later documentation-only commits do
-not change the packaged runtime files.
+The ZIP was rebuilt from a clean `335b420` worktree with .NET SDK `10.0.400`,
+matching the pinned CI toolchain. The package includes the tray-restore and
+worker cleanup fixes plus the compact-mode title/status layout correction.
+Later documentation-only commits do not change the packaged runtime files.
 
 ## Local Verification
 
 Evidence:
-`docs/evidence/packaging/v1.0.2-clean-2026-11-10.json`
+`docs/evidence/packaging/v1.0.3-clean-2026-11-10.json`
 
 - Build warnings / errors: `0 / 0`
 - SDK: `10.0.400`
@@ -36,10 +36,12 @@ Evidence:
 - Tray menu direction: up
 - Tray menu bounds and horizontal anchoring: PASS
 - Tray single-click, double-click, and menu restore: PASS
+- Tray ghost-icon retry protection: PASS
 - GUI parent exit leaves no orphaned worker: PASS
 - Graceful tray exit: PASS
 - Packaged simple dashboard gray-dot and power-line check: PASS
 - Bottom `详情` button absent and write-state/status bounds overlap check: PASS
+- Complete `AMD Mobile Power` header and 78 px status-cell check: PASS
 - Packaged read-only diagnostics collector: PASS
 - Packaged stable-package no-change hardware write: PASS
 - Local deployment to `C:\RyzenAdj`: PASS
@@ -64,7 +66,7 @@ launch copy, safety documents, manifest, and SHA256 list under
 - Earlier `25/25/25 W` and a 45 W request were recorded; firmware may clamp
   STAPM while Fast/Slow remain the enforceable limit.
 - Packaged no-change write gate: `12/12/12 W -> 12/12/12 W`.
-- `1.0.2` packaged battery no-change write:
+- `1.0.3` packaged battery no-change write:
   `12/12/12 W -> 12/12/12 W`, actual power below the ceiling, graceful
   shutdown.
 
@@ -93,11 +95,14 @@ launch copy, safety documents, manifest, and SHA256 list under
 Dashboard capture:
 
 ```text
-docs/assets/main-dashboard-v1.0.1-status-2026-11-10.png
+artifacts/verify/deployed-dashboard-v1.0.3-20261110.png
 ```
 
 - Dimensions: `574x438`
-- SHA256: `992b60f41c979ae74cf6e8ac6dd1c6b844cc1afc4990e7029e9e303a2336b9a9`
+- SHA256: `7d287065207e4b1fb16e56c02478a5012011c34ab89ab36d5469cb73fab1a065`
+- Header: complete `AMD Mobile Power`
+- Header-to-mode-control gap: `245 px`
+- Write-state cell width: `78 px`
 - Bottom `详情` button: absent
 - Write-state/status overlap: PASS
 - Visible boundary violations: `0`
@@ -146,7 +151,7 @@ docs/assets/bilibili-cover-2026-11-10.png
 - GitHub Actions cannot be used as release evidence until the repository
   account billing/spending-limit issue is resolved.
 - At least one second AMD laptop still needs read-only compatibility evidence.
-- Any runtime or packaging change after `9fb180a` requires a new clean package,
+- Any runtime or packaging change after `335b420` requires a new clean package,
   SHA256, and release evidence.
 - Project owner must review final video voice, pacing, claims, and cover.
 - GitHub tag/release, Bilibili login/upload, and public publication require
@@ -156,7 +161,7 @@ docs/assets/bilibili-cover-2026-11-10.png
 
 ```powershell
 .\verify-release.ps1 `
-  -Version 1.0.2 `
+  -Version 1.0.3 `
   -FrameworkDependent `
   -VerifyShellIntegration `
   -VerifyTrayMenu `

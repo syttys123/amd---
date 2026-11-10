@@ -35,9 +35,28 @@ No source changes are made directly in `C:\RyzenAdj`.
 
 ## Current Deployment Evidence
 
-On 2026-11-10, the clean `1.0.2` Lite package was promoted to `C:\RyzenAdj`
-after copying and hashing the complete `1.0.1` deployment to a recoverable D:
+On 2026-11-10, the clean `1.0.3` Lite package was promoted to `C:\RyzenAdj`
+after copying and hashing the complete `1.0.2` deployment to a recoverable D:
 backup.
+
+- Package SHA256:
+  `795be664e991915a38457feb8d47c41879b2baaa2db03af559032736a7595a1c`
+- Package source commit: `335b42031876826567870fa7aebcdb659de578d3`
+- Previous stable rollback directory:
+  `C:\RyzenAdj.before-v1.0.3-20261110-163339`
+- Recoverable D: backup:
+  `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.3-20261110-163339`
+- Local write launcher:
+  `C:\RyzenAdj\启动 AMD Mobile Power（稳定写入）.lnk`
+- Deployment evidence:
+  `docs/evidence/packaging/v1.0.3-deployment-2026-11-10.json`
+
+All 40 deployed file hashes matched the verified package. The dashboard
+overlap/state check, complete `AMD Mobile Power` header, 78 px write-state cell,
+read-only diagnostics reporting worker `1.0.3`, and a write-enabled GUI/worker
+launch from `C:\RyzenAdj` all passed. Single-click tray restore also passed.
+
+The prior `1.0.2` promotion remains available as historical evidence:
 
 - Package SHA256:
   `ddf5d70bcfd802e1db317dbacbd40ab63eba024fc3d2c7db175829ee5d2f6f93`
@@ -46,15 +65,8 @@ backup.
   `C:\RyzenAdj.before-v1.0.2-20261110-154346`
 - Recoverable D: backup:
   `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.2-20261110-154346`
-- Local write launcher:
-  `C:\RyzenAdj\启动 AMD Mobile Power（稳定写入）.lnk`
 - Deployment evidence:
   `docs/evidence/packaging/v1.0.2-deployment-2026-11-10.json`
-
-All 40 deployed file hashes matched the verified package. The dashboard
-overlap/state check, read-only diagnostics reporting worker `1.0.2`, and a
-write-enabled GUI/worker launch from `C:\RyzenAdj` all passed. Single-click tray
-restore, graceful tray exit, and GUI-parent-exit worker cleanup also passed.
 
 The prior `1.0.1` promotion remains available as historical evidence:
 
