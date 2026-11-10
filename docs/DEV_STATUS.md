@@ -767,18 +767,18 @@ third_party/
   notices, build metadata, SHA256 checksums, and isolated install/uninstall
   helpers, then extracts and reruns the GUI lifecycle, read-only worker,
   write-control UI, compatibility collector, and shell-integration
-  fingerprints in isolation. The clean `0.4.0-native-preview.1` ZIP is
-  417,429 bytes with SHA256
-  `ea6fd74c246d85d78f494fdacb740ca4db2e18f657a86b3216716275b277df6d`,
-  built from commit `f05e9b4`, with all checksum entries verified. Evidence:
-  `docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`.
+  fingerprints in isolation. The current clean `0.5.0-native-preview.1` ZIP is
+  453,407 bytes with SHA256
+  `941ecc74f579ae2c91c15781e5ca8f95740aa1e454b58d17bf4b103472785d47`,
+  built from commit `ec5ff17`, with all checksum entries verified. Evidence:
+  `docs/evidence/packaging/v0.5.0-native-preview.1-clean-2026-11-10.json`.
 - Added `native/verify-preview-shell-integration.ps1` and exercised the real
   current-user Start menu, Startup shortcut, and uninstall entry for the clean
-  `0.4.0-native-preview.1` package without launching the GUI. The verifier
+  `0.5.0-native-preview.1` package without launching the GUI. The verifier
   created the expected shortcuts and version metadata, then removed the
   install directory, both shortcuts, and the uninstall key with zero residual
   artifacts. Evidence:
-  `docs/evidence/packaging/v0.4.0-native-preview.1-shell-integration-2026-11-10.json`.
+  `docs/evidence/packaging/v0.5.0-native-preview.1-shell-integration-2026-11-10.json`.
 - Added `native/collect-native-diagnostics.ps1` to the native preview package.
   It starts the bundled worker with read-only hardware access, queries health,
   capabilities, and telemetry over the v1 named pipe, writes a sanitized local

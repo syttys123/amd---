@@ -158,7 +158,13 @@ $pipePath = "\\.\pipe\$pipeName"
 $process = $null
 try {
     $process = Start-NativeWorker -PipeName $pipeName -EnableWriteControls
-    $null = Wait-ForHealth -Process $process -PipePath $pipePath
+    $healthOutput = Wait-ForHealth -Process $process -PipePath $pipePath
+    $workerVersion = if ($healthOutput -match "worker=([^ ]+)") {
+        $Matches[1]
+    }
+    else {
+        $null
+    }
 
     $snapshotResult = Invoke-Probe -PipePath $pipePath -Command "getSnapshot"
     if ($snapshotResult.ExitCode -ne 0) {
@@ -271,6 +277,7 @@ try {
         WorkingTree = $workingTree
         Verification = "PASS"
         Path = "Native worker power policy -> RyzenAdj"
+        WorkerVersion = $workerVersion
         Processor = $snapshot.platform.cpu.processorName.Trim()
         PowerLine = $powerLine
         RequestedTarget = "$($activeTarget.stapmWatts)/$($activeTarget.fastWatts)/$($activeTarget.slowWatts)"

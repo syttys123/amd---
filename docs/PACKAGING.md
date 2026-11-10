@@ -20,26 +20,26 @@ It is a migration artifact, not the stable `C:\RyzenAdj` deployment.
 Current clean native preview:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.4.0-native-preview.1-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.5.0-native-preview.1-win-x64-native-preview.zip
 ```
 
-- Size: `417,429` bytes.
+- Size: `453,407` bytes.
 - SHA256:
-  `ea6fd74c246d85d78f494fdacb740ca4db2e18f657a86b3216716275b277df6d`.
-- Source commit: `f05e9b451f86fbd4b12b6c055a0b0f84a3dd839b`.
+  `941ecc74f579ae2c91c15781e5ca8f95740aa1e454b58d17bf4b103472785d47`.
+- Source commit: `ec5ff17338792c75f223ca15d8594879d81ecb4e`.
 - Working tree at build time: clean.
 - Verification: package ZIP, extracted GUI lifecycle, read-only worker,
-  write-control buttons, read-only compatibility collector, isolated
-  install/uninstall, unchanged real Startup/registry integration, and all
-  staged SHA256 entries passed.
+  write-control buttons, GUI policy save, read-only compatibility collector,
+  isolated install/uninstall, unchanged real Startup/registry integration, and
+  all staged SHA256 entries passed.
 - Evidence:
-  `docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`.
+  `docs/evidence/packaging/v0.5.0-native-preview.1-clean-2026-11-10.json`.
 
 The same package passed a real current-user shell-integration exercise without
 launching the GUI: the Start menu shortcut, Startup shortcut, and uninstall
-entry were created with version `0.4.0-native-preview.1`, then all four tested
+entry were created with version `0.5.0-native-preview.1`, then all four tested
 paths and registry state were removed with zero residual artifacts. Evidence:
-`docs/evidence/packaging/v0.4.0-native-preview.1-shell-integration-2026-11-10.json`.
+`docs/evidence/packaging/v0.5.0-native-preview.1-shell-integration-2026-11-10.json`.
 
 ## Portable ZIP
 
