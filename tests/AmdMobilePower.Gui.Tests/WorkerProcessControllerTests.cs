@@ -47,6 +47,35 @@ public sealed class WorkerProcessControllerTests
     }
 
     [Fact]
+    public async Task GetSnapshotAsync_WorkerStuckInDriver_StillFaultsWithinKillTimeout()
+    {
+        FakeWorkerClient client = new()
+        {
+            HealthHandler = _ => Task.FromResult(CreateHealth()),
+            SnapshotHandler = _ => Task.FromException<WorkerSnapshot>(
+                new TimeoutException("snapshot timed out"))
+        };
+        StuckWorkerProcess process = new();
+        await using WorkerProcessController controller = CreateController(
+            client,
+            () => process,
+            startupTimeout: TimeSpan.FromMilliseconds(100),
+            killTimeout: TimeSpan.FromMilliseconds(200));
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => controller.GetSnapshotAsync(CancellationToken.None));
+        stopwatch.Stop();
+
+        Assert.Contains("读取硬件超时", error.Message);
+        Assert.Contains("已停止自动重启", error.Message);
+        Assert.Equal(1, process.KillCalls);
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(10),
+            $"Fault path took {stopwatch.Elapsed}.");
+    }
+
+    [Fact]
     public async Task GetSnapshotAsync_WorkerStartupTimeout_FailsClosedWithoutRetry()
     {
         FakeWorkerClient client = new()
@@ -85,7 +114,8 @@ public sealed class WorkerProcessControllerTests
     private static WorkerProcessController CreateController(
         FakeWorkerClient client,
         Func<IWorkerProcess> startProcess,
-        TimeSpan startupTimeout)
+        TimeSpan startupTimeout,
+        TimeSpan? killTimeout = null)
     {
         return new WorkerProcessController(
             allowHardwareWrites: false,
@@ -95,7 +125,8 @@ public sealed class WorkerProcessControllerTests
             startupTimeout,
             findHardwareConflict: static () => null,
             locateWorkerExecutable: static () => "AmdMobilePower.Worker.exe",
-            startWorkerProcess: _ => startProcess());
+            startWorkerProcess: _ => startProcess(),
+            killTimeout);
     }
 
     private static WorkerHealth CreateHealth()
@@ -126,6 +157,27 @@ public sealed class WorkerProcessControllerTests
         {
             HasExited = true;
             return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    private sealed class StuckWorkerProcess : IWorkerProcess
+    {
+        public bool HasExited => false;
+
+        public int KillCalls { get; private set; }
+
+        public void Kill(bool entireProcessTree)
+        {
+            KillCalls++;
+        }
+
+        public Task WaitForExitAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.Delay(Timeout.Infinite, cancellationToken);
         }
 
         public void Dispose()

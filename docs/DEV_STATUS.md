@@ -736,6 +736,17 @@ third_party/
   Verified by rebuilding the Lite package, re-running `verify-dashboard.ps1`
   against it, and confirming the full-window capture in
   `assets/main-dashboard-simple-dpi-2026-11-10.png` with 71/71 tests passing.
+- Hardened the hardware-fault path in `WorkerProcessController`. After the
+  supervisor decided to kill a stuck worker it awaited `WaitForExitAsync()`
+  with no deadline, so a worker wedged inside a WinRing0/inpout kernel call
+  could hang the fault path and leave the GUI stuck on "正在刷新". The
+  post-kill wait is now bounded by an injectable timeout (default 3 s) and, if
+  the process still will not terminate, the controller reports the existing
+  "worker 读取硬件超时，已停止自动重启。请重启 Windows 后再打开程序。" fault
+  instead of blocking. Added
+  `GetSnapshotAsync_WorkerStuckInDriver_StillFaultsWithinKillTimeout`, which
+  drives a fake process that ignores `Kill` and never exits, and confirmed
+  `dotnet test` is 72/72.
 
 Development screenshot:
 
