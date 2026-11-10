@@ -821,8 +821,12 @@ third_party/
   policy checks, package verification, optional no-change policy write,
   optional real shell integration, and a consolidated JSON result.
 - Added `docs/NATIVE_RC_STATUS.md` to track the current
-  `0.6.0-native-rc.2` candidate, its passed gates, and the remaining
+  `0.6.0-native-rc.3` candidate, its passed gates, and the remaining
   second-device and publication blockers.
+- Added `native/prepare-release-review.ps1` to create a local review-only
+  bundle containing the current RC package, evidence, notices, documentation,
+  manifest, and SHA256 list without uploading or changing the stable
+  deployment.
 
 Development screenshot:
 

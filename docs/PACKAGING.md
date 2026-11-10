@@ -47,6 +47,17 @@ The wrapper requires a unique version, produces the package and evidence
 files, and rejects a dirty worktree unless `-AllowDirty` is explicitly passed
 for diagnostics.
 
+After the release gate passes and the evidence is committed, create a local
+review-only bundle:
+
+```powershell
+.\native\prepare-release-review.ps1 -Version 0.6.0-native-rc.3
+```
+
+The command writes the ZIP, release gate, policy/shell evidence, notices,
+documentation, manifest, and SHA256 list under
+`artifacts/native-release-review/v<version>`. It performs no network upload.
+
 Current clean native preview:
 
 ```text

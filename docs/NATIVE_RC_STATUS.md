@@ -38,6 +38,15 @@ Evidence:
 - `docs/evidence/packaging/v0.6.0-native-rc.3-shell-integration-2026-11-10.json`
 - `docs/evidence/hardware/v0.6.0-native-rc.3-power-policy-no-change-2026-11-10.json`
 
+Local review bundle:
+
+```text
+artifacts/native-release-review/v0.6.0-native-rc.3
+```
+
+Generate it with `native/prepare-release-review.ps1`; the bundle is
+`REVIEW_ONLY` and is not a public release.
+
 ## Open Gates
 
 - At least one second physical AMD laptop must provide read-only compatibility
