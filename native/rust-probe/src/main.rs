@@ -97,7 +97,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if let Some(payload_value) = response.payload {
         if command != "getHealth" {
-            println!("success");
+            println!("{}", serde_json::to_string(&payload_value)?);
             return Ok(());
         }
         let payload: HealthPayload = serde_json::from_value(payload_value)?;

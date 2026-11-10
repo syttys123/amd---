@@ -1,5 +1,6 @@
 param(
     [switch]$NoBuild,
+    [switch]$VerifyHardware,
     [string]$ExistingWorkerDirectory = "C:\RyzenAdj\worker"
 )
 
@@ -107,6 +108,106 @@ if (Test-Path -LiteralPath $existingWorker) {
         -Label "Existing C# worker"
 }
 
+$hardwareResult = $null
+if ($VerifyHardware) {
+    $hardwareWorker = Join-Path `
+        $repositoryRoot `
+        "artifacts\native-build\worker-runtime\amdmobilepower_native_worker.exe"
+    if (-not (Test-Path -LiteralPath $hardwareWorker)) {
+        throw "Native hardware worker was not staged: $hardwareWorker"
+    }
+
+    $suffix = [Guid]::NewGuid().ToString("N")
+    $pipeName = "AmdMobilePower.NativeHardware.$suffix"
+    $pipePath = "\\.\pipe\$pipeName"
+    $hardwareProcess = Start-Process `
+        -FilePath $hardwareWorker `
+        -WorkingDirectory (Split-Path -Parent $hardwareWorker) `
+        -ArgumentList @("--pipe-name", $pipeName, "--enable-hardware") `
+        -WindowStyle Hidden `
+        -PassThru
+    try {
+        $deadline = [DateTime]::UtcNow.AddSeconds(8)
+        $health = $null
+        while ([DateTime]::UtcNow -lt $deadline) {
+            $hardwareProcess.Refresh()
+            if ($hardwareProcess.HasExited) {
+                throw "Native hardware worker exited before the probe: $($hardwareProcess.ExitCode)"
+            }
+            $output = & $rustProbe --pipe-name $pipePath --command getHealth 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                $health = ($output | Out-String).Trim()
+                break
+            }
+            Start-Sleep -Milliseconds 150
+        }
+        if ([string]::IsNullOrWhiteSpace($health)) {
+            throw "Native hardware worker did not answer getHealth."
+        }
+        if ($health -notmatch "hardware=true") {
+            throw "Native hardware worker did not report an initialized hardware backend."
+        }
+
+        $capabilitiesText = & $rustProbe --pipe-name $pipePath --command getCapabilities 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "Native hardware capabilities probe failed: $capabilitiesText"
+        }
+        $snapshotText = & $rustProbe --pipe-name $pipePath --command getSnapshot 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "Native hardware snapshot probe failed: $snapshotText"
+        }
+
+        $capabilities = ($capabilitiesText | Out-String).Trim() | ConvertFrom-Json
+        $snapshot = ($snapshotText | Out-String).Trim() | ConvertFrom-Json
+        if ($capabilities.platform.isSupported -ne $true) {
+            throw "Native hardware worker did not report a supported platform."
+        }
+        if ($capabilities.platform.limits.supportsAny -ne $true) {
+            throw "Native hardware worker did not report supported limits."
+        }
+        if ($snapshot.telemetry.powerLine -notin @("ac", "battery")) {
+            throw "Native hardware snapshot did not report AC or battery."
+        }
+        if ($null -eq $snapshot.telemetry.fastLimitWatts -or
+            $null -eq $snapshot.telemetry.slowLimitWatts) {
+            throw "Native hardware snapshot did not report Fast/Slow limits."
+        }
+
+        $shutdown = & $rustProbe --pipe-name $pipePath --command shutdown 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "Native hardware shutdown probe failed: $shutdown"
+        }
+        if (-not $hardwareProcess.WaitForExit(5000)) {
+            throw "Native hardware worker did not exit after shutdown."
+        }
+
+        $hardwareResult = [pscustomobject]@{
+            Health = $health
+            Processor = $capabilities.platform.cpu.processorName
+            Family = $capabilities.platform.cpu.ryzenAdjFamily
+            FamilyName = $capabilities.platform.cpu.ryzenAdjFamilyName
+            PmTableVersion = $capabilities.platform.cpu.pmTableVersion
+            PowerLine = $snapshot.telemetry.powerLine
+            StapmLimitWatts = $snapshot.telemetry.stapmLimitWatts
+            FastLimitWatts = $snapshot.telemetry.fastLimitWatts
+            SlowLimitWatts = $snapshot.telemetry.slowLimitWatts
+            Shutdown = ($shutdown | Out-String).Trim()
+        }
+    }
+    finally {
+        try {
+            $hardwareProcess.Refresh()
+            if (-not $hardwareProcess.HasExited) {
+                $hardwareProcess.Kill($true)
+                $hardwareProcess.WaitForExit(5000) | Out-Null
+            }
+        }
+        catch {
+        }
+        $hardwareProcess.Dispose()
+    }
+}
+
 [pscustomobject]@{
     Verification = "PASS"
     CppWorker = $cppResult.Health
@@ -119,6 +220,43 @@ if (Test-Path -LiteralPath $existingWorker) {
     }
     ExistingShutdown = if ($existingResult) {
         $existingResult.Shutdown
+    }
+    else {
+        "Not run"
+    }
+    NativeHardware = if ($hardwareResult) { "PASS" } else { "Not requested" }
+    HardwareProcessor = if ($hardwareResult) {
+        $hardwareResult.Processor
+    }
+    else {
+        $null
+    }
+    HardwareFamily = if ($hardwareResult) {
+        "$($hardwareResult.Family) $($hardwareResult.FamilyName)"
+    }
+    else {
+        $null
+    }
+    HardwarePmTable = if ($hardwareResult) {
+        $hardwareResult.PmTableVersion
+    }
+    else {
+        $null
+    }
+    HardwarePowerLine = if ($hardwareResult) {
+        $hardwareResult.PowerLine
+    }
+    else {
+        $null
+    }
+    HardwareLimitsWatts = if ($hardwareResult) {
+        "$($hardwareResult.StapmLimitWatts)/$($hardwareResult.FastLimitWatts)/$($hardwareResult.SlowLimitWatts)"
+    }
+    else {
+        $null
+    }
+    HardwareShutdown = if ($hardwareResult) {
+        $hardwareResult.Shutdown
     }
     else {
         "Not run"

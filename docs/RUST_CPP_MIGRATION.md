@@ -45,11 +45,14 @@ The first migration slice adds:
 - `native/rust-probe`: a dependency-light Rust named-pipe client that sends
   `getHealth` and parses the v1 response.
 - `native/cpp-worker`: a Windows named-pipe worker skeleton that implements
-  `getHealth`, structured unsupported-command responses, and `shutdown`.
+  `getHealth`, read-only `getCapabilities`/`getSnapshot`, structured
+  unsupported-command responses, and `shutdown`.
 - `native/build.ps1`: locates the Visual Studio CMake toolchain and builds both
   native components.
 - `native/verify-native.ps1`: proves the Rust probe can talk to the C++ skeleton
-  and, when present, the stable C# worker.
+  and, when present, the stable C# worker. `-VerifyHardware` additionally proves
+  the C++ worker can perform a read-only RyzenAdj capability and telemetry read
+  with graceful shutdown.
 
 The C++ skeleton intentionally has no hardware adapter yet. It is a transport
 and process-boundary milestone, not a replacement for the stable worker.

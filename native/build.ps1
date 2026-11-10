@@ -66,6 +66,8 @@ if (-not $cmake) {
 }
 
 $cppBuild = Join-Path $repositoryRoot "artifacts\native-build\cpp-worker"
+$workerRuntime = Join-Path $repositoryRoot "artifacts\native-build\worker-runtime"
+$ryzenAdjRuntime = Join-Path $repositoryRoot "artifacts\ryzenadj-runtime"
 Push-Location $repositoryRoot
 try {
     & $cmake `
@@ -94,6 +96,25 @@ try {
     & cargo @cargoArguments
     if ($LASTEXITCODE -ne 0) {
         throw "Rust probe build failed."
+    }
+
+    if (Test-Path -LiteralPath $ryzenAdjRuntime) {
+        New-Item -ItemType Directory -Path $workerRuntime -Force | Out-Null
+        Copy-Item `
+            -LiteralPath (Join-Path $cppBuild "$Configuration\amdmobilepower_native_worker.exe") `
+            -Destination $workerRuntime `
+            -Force
+        foreach ($runtimeFile in @(
+            "libryzenadj.dll",
+            "WinRing0x64.dll",
+            "WinRing0x64.sys",
+            "inpoutx64.dll"
+        )) {
+            Copy-Item `
+                -LiteralPath (Join-Path $ryzenAdjRuntime $runtimeFile) `
+                -Destination $workerRuntime `
+                -Force
+        }
     }
 }
 finally {

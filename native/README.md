@@ -20,6 +20,15 @@ Run the native interoperability gate:
 .\native\verify-native.ps1
 ```
 
+Run the read-only hardware gate after building the RyzenAdj runtime:
+
+```powershell
+.\native\verify-native.ps1 -NoBuild -VerifyHardware
+```
+
+The hardware gate launches only the C++ worker, reads capability and snapshot
+data, and shuts it down. It does not expose or call any write function.
+
 The script builds:
 
 - `native\rust-probe` with Cargo.
