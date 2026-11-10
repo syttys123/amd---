@@ -126,6 +126,8 @@ integration does not change. Install and remove the preview with
 The current internal release candidate is `0.6.0-native-rc.8`; its hash and
 evidence are recorded in `docs/PACKAGING.md` and
 `docs/evidence/packaging/v0.6.0-native-rc.8-release-gate-2026-11-11.json`.
+The verified ZIP is `459,023` bytes with SHA256
+`3938c1853703b03c5c914d449d1e6319c202e478cb1113ec60a8a1cd5532fadd`.
 
 Exercise the real Start menu, Startup shortcut, and current-user uninstall
 entry without launching the GUI:

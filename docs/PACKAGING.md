@@ -58,7 +58,7 @@ The command writes the ZIP, release gate, policy/shell evidence, notices,
 documentation, manifest, and SHA256 list under
 `artifacts/native-release-review/v<version>`. It performs no network upload.
 
-Current clean native preview:
+Historical first clean native preview:
 
 ```text
 artifacts/native-packages/amd-mobile-power-v0.5.0-native-preview.1-win-x64-native-preview.zip
@@ -87,30 +87,34 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 Current internal native release candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.7-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.8-win-x64-native-preview.zip
 ```
 
-- Size: `454,752` bytes.
+- Size: `459,023` bytes.
 - SHA256:
-  `47529a5dd428e1037f6aa4070852c303b37bc89b8b589861d7857ac4841b3473`.
-- Source commit: `c0995aad649e5ca4495c804a466738d5c5473be5`.
+  `3938c1853703b03c5c914d449d1e6319c202e478cb1113ec60a8a1cd5532fadd`.
+- Source commit: `c00836b0ded53446e5c20080ab94a4f93870dd42`.
 - Working tree at build time: clean.
 - Runtime verification: hardware read-only/write-guard, GUI lifecycle with
-  three Win32 minimize/restore cycles, policy read-only plan, compatibility
-  collector, isolated install/uninstall, and real shell integration passed.
+  three Win32 minimize/restore cycles, editable preset persistence, policy
+  save, compatibility collector, isolated install/uninstall, and real shell
+  integration passed.
 - Localized Rust dashboard and title header verified through
   `verify-rust-gui.ps1 -VerifyWorker` with `WorkerReadOnly = PASS`.
+- Three editable quick presets (`12/25/45 W` initially) are clamped to the
+  platform profile, persisted without replacing the battery/AC policy, and
+  exposed as direct `应用预设` commands in the tray menu.
 - Hardware policy write: controlled AC no-change write passed by applying the
   live `10/10/10 W` state, verifying it, disabling the policy, and shutting the
   worker down through the protocol.
 - Aggregate evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.7-release-gate-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.8-release-gate-2026-11-11.json`.
 - Package evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.7-clean-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.8-clean-2026-11-11.json`.
 - Shell evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.7-shell-integration-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.8-shell-integration-2026-11-11.json`.
 - Hardware policy evidence:
-  `docs/evidence/hardware/v0.6.0-native-rc.7-power-policy-no-change-2026-11-10.json`.
+  `docs/evidence/hardware/v0.6.0-native-rc.8-power-policy-no-change-2026-11-11.json`.
 
 This RC is not yet the public stable release. The `.NET` GUI remains the
 deployed product, and the native preview still needs UI parity plus read-only

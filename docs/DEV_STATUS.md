@@ -962,6 +962,17 @@ third_party/
   RyzenAdj. It reported `PASS` on the MECHREVO WUJIE15 PRO / 8845HS, AC power,
   family `10`, PM table `4c0009`, and live `10/10/10 W` limits:
   `artifacts/verify/native-rc7-diagnostics-post-exit-2026-11-11.json`.
+- Built and fully gated `0.6.0-native-rc.8` from clean commit
+  `c00836b0ded53446e5c20080ab94a4f93870dd42`. The ZIP is `459,023` bytes with
+  SHA256
+  `3938c1853703b03c5c914d449d1e6319c202e478cb1113ec60a8a1cd5532fadd`.
+  The aggregate gate passed both C++ suites, 23 Rust tests, Clippy with
+  `-D warnings`, read-only and write-guard hardware probes, localized GUI
+  lifecycle, editable preset/policy persistence, compatibility collection,
+  checksums, isolated install/uninstall, real shell integration, and a
+  controlled AC no-change policy write on the live `10/10/10 W` state.
+  Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.8-release-gate-2026-11-11.json`.
 
 Development screenshot:
 
@@ -982,13 +993,13 @@ Development screenshot:
 - Obtain read-only capability evidence from a second physical AMD laptop.
 - Resolve GitHub Actions account billing/visibility and complete final public
   release review.
-- Connect the native worker's now-present validated `applyTarget` path to a
-  packaged native runtime and broaden the hardware matrix beyond the 8845HS;
-  keep `1.0.4` as the stable fallback.
+- Broaden the packaged native worker's hardware matrix beyond the 8845HS and
+  collect a second-device write/read-back smoke test; keep `1.0.4` as the
+  stable fallback.
 - Bring the native Rust preview GUI to parity with the `.NET` GUI (simple and
-  advanced modes, localized copy, tray/taskbar behavior, diagnostics) before
-  any promotion discussion. Policy editing and persistence already exist in
-  the preview.
+  advanced modes, packaged diagnostics export, final structured layout) before
+  any promotion discussion. Localized copy, policy editing, editable presets,
+  persistence, and tray preset commands already exist in the preview.
 
 ## Next Concrete Task
 

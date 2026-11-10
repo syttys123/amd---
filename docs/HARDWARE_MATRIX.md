@@ -89,6 +89,10 @@ Verified on 2026-11-09:
 - Matched profile: `hawk-point-8845hs`.
 - Power line reported as AC during the probe.
 - No hardware power-limit write was performed by the probe.
+- Rechecked on 2026-11-11 with the packaged rc.7 read-only collector after the
+  stable GUI exited: collection `PASS`, AC power, SMU `15`, PM table `4c0009`,
+  matched profile `hawk-point-8845hs [5-60 W]`, all three limit capabilities
+  true, and effective limits `10/10/10 W`. No write controls were enabled.
 
 ## Required Capture
 

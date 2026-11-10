@@ -11,21 +11,21 @@ The native package is not a drop-in replacement and will only be considered
 for promotion if it reaches feature and UI parity without regressing the
 current experience.
 
-Note (2026-11-10): `rc.7` supersedes `rc.6` and `rc.5`. It carries the Chinese
-Rust dashboard, the title header, and a dashboard layout that no longer clips
-the auto-policy line. Earlier evidence stays valid for the exact bytes each
-candidate describes.
+Note (2026-11-11): `rc.8` supersedes `rc.7`. It keeps the Chinese dashboard and
+title header, then adds three editable quick presets with backward-compatible
+state persistence and direct tray-menu preset commands. Earlier evidence stays
+valid for the exact bytes each candidate describes.
 
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.7-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.8-win-x64-native-preview.zip
 ```
 
-- Size: `454,752` bytes.
+- Size: `459,023` bytes.
 - SHA256:
-  `47529a5dd428e1037f6aa4070852c303b37bc89b8b589861d7857ac4841b3473`.
-- Source commit: `c0995aad649e5ca4495c804a466738d5c5473be5`.
+  `3938c1853703b03c5c914d449d1e6319c202e478cb1113ec60a8a1cd5532fadd`.
+- Source commit: `c00836b0ded53446e5c20080ab94a4f93870dd42`.
 - Working tree at build time: clean.
 
 ## Passed Gates
@@ -35,6 +35,9 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.7-win-x64-native-pre
 - C++ power-limit policy and battery/AC policy tests.
 - Read-only hardware capability and telemetry probe on Ryzen 7 8845HS.
 - Native write-control guard and profile-aware target validation.
+- Editable `11/24/43 W` presets in an isolated `%LocalAppData%`: labels and
+  JSON persistence verified, then policy save verified without losing the
+  presets.
 - GUI policy save with isolated `%LocalAppData%`.
 - Packaged compatibility collector with sanitized JSON.
 - Staged checksum verification for every package file.
@@ -51,17 +54,18 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.7-win-x64-native-pre
 
 Evidence:
 
-- `docs/evidence/packaging/v0.6.0-native-rc.7-release-gate-2026-11-10.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.7-clean-2026-11-10.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.7-shell-integration-2026-11-10.json`
-- `docs/evidence/hardware/v0.6.0-native-rc.7-power-policy-no-change-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.8-release-gate-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.8-clean-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.8-shell-integration-2026-11-11.json`
+- `docs/evidence/hardware/v0.6.0-native-rc.8-power-policy-no-change-2026-11-11.json`
+- `docs/evidence/ui/native-gui-editable-presets-2026-11-11.json`
 
-Superseded candidates `0.6.0-native-rc.4` and earlier keep their own evidence.
+Superseded candidates `0.6.0-native-rc.7` and earlier keep their own evidence.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v0.6.0-native-rc.7
+artifacts/native-release-review/v0.6.0-native-rc.8
 ```
 
 Generate it with `native/prepare-release-review.ps1`; the bundle is
@@ -70,8 +74,8 @@ Generate it with `native/prepare-release-review.ps1`; the bundle is
 ## Open Gates
 
 - Feature and UI parity with the `.NET` GUI: the native preview still lacks the
-  `.NET` simple/advanced mode switch, editable presets, diagnostics export,
-  tray preset menu, and structured layout.
+  `.NET` simple/advanced mode switch, packaged diagnostics export from the GUI,
+  and the final structured layout.
 - At least one second physical AMD laptop must provide read-only compatibility
   evidence using `collect-native-diagnostics.ps1`.
 - Windows CI must be able to run after the repository account billing or
