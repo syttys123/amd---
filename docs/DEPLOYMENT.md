@@ -10,7 +10,7 @@
 A build may be copied to `C:\RyzenAdj` only when:
 
 1. `dotnet build AmdMobilePower.sln -c Release` passes with zero warnings.
-2. `dotnet test AmdMobilePower.sln -c Release` passes.
+2. `dotnet test --solution AmdMobilePower.sln -c Release` passes.
 3. The release package contains no machine-specific logs or modes.
 4. GUI launch, taskbar icon, tray close/reopen, and single-instance behavior pass.
 5. The worker starts and reports healthy telemetry.

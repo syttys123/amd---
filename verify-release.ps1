@@ -62,7 +62,7 @@ try {
         dotnet build AmdMobilePower.sln -c $Configuration --no-restore
     }
     Invoke-CheckedCommand "dotnet test" {
-        dotnet test AmdMobilePower.sln -c $Configuration --no-build
+        dotnet test --solution AmdMobilePower.sln -c $Configuration --no-build
     }
     Invoke-CheckedCommand "dotnet format" {
         dotnet format AmdMobilePower.sln --verify-no-changes --no-restore

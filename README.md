@@ -92,7 +92,7 @@ runtime details.
 ```powershell
 git submodule update --init --recursive
 dotnet build AmdMobilePower.sln -c Release
-dotnet test AmdMobilePower.sln -c Release
+dotnet test --solution AmdMobilePower.sln -c Release
 .\build-package.ps1 -Version 0.1.0
 ```
 

@@ -3,8 +3,8 @@
 ## Prerequisites
 
 - Windows x64.
-- .NET 8 SDK. CI and the release gate are verified with SDK `8.0.427`;
-  newer SDKs may be used for development.
+- .NET 10 SDK. CI and the release gate are verified with SDK `10.0.400`.
+  Projects continue to target .NET 8 runtime APIs.
 - Visual Studio with the MSVC C++ toolchain.
 - CMake, either on `PATH` or from the Visual Studio CMake component.
 - Git with submodule support.
@@ -19,7 +19,7 @@ git submodule update --init --recursive
 
 ```powershell
 dotnet build AmdMobilePower.sln -c Release
-dotnet test AmdMobilePower.sln -c Release
+dotnet test --solution AmdMobilePower.sln -c Release
 ```
 
 Product code enforces selected .NET analyzers as errors through

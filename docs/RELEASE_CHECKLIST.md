@@ -4,7 +4,7 @@
 
 - [x] Git worktree is clean.
 - [x] `dotnet build AmdMobilePower.sln -c Release` passes with zero warnings.
-- [x] `dotnet test AmdMobilePower.sln -c Release` passes.
+- [x] `dotnet test --solution AmdMobilePower.sln -c Release` passes.
 - [x] `dotnet format AmdMobilePower.sln --verify-no-changes` passes.
 - [x] Direct and transitive NuGet vulnerability and deprecation audit passes.
       Evidence: `verify-dependencies.ps1`; six projects covered, zero advisories,
