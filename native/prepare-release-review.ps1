@@ -56,8 +56,7 @@ foreach ($path in @(
     $packageHashPath,
     $releaseGatePath,
     $cleanEvidencePath,
-    $shellEvidencePath,
-    $policyEvidencePath
+    $shellEvidencePath
 )) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "Native review input is missing: $path"
@@ -73,6 +72,15 @@ if ($releaseGate.SHA256 -ne $packageHash -or
     throw "Native review package or evidence hash/version does not match."
 }
 
+# The aggregate gate records whether the controlled no-change hardware write
+# ran. A candidate that skipped it must not claim a hardware write artifact.
+$includePolicyEvidence = $releaseGate.NoChangePolicy -eq "PASS"
+if ($includePolicyEvidence -and
+    -not (Test-Path -LiteralPath $policyEvidencePath -PathType Leaf)) {
+    throw ("Release gate recorded NoChangePolicy=PASS but the hardware " +
+        "evidence file is missing: $policyEvidencePath")
+}
+
 if (Test-Path -LiteralPath $resolvedOutput) {
     Remove-Item -LiteralPath $resolvedOutput -Recurse -Force
 }
@@ -84,7 +92,6 @@ $copies = @(
     @{ Source = $releaseGatePath; Destination = "release-gate.json" },
     @{ Source = $cleanEvidencePath; Destination = "clean-package.json" },
     @{ Source = $shellEvidencePath; Destination = "shell-integration.json" },
-    @{ Source = $policyEvidencePath; Destination = "power-policy-no-change.json" },
     @{ Source = (Join-Path $repositoryRoot "README.md"); Destination = "README.md" },
     @{ Source = (Join-Path $repositoryRoot "LICENSE"); Destination = "LICENSE" },
     @{ Source = (Join-Path $repositoryRoot "docs\THIRD_PARTY_NOTICES.md"); Destination = "THIRD_PARTY_NOTICES.md" },
@@ -92,6 +99,12 @@ $copies = @(
     @{ Source = (Join-Path $repositoryRoot "docs\BUILDING.md"); Destination = "BUILDING.md" },
     @{ Source = (Join-Path $repositoryRoot "docs\NATIVE_RC_STATUS.md"); Destination = "NATIVE_RC_STATUS.md" }
 )
+if ($includePolicyEvidence) {
+    $copies += @{
+        Source = $policyEvidencePath
+        Destination = "power-policy-no-change.json"
+    }
+}
 foreach ($copy in $copies) {
     Copy-Item `
         -LiteralPath $copy.Source `
@@ -114,6 +127,7 @@ $manifest = [ordered]@{
     SourceCommit = $releaseGate.SourceCommit
     PackageSHA256 = $packageHash
     PackageSize = (Get-Item -LiteralPath $packagePath).Length
+    NoChangePolicy = $releaseGate.NoChangePolicy
     Files = $files
     RecordedAt = (Get-Date).ToString("o")
 }
@@ -136,6 +150,7 @@ $checksumLines |
     Version = $Version
     SourceCommit = $releaseGate.SourceCommit
     PackageSHA256 = $packageHash
+    NoChangePolicy = $releaseGate.NoChangePolicy
     OutputDirectory = $resolvedOutput
     Files = $files.Count + 2
 } | Format-List
