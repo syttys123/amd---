@@ -14,6 +14,22 @@ checksums. The build script extracts the ZIP into an isolated directory and
 reruns the GUI lifecycle, read-only worker, and write-control button gates.
 It is a migration artifact, not the stable `C:\RyzenAdj` deployment.
 
+Current clean native preview:
+
+```text
+artifacts/native-packages/amd-mobile-power-v0.3.0-native-preview.1-win-x64-native-preview.zip
+```
+
+- Size: `404,190` bytes.
+- SHA256:
+  `4d0919049fa7a0a3decd7a5e90e0d15c259cdddab4d0fc805e8eeb08edfe7c02`.
+- Source commit: `8aa18732d6cb72e618a5f7d784fdb944f2ecff05`.
+- Working tree at build time: clean.
+- Verification: package ZIP, extracted GUI lifecycle, read-only worker,
+  write-control buttons, and all 13 staged SHA256 entries passed.
+- Evidence:
+  `docs/evidence/packaging/v0.3.0-native-preview.1-clean-2026-11-10.json`.
+
 ## Portable ZIP
 
 Build a self-contained Windows x64 portable package from a clean source tree:
