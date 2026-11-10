@@ -48,6 +48,13 @@ compatibility collector, checksums, and isolated install/uninstall flow while
 reporting `PolicyWriteVerification=Skipped`. The normal write-enabled path
 remains required before hardware promotion.
 
+The native preview installer stages the complete payload beside the target,
+refuses an unmarked non-empty target, preserves an existing marked install as a
+rollback directory during the directory switch, and then removes the rollback
+copy only after the staged payload is in place. Package verification performs a
+fresh install, a same-version overwrite, and uninstall; a separate guard test
+confirms that unrelated user files in an unmarked directory are not replaced.
+
 For a local release candidate, run the aggregate native gate from a clean
 worktree:
 

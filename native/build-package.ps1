@@ -271,6 +271,28 @@ if (-not $NoVerify) {
         -not (Test-Path -LiteralPath (Join-Path $isolatedInstall "amd-mobile-power-gui.exe"))) {
         throw "Native preview isolated install failed: $installOutput"
     }
+    $overwriteOutput = & powershell.exe `
+        -NoProfile `
+        -ExecutionPolicy Bypass `
+        -File $installer `
+        -InstallDirectory $isolatedInstall `
+        -NoStartup `
+        -NoShellIntegration `
+        -NoLaunch 2>&1
+    $overwriteExitCode = $LASTEXITCODE
+    $installedBuildInfo = Join-Path $isolatedInstall "BUILD-INFO.txt"
+    $installedVersion = $null
+    if (Test-Path -LiteralPath $installedBuildInfo) {
+        foreach ($line in Get-Content -LiteralPath $installedBuildInfo) {
+            if ($line -match "^Version=(.+)$") {
+                $installedVersion = $Matches[1].Trim()
+                break
+            }
+        }
+    }
+    if ($overwriteExitCode -ne 0 -or $installedVersion -ne $Version) {
+        throw "Native preview isolated overwrite install failed: $overwriteOutput"
+    }
     $uninstallOutput = & powershell.exe `
         -NoProfile `
         -ExecutionPolicy Bypass `

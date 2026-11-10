@@ -71,6 +71,10 @@ not authoritative.
   Start menu/Startup/uninstall-entry create-cleanup. Policy-write verification
   was intentionally skipped in the clean read-only gate and remains the next
   supervised hardware gate.
+- The native preview installer now stages the complete payload before switching
+  directories, preserves a marked prior installation for rollback, refuses
+  unmarked non-empty targets, and is verified through fresh install,
+  same-version overwrite, and uninstall.
 
 ## Development Workflow
 

@@ -140,9 +140,12 @@ compatibility collector without executing the policy-save write:
 
 The resulting package is under `artifacts\native-packages`; the script extracts
 the ZIP and reruns the GUI lifecycle, read-only worker, and write-control
-button checks. It also exercises the packaged isolated install/uninstall flow
-and verifies that the real Startup-folder and current-user uninstall registry
-integration does not change. Install and remove the preview with
+button checks. It also exercises the packaged isolated first-install,
+same-version overwrite, and uninstall flow, and verifies that the real
+Startup-folder and current-user uninstall registry integration does not change.
+The installer stages every file before switching directories, preserves the
+previous marked installation for rollback during the switch, and refuses to
+write into an unmarked non-empty directory. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
 
 The current internal release candidate is `0.6.0-native-rc.10`: 524,700 bytes,

@@ -35,22 +35,83 @@ if ($resolvedInstall.Equals(
     [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "InstallDirectory must differ from the package directory."
 }
+$pathRoot = [System.IO.Path]::GetPathRoot($resolvedInstall)
+if ([string]::IsNullOrWhiteSpace($pathRoot) -or
+    $resolvedInstall.TrimEnd(
+        [System.IO.Path]::DirectorySeparatorChar,
+        [System.IO.Path]::AltDirectorySeparatorChar) -eq
+    $pathRoot.TrimEnd(
+        [System.IO.Path]::DirectorySeparatorChar,
+        [System.IO.Path]::AltDirectorySeparatorChar)) {
+    throw "InstallDirectory must not be a filesystem root: $resolvedInstall"
+}
 
 Get-Process `
     -Name "amd-mobile-power-gui", "amdmobilepower_native_worker" `
     -ErrorAction SilentlyContinue |
     Stop-Process -Force -ErrorAction SilentlyContinue
 
-New-Item -ItemType Directory -Path $resolvedInstall -Force | Out-Null
-Copy-Item `
-    -Path (Join-Path $resolvedSource "*") `
-    -Destination $resolvedInstall `
-    -Recurse `
-    -Force
-"Native preview install marker" |
-    Set-Content `
-        -LiteralPath (Join-Path $resolvedInstall "NATIVE-PREVIEW-INSTALL.txt") `
-        -Encoding ascii
+$installParent = Split-Path -Parent $resolvedInstall
+if ([string]::IsNullOrWhiteSpace($installParent)) {
+    throw "InstallDirectory has no parent directory: $resolvedInstall"
+}
+New-Item -ItemType Directory -Path $installParent -Force | Out-Null
+
+$operationId = [Guid]::NewGuid().ToString("N")
+$stagingDirectory = Join-Path `
+    $installParent `
+    ".AmdMobilePowerNativePreview.install-$operationId"
+$backupDirectory = Join-Path `
+    $installParent `
+    ".AmdMobilePowerNativePreview.backup-$operationId"
+try {
+    New-Item -ItemType Directory -Path $stagingDirectory | Out-Null
+    Copy-Item `
+        -Path (Join-Path $resolvedSource "*") `
+        -Destination $stagingDirectory `
+        -Recurse `
+        -Force
+    "Native preview install marker" |
+        Set-Content `
+            -LiteralPath (Join-Path $stagingDirectory "NATIVE-PREVIEW-INSTALL.txt") `
+            -Encoding ascii
+    if (-not (Test-Path -LiteralPath (Join-Path $stagingDirectory "amd-mobile-power-gui.exe"))) {
+        throw "Staged native preview is missing the GUI executable."
+    }
+
+    if (Test-Path -LiteralPath $resolvedInstall) {
+        $existingMarker = Join-Path $resolvedInstall "NATIVE-PREVIEW-INSTALL.txt"
+        $existingEntries = @(Get-ChildItem -LiteralPath $resolvedInstall -Force)
+        if (-not (Test-Path -LiteralPath $existingMarker) -and $existingEntries.Count -gt 0) {
+            throw "Refusing to overwrite an unmarked non-empty install directory: $resolvedInstall"
+        }
+        Move-Item -LiteralPath $resolvedInstall -Destination $backupDirectory
+    }
+
+    try {
+        Move-Item -LiteralPath $stagingDirectory -Destination $resolvedInstall
+        if (Test-Path -LiteralPath $backupDirectory) {
+            Remove-Item -LiteralPath $backupDirectory -Recurse -Force
+        }
+    }
+    catch {
+        if (Test-Path -LiteralPath $resolvedInstall) {
+            Remove-Item -LiteralPath $resolvedInstall -Recurse -Force
+        }
+        if (Test-Path -LiteralPath $backupDirectory) {
+            Move-Item -LiteralPath $backupDirectory -Destination $resolvedInstall
+        }
+        throw
+    }
+}
+finally {
+    if (Test-Path -LiteralPath $stagingDirectory) {
+        Remove-Item -LiteralPath $stagingDirectory -Recurse -Force
+    }
+    if (Test-Path -LiteralPath $backupDirectory) {
+        Remove-Item -LiteralPath $backupDirectory -Recurse -Force
+    }
+}
 
 $installedGui = Join-Path $resolvedInstall "amd-mobile-power-gui.exe"
 $startMenuShortcut = $null
