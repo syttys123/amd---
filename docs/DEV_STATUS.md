@@ -915,6 +915,15 @@ third_party/
   `GetSnapshotAsync_WorkerStuckInDriver_StillFaultsWithinKillTimeout`, which
   drives a fake process that ignores `Kill` and never exits. `dotnet test`
   is now 72/72.
+- Gave the native Rust preview a real header instead of a bare text block: a
+  persistent `AMD Mobile Power` title label now sits above the dashboard and
+  the dashboard text starts below it. A read-only multiline `EDIT` was tried
+  first so the text could be copied, but `GetWindowText` cannot read another
+  process's `EDIT` contents, which broke `verify-rust-gui.ps1`; the dashboard
+  stays a `STATIC` and the copyable-text idea is dropped in favour of the
+  packaged compatibility collector. The read-only worker gate passes with the
+  localized dashboard, and `native/verify-rust-gui.ps1 -VerifyWorker` reports
+  `WorkerReadOnly = PASS`.
 
 Development screenshot:
 

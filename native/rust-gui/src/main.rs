@@ -427,9 +427,31 @@ unsafe fn create_status_label(
         text.as_ptr(),
         WS_CHILD | WS_VISIBLE | SS_LEFT,
         18,
-        18,
+        40,
         580,
-        300,
+        272,
+        hwnd,
+        std::ptr::null_mut(),
+        instance,
+        std::ptr::null(),
+    )
+}
+
+unsafe fn create_title_label(
+    hwnd: HWND,
+    instance: windows_sys::Win32::Foundation::HINSTANCE,
+) -> HWND {
+    let class_name = wide("STATIC");
+    let text = wide("AMD Mobile Power");
+    CreateWindowExW(
+        0,
+        class_name.as_ptr(),
+        text.as_ptr(),
+        WS_CHILD | WS_VISIBLE | SS_LEFT,
+        18,
+        12,
+        580,
+        22,
         hwnd,
         std::ptr::null_mut(),
         instance,
@@ -1117,6 +1139,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     unsafe {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, app as isize);
         (*app).write_enabled = options.enable_write_controls;
+        let _ = create_title_label(hwnd, instance);
         (*app).status_label = create_status_label(hwnd, instance);
         if options.enable_write_controls {
             (*app).preset_buttons = Some(create_action_buttons(hwnd, instance));
