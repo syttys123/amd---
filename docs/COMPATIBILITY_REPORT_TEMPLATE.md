@@ -18,6 +18,13 @@ uses a field whitelist plus path sanitization. Review the JSON before attaching
 it publicly. The optional Markdown file is an issue-ready summary; review it
 before attaching it to a public issue.
 
+The report already carries a `host` block with manufacturer, model, BIOS
+version, Windows edition/version/build, and a `privacy` block that states no
+paths, process IDs, account names, serial numbers, logs, or upload were
+included. Copy those values into the Device section below instead of retyping
+them from system settings; only add what the collector cannot know, such as the
+active laptop performance or quiet mode.
+
 ## Device
 
 - Vendor and model:
