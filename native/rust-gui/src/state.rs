@@ -29,8 +29,8 @@ impl Default for PersistedUiState {
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum UiMode {
-    Simple,
     #[default]
+    Simple,
     Advanced,
 }
 
@@ -86,7 +86,7 @@ pub fn load_window_preferences() -> WindowPreferences {
             top_most: state.top_most,
         })
         .unwrap_or(WindowPreferences {
-            mode: UiMode::Advanced,
+            mode: UiMode::Simple,
             top_most: false,
         })
 }
@@ -158,7 +158,7 @@ mod tests {
 
         assert!(decoded.power_policy.is_some());
         assert_eq!(decoded.presets, default_presets());
-        assert_eq!(decoded.mode, UiMode::Advanced);
+        assert_eq!(decoded.mode, UiMode::Simple);
         assert!(!decoded.top_most);
     }
 
@@ -168,7 +168,7 @@ mod tests {
 
         assert_eq!(decoded.power_policy, None);
         assert_eq!(decoded.presets, [11, 22, 44]);
-        assert_eq!(decoded.mode, UiMode::Advanced);
+        assert_eq!(decoded.mode, UiMode::Simple);
         assert!(!decoded.top_most);
     }
 

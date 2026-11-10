@@ -1,49 +1,88 @@
 {
-  "schemaVersion": 1,
-  "capturedAt": "2026-11-11T02:48:09+08:00",
+  "schemaVersion": 2,
+  "capturedAt": "2026-11-11T07:26:47+08:00",
   "captureScript": "native/capture-rust-gui-redesign.ps1",
+  "captureMethod": "foreground-verified CopyFromScreen with DWM extended-frame bounds",
   "platform": {
     "windowsScalePercent": 125,
     "processor": "AMD Ryzen 7 8845HS",
     "family": "Hawk Point",
     "smuBiosVersion": "15",
     "pmTableVersion": "4c0009",
-    "powerLine": "ac"
+    "powerLine": "battery"
+  },
+  "layout": {
+    "simpleClient": "640x392 logical",
+    "advancedClient": "780x680 logical",
+    "defaultMode": "simple",
+    "shell": "continuous dark command deck with flat telemetry and status bands"
   },
   "screenshots": [
     {
       "mode": "simple",
       "path": "assets/native-gui-redesign-simple-2026-11-11.png",
-      "physicalWidth": 820,
-      "physicalHeight": 596,
-      "sha256": "dd221e1f94bf0871884d1a7b2338e661de3f1358953c568c05dfc31f5b4532ef",
+      "physicalWidth": 802,
+      "physicalHeight": 530,
+      "sha256": "406abbd562d4318b9988597c4332aa15765e5ca5f5d4d7d4d92c91bf9d3b80ed",
       "checks": {
-        "structuralOverlap": false,
-        "statusActionVisible": true,
-        "presetEditVisible": true,
+        "continuousCommandDeck": true,
+        "targetAndApplyVisible": true,
+        "threePresetsVisible": true,
         "fourTelemetryColumnsVisible": true,
-        "applicationIconVisible": true
+        "statusAndDiagnosticsVisible": true,
+        "detachedCardStackRemoved": true,
+        "visibleTextClipping": false
       }
     },
     {
       "mode": "advanced",
       "path": "assets/native-gui-redesign-advanced-2026-11-11.png",
-      "physicalWidth": 970,
-      "physicalHeight": 899,
-      "sha256": "2b0193e5a1d2e8ad6a672944e7742204547e7f3c7c64dffab951fd8422d24e3c",
+      "physicalWidth": 977,
+      "physicalHeight": 890,
+      "sha256": "de55cbed9b94cb777e8b192710ec664e1a369c69cc80ba7a714bf028b1352fef",
       "checks": {
-        "structuralOverlap": false,
+        "sharedCommandDeckVisible": true,
         "editablePresetsVisible": true,
-        "policyControlsVisible": true,
-        "detectedPlatformVisible": true,
+        "batteryPolicyVisible": true,
+        "deviceCapabilityVisible": true,
+        "stapmFastSlowReadbackVisible": true,
         "diagnosticsActionVisible": true,
-        "applicationIconVisible": true
+        "visibleTextClipping": false
+      }
+    }
+  ],
+  "readOnlyScreenshots": [
+    {
+      "mode": "simple",
+      "path": "assets/native-gui-redesign-readonly-simple-2026-11-11.png",
+      "physicalWidth": 802,
+      "physicalHeight": 530,
+      "sha256": "c462741c4f36ef53d29cf9333cb0a5127c53dea59c4deaefb75fb6b72462d484",
+      "checks": {
+        "readOnlyReasonVisible": true,
+        "controlsRetainGeometry": true,
+        "telemetryStillReadable": true,
+        "diagnosticsActionEnabled": true
+      }
+    },
+    {
+      "mode": "advanced",
+      "path": "assets/native-gui-redesign-readonly-advanced-2026-11-11.png",
+      "physicalWidth": 977,
+      "physicalHeight": 890,
+      "sha256": "4718ef74bb47480ccc2e2200c6337ec64e1448a2e91735b750ecb6472bd3ec25",
+      "checks": {
+        "presetEditingDisabled": true,
+        "policyEditingDisabled": true,
+        "deviceInspectorVisible": true,
+        "diagnosticsActionEnabled": true
       }
     }
   ],
   "verification": {
     "rustTestsPassed": 26,
     "rustTestsFailed": 0,
+    "clippyWarnings": 0,
     "runtimeVerifier": "PASS",
     "workerReadOnly": "PASS",
     "diagnosticsExport": "PASS",
@@ -59,6 +98,7 @@
   "safety": {
     "powerWriteRequested": false,
     "driverChanged": false,
-    "stableDeploymentChanged": false
+    "stableDeploymentChanged": false,
+    "publicReleaseApproved": false
   }
 }

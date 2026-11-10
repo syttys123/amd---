@@ -2,7 +2,9 @@ param(
     [string]$GuiExecutable,
     [string]$WorkerExecutable,
     [string]$OutputDirectory,
-    [string]$EvidencePath
+    [string]$EvidencePath,
+    [string]$FilePrefix = "native-redesign",
+    [switch]$ReadOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,6 +19,9 @@ public static class AmdMobilePowerUiCapture {
 
     [DllImport("user32.dll")]
     public static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
+
+    [DllImport("user32.dll")]
+    public static extern bool GetClientRect(IntPtr hwnd, out RECT rect);
 
     [DllImport("user32.dll")]
     public static extern IntPtr GetDlgItem(IntPtr hwnd, int id);
@@ -35,6 +40,53 @@ public static class AmdMobilePowerUiCapture {
         UIntPtr wParam,
         IntPtr lParam);
 
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindowAsync(IntPtr hwnd, int command);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetForegroundWindow(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetFocus(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool BringWindowToTop(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool PrintWindow(IntPtr hwnd, IntPtr hdc, uint flags);
+
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);
+
+    [DllImport("kernel32.dll")]
+    public static extern uint GetCurrentThreadId();
+
+    [DllImport("user32.dll")]
+    public static extern bool AttachThreadInput(uint attach, uint attachTo, bool value);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetWindowPos(
+        IntPtr hwnd,
+        IntPtr insertAfter,
+        int x,
+        int y,
+        int width,
+        int height,
+        uint flags);
+
+    [DllImport("dwmapi.dll")]
+    public static extern int DwmGetWindowAttribute(
+        IntPtr hwnd,
+        uint attribute,
+        out RECT value,
+        int valueSize);
+
     public struct RECT {
         public int Left;
         public int Top;
@@ -51,12 +103,24 @@ function Save-WindowImage {
     )
 
     $rect = New-Object AmdMobilePowerUiCapture+RECT
-    [AmdMobilePowerUiCapture]::GetWindowRect($Window, [ref]$rect) | Out-Null
+    $dwmResult = [AmdMobilePowerUiCapture]::DwmGetWindowAttribute(
+        $Window,
+        9,
+        [ref]$rect,
+        [System.Runtime.InteropServices.Marshal]::SizeOf($rect))
+    if ($dwmResult -ne 0 -or
+        $rect.Right -le $rect.Left -or
+        $rect.Bottom -le $rect.Top) {
+        [AmdMobilePowerUiCapture]::GetWindowRect($Window, [ref]$rect) | Out-Null
+    }
     $width = $rect.Right - $rect.Left
     $height = $rect.Bottom - $rect.Top
     $bitmap = New-Object System.Drawing.Bitmap $width, $height
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     try {
+        if ([AmdMobilePowerUiCapture]::GetForegroundWindow() -ne $Window) {
+            throw "The target window is not foreground; refusing to capture unrelated desktop content."
+        }
         $graphics.CopyFromScreen(
             $rect.Left,
             $rect.Top,
@@ -73,8 +137,69 @@ function Save-WindowImage {
         Path = $Path
         Width = $width
         Height = $height
+        CaptureMethod = "CopyFromScreen(foreground-verified)"
         SHA256 = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
     }
+}
+
+function Focus-CaptureWindow {
+    param([IntPtr]$Window)
+
+    $processId = [uint32]0
+    $targetThread = [AmdMobilePowerUiCapture]::GetWindowThreadProcessId(
+        $Window,
+        [ref]$processId)
+    $currentThread = [AmdMobilePowerUiCapture]::GetCurrentThreadId()
+    $attached = $false
+    try {
+        if ($targetThread -ne $currentThread) {
+            $attached = [AmdMobilePowerUiCapture]::AttachThreadInput(
+                $currentThread,
+                $targetThread,
+                $true)
+        }
+        [AmdMobilePowerUiCapture]::ShowWindowAsync($Window, 9) | Out-Null
+        [AmdMobilePowerUiCapture]::BringWindowToTop($Window) | Out-Null
+        [AmdMobilePowerUiCapture]::SetForegroundWindow($Window) | Out-Null
+        [AmdMobilePowerUiCapture]::SetFocus($Window) | Out-Null
+    }
+    finally {
+        if ($attached) {
+            [AmdMobilePowerUiCapture]::AttachThreadInput(
+                $currentThread,
+                $targetThread,
+                $false) | Out-Null
+        }
+    }
+}
+
+function Get-WindowSize {
+    param([IntPtr]$Window)
+
+    $rect = New-Object AmdMobilePowerUiCapture+RECT
+    [AmdMobilePowerUiCapture]::GetWindowRect($Window, [ref]$rect) | Out-Null
+    return [pscustomobject]@{
+        Width = $rect.Right - $rect.Left
+        Height = $rect.Bottom - $rect.Top
+    }
+}
+
+function Wait-ForWindowHeight {
+    param(
+        [IntPtr]$Window,
+        [scriptblock]$Condition,
+        [string]$Description
+    )
+
+    $deadline = [DateTime]::UtcNow.AddSeconds(5)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $size = Get-WindowSize -Window $Window
+        if (& $Condition $size.Height) {
+            return
+        }
+        Start-Sleep -Milliseconds 50
+    }
+    throw "Timed out waiting for $Description."
 }
 
 $root = Split-Path -Parent $PSCommandPath
@@ -116,14 +241,17 @@ $advancedCapture = $null
 try {
     [AmdMobilePowerUiCapture]::SetProcessDpiAwarenessContext(
         [IntPtr](-4)) | Out-Null
+    $guiArguments = @(
+        "--worker-executable", $WorkerExecutable,
+        "--pipe-name", $pipeName
+    )
+    if (-not $ReadOnly) {
+        $guiArguments += "--enable-write-controls"
+    }
     $process = Start-Process `
         -FilePath $GuiExecutable `
         -WorkingDirectory (Split-Path -Parent $GuiExecutable) `
-        -ArgumentList @(
-            "--worker-executable", $WorkerExecutable,
-            "--pipe-name", $pipeName,
-            "--enable-write-controls"
-        ) `
+        -ArgumentList $guiArguments `
         -PassThru
     $deadline = [DateTime]::UtcNow.AddSeconds(10)
     while ([DateTime]::UtcNow -lt $deadline) {
@@ -141,10 +269,38 @@ try {
         throw "Rust GUI did not create the redesign window in time."
     }
 
-    Start-Sleep -Seconds 2
+    Focus-CaptureWindow -Window $window
+    [AmdMobilePowerUiCapture]::SetWindowPos(
+        $window,
+        [IntPtr](-1),
+        40,
+        40,
+        0,
+        0,
+        0x0001) | Out-Null
+    Start-Sleep -Seconds 1
+    Focus-CaptureWindow -Window $window
+    Start-Sleep -Milliseconds 500
+    $advancedButton = [AmdMobilePowerUiCapture]::GetDlgItem($window, 109)
+    if ($advancedButton -eq [IntPtr]::Zero) {
+        throw "Advanced-mode control was not found."
+    }
+    $simpleSize = Get-WindowSize -Window $window
+    [AmdMobilePowerUiCapture]::SendMessage(
+        $advancedButton,
+        0x00F5,
+        [UIntPtr]109,
+        [IntPtr]::Zero) | Out-Null
+    Wait-ForWindowHeight `
+        -Window $window `
+        -Description "advanced layout" `
+        -Condition { param($height) $height -gt $simpleSize.Height }
+    Start-Sleep -Milliseconds 400
+    Focus-CaptureWindow -Window $window
     $advancedCapture = Save-WindowImage `
         -Window $window `
-        -Path (Join-Path $OutputDirectory "native-redesign-advanced-2026-11-11.png")
+        -Path (Join-Path $OutputDirectory "$FilePrefix-advanced-2026-11-11.png")
+    $advancedHeight = (Get-WindowSize -Window $window).Height
     $simpleButton = [AmdMobilePowerUiCapture]::GetDlgItem($window, 108)
     if ($simpleButton -eq [IntPtr]::Zero) {
         throw "Simple-mode control was not found."
@@ -154,10 +310,15 @@ try {
         0x00F5,
         [UIntPtr]108,
         [IntPtr]::Zero) | Out-Null
-    Start-Sleep -Milliseconds 600
+    Wait-ForWindowHeight `
+        -Window $window `
+        -Description "simple layout" `
+        -Condition { param($height) $height -lt $advancedHeight }
+    Start-Sleep -Milliseconds 400
+    Focus-CaptureWindow -Window $window
     $simpleCapture = Save-WindowImage `
         -Window $window `
-        -Path (Join-Path $OutputDirectory "native-redesign-simple-2026-11-11.png")
+        -Path (Join-Path $OutputDirectory "$FilePrefix-simple-2026-11-11.png")
 
     if ($EvidencePath) {
         $evidenceDirectory = Split-Path -Parent $EvidencePath
@@ -166,7 +327,12 @@ try {
         }
         [ordered]@{
             SchemaVersion = 1
-            CaptureMode = "write-controls-visible-no-write-requested"
+            CaptureMode = if ($ReadOnly) {
+                "read-only-no-write-controls"
+            }
+            else {
+                "write-controls-visible-no-write-requested"
+            }
             Simple = $simpleCapture
             Advanced = $advancedCapture
             RecordedAt = (Get-Date).ToString("o")
@@ -200,4 +366,5 @@ finally {
     SimpleSize = "$($simpleCapture.Width)x$($simpleCapture.Height)"
     Advanced = $advancedCapture.Path
     AdvancedSize = "$($advancedCapture.Width)x$($advancedCapture.Height)"
+    CaptureMethod = "CopyFromScreen(foreground-verified)"
 } | Format-List

@@ -62,22 +62,38 @@ supervised AC/battery policy transition and a second physical AMD device.
 
 ## Native Rust Redesign Evidence (2026-11-11)
 
-The clean-room native Rust layout was captured at 125% Windows scaling with the
-real hardware worker connected:
+The second clean-room native Rust iteration was captured at 125% Windows
+scaling with the real hardware worker connected. This iteration removes the
+previous stack of independent white cards:
 
 | State | Asset | Physical size | Evidence |
 | --- | --- | ---: | --- |
-| Native simple redesign | `assets/native-gui-redesign-simple-2026-11-11.png` | `820x596` | Live STAPM, external-power badge, stable target input, three direct presets plus edit, four-column telemetry, semantic connected status, and diagnostics action all remain inside their surfaces |
-| Native advanced redesign | `assets/native-gui-redesign-advanced-2026-11-11.png` | `970x899` | Shared hero, editable presets, battery/external policy, detected CPU/family/SMU/PM, compact profile, capability state, worker health, and diagnostics action render without structural overlap |
+| Native simple redesign | `assets/native-gui-redesign-simple-2026-11-11.png` | `802x530` | One continuous dark command deck contains identity, modes, live STAPM, target input, apply, and three presets; the flat telemetry ledger and status band sit below without detached card stacking |
+| Native advanced redesign | `assets/native-gui-redesign-advanced-2026-11-11.png` | `977x890` | Shared command deck, editable presets, battery/external policy, device capability, worker health, and a live STAPM/Fast/Slow read-back ledger render without visible text clipping or structural overlap |
+| Native read-only states | `assets/native-gui-redesign-readonly-simple-2026-11-11.png`, `assets/native-gui-redesign-readonly-advanced-2026-11-11.png` | `802x530`, `977x890` | Write controls retain their geometry while disabled; the simple status explains `只读`, and diagnostics remains available in both modes |
 
 The native window now uses the embedded application icon in both the title bar
 and tray, a dark native title bar where Windows supports it, and
 `WS_CLIPCHILDREN` to keep child inputs/buttons stable during one-second custom
-canvas repaints.
+canvas repaints. Dark command-deck buttons paint their parent backdrop before
+rounded content, eliminating light default-control corner artifacts.
+
+The capture gate now attaches input to the GUI thread, brings the target window
+to the foreground, verifies `GetForegroundWindow`, and only then captures the
+DWM extended frame. This replaces the earlier unsafe read-only path that could
+record unrelated desktop content when foreground activation failed.
 
 Runtime verification:
 
 - Native Rust tests: 26/26 passed.
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls`:
-  PASS.
+  PASS for simple/advanced switching, topmost, preset editing, diagnostics,
+  minimize/restore, tray restore, close-to-tray, and single-instance wake.
 - No power write was requested during screenshot capture.
+
+Machine-readable evidence:
+`docs/evidence/ui/native-redesign-2026-11-11.json`.
+
+Remaining gates: 100%/150% DPI sessions, focused/long-error/firmware-clamp/
+worker-offline screenshots, packaged tray/taskbar verification, and a supervised
+packaged write/read-back smoke test.

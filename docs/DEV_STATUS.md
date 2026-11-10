@@ -50,17 +50,20 @@ not authoritative.
   under
   `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.4-20261110-190202`.
 - Active native-development branch: `main`.
-- The Rust GUI has been structurally rebuilt around a double-buffered custom
-  canvas, four simple-mode regions, three advanced-mode panels, shared
-  owner-drawn controls, dialog keyboard navigation, focus rings, and the
-  embedded AMD Mobile Power taskbar/tray icon.
+- The Rust GUI now uses one continuous dark command deck shared by simple and
+  advanced modes, with a double-buffered custom canvas, flat telemetry/status
+  bands, a split advanced workspace, native text fields, owner-drawn controls,
+  dialog keyboard navigation, focus rings, and the embedded AMD Mobile Power
+  taskbar/tray icon. The default for a fresh UI state is simple mode.
 - The native Rust GUI test suite now passes 26/26 tests. The runtime verifier
   passes worker connection, diagnostics export, mode switching, topmost,
   minimize/restore, close-to-tray, tray restore, single-instance wake, and
   preset editing.
 - Current redesign evidence is recorded in `docs/NATIVE_UI_REWRITE.md` with
-  simple/advanced screenshots at 125% scaling. The native rewrite is not yet a
-  stable deployment and has not replaced `C:\RyzenAdj`.
+  simple/advanced and read-only screenshots at 125% scaling. The capture gate
+  now verifies foreground ownership before copying the DWM frame, preventing
+  unrelated desktop content from entering UI evidence. The native rewrite is
+  not yet a stable deployment and has not replaced `C:\RyzenAdj`.
 - The clean native candidate is now `0.6.0-native-rc.10`: 525,189 bytes,
   SHA256
   `dae33a20bd58e6c41235be650c47380b8a9a60f8750b603303d2f1b035ac1f52`,
@@ -81,6 +84,9 @@ not authoritative.
 - Native simple/advanced screenshots are now reproducible through
   `native\capture-rust-gui-redesign.ps1`, which uses an isolated
   `%LocalAppData%` and unique worker pipe and does not request a power write.
+- The same capture gate now also produces explicit read-only simple/advanced
+  states, uses foreground-verified screen capture with DWM extended-frame
+  bounds, and fails closed instead of recording an unrelated foreground window.
 - The Windows CI definition now checks PowerShell syntax, Rust formatting,
   Clippy with `-D warnings`, native builds/tests, native package generation,
   dependency audit, and the existing .NET release gate. The external GitHub
@@ -1044,8 +1050,34 @@ third_party/
   (`18` library + `8` GUI), and Clippy remains clean with `-D warnings`.
   Screenshots: `assets/native-gui-simple-mode-2026-11-11.png` and
   `assets/native-gui-advanced-mode-2026-11-11.png`.
+- Completed the next native UI break-and-rebuild on 2026-11-11. The previous
+  independent white-card stack was removed. Both modes now share a continuous
+  dark command deck containing identity, mode controls, live power, target
+  apply, and quick presets. Simple mode is `640x392` logical pixels with a flat
+  four-column telemetry ledger; advanced mode is `780x680` with editable
+  presets, battery/external policy, device capability, runtime state, and a
+  live STAPM/Fast/Slow read-back ledger. Dark-shell button corners now paint
+  their parent backdrop, and button focus rings are driven by the actual focused
+  control rather than `ODS_FOCUS`. Rust tests remain 26/26, Clippy is clean, and
+  the runtime verifier passes mode switching, topmost, diagnostics, preset
+  editing, minimize/restore, tray restore, close-to-tray, and single-instance
+  wake. Current screenshots are
+  `assets/native-gui-redesign-simple-2026-11-11.png`,
+  `assets/native-gui-redesign-advanced-2026-11-11.png`, and the matching
+  `readonly` pair. Evidence:
+  `docs/evidence/ui/native-redesign-2026-11-11.json`.
 
 Development screenshot:
+
+![Native simple mode](assets/native-gui-redesign-simple-2026-11-11.png)
+
+![Native advanced mode](assets/native-gui-redesign-advanced-2026-11-11.png)
+
+![Native read-only simple mode](assets/native-gui-redesign-readonly-simple-2026-11-11.png)
+
+![Native read-only advanced mode](assets/native-gui-redesign-readonly-advanced-2026-11-11.png)
+
+Historical development screenshots:
 
 ![Compact mode at 12 W](assets/gui-simple-12w-2026-11-10.png)
 

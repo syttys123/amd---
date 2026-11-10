@@ -87,11 +87,14 @@ current target, with every value clamped to the active platform profile.
 Right-clicking the tray icon also exposes the same presets as direct
 `应用预设` commands when write controls are enabled.
 
-The title header provides persistent `简洁`, `高级`, and `置顶` controls. Simple
-mode keeps the compact live dashboard, three quick presets, and diagnostics
-export; clicking a preset applies it immediately when writes are enabled.
-Advanced mode restores editable presets and the battery/AC policy row. The same
-mode and topmost actions are available from the tray menu.
+The title header provides persistent `简洁`, `高级`, and `置顶` controls. Both
+modes share one continuous dark command deck for live power, target input,
+quick presets, and apply. Simple mode is the default UI state and adds a flat
+four-column telemetry ledger plus diagnostics export. Advanced mode adds
+editable presets, battery/AC policy, device capability, runtime state, and a
+live STAPM/Fast/Slow read-back ledger. Clicking a preset in simple mode applies
+it immediately when writes are enabled; in advanced mode it selects the value
+for editing. The same mode and topmost actions are available from the tray menu.
 
 Regenerate the reviewed simple/advanced screenshots without requesting a power
 write:
@@ -100,6 +103,11 @@ write:
 .\native\capture-rust-gui-redesign.ps1 `
   -EvidencePath .\artifacts\verify\native-redesign-capture.json
 ```
+
+Add `-ReadOnly -FilePrefix native-readonly` to capture the disabled-control
+state without launching the worker with write controls. The capture script
+attaches to the GUI thread, verifies the target is foreground, and then copies
+the DWM frame; it fails instead of recording an unrelated desktop window.
 
 `导出诊断` is available in both read-only and write-enabled launches. It writes
 a schema-1 JSON document under

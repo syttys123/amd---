@@ -325,8 +325,9 @@ try {
         if ($workerStatus -notmatch "已连接 worker") {
             throw "Rust GUI did not connect to the read-only worker: $workerStatus"
         }
-        if ($workerStatus -notmatch "供电：" -or
-            $workerStatus -notmatch "Fast 上限：") {
+        if ($workerStatus -notmatch "已连接 worker ·" -or
+            $workerStatus -notmatch "STAPM / Fast / Slow 上限" -or
+            $workerStatus -notmatch "目标功耗：") {
             throw "Rust GUI worker status is incomplete: $workerStatus"
         }
     }
@@ -399,6 +400,26 @@ try {
             throw "Rust GUI mode or topmost controls are missing."
         }
 
+        $initialRect = New-Object AmdMobilePowerRustGuiNative+RECT
+        [AmdMobilePowerRustGuiNative]::GetWindowRect(
+            $window,
+            [ref]$initialRect) | Out-Null
+        $initialHeight = $initialRect.Bottom - $initialRect.Top
+
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $advancedButton,
+            0x00F5,
+            [UIntPtr]109,
+            [IntPtr]::Zero) | Out-Null
+        Wait-Until `
+            -Description "advanced initial layout" `
+            -Condition {
+                $rect = New-Object AmdMobilePowerRustGuiNative+RECT
+                [AmdMobilePowerRustGuiNative]::GetWindowRect(
+                    $window,
+                    [ref]$rect) | Out-Null
+                ($rect.Bottom - $rect.Top) -gt $initialHeight
+            }
         $advancedRect = New-Object AmdMobilePowerRustGuiNative+RECT
         [AmdMobilePowerRustGuiNative]::GetWindowRect(
             $window,
@@ -770,7 +791,10 @@ try {
             SourceCommit = (git -C $repositoryRoot rev-parse HEAD).Trim()
             Verification = "PASS"
             Path = "Rust GUI -> C++ worker -> RyzenAdj"
-            Processor = if ($workerStatus -match "处理器：([^\r\n]+)") {
+            Processor = if ($workerStatus -match "worker · [^\r\n]+\r?\n([^\r\n]+)") {
+                $Matches[1].Trim()
+            }
+            elseif ($workerStatus -match "处理器：([^\r\n]+)") {
                 $Matches[1].Trim()
             }
             else {

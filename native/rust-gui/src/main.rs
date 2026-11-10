@@ -68,7 +68,7 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     WS_TABSTOP,
 };
 
-const APP_TITLE: &str = "AMD Mobile Power（原生预览）";
+const APP_TITLE: &str = "AMD Mobile Power";
 const WINDOW_CLASS: &str = "AmdMobilePower.RustGui.Migration.v1";
 const MUTEX_NAME: &str = "Local\\AmdMobilePower.RustGui.Migration.v1";
 const TRAY_ICON_ID: u32 = 1;
@@ -114,24 +114,30 @@ const TITLE_LABEL: usize = 360;
 const ADVANCED_DEVICE_LABEL: usize = 370;
 const STATUS_HOLD: Duration = Duration::from_secs(5);
 
-const COLOR_CANVAS: u32 = rgb(238, 242, 241);
+const COLOR_CANVAS: u32 = rgb(238, 241, 246);
 const COLOR_SURFACE: u32 = rgb(255, 255, 255);
-const COLOR_SURFACE_MUTED: u32 = rgb(246, 248, 247);
-const COLOR_HEADER: u32 = rgb(23, 29, 30);
-const COLOR_BORDER: u32 = rgb(212, 221, 218);
-const COLOR_ACCENT: u32 = rgb(10, 127, 115);
-const COLOR_ACCENT_SOFT: u32 = rgb(223, 244, 239);
-const COLOR_TEXT: u32 = rgb(24, 34, 32);
-const COLOR_TEXT_MUTED: u32 = rgb(95, 109, 105);
+const COLOR_SURFACE_MUTED: u32 = rgb(247, 249, 252);
+const COLOR_HEADER: u32 = rgb(13, 18, 27);
+const COLOR_BORDER: u32 = rgb(211, 218, 230);
+const COLOR_RULE: u32 = rgb(226, 231, 239);
+const COLOR_ACCENT: u32 = rgb(36, 99, 235);
+const COLOR_ACCENT_SOFT: u32 = rgb(232, 239, 255);
+const COLOR_TEXT: u32 = rgb(20, 29, 46);
+const COLOR_TEXT_MUTED: u32 = rgb(91, 103, 125);
+const COLOR_HEADER_MUTED: u32 = rgb(164, 177, 198);
+const COLOR_HERO_BUTTON: u32 = rgb(29, 38, 52);
 const COLOR_WHITE: u32 = rgb(255, 255, 255);
-const COLOR_ACCENT_PRESSED: u32 = rgb(8, 103, 94);
-const COLOR_EXTERNAL: u32 = rgb(47, 111, 179);
-const COLOR_EXTERNAL_SOFT: u32 = rgb(234, 241, 250);
-const COLOR_WARNING: u32 = rgb(168, 88, 11);
-const COLOR_WARNING_SOFT: u32 = rgb(255, 244, 230);
-const COLOR_ERROR: u32 = rgb(180, 35, 24);
-const COLOR_ERROR_SOFT: u32 = rgb(253, 236, 234);
-const COLOR_SUCCESS_SOFT: u32 = rgb(232, 248, 242);
+const COLOR_ACCENT_PRESSED: u32 = rgb(22, 72, 178);
+const COLOR_EXTERNAL: u32 = rgb(36, 99, 235);
+const COLOR_EXTERNAL_SOFT: u32 = rgb(236, 242, 255);
+const COLOR_WARNING: u32 = rgb(156, 82, 7);
+const COLOR_WARNING_SOFT: u32 = rgb(255, 245, 228);
+const COLOR_ERROR: u32 = rgb(185, 48, 42);
+const COLOR_ERROR_SOFT: u32 = rgb(254, 237, 235);
+const COLOR_SUCCESS: u32 = rgb(13, 117, 81);
+const COLOR_SUCCESS_SOFT: u32 = rgb(231, 248, 241);
+const SIMPLE_CLIENT_SIZE: (i32, i32) = (640, 392);
+const ADVANCED_CLIENT_SIZE: (i32, i32) = (780, 680);
 const APP_WINDOW_STYLE: u32 =
     WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN;
 
@@ -416,10 +422,10 @@ unsafe fn create_ui_font(face_name: &str, pixel_height: i32, weight: i32) -> HGD
 
 unsafe fn create_ui_fonts() -> UiFonts {
     UiFonts {
-        display: create_ui_font("Microsoft YaHei UI", 34, FW_BOLD as i32),
-        number_display: create_ui_font("Consolas", 36, FW_BOLD as i32),
-        metric: create_ui_font("Microsoft YaHei UI", 17, FW_BOLD as i32),
-        number_metric: create_ui_font("Consolas", 17, FW_BOLD as i32),
+        display: create_ui_font("Microsoft YaHei UI", 31, FW_BOLD as i32),
+        number_display: create_ui_font("Consolas", 42, FW_BOLD as i32),
+        metric: create_ui_font("Microsoft YaHei UI", 16, FW_BOLD as i32),
+        number_metric: create_ui_font("Consolas", 18, FW_BOLD as i32),
         body: create_ui_font("Microsoft YaHei UI", 14, FW_NORMAL as i32),
         caption: create_ui_font("Microsoft YaHei UI", 12, FW_NORMAL as i32),
         title: create_ui_font("Microsoft YaHei UI", 18, FW_BOLD as i32),
@@ -516,7 +522,7 @@ unsafe fn draw_rule(
             right,
             bottom,
         },
-        COLOR_BORDER,
+        COLOR_RULE,
     );
 }
 
@@ -606,7 +612,7 @@ unsafe fn visible_status(app: &GuiApp) -> (String, String, u32, u32) {
                     "状态更新".to_owned(),
                     first_line.to_owned(),
                     COLOR_SUCCESS_SOFT,
-                    COLOR_ACCENT,
+                    COLOR_SUCCESS,
                 )
             };
         }
@@ -665,7 +671,7 @@ unsafe fn visible_status(app: &GuiApp) -> (String, String, u32, u32) {
         "已连接".to_owned(),
         format!("当前目标 {:.0} W · APP 回读 {}", target, current_power(app)),
         COLOR_SUCCESS_SOFT,
-        COLOR_ACCENT,
+        COLOR_SUCCESS,
     )
 }
 
@@ -675,13 +681,13 @@ unsafe fn paint_status_banner(
     fonts: &UiFonts,
     rect: RECT,
 ) {
-    paint_surface(hdc, rect, 8, COLOR_SURFACE_MUTED, COLOR_BORDER);
+    paint_surface(hdc, rect, 8, COLOR_SURFACE_MUTED, COLOR_RULE);
     let (label, message, chip_fill, chip_text) = visible_status(app);
     let chip = RECT {
         left: rect.left + 12,
-        top: rect.top + 10,
-        right: rect.left + 104,
-        bottom: rect.bottom - 10,
+        top: rect.top + 9,
+        right: rect.left + 102,
+        bottom: rect.bottom - 9,
     };
     paint_surface(hdc, chip, 6, chip_fill, chip_fill);
     draw_text_in(
@@ -704,9 +710,9 @@ unsafe fn paint_status_banner(
         COLOR_TEXT,
         RECT {
             left: chip.right + 16,
-            top: rect.top + 8,
+            top: rect.top + 6,
             right: rect.right - 118,
-            bottom: rect.bottom - 8,
+            bottom: rect.bottom - 6,
         },
         DT_LEFT,
     );
@@ -724,9 +730,19 @@ unsafe fn paint_header(
             left: 0,
             top: 0,
             right: width,
-            bottom: 60,
+            bottom: 56,
         },
         COLOR_HEADER,
+    );
+    fill_rect_color(
+        hdc,
+        &RECT {
+            left: 0,
+            top: 54,
+            right: width,
+            bottom: 56,
+        },
+        COLOR_ACCENT,
     );
     draw_text_in(
         hdc,
@@ -735,9 +751,9 @@ unsafe fn paint_header(
         COLOR_WHITE,
         RECT {
             left: 20,
-            top: 8,
+            top: 6,
             right: 390,
-            bottom: 34,
+            bottom: 31,
         },
         DT_LEFT,
     );
@@ -745,12 +761,12 @@ unsafe fn paint_header(
         hdc,
         &platform_subtitle(app),
         fonts.caption,
-        rgb(181, 196, 191),
+        rgb(164, 177, 198),
         RECT {
             left: 20,
-            top: 33,
+            top: 29,
             right: width - 250,
-            bottom: 54,
+            bottom: 50,
         },
         DT_LEFT,
     );
@@ -774,12 +790,12 @@ unsafe fn paint_target_region(
         hdc,
         "目标功耗",
         fonts.body,
-        COLOR_TEXT_MUTED,
+        COLOR_HEADER_MUTED,
         RECT {
             left: label_left,
-            top: 86,
+            top: 82,
             right: label_left + 100,
-            bottom: 108,
+            bottom: 104,
         },
         DT_LEFT,
     );
@@ -787,24 +803,24 @@ unsafe fn paint_target_region(
         hdc,
         &format!("{minimum}-{maximum} W"),
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        COLOR_HEADER_MUTED,
         RECT {
             left: label_left + label_width - 96,
-            top: 87,
+            top: 83,
             right: label_left + label_width,
-            bottom: 108,
+            bottom: 104,
         },
         DT_RIGHT,
     );
     paint_surface(
         hdc,
         RECT {
-            left: edit_left,
-            top: 110,
-            right: edit_left + edit_width,
+            left: edit_left - 2,
+            top: 104,
+            right: edit_left + edit_width + 2,
             bottom: 146,
         },
-        6,
+        8,
         COLOR_SURFACE,
         if app.focused_control == Some(SIMPLE_TARGET_EDIT) {
             COLOR_ACCENT
@@ -816,12 +832,12 @@ unsafe fn paint_target_region(
         hdc,
         "W",
         fonts.body,
-        COLOR_TEXT_MUTED,
+        COLOR_HEADER_MUTED,
         RECT {
             left: edit_left + edit_width + 7,
-            top: 112,
+            top: 108,
             right: edit_left + edit_width + 23,
-            bottom: 144,
+            bottom: 142,
         },
         DT_CENTER,
     );
@@ -838,7 +854,7 @@ unsafe fn paint_live_region(
         hdc,
         "实时功耗",
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        COLOR_HEADER_MUTED,
         RECT {
             left,
             top,
@@ -851,12 +867,12 @@ unsafe fn paint_live_region(
         hdc,
         &current_power(app),
         fonts.number_display,
-        COLOR_ACCENT,
+        COLOR_WHITE,
         RECT {
             left,
-            top: top + 16,
-            right: left + 220,
-            bottom: top + 66,
+            top: top + 14,
+            right: left + 250,
+            bottom: top + 68,
         },
         DT_LEFT,
     );
@@ -864,12 +880,12 @@ unsafe fn paint_live_region(
         hdc,
         &format!("动态上限 {}", current_power_limit(app)),
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        COLOR_HEADER_MUTED,
         RECT {
             left,
-            top: top + 70,
-            right: left + 190,
-            bottom: top + 90,
+            top: top + 72,
+            right: left + 142,
+            bottom: top + 94,
         },
         DT_LEFT,
     );
@@ -890,10 +906,10 @@ unsafe fn paint_live_region(
         COLOR_EXTERNAL
     };
     let chip = RECT {
-        left: left + 222,
-        top: top + 18,
-        right: left + 312,
-        bottom: top + 46,
+        left: left + 154,
+        top: top + 70,
+        right: left + 250,
+        bottom: top + 96,
     };
     paint_surface(hdc, chip, 6, chip_fill, chip_fill);
     draw_text_in(
@@ -915,6 +931,7 @@ unsafe fn paint_metric(
     hdc: windows_sys::Win32::Graphics::Gdi::HDC,
     fonts: &UiFonts,
     left: i32,
+    top: i32,
     title: &str,
     value: &str,
     limit: &str,
@@ -926,9 +943,9 @@ unsafe fn paint_metric(
         COLOR_TEXT_MUTED,
         RECT {
             left,
-            top: 256,
-            right: left + 140,
-            bottom: 276,
+            top,
+            right: left + 150,
+            bottom: top + 20,
         },
         DT_LEFT,
     );
@@ -939,9 +956,9 @@ unsafe fn paint_metric(
         COLOR_TEXT,
         RECT {
             left,
-            top: 280,
-            right: left + 140,
-            bottom: 308,
+            top: top + 21,
+            right: left + 150,
+            bottom: top + 51,
         },
         DT_LEFT,
     );
@@ -952,9 +969,9 @@ unsafe fn paint_metric(
         COLOR_TEXT_MUTED,
         RECT {
             left,
-            top: 314,
-            right: left + 140,
-            bottom: 334,
+            top: top + 53,
+            right: left + 150,
+            bottom: top + 74,
         },
         DT_LEFT,
     );
@@ -966,72 +983,69 @@ unsafe fn paint_simple_window(
     fonts: &UiFonts,
     width: i32,
 ) {
-    paint_surface(
+    fill_rect_color(
         hdc,
-        RECT {
-            left: 16,
-            top: 72,
-            right: width - 16,
-            bottom: 176,
+        &RECT {
+            left: 0,
+            top: 56,
+            right: width,
+            bottom: 228,
         },
-        10,
-        COLOR_SURFACE,
-        COLOR_BORDER,
+        COLOR_HEADER,
     );
-    paint_surface(
+    fill_rect_color(
         hdc,
-        RECT {
+        &RECT {
             left: 16,
-            top: 186,
+            top: 240,
             right: width - 16,
-            bottom: 238,
+            bottom: 320,
         },
-        8,
-        COLOR_SURFACE,
-        COLOR_BORDER,
+        COLOR_SURFACE_MUTED,
     );
-    paint_surface(
+    draw_rule(hdc, 16, 240, width - 16, 241);
+    draw_rule(hdc, 16, 319, width - 16, 320);
+    fill_rect_color(
         hdc,
-        RECT {
-            left: 16,
-            top: 248,
-            right: width - 16,
-            bottom: 364,
+        &RECT {
+            left: 0,
+            top: 226,
+            right: width,
+            bottom: 228,
         },
-        10,
-        COLOR_SURFACE,
-        COLOR_BORDER,
+        COLOR_ACCENT,
     );
 
-    paint_live_region(hdc, app, fonts, 36, 84);
-    draw_rule(hdc, 330, 88, 331, 160);
-    paint_target_region(hdc, app, fonts, 350, 260, 430, 70);
+    paint_live_region(hdc, app, fonts, 36, 82);
+    draw_rule(hdc, 316, 82, 317, 164);
+    paint_target_region(hdc, app, fonts, 336, 264, 336, 84);
 
     draw_text_in(
         hdc,
         "快捷功耗",
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        COLOR_HEADER_MUTED,
         RECT {
             left: 36,
-            top: 197,
+            top: 181,
             right: 112,
-            bottom: 228,
+            bottom: 214,
         },
         DT_LEFT,
     );
 
     let (titles, values, limits) = snapshot_metric_text(app);
-    let column_width = (width - 64) / 4;
+    let column_width = (width - 40) / 4;
     for index in 0..4 {
-        let left = 32 + index as i32 * column_width;
+        let left = 36 + index as i32 * column_width;
         if index > 0 {
-            draw_rule(hdc, left - 8, 260, left - 7, 350);
+            draw_rule(hdc, left - 14, 254, left - 13, 306);
         }
         paint_metric(
             hdc,
             fonts,
             left,
+            254,
             titles[index],
             &values[index],
             &limits[index],
@@ -1044,9 +1058,9 @@ unsafe fn paint_simple_window(
         fonts,
         RECT {
             left: 16,
-            top: 374,
+            top: 332,
             right: width - 16,
-            bottom: 426,
+            bottom: 376,
         },
     );
 }
@@ -1094,108 +1108,95 @@ unsafe fn paint_advanced_window(
     fonts: &UiFonts,
     width: i32,
 ) {
-    paint_surface(
+    fill_rect_color(
         hdc,
-        RECT {
-            left: 20,
-            top: 74,
-            right: width - 20,
-            bottom: 170,
+        &RECT {
+            left: 0,
+            top: 56,
+            right: width,
+            bottom: 228,
         },
-        10,
-        COLOR_SURFACE,
-        COLOR_BORDER,
+        COLOR_HEADER,
+    );
+    fill_rect_color(
+        hdc,
+        &RECT {
+            left: 0,
+            top: 226,
+            right: width,
+            bottom: 228,
+        },
+        COLOR_ACCENT,
     );
     paint_surface(
         hdc,
         RECT {
-            left: 20,
-            top: 182,
-            right: 370,
-            bottom: 464,
-        },
-        10,
-        COLOR_SURFACE,
-        COLOR_BORDER,
-    );
-    paint_surface(
-        hdc,
-        RECT {
-            left: 382,
-            top: 182,
-            right: width - 20,
-            bottom: 464,
-        },
-        10,
-        COLOR_SURFACE,
-        COLOR_BORDER,
-    );
-    paint_surface(
-        hdc,
-        RECT {
-            left: 20,
-            top: 476,
-            right: width - 20,
+            left: 16,
+            top: 240,
+            right: width - 16,
             bottom: 664,
         },
-        10,
+        12,
         COLOR_SURFACE,
         COLOR_BORDER,
     );
 
-    paint_live_region(hdc, app, fonts, 40, 86);
-    draw_rule(hdc, 404, 90, 405, 158);
-    paint_target_region(hdc, app, fonts, 430, 310, 570, 70);
+    paint_live_region(hdc, app, fonts, 36, 82);
+    draw_rule(hdc, 420, 82, 421, 164);
+    paint_target_region(hdc, app, fonts, 444, 320, 444, 86);
 
     draw_text_in(
         hdc,
-        "功耗与快捷预设",
+        "快捷功耗",
+        fonts.caption,
+        COLOR_HEADER_MUTED,
+        RECT {
+            left: 36,
+            top: 181,
+            right: 112,
+            bottom: 214,
+        },
+        DT_LEFT,
+    );
+
+    draw_rule(hdc, 500, 256, 501, 648);
+
+    draw_text_in(
+        hdc,
+        "预设编辑",
         fonts.title,
         COLOR_TEXT,
         RECT {
-            left: 40,
-            top: 194,
-            right: 350,
-            bottom: 220,
+            left: 36,
+            top: 252,
+            right: 180,
+            bottom: 278,
         },
         DT_LEFT,
     );
     draw_text_in(
         hdc,
-        "快捷挡位",
+        "三个常用功率",
         fonts.caption,
         COLOR_TEXT_MUTED,
         RECT {
-            left: 40,
-            top: 222,
-            right: 112,
-            bottom: 248,
+            left: 36,
+            top: 280,
+            right: 118,
+            bottom: 304,
         },
         DT_LEFT,
     );
-    draw_text_in(
-        hdc,
-        "编辑数值",
-        fonts.caption,
-        COLOR_TEXT_MUTED,
-        RECT {
-            left: 40,
-            top: 265,
-            right: 108,
-            bottom: 290,
-        },
-        DT_LEFT,
-    );
-    for (index, left) in [110, 178, 246].into_iter().enumerate() {
+    for (index, left) in [112, 188, 264].into_iter().enumerate() {
         paint_surface(
             hdc,
             RECT {
-                left,
-                top: 266,
-                right: left + 58,
-                bottom: 294,
+                left: left - 2,
+                top: 286,
+                right: left + 60,
+                bottom: 318,
             },
-            6,
+            8,
             COLOR_SURFACE,
             if app.focused_control == Some(PRESET_EDIT_START + index) {
                 COLOR_ACCENT
@@ -1209,50 +1210,63 @@ unsafe fn paint_advanced_window(
             fonts.caption,
             COLOR_TEXT_MUTED,
             RECT {
-                left: left + 60,
-                top: 267,
-                right: left + 74,
-                bottom: 293,
+                left: left + 61,
+                top: 290,
+                right: left + 76,
+                bottom: 315,
             },
             DT_LEFT,
         );
     }
-    draw_rule(hdc, 40, 338, 350, 339);
+    draw_rule(hdc, 36, 356, 480, 357);
     draw_text_in(
         hdc,
         "自动电源策略",
-        fonts.body,
+        fonts.title,
         COLOR_TEXT,
         RECT {
-            left: 40,
-            top: 348,
+            left: 36,
+            top: 370,
             right: 220,
-            bottom: 370,
+            bottom: 396,
         },
         DT_LEFT,
     );
     draw_text_in(
         hdc,
-        "电池",
+        "电池和外接电源分别设置；充电宝仍由 Windows 归为外接电源。",
         fonts.caption,
         COLOR_TEXT_MUTED,
         RECT {
-            left: 40,
-            top: 378,
-            right: 82,
-            bottom: 404,
+            left: 36,
+            top: 396,
+            right: 480,
+            bottom: 418,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        "电池目标",
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 36,
+            top: 424,
+            right: 88,
+            bottom: 450,
         },
         DT_LEFT,
     );
     paint_surface(
         hdc,
         RECT {
-            left: 84,
-            top: 376,
-            right: 142,
-            bottom: 404,
+            left: 90,
+            top: 416,
+            right: 152,
+            bottom: 448,
         },
-        6,
+        8,
         COLOR_SURFACE,
         if app.focused_control == Some(POLICY_BATTERY_EDIT) {
             COLOR_ACCENT
@@ -1262,26 +1276,26 @@ unsafe fn paint_advanced_window(
     );
     draw_text_in(
         hdc,
-        "外接",
+        "外接目标",
         fonts.caption,
         COLOR_TEXT_MUTED,
         RECT {
-            left: 154,
-            top: 378,
-            right: 196,
-            bottom: 404,
+            left: 166,
+            top: 424,
+            right: 222,
+            bottom: 450,
         },
         DT_LEFT,
     );
     paint_surface(
         hdc,
         RECT {
-            left: 198,
-            top: 376,
-            right: 256,
-            bottom: 404,
+            left: 224,
+            top: 416,
+            right: 284,
+            bottom: 448,
         },
-        6,
+        8,
         COLOR_SURFACE,
         if app.focused_control == Some(POLICY_AC_EDIT) {
             COLOR_ACCENT
@@ -1292,14 +1306,14 @@ unsafe fn paint_advanced_window(
 
     draw_text_in(
         hdc,
-        "设备与能力",
+        "设备与运行",
         fonts.title,
         COLOR_TEXT,
         RECT {
-            left: 402,
-            top: 194,
+            left: 520,
+            top: 252,
             right: width - 40,
-            bottom: 220,
+            bottom: 278,
         },
         DT_LEFT,
     );
@@ -1332,10 +1346,10 @@ unsafe fn paint_advanced_window(
         .unwrap_or_else(|| "未匹配".to_owned());
     let smu_pm = format!("{smu} / {pm}");
     for (top, label, value) in [
-        (232, "处理器", cpu.as_str()),
-        (260, "平台家族", family),
-        (288, "SMU / PM", smu_pm.as_str()),
-        (316, "匹配配置", profile.as_str()),
+        (288, "处理器", cpu.as_str()),
+        (316, "平台家族", family),
+        (344, "SMU / PM", smu_pm.as_str()),
+        (372, "匹配配置", profile.as_str()),
     ] {
         draw_text_in(
             hdc,
@@ -1343,9 +1357,9 @@ unsafe fn paint_advanced_window(
             fonts.caption,
             COLOR_TEXT_MUTED,
             RECT {
-                left: 402,
+                left: 520,
                 top,
-                right: 478,
+                right: 596,
                 bottom: top + 22,
             },
             DT_LEFT,
@@ -1356,9 +1370,9 @@ unsafe fn paint_advanced_window(
             fonts.body,
             COLOR_TEXT,
             RECT {
-                left: 482,
+                left: 600,
                 top: top - 2,
-                right: width - 40,
+                right: 744,
                 bottom: top + 24,
             },
             DT_LEFT,
@@ -1377,10 +1391,10 @@ unsafe fn paint_advanced_window(
     };
     let chip_color = if supported { COLOR_ACCENT } else { COLOR_ERROR };
     let chip = RECT {
-        left: 402,
-        top: 368,
-        right: 512,
-        bottom: 398,
+        left: 520,
+        top: 398,
+        right: 600,
+        bottom: 426,
     };
     paint_surface(hdc, chip, 6, chip_fill, chip_fill);
     draw_text_in(
@@ -1426,51 +1440,52 @@ unsafe fn paint_advanced_window(
         fonts.caption,
         COLOR_TEXT_MUTED,
         RECT {
-            left: 522,
-            top: 370,
-            right: width - 40,
-            bottom: 398,
+            left: 520,
+            top: 432,
+            right: 744,
+            bottom: 452,
         },
         DT_LEFT,
     );
 
+    draw_rule(hdc, 520, 462, 744, 463);
     draw_text_in(
         hdc,
-        "运行与诊断",
-        fonts.title,
+        "运行状态",
+        fonts.body,
         COLOR_TEXT,
         RECT {
-            left: 40,
-            top: 490,
-            right: 220,
-            bottom: 516,
+            left: 520,
+            top: 474,
+            right: 744,
+            bottom: 496,
         },
         DT_LEFT,
     );
     let worker_line = match app.worker_error.as_ref() {
         Some(error) => format!(
             "worker 异常 · {}",
-            error.lines().next().unwrap_or("连接中断")
+            error.lines().next().unwrap_or("查看诊断")
         ),
-        None if app.latest_snapshot.is_some() => "worker 已连接 · 遥测每秒刷新".to_owned(),
+        None if app.latest_snapshot.is_some() => "worker 已连接 · 1 秒刷新".to_owned(),
         None => "worker 连接中".to_owned(),
     };
     draw_text_in(
         hdc,
         &worker_line,
-        fonts.body,
-        COLOR_TEXT,
+        fonts.caption,
+        COLOR_TEXT_MUTED,
         RECT {
-            left: 40,
-            top: 526,
-            right: width - 40,
-            bottom: 550,
+            left: 520,
+            top: 500,
+            right: 744,
+            bottom: 522,
         },
         DT_LEFT,
     );
     let policy = match app.saved_policy {
         Some(settings) => format!(
-            "自动策略 · {} · 电池 {} W / 外接 {} W",
+            "策略 {} · {} W / {} W",
             if settings.enabled {
                 "已启用"
             } else {
@@ -1484,29 +1499,82 @@ unsafe fn paint_advanced_window(
     draw_text_in(
         hdc,
         &policy,
-        fonts.body,
+        fonts.caption,
         COLOR_TEXT_MUTED,
         RECT {
-            left: 40,
-            top: 554,
-            right: width - 40,
-            bottom: 578,
+            left: 520,
+            top: 524,
+            right: 744,
+            bottom: 546,
+        },
+        DT_LEFT,
+    );
+    let clamp = app
+        .latest_snapshot
+        .as_ref()
+        .map(|snapshot| snapshot.telemetry.has_firmware_clamp)
+        .unwrap_or(false);
+    draw_text_in(
+        hdc,
+        if clamp {
+            "限流：固件钳制 STAPM，Fast / Slow 看回读"
+        } else {
+            "回读正常，每秒刷新一次"
+        },
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 520,
+            top: 550,
+            right: 744,
+            bottom: 572,
         },
         DT_LEFT,
     );
     draw_text_in(
         hdc,
-        "导出内容仅包含脱敏平台、遥测与策略状态。",
+        "导出报告已脱敏，不含路径或账户信息。",
         fonts.caption,
         COLOR_TEXT_MUTED,
         RECT {
-            left: 40,
-            top: 596,
-            right: 520,
-            bottom: 620,
+            left: 520,
+            top: 578,
+            right: 744,
+            bottom: 600,
         },
         DT_LEFT,
     );
+
+    draw_rule(hdc, 36, 528, 480, 529);
+    draw_text_in(
+        hdc,
+        "实时回读",
+        fonts.body,
+        COLOR_TEXT,
+        RECT {
+            left: 36,
+            top: 540,
+            right: 140,
+            bottom: 562,
+        },
+        DT_LEFT,
+    );
+    let (titles, values, limits) = snapshot_metric_text(app);
+    for index in 0..3 {
+        let left = 36 + index as i32 * 148;
+        if index > 0 {
+            draw_rule(hdc, left - 12, 566, left - 11, 646);
+        }
+        paint_metric(
+            hdc,
+            fonts,
+            left,
+            566,
+            titles[index],
+            &values[index],
+            &limits[index],
+        );
+    }
 }
 
 unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
@@ -1581,13 +1649,24 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
     };
     let primary = matches!(id, SIMPLE_APPLY | APPLY_TARGET);
     let header_button = matches!(id, SIMPLE_MODE | ADVANCED_MODE | TOPMOST_TOGGLE);
-    let (fill, text_color, border) = if disabled {
+    let hero_button = matches!(id, PRESET_12 | PRESET_25 | PRESET_45 | PRESET_EDIT_OPEN);
+    let (fill, text_color, border) = if disabled && hero_button {
+        (rgb(27, 34, 47), rgb(122, 136, 158), rgb(54, 66, 85))
+    } else if disabled {
         (COLOR_SURFACE_MUTED, rgb(145, 157, 153), COLOR_BORDER)
     } else if header_button {
         if selected {
-            (rgb(47, 59, 57), COLOR_WHITE, rgb(96, 111, 106))
+            (COLOR_WHITE, COLOR_HEADER, COLOR_WHITE)
         } else {
-            (COLOR_HEADER, rgb(188, 201, 197), COLOR_HEADER)
+            (COLOR_HEADER, COLOR_HEADER_MUTED, COLOR_HEADER)
+        }
+    } else if hero_button {
+        if selected {
+            (COLOR_WHITE, COLOR_HEADER, COLOR_WHITE)
+        } else if pressed {
+            (COLOR_ACCENT_SOFT, COLOR_ACCENT, COLOR_ACCENT_SOFT)
+        } else {
+            (COLOR_HERO_BUTTON, COLOR_WHITE, COLOR_HERO_BUTTON)
         }
     } else if primary {
         (
@@ -1599,13 +1678,22 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
             COLOR_WHITE,
             COLOR_ACCENT,
         )
-    } else if selected {
+    } else if selected || pressed {
         (COLOR_ACCENT_SOFT, COLOR_ACCENT, COLOR_ACCENT)
     } else {
-        (COLOR_SURFACE, COLOR_TEXT, COLOR_BORDER)
+        (COLOR_SURFACE, COLOR_TEXT, COLOR_RULE)
     };
+    fill_rect_color(
+        draw.hDC,
+        &draw.rcItem,
+        if hero_button || header_button || primary {
+            COLOR_HEADER
+        } else {
+            COLOR_SURFACE
+        },
+    );
     paint_surface(draw.hDC, draw.rcItem, 6, fill, border);
-    if draw.itemState & windows_sys::Win32::UI::Controls::ODS_FOCUS != 0 {
+    if app.focused_control == Some(id) {
         paint_surface(
             draw.hDC,
             RECT {
@@ -1686,14 +1774,14 @@ fn format_flag(value: bool) -> &'static str {
 fn format_watts(value: Option<f64>) -> String {
     match value {
         Some(value) => format!("{value:.2} W"),
-        None => "无数据".to_owned(),
+        None => "--".to_owned(),
     }
 }
 
 fn format_celsius(value: Option<f64>) -> String {
     match value {
         Some(value) => format!("{value:.1} °C"),
-        None => "无数据".to_owned(),
+        None => "--".to_owned(),
     }
 }
 
@@ -2721,8 +2809,8 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
     app.view_mode = mode;
     let advanced = mode == state::UiMode::Advanced;
     let (width, height) = match mode {
-        state::UiMode::Simple => (640, 438),
-        state::UiMode::Advanced => (760, 680),
+        state::UiMode::Simple => SIMPLE_CLIENT_SIZE,
+        state::UiMode::Advanced => ADVANCED_CLIENT_SIZE,
     };
     let (outer_width, outer_height) = outer_window_size(width, height);
     SetWindowPos(
@@ -2748,7 +2836,7 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
                 control,
                 std::ptr::null_mut(),
                 left,
-                14,
+                12,
                 56,
                 32,
                 SWP_NOZORDER | SWP_NOACTIVATE,
@@ -2810,10 +2898,10 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
     set_control_visible(hwnd, TITLE_LABEL, false);
 
     if advanced {
-        move_control(hwnd, SIMPLE_TARGET_EDIT, 574, 114, 62, 28);
-        move_control(hwnd, SIMPLE_APPLY, 666, 110, 74, 36);
-        for (id, x) in [(PRESET_12, 126), (PRESET_25, 194), (PRESET_45, 262)] {
-            move_control(hwnd, id, x, 218, 62, 32);
+        move_control(hwnd, SIMPLE_TARGET_EDIT, 444, 106, 86, 38);
+        move_control(hwnd, SIMPLE_APPLY, 566, 104, 178, 40);
+        for (id, x) in [(PRESET_12, 112), (PRESET_25, 244), (PRESET_45, 376)] {
+            move_control(hwnd, id, x, 181, 112, 34);
         }
         for (index, id) in [
             PRESET_EDIT_START,
@@ -2823,14 +2911,14 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
         .into_iter()
         .enumerate()
         {
-            move_control(hwnd, id, 112 + index as i32 * 68, 268, 52, 24);
+            move_control(hwnd, id, 112 + index as i32 * 76, 288, 58, 28);
         }
-        move_control(hwnd, PRESET_SAVE, 112, 304, 100, 32);
-        move_control(hwnd, POLICY_BATTERY_EDIT, 88, 378, 50, 26);
-        move_control(hwnd, POLICY_AC_EDIT, 202, 378, 50, 26);
-        move_control(hwnd, POLICY_ENABLED, 274, 374, 74, 32);
-        move_control(hwnd, POLICY_SAVE, 40, 416, 112, 32);
-        move_control(hwnd, EXPORT_DIAGNOSTICS, 626, 612, 92, 32);
+        move_control(hwnd, PRESET_SAVE, 112, 330, 100, 30);
+        move_control(hwnd, POLICY_BATTERY_EDIT, 92, 418, 60, 28);
+        move_control(hwnd, POLICY_AC_EDIT, 224, 418, 60, 28);
+        move_control(hwnd, POLICY_ENABLED, 300, 414, 78, 34);
+        move_control(hwnd, POLICY_SAVE, 36, 480, 112, 32);
+        move_control(hwnd, EXPORT_DIAGNOSTICS, 640, 612, 104, 30);
         for id in [
             PRESET_LABEL,
             POLICY_BATTERY_LABEL,
@@ -2840,13 +2928,13 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
             move_control(hwnd, id, -10000, -10000, 220, 24);
         }
     } else {
-        move_control(hwnd, SIMPLE_TARGET_EDIT, 434, 114, 62, 28);
-        move_control(hwnd, SIMPLE_APPLY, 522, 110, 88, 36);
-        for (id, x) in [(PRESET_12, 110), (PRESET_25, 210), (PRESET_45, 310)] {
-            move_control(hwnd, id, x, 196, 92, 32);
+        move_control(hwnd, SIMPLE_TARGET_EDIT, 336, 106, 84, 38);
+        move_control(hwnd, SIMPLE_APPLY, 460, 104, 140, 40);
+        for (id, x) in [(PRESET_12, 112), (PRESET_25, 244), (PRESET_45, 376)] {
+            move_control(hwnd, id, x, 181, 112, 34);
         }
-        move_control(hwnd, PRESET_EDIT_OPEN, 410, 196, 60, 32);
-        move_control(hwnd, EXPORT_DIAGNOSTICS, 528, 384, 88, 28);
+        move_control(hwnd, PRESET_EDIT_OPEN, 508, 181, 96, 34);
+        move_control(hwnd, EXPORT_DIAGNOSTICS, 520, 337, 96, 28);
     }
 
     if let Some(controls) = app.simple_controls {
@@ -3400,10 +3488,12 @@ unsafe extern "system" fn window_proc(
         WM_COMMAND => {
             let command = wparam & 0xFFFF;
             let notification = (wparam >> 16) & 0xFFFF;
-            if notification == 0x0100 {
+            if notification == 0x0100 || notification == 0x0006 {
                 app.focused_control = Some(command);
                 InvalidateRect(hwnd, std::ptr::null(), 0);
-            } else if notification == 0x0200 && app.focused_control == Some(command) {
+            } else if (notification == 0x0200 || notification == 0x0007)
+                && app.focused_control == Some(command)
+            {
                 app.focused_control = None;
                 InvalidateRect(hwnd, std::ptr::null(), 0);
             }
@@ -3627,8 +3717,8 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let initial_mode = state::load_window_preferences().mode;
     let client_size = match initial_mode {
-        state::UiMode::Simple => (640, 438),
-        state::UiMode::Advanced => (760, 680),
+        state::UiMode::Simple => SIMPLE_CLIENT_SIZE,
+        state::UiMode::Advanced => ADVANCED_CLIENT_SIZE,
     };
     let (outer_width, outer_height) = unsafe { outer_window_size(client_size.0, client_size.1) };
     let hwnd = unsafe {
