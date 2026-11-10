@@ -13,7 +13,7 @@ behavior.
 
 | Device | CPU | BIOS | AC result | Battery result | Status | Notes |
 |---|---|---|---|---|---|---|
-| MECHREVO WUJIE15 PRO | Ryzen 7 8845HS | `T153_HPT_V05` | Write/read-back evidence: 10/10/10 W, 12/12/12 W, and earlier 25/25/25 W. A 45 W request read back as 25/45/45 W. Latest clean-package read-only snapshot held required limits at 12/12/12 W. | Read-only battery baseline: 25/25/20 W. Supervised policy transition still pending. | Experimental | Windows build 26300; SMU 15; PM table `4c0009`; firmware can clamp or dynamically manage STAPM while Fast/Slow remain the required package cap |
+| MECHREVO WUJIE15 PRO | Ryzen 7 8845HS | `T153_HPT_V05` | Write/read-back evidence: 10/10/10 W, 12/12/12 W, and earlier 25/25/25 W. A 45 W request read back as 25/45/45 W. Latest clean-package read-only snapshot held required limits at 12/12/12 W. | Supervised policy transition passed: baseline `25/25/20 W`; 12 W target settled near 12 W; AC restored Fast/Slow `45/25 W`; both baselines restored. | Verified | Windows build 26300; SMU 15; PM table `4c0009`; firmware can clamp or dynamically manage STAPM while Fast/Slow remain the required package cap |
 
 ## Firmware Clamp Interpretation
 
@@ -61,6 +61,15 @@ Additional balanced-profile test on 2026-11-09:
   `f31c615f7b838a1cec6c5eee0fcc0f4c4c4c80314d987fa529a0aa697d07134a`.
   Full summary:
   `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-2026-11-10.json`.
+- On 2026-11-10 at 12:43, the supervised packaged-worker policy transition
+  passed. The AC baseline was `39/45/25 W` and the battery baseline was
+  `25/25/20 W`. A `12/12/12 W` battery target wrote successfully, live STAPM
+  settled at about `12.52 W`, and Fast/Slow limits read back at `12 W`.
+  Reconnecting AC applied the original `39/45/25 W` target and restored
+  Fast/Slow to `45/25 W`; STAPM remained firmware-dynamic. The battery and AC
+  baselines were then restored, the policy was disabled, and the worker used
+  graceful shutdown. Evidence:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-policy-2026-11-10.json`.
 - Verified a malformed pipe client that connected and disconnected before
   sending a frame no longer terminates the worker. A subsequent health request
   succeeded with `hardwareInitialized=true`.

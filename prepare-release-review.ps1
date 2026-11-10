@@ -238,7 +238,6 @@ try {
             networkUploadPerformed = $false
         }
         openGates = @(
-            "Supervised AC-to-battery-to-AC policy transition",
             "Read-only evidence from a second AMD platform",
             "GitHub Actions billing or repository visibility confirmation",
             "Project-owner review of final video, claims, cover, and release assets",

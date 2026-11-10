@@ -42,6 +42,8 @@ not authoritative.
 - The current development package was rebuilt from clean commit `71be9c8`:
   593,944 bytes, SHA256
   `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`.
+- The first local stable package is `1.0.0`; its final clean-build hash and
+  deployment verification are recorded below after the release gate.
 
 ## Development Workflow
 
@@ -586,6 +588,18 @@ third_party/
   AC or battery while the full write test still requires starting on AC. The
   battery preflight recorded a `25/25/20 W` baseline, a planned `12/12/12 W`
   target, zero hardware writes, and `shutdownProtocol=PASS`.
+- Fixed the supervised power-policy test to enforce Fast/Slow read-back while
+  treating STAPM as firmware-managed, and to wait for live battery power to
+  settle before passing. Failure cleanup now restores the active baseline before
+  surfacing the exception.
+- The full AC -> battery -> AC policy transition passed on the development
+  8845HS with the packaged worker. AC baseline was `39/45/25 W`, battery
+  baseline was `25/25/20 W`, and the `12/12/12 W` battery target settled at
+  STAPM actual `12.52 W` with Fast/Slow limits at `12.00 W`. Reconnecting AC
+  restored Fast/Slow to `45/25 W`; STAPM remained firmware-dynamic as designed.
+  Both baselines were restored and worker shutdown used the graceful protocol.
+  Evidence:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-policy-2026-11-10.json`.
 
 Development screenshot:
 
@@ -601,15 +615,17 @@ Development screenshot:
   any driver-blocking failures.
 - Add more AMD generation profiles and verify a second physical laptop when
   available.
-- Complete release screenshots, project introduction, and promotional media.
+- Obtain read-only capability evidence from a second physical AMD laptop.
+- Resolve GitHub Actions account billing/visibility and complete final public
+  release review.
 
 ## Next Concrete Task
 
-Run the supervised AC/battery policy transition now that real battery telemetry
-and a screenshot are recorded, and collect a read-only diagnostics report from
-a second AMD laptop. Do not promote a family to supported until a physical
-laptop supplies the capability, telemetry, write, read-back, and restore
-evidence required by `HARDWARE_TEST_PROCEDURE.md`.
+Build and deploy the clean local `1.0.0` package, verify the C: deployment, and
+then collect a read-only diagnostics report from a second AMD laptop. Do not
+promote a family to broadly supported until a physical laptop supplies the
+capability, telemetry, write, read-back, and restore evidence required by
+`HARDWARE_TEST_PROCEDURE.md`.
 
 ## Known Risks
 
@@ -637,7 +653,8 @@ Do not publish a stable release or promotional video until:
 - Third-party notices and licenses are complete.
 - A release checklist and installation documentation exist.
 
-The controlled no-change write gate is complete for the development 8845HS
-using the packaged `0.1.3-dev` build. The remaining hardware gate is a second
-verified AMD platform or generation.
+The controlled no-change write gate and supervised AC/battery policy transition
+are complete for the development 8845HS. A local stable deployment is allowed
+on this laptop after the `1.0.0` release gate passes. Broad public hardware
+support still requires a second verified AMD platform or generation.
 

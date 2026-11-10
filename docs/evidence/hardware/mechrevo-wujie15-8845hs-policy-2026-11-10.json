@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "supervised-ac-battery-policy-transition",
+  "capturedAt": "2026-11-10T12:43:42.6386317+08:00",
+  "package": {
+    "name": "amd-mobile-power-v0.1.3-dev-win-x64-lite.zip",
+    "workerExecutableSha256": "9fecae20f09e445ef4465fe94a0569d2e3e8512d9c135f3db948e9a73b0f5674"
+  },
+  "platform": {
+    "vendor": "MECHREVO",
+    "model": "WUJIE15 PRO",
+    "processor": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "bios": "T153_HPT_V05",
+    "ryzenAdjFamily": 10,
+    "ryzenAdjFamilyName": "Hawk Point",
+    "smuBiosVersion": "15",
+    "pmTableVersion": "4c0009",
+    "matchedProfile": "hawk-point-8845hs"
+  },
+  "environment": {
+    "operatingSystem": "Windows build 26300",
+    "powerShell": "7.6.9",
+    "hardwareWritesConfirmed": true,
+    "processCleanupVerified": true
+  },
+  "baselineLimitWatts": {
+    "ac": {
+      "stapm": 39,
+      "fast": 45,
+      "slow": 25
+    },
+    "battery": {
+      "stapm": 25,
+      "fast": 25,
+      "slow": 20
+    }
+  },
+  "batteryTest": {
+    "requestedLimitWatts": {
+      "stapm": 12,
+      "fast": 12,
+      "slow": 12
+    },
+    "policyApplySucceeded": true,
+    "settledTelemetry": {
+      "stapmActual": 12.516201972961426,
+      "fastActual": 11.995890617370605,
+      "slowActual": 12.008088111877441,
+      "stapmLimit": 14.633454322814941,
+      "fastLimit": 12.000000953674316,
+      "slowLimit": 12.000000953674316
+    },
+    "powerLine": "battery"
+  },
+  "acTransition": {
+    "policyApplySucceeded": true,
+    "restoredRequiredLimits": {
+      "fast": 45,
+      "slow": 25
+    },
+    "stapmRemainedFirmwareDynamic": true,
+    "powerLine": "ac"
+  },
+  "restore": {
+    "batteryRequiredLimitsRestoredWatts": {
+      "fast": 25,
+      "slow": 20
+    },
+    "acRequiredLimitsRestoredWatts": {
+      "fast": 45,
+      "slow": 25
+    },
+    "policyDisabled": true
+  },
+  "cleanup": {
+    "shutdownProtocol": "PASS",
+    "hardwareOwnerRemaining": false
+  },
+  "result": "PASS",
+  "notes": [
+    "Fast and Slow are the enforced package-power limits. STAPM remained firmware-managed and dynamic.",
+    "The laptop settled near 12 W on battery after applying the 12 W target.",
+    "The power bank used by this laptop is reported to Windows as external/AC power, so AC policy cannot distinguish it from a wall adapter."
+  ]
+}

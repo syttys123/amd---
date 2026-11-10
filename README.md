@@ -4,12 +4,12 @@ AMD Mobile Power is an early-development Windows utility for monitoring and,
 after supervised validation, controlling firmware power limits on supported AMD
 thin-and-light laptops.
 
-> Status: no public release yet. The normal GUI and packaged build are read-only.
-> Hardware write support is present but requires two explicit development flags
-> and remains under supervised validation. Controlled 10 W and 12 W write/readback
-> tests and a packaged 12 W no-change write gate passed on the development laptop
-> on 2026-11-10. A real battery read-only baseline was also captured at
-> `STAPM/Fast/Slow = 25/25/20 W`; the full AC/battery transition gate remains pending.
+> Status: no public release yet. A local `1.0.0` stable deployment is validated on
+> one AMD laptop. The normal GUI and packaged build are read-only unless launched
+> with the reviewed local write-control flag. Controlled 10 W and 12 W writes,
+> a packaged no-change write gate, and a supervised AC-to-battery-to-AC policy
+> transition passed on 2026-11-10. Public support still requires a second physical
+> AMD laptop and the remaining publication gates.
 
 ![AMD Mobile Power read-only battery dashboard](docs/assets/main-dashboard-battery-2026-11-10.png)
 
@@ -50,13 +50,15 @@ second hardware owner.
 
 ## Quick Start
 
-The current development package is located at:
+The current local stable package is located at:
 
 ```text
-artifacts/packages/amd-mobile-power-v0.1.3-dev-win-x64-lite.zip
+artifacts/packages/amd-mobile-power-v1.0.0-win-x64-lite.zip
 ```
 
-Extract the ZIP and run `AmdMobilePower.exe`. This starts in read-only mode.
+Extract the ZIP and run `AmdMobilePower.exe`. This starts in read-only mode by
+default. The locally validated write-control deployment is documented in
+`docs/DEPLOYMENT.md`.
 See `docs/INSTALLATION.md` before using `install.ps1`.
 
 The earlier self-contained development package remains available:

@@ -23,7 +23,11 @@
 - [x] Real battery read-only baseline and dashboard capture are recorded.
       Evidence:
       `mechrevo-wujie15-8845hs-battery-preflight-2026-11-10.json`.
-- [ ] Battery and AC policy behavior is verified on real hardware.
+- [x] Battery and AC policy behavior is verified on real hardware.
+      Evidence:
+      `docs/evidence/hardware/mechrevo-wujie15-8845hs-policy-2026-11-10.json`;
+      12 W battery target, automatic AC restore, both baseline restores, and
+      graceful worker shutdown passed.
 - [x] Firmware clamps are documented rather than treated as transport failures.
 - [ ] At least one second AMD platform has read-only evidence.
 - [x] `HARDWARE_MATRIX.md` matches the tested release.
