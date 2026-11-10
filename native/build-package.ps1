@@ -3,6 +3,7 @@ param(
     [switch]$NoBuild,
     [switch]$NoVerify,
     [switch]$SkipRuntimeVerification,
+    [switch]$ReadOnlyRuntimeVerification,
     [string]$EvidencePath
 )
 
@@ -198,12 +199,16 @@ if (-not $NoVerify) {
     }
     else {
         try {
-            & (Join-Path $root "verify-rust-gui.ps1") `
-                -NoBuild `
-                -VerifyWorker `
-                -VerifyWriteControls `
-                -ExecutePolicySave `
-                -GuiExecutable $verifyGui
+            $runtimeVerifyArguments = @{
+                NoBuild = $true
+                VerifyWorker = $true
+                VerifyWriteControls = $true
+                GuiExecutable = $verifyGui
+            }
+            if (-not $ReadOnlyRuntimeVerification) {
+                $runtimeVerifyArguments.ExecutePolicySave = $true
+            }
+            & (Join-Path $root "verify-rust-gui.ps1") @runtimeVerifyArguments
         }
         catch {
             throw "Extracted native package verification failed: $($_.Exception.Message)"
@@ -311,6 +316,15 @@ $result = [pscustomobject]@{
     else {
         "PASS"
     }
+    PolicyWriteVerification = if ($SkipRuntimeVerification -or $NoVerify) {
+        "Skipped"
+    }
+    elseif ($ReadOnlyRuntimeVerification) {
+        "Skipped"
+    }
+    else {
+        "PASS"
+    }
     InstallFlow = if ($NoVerify) { "Skipped" } else { "PASS" }
 }
 
@@ -331,6 +345,7 @@ if ($EvidencePath) {
         RuntimeVerification = $result.RuntimeVerification
         CompatibilityCollector = $result.CompatibilityCollector
         CompatibilityMarkdown = $result.CompatibilityMarkdown
+        PolicyWriteVerification = $result.PolicyWriteVerification
         InstallFlow = $result.InstallFlow
         RecordedAt = (Get-Date).ToString("o")
     } |
