@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-10T14:01:00+08:00",
+  "package": {
+    "directory": "C:\\RyzenAdj",
+    "version": "1.0.1",
+    "sha256": "296bbc58ae400d3bfd43bd0a4665ed9c06e78bf0b3c0cdde582e21cdd11e118c"
+  },
+  "screenshot": {
+    "path": "docs/assets/main-dashboard-v1.0.1-status-2026-11-10.png",
+    "width": 574,
+    "height": 438,
+    "sizeBytes": 24944,
+    "sha256": "992b60f41c979ae74cf6e8ac6dd1c6b844cc1afc4990e7029e9e303a2336b9a9"
+  },
+  "state": {
+    "powerLine": "battery",
+    "dynamicLimitText": "动态上限 25.0 W · 电池",
+    "targetLeftArtifactPixels": 0,
+    "statusBarDetailsButton": "Absent",
+    "statusBarOverlap": "PASS",
+    "verification": "PASS"
+  }
+}

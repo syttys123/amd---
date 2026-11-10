@@ -4,6 +4,8 @@ Last captured: 2026-11-10
 
 Machine-readable evidence:
 `docs/evidence/ui/screenshot-baseline-2026-11-10.json`.
+The deployed `1.0.1` status-bar fix has separate evidence:
+`docs/evidence/ui/v1.0.1-dashboard-2026-11-10.json`.
 
 ## Captured States
 
@@ -15,6 +17,7 @@ Machine-readable evidence:
 | Diagnostics export | `assets/diagnostics-export-2026-11-10.png` | Generic diagnostics filename, save type, save/cancel bottom crop; address bar and personal path excluded |
 | Clean-package dashboard | `assets/main-dashboard-clean-package-2026-11-10.png` | Packaged read-only GUI connected to its bundled worker, `动态上限 12.0 W · 电源`, zero visible boundary violations |
 | Real battery dashboard | `assets/main-dashboard-battery-2026-11-10.png` | Packaged read-only GUI and worker on battery, `动态上限 25.0 W · 电池`, zero visible boundary violations |
+| Deployed `1.0.1` status bar | `assets/main-dashboard-v1.0.1-status-2026-11-10.png` | `C:\RyzenAdj` package on battery, `动态上限 25.0 W · 电池`, bottom `详情` absent, write-state/status non-overlap PASS, target-left artifact pixels 0 |
 | Tray context menu | `assets/tray-menu-clean-package-2026-11-10.png` | `verify-tray-menu.ps1` found the real hidden-tray icon, opened the upward anchored menu, read 11 items, captured the visible bounds, invoked Exit, and confirmed no GUI/worker remained |
 
 All screenshots were captured on the development laptop at 125% scaling.
@@ -41,7 +44,8 @@ Runtime layout checks also passed for compact and advanced mode:
   interactive Windows desktop.
 - The simple dashboard runtime check can be reproduced with
   `verify-dashboard.ps1`: it waits for live worker telemetry, requires
-  `动态上限 ... · 电源/电池`, and fails if any non-background pixel appears
+  `动态上限 ... · 电源/电池`, rejects a bottom `详情` button, checks the
+  write-state/status bounds, and fails if any non-background pixel appears
   immediately left of `目标功耗`.
 - No security controls, driver services, or hardware limits were changed.
 

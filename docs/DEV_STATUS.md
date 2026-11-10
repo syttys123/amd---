@@ -42,12 +42,13 @@ not authoritative.
 - The current development package was rebuilt from clean commit `71be9c8`:
   593,944 bytes, SHA256
   `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`.
-- The current local stable package is `1.0.0`: 593,857 bytes, SHA256
-  `8faa541d06421522119de861f252baf612ee39517e2669350623d05b39b02320`,
-  built from clean commit `c65611b` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` now contains the verified `1.0.0` package. The previous legacy
-  directory is preserved as `C:\RyzenAdj.legacy-before-v1.0.0-20261110-132006`
-  and under the D: deployment-backup directory.
+- The current local stable package is `1.0.1`: 593,759 bytes, SHA256
+  `296bbc58ae400d3bfd43bd0a4665ed9c06e78bf0b3c0cdde582e21cdd11e118c`,
+  built from clean commit `01fd3ae` with .NET SDK `10.0.400`.
+- `C:\RyzenAdj` now contains the verified `1.0.1` package. The previous
+  `1.0.0` deployment is preserved as
+  `C:\RyzenAdj.before-v1.0.1-20261110-135925` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.1-20261110-135925`.
 
 ## Development Workflow
 
@@ -623,6 +624,29 @@ third_party/
   the packaged dashboard gate, read-only diagnostics, and a write-mode launch
   where both GUI and worker logs reported writes enabled. Evidence:
   `docs/evidence/packaging/v1.0.0-deployment-2026-11-10.json`.
+- Removed the redundant bottom `详情` button from simple mode after it collided
+  with the write-state badge or warped the status strip. The footer now has
+  only the fixed write-state badge and a single ellipsized status line; advanced
+  mode remains reachable from the header.
+- Hardened `verify-dashboard.ps1` against transient WinForms UI Automation
+  rectangles. It waits for a stable target label anchor, rejects any bottom
+  `详情` button, checks write-state/status non-overlap, and still requires zero
+  non-background pixels in the target-power left region.
+- Built and verified the clean `1.0.1` Lite package from commit `01fd3ae`:
+  zero build warnings, 71/71 tests, dependency audit, isolated
+  install/overwrite/uninstall, shell integration, tray menu and exit,
+  read-only diagnostics, and the packaged dashboard gate all passed. Evidence:
+  `docs/evidence/packaging/v1.0.1-clean-2026-11-10.json`.
+- Passed the packaged `1.0.1` battery no-change hardware write at
+  `25/25/20 W`; STAPM/Fast/Slow read back at the requested limits, settled live
+  power stayed near `20 W`, and worker shutdown used the graceful protocol.
+  Evidence:
+  `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.1-2026-11-10.json`.
+- Promoted `1.0.1` to `C:\RyzenAdj` after a hash-verified `1.0.0` backup. The
+  deployed path passed all 40 file hashes, the new dashboard overlap gate,
+  read-only diagnostics reporting worker `1.0.1`, and a write-mode shortcut
+  launch using both `C:\RyzenAdj` executables. Evidence:
+  `docs/evidence/packaging/v1.0.1-deployment-2026-11-10.json`.
 
 Development screenshot:
 
@@ -645,7 +669,7 @@ Development screenshot:
 ## Next Concrete Task
 
 Collect a read-only diagnostics report from a second AMD laptop before broad
-public support. Keep `C:\RyzenAdj` on `1.0.0` unless a newer package completes
+public support. Keep `C:\RyzenAdj` on `1.0.1` unless a newer package completes
 the same release and deployment gates.
 
 ## Known Risks
@@ -675,7 +699,7 @@ Do not publish a stable release or promotional video until:
 - A release checklist and installation documentation exist.
 
 The controlled no-change write gate and supervised AC/battery policy transition
-are complete for the development 8845HS. A local stable deployment is allowed
-on this laptop after the `1.0.0` release gate passes. Broad public hardware
-support still requires a second verified AMD platform or generation.
+are complete for the development 8845HS. The `1.0.1` release and deployment
+gates pass on this laptop. Broad public hardware support still requires a second
+verified AMD platform or generation.
 

@@ -44,7 +44,7 @@ install/overwrite/uninstall checks, and current-user shell integration:
 
 ```powershell
 .\verify-release.ps1 `
-  -Version 1.0.0 `
+  -Version 1.0.1 `
   -FrameworkDependent `
   -VerifyShellIntegration `
   -VerifyTrayMenu `

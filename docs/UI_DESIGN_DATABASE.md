@@ -585,6 +585,11 @@ Hero 右侧建议列宽：
   `PPT Fast`、`PPT Slow` 等关键文本。
 - 像素检查确认目标输入左侧不再存在独立灰色 spinner 残点，且目标功耗左侧
   空白区无独立灰色状态点。
+- 部署到 `C:\RyzenAdj` 的 `1.0.1` 运行时再次截图验证：窗口 `574x438`，
+  底部 `详情` 按钮不存在，写入状态与状态消息边界不重叠，目标功耗左侧仍有
+  `0` 个非背景像素。证据：
+  `docs/assets/main-dashboard-v1.0.1-status-2026-11-10.png` 和
+  `docs/evidence/ui/v1.0.1-dashboard-2026-11-10.json`。
 - 受控真实写入：
   - 目标 `10W`：STAPM/Fast/Slow 全部回读 `10.0W`。
   - 随后目标 `12W`：STAPM/Fast/Slow 全部回读 `12.0W`，实时 STAPM 约

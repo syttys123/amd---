@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-10T13:55:56+08:00",
+  "version": "1.0.1",
+  "package": {
+    "path": "artifacts/packages/amd-mobile-power-v1.0.1-win-x64-lite.zip",
+    "sizeBytes": 593759,
+    "sha256": "296bbc58ae400d3bfd43bd0a4665ed9c06e78bf0b3c0cdde582e21cdd11e118c",
+    "frameworkDependent": true
+  },
+  "source": {
+    "commit": "01fd3ae40a70166e4057c02f946549fee987fd80",
+    "workingTree": "Clean",
+    "sdk": "10.0.400"
+  },
+  "contents": {
+    "files": 40,
+    "checksums": 39,
+    "profiles": 9,
+    "licenses": 4
+  },
+  "verification": {
+    "releaseGate": "PASS",
+    "buildWarnings": 0,
+    "buildErrors": 0,
+    "testsPassed": 71,
+    "testsFailed": 0,
+    "format": "PASS",
+    "dependencyAudit": {
+      "result": "PASS",
+      "projects": 6,
+      "vulnerablePackages": 0,
+      "deprecatedPackages": 0
+    },
+    "isolatedInstallOverwriteUninstall": "PASS",
+    "shellIntegration": {
+      "result": "PASS",
+      "startMenuShortcut": "Created and removed",
+      "uninstallEntry": "Created and removed",
+      "customDirectoryUninstallCommand": "Verified",
+      "logonBehavior": "Startup shortcut fallback created and removed"
+    },
+    "trayMenu": {
+      "result": "PASS",
+      "direction": "up",
+      "horizontalTrayGapPixels": 0,
+      "gracefulExit": "PASS"
+    },
+    "diagnostics": {
+      "result": "PASS",
+      "writeControlsEnabled": false,
+      "shutdownProtocol": "PASS"
+    },
+    "dashboard": {
+      "result": "PASS",
+      "powerLineText": "动态上限 25.0 W · 电池",
+      "targetLeftArtifactPixels": 0,
+      "statusBarDetailsButton": "Absent",
+      "statusBarOverlap": "PASS",
+      "screenshot": "artifacts/verify/dashboard-59779f6954cd4304bae562a5ece3c86f.png",
+      "screenshotSha256": "d98b953e551a8862d2676e0eccf519c65c320345f7e956fec0f56ce9229997b8"
+    },
+    "noChangeHardwareWrite": {
+      "result": "PASS",
+      "powerLine": "battery",
+      "targetWatts": {
+        "stapm": 25,
+        "fast": 25,
+        "slow": 20
+      },
+      "evidence": "docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.1-2026-11-10.json"
+    }
+  },
+  "limitations": [
+    "This is a locally verified stable deployment for one physical AMD laptop.",
+    "The current host denied scheduled-task registration, so the Startup-folder fallback was exercised instead of task creation.",
+    "GitHub Actions remains blocked by repository billing state and did not execute the workflow.",
+    "Do not treat this package as universal AMD laptop support or a public release."
+  ]
+}

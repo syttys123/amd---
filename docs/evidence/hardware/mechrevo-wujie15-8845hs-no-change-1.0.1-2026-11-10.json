@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "stable-package-no-change-write",
+  "capturedAt": "2026-11-10T13:52:26.0910819+08:00",
+  "package": {
+    "name": "amd-mobile-power-v1.0.1-win-x64-lite.zip",
+    "sha256": "296bbc58ae400d3bfd43bd0a4665ed9c06e78bf0b3c0cdde582e21cdd11e118c",
+    "workerExecutableSha256": "673f37b13fe7598550a1f8d2c4e9bde2996958b5b30b5d743ba6d191d3748d87"
+  },
+  "platform": {
+    "processor": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "vendor": "AuthenticAMD",
+    "ryzenAdjFamily": 10,
+    "ryzenAdjFamilyName": "Hawk Point",
+    "smuBiosVersion": "15",
+    "pmTableVersion": "4c0009"
+  },
+  "environment": {
+    "powerLine": "battery",
+    "hardwareWritesConfirmed": true,
+    "processCleanupVerified": true
+  },
+  "requestedTargetWatts": {
+    "stapm": 25,
+    "fast": 25,
+    "slow": 20
+  },
+  "readbackWatts": {
+    "stapm": 24.994056701660156,
+    "fast": 25.000001907348633,
+    "slow": 20
+  },
+  "settledTelemetry": {
+    "stapmActual": 20.018693923950195,
+    "stapmLimit": 24.99553871154785,
+    "fastLimit": 25.000001907348633,
+    "slowLimit": 20
+  },
+  "result": "PASS",
+  "cleanup": {
+    "shutdownProtocol": "PASS"
+  },
+  "rawEvidence": "artifacts/verify/no-change-c85a989415134d0fac240d750649dcf4.json"
+}
