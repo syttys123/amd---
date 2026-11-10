@@ -15,6 +15,9 @@ $cppBuild = Join-Path $repositoryRoot "artifacts\native-build\cpp-worker"
 $powerLimitTests = Join-Path `
     $cppBuild `
     "Release\amdmobilepower_power_limit_policy_tests.exe"
+$powerPolicyTests = Join-Path `
+    $cppBuild `
+    "Release\amdmobilepower_power_policy_tests.exe"
 
 if (-not $NoBuild) {
     & (Join-Path $root "build.ps1")
@@ -23,6 +26,12 @@ if (Test-Path -LiteralPath $powerLimitTests) {
     & $powerLimitTests
     if ($LASTEXITCODE -ne 0) {
         throw "C++ power-limit policy tests failed."
+    }
+}
+if (Test-Path -LiteralPath $powerPolicyTests) {
+    & $powerPolicyTests
+    if ($LASTEXITCODE -ne 0) {
+        throw "C++ power-policy tests failed."
     }
 }
 
@@ -181,6 +190,26 @@ if ($VerifyHardware) {
             throw "Native hardware write gate returned an unexpected error: $writeDisabled"
         }
 
+        $policyText = & $rustProbe --pipe-name $pipePath --command getPowerPolicy 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "Native hardware power-policy probe failed: $policyText"
+        }
+        $policy = ($policyText | Out-String).Trim() | ConvertFrom-Json
+        if ($null -ne $policy.settings) {
+            throw "Native hardware worker returned policy settings without write controls."
+        }
+
+        $policyWriteDisabled = & $rustProbe `
+            --pipe-name $pipePath `
+            --command setPowerPolicy `
+            --payload-json '{"settings":{"enabled":true,"batteryTarget":{"stapmWatts":12,"fastWatts":12,"slowWatts":12},"acTarget":{"stapmWatts":45,"fastWatts":45,"slowWatts":45}}}' 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            throw "Native hardware worker allowed setPowerPolicy without --enable-write-controls."
+        }
+        if (($policyWriteDisabled | Out-String) -notmatch "hardware_writes_disabled") {
+            throw "Native hardware power-policy write gate returned an unexpected error: $policyWriteDisabled"
+        }
+
         $capabilities = ($capabilitiesText | Out-String).Trim() | ConvertFrom-Json
         $snapshot = ($snapshotText | Out-String).Trim() | ConvertFrom-Json
         if ($capabilities.platform.isSupported -ne $true) {
@@ -225,6 +254,7 @@ if ($VerifyHardware) {
             FastLimitWatts = $snapshot.telemetry.fastLimitWatts
             SlowLimitWatts = $snapshot.telemetry.slowLimitWatts
             WriteGate = ($writeDisabled | Out-String).Trim()
+            PowerPolicyGate = ($policyWriteDisabled | Out-String).Trim()
             Shutdown = ($shutdown | Out-String).Trim()
         }
     }

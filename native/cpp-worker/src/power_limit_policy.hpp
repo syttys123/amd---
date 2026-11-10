@@ -15,6 +15,12 @@ struct PowerLimitTarget {
     int stapm_watts = 0;
     int fast_watts = 0;
     int slow_watts = 0;
+
+    static PowerLimitTarget uniform(int watts) {
+        return PowerLimitTarget{watts, watts, watts};
+    }
+
+    bool operator==(const PowerLimitTarget&) const = default;
 };
 
 enum class PowerLimitKind {

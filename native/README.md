@@ -78,6 +78,24 @@ The Rust GUI write controls are also opt-in:
 
 Without `-ExecuteNoChangePreset`, this only checks that the controls exist.
 
+The native worker now implements the v1 `getPowerPolicy` and
+`setPowerPolicy` commands. When enabled, a one-second policy loop applies the
+battery or AC target after a power-line change, skips duplicate writes, and
+backs off failed targets for five seconds. The controller is covered by
+fake-backend tests; the read-only IPC gate is part of `verify-native.ps1`.
+
+Check the policy read-only gate or run the supervised no-change hardware path:
+
+```powershell
+.\native\verify-power-policy.ps1 -NoBuild
+.\native\verify-power-policy.ps1 -NoBuild -ExecuteNoChangePolicy `
+    -EvidencePath .\docs\evidence\hardware\power-policy-no-change.json
+```
+
+The no-change path reads the current limits, uses them as the active
+power-line target, sets the other power-line target to 12 W, verifies the
+worker-reported apply result, disables the policy, and shuts down the worker.
+
 Build and verify the portable native preview ZIP:
 
 ```powershell

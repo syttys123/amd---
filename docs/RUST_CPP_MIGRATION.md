@@ -107,6 +107,15 @@ The 45 W preset was exercised as a supervised no-change apply on the 8845HS;
 see
 `docs/evidence/hardware/mechrevo-wujie15-8845hs-native-gui-no-change-2026-11-10T12-24-30Z.json`.
 
+The native worker now also implements the v1 battery/AC policy boundary:
+`getPowerPolicy` reports the configured targets and last attempt state;
+`setPowerPolicy` validates both targets against the active profile and remains
+behind the worker write-controls flag. A one-second monitor applies the target
+for the current power line, skips duplicate writes, and applies a five-second
+backoff after failures. The controller has fake-backend tests, the read-only
+gate is included in `verify-native.ps1`, and the supervised no-change path is
+available through `verify-power-policy.ps1`.
+
 `native/build-package.ps1` creates a portable native preview ZIP with the GUI,
 C++ worker, runtime DLL/SYS files, notices, licenses, build metadata, and
 checksums. The ZIP includes `install-preview.ps1` and

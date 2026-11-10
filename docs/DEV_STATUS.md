@@ -792,6 +792,16 @@ third_party/
   Capability payloads now expose profile id, display name, range, default, and
   verification state. The Rust GUI clamps its 12/25/45 presets to the active
   profile and still passed the full 45/45/45 W no-change path.
+- Added the native worker's battery/AC power-policy controller and v1
+  `getPowerPolicy` / `setPowerPolicy` commands. The policy validates both
+  targets against the active profile, applies the active power-line target
+  once per change, retries failed targets after a five-second backoff, and
+  reports last-observed power line, last applied target, timestamp, and error
+  state. Fake-backend tests cover battery-to-AC switching, duplicate-write
+  suppression, failure backoff, disabled policy, and unknown power-line
+  handling. `verify-native.ps1` now checks the read-only policy gate; the
+  supervised AC no-change path will be recorded from a clean commit in the
+  native power-policy evidence file.
 
 Development screenshot:
 
@@ -813,6 +823,9 @@ Development screenshot:
 - Connect the native worker's now-present validated `applyTarget` path to a
   packaged native runtime and broaden the hardware matrix beyond the 8845HS;
   keep `1.0.4` as the stable fallback.
+- Wire the native policy settings into the Rust GUI, including persistence and
+  profile-aware user editing; the worker-side policy is implemented but not
+  yet exposed through the preview GUI.
 
 ## Next Concrete Task
 

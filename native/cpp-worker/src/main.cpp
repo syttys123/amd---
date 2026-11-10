@@ -1,15 +1,20 @@
 #include <windows.h>
 
+#include "power_policy.hpp"
 #include "ryzen_hardware.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cctype>
 #include <cmath>
 #include <cstdint>
+#include <ctime>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -31,6 +36,10 @@ struct Request {
 
 struct ApplyTargetPayload {
     amd_mobile_power::PowerLimitTarget target;
+};
+
+struct SetPowerPolicyPayload {
+    amd_mobile_power::PowerPolicySettings settings;
 };
 
 struct PipeHandle {
@@ -146,6 +155,73 @@ std::optional<int> ExtractJsonInt(std::string_view json, std::string_view key) {
     return negative ? -value : value;
 }
 
+std::optional<bool> ExtractJsonBool(std::string_view json, std::string_view key) {
+    const std::string needle = "\"" + std::string(key) + "\"";
+    const std::size_t key_position = json.find(needle);
+    if (key_position == std::string_view::npos) {
+        return std::nullopt;
+    }
+    const std::size_t colon_position = json.find(':', key_position + needle.size());
+    if (colon_position == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    std::size_t position = colon_position + 1;
+    while (position < json.size() &&
+        std::isspace(static_cast<unsigned char>(json[position]))) {
+        ++position;
+    }
+    if (json.substr(position, 4) == "true") {
+        return true;
+    }
+    if (json.substr(position, 5) == "false") {
+        return false;
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string_view> ExtractJsonObject(
+    std::string_view json,
+    std::string_view key) {
+    const std::string needle = "\"" + std::string(key) + "\"";
+    const std::size_t key_position = json.find(needle);
+    if (key_position == std::string_view::npos) {
+        return std::nullopt;
+    }
+    const std::size_t start = json.find('{', key_position + needle.size());
+    if (start == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    int depth = 0;
+    bool in_string = false;
+    bool escaped = false;
+    for (std::size_t index = start; index < json.size(); ++index) {
+        const char character = json[index];
+        if (in_string) {
+            if (escaped) {
+                escaped = false;
+            } else if (character == '\\') {
+                escaped = true;
+            } else if (character == '"') {
+                in_string = false;
+            }
+            continue;
+        }
+        if (character == '"') {
+            in_string = true;
+        } else if (character == '{') {
+            ++depth;
+        } else if (character == '}') {
+            --depth;
+            if (depth == 0) {
+                return json.substr(start, index - start + 1);
+            }
+        }
+    }
+    return std::nullopt;
+}
+
 std::optional<ApplyTargetPayload> ParseApplyTargetPayload(std::string_view json) {
     const auto stapm = ExtractJsonInt(json, "stapmWatts");
     const auto fast = ExtractJsonInt(json, "fastWatts");
@@ -155,6 +231,60 @@ std::optional<ApplyTargetPayload> ParseApplyTargetPayload(std::string_view json)
     }
     return ApplyTargetPayload{
         amd_mobile_power::PowerLimitTarget{*stapm, *fast, *slow}};
+}
+
+std::optional<SetPowerPolicyPayload> ParseSetPowerPolicyPayload(
+    std::string_view json) {
+    const auto settings_json = ExtractJsonObject(json, "settings");
+    if (!settings_json) {
+        return std::nullopt;
+    }
+    const auto enabled = ExtractJsonBool(*settings_json, "enabled");
+    const auto battery_json = ExtractJsonObject(*settings_json, "batteryTarget");
+    const auto ac_json = ExtractJsonObject(*settings_json, "acTarget");
+    if (!enabled || !battery_json || !ac_json) {
+        return std::nullopt;
+    }
+
+    const auto parse_target = [](std::string_view target_json)
+        -> std::optional<amd_mobile_power::PowerLimitTarget> {
+        const auto stapm = ExtractJsonInt(target_json, "stapmWatts");
+        const auto fast = ExtractJsonInt(target_json, "fastWatts");
+        const auto slow = ExtractJsonInt(target_json, "slowWatts");
+        if (!stapm || !fast || !slow) {
+            return std::nullopt;
+        }
+        return amd_mobile_power::PowerLimitTarget{*stapm, *fast, *slow};
+    };
+    const auto battery = parse_target(*battery_json);
+    const auto ac = parse_target(*ac_json);
+    if (!battery || !ac) {
+        return std::nullopt;
+    }
+    return SetPowerPolicyPayload{
+        amd_mobile_power::PowerPolicySettings{
+            *enabled,
+            *battery,
+            *ac}};
+}
+
+amd_mobile_power::PowerLineState ParsePowerLineState(std::string_view value) {
+    if (value == "ac") {
+        return amd_mobile_power::PowerLineState::Ac;
+    }
+    if (value == "battery") {
+        return amd_mobile_power::PowerLineState::Battery;
+    }
+    return amd_mobile_power::PowerLineState::Unknown;
+}
+
+std::string CurrentUtcTimestamp() {
+    const std::time_t now = std::time(nullptr);
+    std::tm utc{};
+    gmtime_s(&utc, &now);
+    std::ostringstream value;
+    value << std::put_time(&utc, "%Y-%m-%dT%H:%M:%SZ");
+    return value.str();
 }
 
 std::string EscapeJsonString(std::string_view value) {
@@ -360,6 +490,48 @@ std::string SnapshotPayload(
     return output.str();
 }
 
+class WorkerPolicyBackend final : public amd_mobile_power::IPowerPolicyBackend {
+public:
+    WorkerPolicyBackend(
+        amd_mobile_power::RyzenHardware& hardware,
+        std::mutex& hardware_mutex)
+        : hardware_(hardware), hardware_mutex_(hardware_mutex) {
+    }
+
+    bool Observe(
+        amd_mobile_power::PowerPolicyObservation& observation,
+        std::string& error) override {
+        std::lock_guard<std::mutex> lock(hardware_mutex_);
+        observation.platform = hardware_.Probe();
+        if (!observation.platform.is_supported ||
+            !observation.platform.profile) {
+            error = observation.platform.unsupported_reason.value_or(
+                "The platform has no supported power profile.");
+            return false;
+        }
+
+        std::string refresh_error;
+        const auto telemetry = hardware_.Refresh(refresh_error);
+        if (!refresh_error.empty()) {
+            error = refresh_error;
+            return false;
+        }
+        observation.power_line = ParsePowerLineState(telemetry.power_line);
+        return true;
+    }
+
+    amd_mobile_power::PowerLimitApplicationResult ApplyTarget(
+        const amd_mobile_power::PowerLimitTarget& target,
+        const amd_mobile_power::PlatformCapability& capability) override {
+        std::lock_guard<std::mutex> lock(hardware_mutex_);
+        return hardware_.ApplyTarget(target, capability);
+    }
+
+private:
+    amd_mobile_power::RyzenHardware& hardware_;
+    std::mutex& hardware_mutex_;
+};
+
 std::string PowerLimitTargetPayload(
     const amd_mobile_power::PowerLimitTarget& target) {
     std::ostringstream output;
@@ -367,6 +539,62 @@ std::string PowerLimitTargetPayload(
         << "{\"stapmWatts\":" << target.stapm_watts
         << ",\"fastWatts\":" << target.fast_watts
         << ",\"slowWatts\":" << target.slow_watts << "}";
+    return output.str();
+}
+
+void AppendOptionalBool(std::ostringstream& output, const std::optional<bool>& value) {
+    if (value) {
+        output << (*value ? "true" : "false");
+    } else {
+        output << "null";
+    }
+}
+
+void AppendOptionalPowerLine(
+    std::ostringstream& output,
+    const std::optional<amd_mobile_power::PowerLineState>& value) {
+    if (value) {
+        output << '"' << amd_mobile_power::PowerLineStateName(*value) << '"';
+    } else {
+        output << "null";
+    }
+}
+
+std::string PowerPolicySettingsPayload(
+    const amd_mobile_power::PowerPolicySettings& settings) {
+    std::ostringstream output;
+    output
+        << "{\"enabled\":" << (settings.enabled ? "true" : "false")
+        << ",\"batteryTarget\":" << PowerLimitTargetPayload(settings.battery_target)
+        << ",\"acTarget\":" << PowerLimitTargetPayload(settings.ac_target)
+        << "}";
+    return output.str();
+}
+
+std::string PowerPolicyStatePayload(
+    const amd_mobile_power::PowerPolicyState& state) {
+    std::ostringstream output;
+    output << "{\"settings\":";
+    if (state.settings) {
+        output << PowerPolicySettingsPayload(*state.settings);
+    } else {
+        output << "null";
+    }
+    output << ",\"lastObservedPowerLine\":";
+    AppendOptionalPowerLine(output, state.last_observed_power_line);
+    output << ",\"lastAppliedTarget\":";
+    if (state.last_applied_target) {
+        output << PowerLimitTargetPayload(*state.last_applied_target);
+    } else {
+        output << "null";
+    }
+    output << ",\"lastAttemptAt\":";
+    AppendOptionalString(output, state.last_attempt_at);
+    output << ",\"lastAttemptSucceeded\":";
+    AppendOptionalBool(output, state.last_attempt_succeeded);
+    output << ",\"lastError\":";
+    AppendOptionalString(output, state.last_error);
+    output << "}";
     return output.str();
 }
 
@@ -560,6 +788,29 @@ int wmain(int argc, wchar_t* argv[]) {
         }
     }
 
+    std::mutex hardware_mutex;
+    std::mutex policy_mutex;
+    amd_mobile_power::PowerPolicyController policy_controller;
+    std::unique_ptr<WorkerPolicyBackend> policy_backend;
+    std::jthread policy_thread;
+    if (enable_write_controls && hardware) {
+        policy_backend = std::make_unique<WorkerPolicyBackend>(
+            *hardware,
+            hardware_mutex);
+        policy_thread = std::jthread([&](std::stop_token stop_token) {
+            while (!stop_token.stop_requested()) {
+                {
+                    std::lock_guard<std::mutex> policy_lock(policy_mutex);
+                    policy_controller.Tick(
+                        *policy_backend,
+                        std::chrono::steady_clock::now(),
+                        CurrentUtcTimestamp());
+                }
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
+        });
+    }
+
     PipeHandle pipe;
     pipe.value = CreateNamedPipeW(
         pipe_name.c_str(),
@@ -628,14 +879,21 @@ int wmain(int argc, wchar_t* argv[]) {
                         "hardware_unavailable",
                         "The native worker was started without --enable-hardware.");
                 } else {
-                    const auto capability = hardware->Probe();
+                    amd_mobile_power::PlatformCapability capability;
+                    amd_mobile_power::TelemetrySnapshot telemetry;
+                    std::string refresh_error;
+                    {
+                        std::lock_guard<std::mutex> hardware_lock(hardware_mutex);
+                        capability = hardware->Probe();
+                        if (request.command == "getSnapshot") {
+                            telemetry = hardware->Refresh(refresh_error);
+                        }
+                    }
                     if (request.command == "getCapabilities") {
                         response = SuccessResponse(
                             request.request_id,
                             CapabilityPayload(capability));
                     } else {
-                        std::string refresh_error;
-                        const auto telemetry = hardware->Refresh(refresh_error);
                         response = refresh_error.empty()
                             ? SuccessResponse(
                                   request.request_id,
@@ -644,6 +902,69 @@ int wmain(int argc, wchar_t* argv[]) {
                                   request.request_id,
                                   "refresh_failed",
                                   refresh_error);
+                    }
+                }
+            } else if (request.command == "getPowerPolicy") {
+                std::lock_guard<std::mutex> policy_lock(policy_mutex);
+                response = SuccessResponse(
+                    request.request_id,
+                    PowerPolicyStatePayload(policy_controller.state()));
+            } else if (request.command == "setPowerPolicy") {
+                if (!enable_write_controls) {
+                    response = ErrorResponse(
+                        request.request_id,
+                        "hardware_writes_disabled",
+                        "Hardware power-limit writes are disabled for this worker.");
+                } else if (!hardware || !hardware->IsInitialized()) {
+                    response = ErrorResponse(
+                        request.request_id,
+                        "hardware_unavailable",
+                        "The native worker was started without --enable-hardware.");
+                } else {
+                    const auto payload = ParseSetPowerPolicyPayload(request_line);
+                    if (!payload) {
+                        response = ErrorResponse(
+                            request.request_id,
+                            "invalid_request",
+                            "setPowerPolicy requires settings.enabled, settings.batteryTarget, and settings.acTarget.");
+                    } else {
+                        std::lock_guard<std::mutex> policy_lock(policy_mutex);
+                        std::lock_guard<std::mutex> hardware_lock(hardware_mutex);
+                        const auto capability = hardware->Probe();
+                        if (!capability.is_supported || !capability.profile) {
+                            response = ErrorResponse(
+                                request.request_id,
+                                "unsupported_platform",
+                                capability.unsupported_reason.value_or(
+                                    "The platform does not support power-limit writes."));
+                        } else {
+                            const auto battery_validation =
+                                amd_mobile_power::ValidatePowerLimitTarget(
+                                    payload->settings.battery_target,
+                                    capability.profile->minimum_watts,
+                                    capability.profile->maximum_watts,
+                                    capability.limits.supports_fast,
+                                    capability.limits.supports_slow);
+                            const auto ac_validation =
+                                amd_mobile_power::ValidatePowerLimitTarget(
+                                    payload->settings.ac_target,
+                                    capability.profile->minimum_watts,
+                                    capability.profile->maximum_watts,
+                                    capability.limits.supports_fast,
+                                    capability.limits.supports_slow);
+                            if (battery_validation || ac_validation) {
+                                response = ErrorResponse(
+                                    request.request_id,
+                                    "invalid_target",
+                                    battery_validation.value_or(
+                                        ac_validation.value_or("Power policy target is invalid.")));
+                            } else {
+                                policy_controller.SetSettings(payload->settings);
+                                response = SuccessResponse(
+                                    request.request_id,
+                                    PowerPolicyStatePayload(policy_controller.state()));
+                            }
+                        }
                     }
                 }
             } else if (request.command == "applyTarget") {
@@ -658,6 +979,7 @@ int wmain(int argc, wchar_t* argv[]) {
                         "hardware_unavailable",
                         "The native worker was started without --enable-hardware.");
                 } else {
+                    std::lock_guard<std::mutex> hardware_lock(hardware_mutex);
                     const auto payload = ParseApplyTargetPayload(request_line);
                     if (!payload) {
                         response = ErrorResponse(
@@ -716,7 +1038,7 @@ int wmain(int argc, wchar_t* argv[]) {
                 response = ErrorResponse(
                     request.request_id,
                     "unsupported_command",
-                    "Native worker implements getHealth, getCapabilities, getSnapshot, applyTarget, and shutdown.");
+                    "Native worker implements getHealth, getCapabilities, getSnapshot, applyTarget, getPowerPolicy, setPowerPolicy, and shutdown.");
             }
             if (!WriteAll(pipe.value, response)) {
                 std::wcerr << L"WriteFile failed: " << GetLastError() << L"\n";

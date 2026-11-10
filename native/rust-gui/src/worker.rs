@@ -7,12 +7,39 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 pub const DEFAULT_PIPE_NAME: &str = r"\\.\pipe\AmdMobilePower.RustGui.Worker.v1";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PowerLimitTarget {
     pub stapm_watts: i32,
     pub fast_watts: i32,
     pub slow_watts: i32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum PowerLineState {
+    Unknown,
+    Ac,
+    Battery,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PowerPolicySettings {
+    pub enabled: bool,
+    pub battery_target: PowerLimitTarget,
+    pub ac_target: PowerLimitTarget,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PowerPolicyState {
+    pub settings: Option<PowerPolicySettings>,
+    pub last_observed_power_line: Option<PowerLineState>,
+    pub last_applied_target: Option<PowerLimitTarget>,
+    pub last_attempt_at: Option<String>,
+    pub last_attempt_succeeded: Option<bool>,
+    pub last_error: Option<String>,
 }
 
 impl PowerLimitTarget {
@@ -158,6 +185,23 @@ impl WorkerClient {
         serde_json::from_value(payload).map_err(|error| error.to_string())
     }
 
+    pub fn get_power_policy(&self) -> Result<PowerPolicyState, String> {
+        let payload = self.request("getPowerPolicy", Value::Null)?;
+        serde_json::from_value(payload).map_err(|error| error.to_string())
+    }
+
+    pub fn set_power_policy(
+        &self,
+        settings: PowerPolicySettings,
+    ) -> Result<PowerPolicyState, String> {
+        let payload = serde_json::to_value(serde_json::json!({
+            "settings": settings
+        }))
+        .map_err(|error| format!("unable to build setPowerPolicy payload: {error}"))?;
+        let payload = self.request("setPowerPolicy", payload)?;
+        serde_json::from_value(payload).map_err(|error| error.to_string())
+    }
+
     pub fn shutdown(&self) -> Result<(), String> {
         self.request("shutdown", Value::Null).map(|_| ())
     }
@@ -242,7 +286,9 @@ fn normalize_pipe_name(value: String) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{normalize_pipe_name, WorkerClient};
+    use super::{
+        normalize_pipe_name, PowerLimitTarget, PowerPolicySettings, WorkerClient,
+    };
 
     #[test]
     fn pipe_name_is_normalized_for_the_windows_namespace() {
@@ -269,6 +315,32 @@ mod tests {
                 "stapmWatts": 12,
                 "fastWatts": 12,
                 "slowWatts": 12
+            })
+        );
+    }
+
+    #[test]
+    fn power_policy_payload_uses_the_v1_camel_case_contract() {
+        let value = serde_json::to_value(PowerPolicySettings {
+            enabled: true,
+            battery_target: PowerLimitTarget::uniform(12),
+            ac_target: PowerLimitTarget::uniform(45),
+        })
+        .unwrap();
+        assert_eq!(
+            value,
+            serde_json::json!({
+                "enabled": true,
+                "batteryTarget": {
+                    "stapmWatts": 12,
+                    "fastWatts": 12,
+                    "slowWatts": 12
+                },
+                "acTarget": {
+                    "stapmWatts": 45,
+                    "fastWatts": 45,
+                    "slowWatts": 45
+                }
             })
         );
     }
