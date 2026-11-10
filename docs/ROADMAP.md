@@ -41,6 +41,8 @@
   10 W/12 W write/readback tests.
 - [x] Add editable native quick presets with backward-compatible persistence
   and direct tray-menu application commands.
+- [x] Add schema-1 native GUI diagnostics export with an explicit privacy block
+  and no paths, process IDs, logs, or upload.
 
 ## M4: Compatibility
 

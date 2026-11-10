@@ -87,6 +87,13 @@ current target, with every value clamped to the active platform profile.
 Right-clicking the tray icon also exposes the same presets as direct
 `应用预设` commands when write controls are enabled.
 
+`导出诊断` is available in both read-only and write-enabled launches. It writes
+a schema-1 JSON document under
+`%LocalAppData%\AmdMobilePower\diagnostics\` containing the current sanitized
+worker snapshot and, when available, the battery/AC policy. The report excludes
+local paths, process IDs, account names, serial numbers, logs, pipe names, and
+never uploads anything.
+
 The native worker now implements the v1 `getPowerPolicy` and
 `setPowerPolicy` commands. When enabled, a one-second policy loop applies the
 battery or AC target after a power-line change, skips duplicate writes, and

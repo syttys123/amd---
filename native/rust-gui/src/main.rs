@@ -16,7 +16,7 @@ use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use windows_sys::Win32::Foundation::{
     CloseHandle, GetLastError, ERROR_ALREADY_EXISTS, HANDLE, HINSTANCE, HWND, LPARAM, LRESULT,
     WPARAM,
@@ -61,8 +61,10 @@ const PRESET_45: usize = 103;
 const APPLY_TARGET: usize = 104;
 const POLICY_SAVE: usize = 105;
 const PRESET_SAVE: usize = 106;
+const EXPORT_DIAGNOSTICS: usize = 107;
 const PRESET_MENU_START: usize = 201;
 const PRESET_EDIT_START: usize = 301;
+const STATUS_HOLD: Duration = Duration::from_secs(5);
 
 #[derive(Clone, Copy)]
 struct PolicyControls {
@@ -91,6 +93,10 @@ struct GuiApp {
     profile: Option<ProfilePayload>,
     saved_policy: Option<PowerPolicySettings>,
     policy_profile_applied: bool,
+    latest_snapshot: Option<SnapshotPayload>,
+    latest_policy: Option<PowerPolicyState>,
+    worker_error: Option<String>,
+    status_hold_until: Instant,
 }
 
 impl GuiApp {
@@ -116,6 +122,10 @@ impl GuiApp {
             profile: None,
             saved_policy: None,
             policy_profile_applied: false,
+            latest_snapshot: None,
+            latest_policy: None,
+            worker_error: None,
+            status_hold_until: Instant::now(),
         }
     }
 }
@@ -123,6 +133,9 @@ impl GuiApp {
 struct StatusUpdate {
     text: String,
     profile: Option<ProfilePayload>,
+    snapshot: Option<SnapshotPayload>,
+    policy: Option<PowerPolicyState>,
+    worker_error: Option<String>,
 }
 
 impl Drop for GuiApp {
@@ -313,6 +326,77 @@ fn format_snapshot(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>
     format!("{status}\n{}", format_policy_state(policy))
 }
 
+fn package_version_from_build_info() -> Option<String> {
+    let executable = std::env::current_exe().ok()?;
+    let path = executable.parent()?.join("BUILD-INFO.txt");
+    let contents = std::fs::read_to_string(path).ok()?;
+    contents.lines().find_map(|line| {
+        line.strip_prefix("Version=")
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(str::to_owned)
+    })
+}
+
+fn diagnostics_document(
+    snapshot: &SnapshotPayload,
+    policy: Option<&PowerPolicyState>,
+    write_controls_enabled: bool,
+    package_version: Option<&str>,
+    captured_at_unix_ms: u128,
+) -> serde_json::Value {
+    serde_json::json!({
+        "schemaVersion": 1,
+        "product": "AMD Mobile Power native preview",
+        "guiVersion": env!("CARGO_PKG_VERSION"),
+        "packageVersion": package_version,
+        "capturedAtUnixMs": captured_at_unix_ms,
+        "writeControlsEnabled": write_controls_enabled,
+        "powerPolicy": policy,
+        "snapshot": snapshot,
+        "privacy": {
+            "containsLocalPaths": false,
+            "containsProcessIds": false,
+            "containsAccountNames": false,
+            "containsSerialNumbers": false,
+            "containsLogs": false,
+            "uploaded": false
+        }
+    })
+}
+
+fn export_diagnostics(app: &GuiApp) -> Result<PathBuf, String> {
+    let snapshot = app
+        .latest_snapshot
+        .as_ref()
+        .ok_or_else(|| "尚未收到可导出的 worker 遥测。".to_owned())?;
+    let local_app_data =
+        std::env::var_os("LOCALAPPDATA").ok_or_else(|| "LOCALAPPDATA 不可用。".to_owned())?;
+    let directory = PathBuf::from(local_app_data)
+        .join("AmdMobilePower")
+        .join("diagnostics");
+    std::fs::create_dir_all(&directory)
+        .map_err(|error| format!("无法创建 {}：{error}", directory.display()))?;
+    let captured_at_unix_ms = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| format!("系统时间不可用：{error}"))?
+        .as_millis();
+    let package_version = package_version_from_build_info();
+    let document = diagnostics_document(
+        snapshot,
+        app.latest_policy.as_ref(),
+        app.write_enabled,
+        package_version.as_deref(),
+        captured_at_unix_ms,
+    );
+    let contents = serde_json::to_vec_pretty(&document)
+        .map_err(|error| format!("无法序列化诊断报告：{error}"))?;
+    let path = directory.join(format!("native-gui-diagnostics-{captured_at_unix_ms}.json"));
+    std::fs::write(&path, contents)
+        .map_err(|error| format!("无法写入 {}：{error}", path.display()))?;
+    Ok(path)
+}
+
 fn parse_options() -> Result<Options, String> {
     let mut options = Options::default();
     let mut arguments = std::env::args().skip(1);
@@ -398,13 +482,22 @@ fn start_worker_monitor(
         while !stop.load(Ordering::SeqCst) {
             let policy = client.get_power_policy().ok();
             let update = match client.snapshot() {
-                Ok(snapshot) => StatusUpdate {
-                    text: format_snapshot(&snapshot, policy.as_ref()),
-                    profile: snapshot.platform.matched_profile.clone(),
-                },
+                Ok(snapshot) => {
+                    let profile = snapshot.platform.matched_profile.clone();
+                    StatusUpdate {
+                        text: format_snapshot(&snapshot, policy.as_ref()),
+                        profile,
+                        snapshot: Some(snapshot),
+                        policy,
+                        worker_error: None,
+                    }
+                }
                 Err(error) => StatusUpdate {
                     text: format!("worker 不可用\n{error}"),
                     profile: None,
+                    snapshot: None,
+                    policy,
+                    worker_error: Some(error),
                 },
             };
             unsafe {
@@ -572,6 +665,31 @@ unsafe fn create_preset_controls(
     );
 
     edits
+}
+
+unsafe fn create_export_button(
+    hwnd: HWND,
+    instance: HINSTANCE,
+    x: i32,
+    y: i32,
+    width: i32,
+) -> HWND {
+    let button_class = wide("BUTTON");
+    let text = wide("导出诊断");
+    CreateWindowExW(
+        0,
+        button_class.as_ptr(),
+        text.as_ptr(),
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+        x,
+        y,
+        width,
+        30,
+        hwnd,
+        EXPORT_DIAGNOSTICS as HMENU,
+        instance,
+        std::ptr::null(),
+    )
 }
 
 unsafe fn get_control_text(hwnd: HWND) -> String {
@@ -745,6 +863,10 @@ fn format_policy_result(settings: PowerPolicySettings, result: Result<(), String
         ),
         Err(error) => format!("策略保存失败。\n{error}"),
     }
+}
+
+fn hold_status(app: &mut GuiApp) {
+    app.status_hold_until = Instant::now() + STATUS_HOLD;
 }
 
 unsafe fn save_preset_edits(app: &mut GuiApp) -> Result<(), String> {
@@ -1065,13 +1187,16 @@ unsafe extern "system" fn window_proc(
             let pointer = lparam as *mut StatusUpdate;
             if !pointer.is_null() {
                 let update = Box::from_raw(pointer);
-                if !app.status_label.is_null() {
+                if !app.status_label.is_null() && Instant::now() >= app.status_hold_until {
                     let text = wide(&update.text);
                     SetWindowTextW(app.status_label, text.as_ptr());
                 }
                 if let Some(profile) = &update.profile {
                     apply_profile_to_presets(app, hwnd, profile);
                 }
+                app.latest_snapshot = update.snapshot;
+                app.latest_policy = update.policy;
+                app.worker_error = update.worker_error;
             }
             0
         }
@@ -1081,6 +1206,7 @@ unsafe extern "system" fn window_proc(
             if !pointer.is_null() {
                 let text = Box::from_raw(pointer);
                 if !app.status_label.is_null() {
+                    hold_status(app);
                     let text = wide(&text);
                     SetWindowTextW(app.status_label, text.as_ptr());
                 }
@@ -1093,6 +1219,7 @@ unsafe extern "system" fn window_proc(
             if !pointer.is_null() {
                 let text = Box::from_raw(pointer);
                 if !app.status_label.is_null() {
+                    hold_status(app);
                     let text = wide(&text);
                     SetWindowTextW(app.status_label, text.as_ptr());
                 }
@@ -1127,6 +1254,18 @@ unsafe extern "system" fn window_proc(
                         Err(error) => format!("快捷预设保存失败。\n{error}"),
                     };
                     if !app.status_label.is_null() {
+                        hold_status(app);
+                        let text = wide(&message);
+                        SetWindowTextW(app.status_label, text.as_ptr());
+                    }
+                }
+                EXPORT_DIAGNOSTICS => {
+                    let message = match export_diagnostics(app) {
+                        Ok(path) => format!("诊断已导出：\n{}", path.display()),
+                        Err(error) => format!("诊断导出失败。\n{error}"),
+                    };
+                    if !app.status_label.is_null() {
+                        hold_status(app);
                         let text = wide(&message);
                         SetWindowTextW(app.status_label, text.as_ptr());
                     }
@@ -1134,6 +1273,7 @@ unsafe extern "system" fn window_proc(
                 APPLY_TARGET if app.write_enabled && !app.apply_in_flight => {
                     app.apply_in_flight = true;
                     if !app.status_label.is_null() {
+                        hold_status(app);
                         let text = wide(&format!(
                             "正在应用 {} W / {} W / {} W…",
                             app.selected_target.stapm_watts,
@@ -1245,7 +1385,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let window_height = if options.enable_write_controls {
         580
     } else {
-        380
+        420
     };
     let hwnd = unsafe {
         CreateWindowExW(
@@ -1280,6 +1420,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             (*app).preset_buttons =
                 Some(create_action_buttons(hwnd, instance, (*app).preset_watts));
             (*app).preset_edits = Some(create_preset_controls(hwnd, instance, (*app).preset_watts));
+            let _ = create_export_button(hwnd, instance, 428, 390, 120);
             (*app).policy_controls = Some(create_policy_controls(hwnd, instance));
             (*app).saved_policy = state::load_power_policy();
             if let Some(saved) = (*app).saved_policy {
@@ -1294,6 +1435,8 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                     );
                 }
             }
+        } else {
+            let _ = create_export_button(hwnd, instance, 18, 348, 120);
         }
     }
 
@@ -1350,7 +1493,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{clamp_preset_values, format_policy_state, format_snapshot, preset_menu_label};
+    use super::{
+        clamp_preset_values, diagnostics_document, format_policy_state, format_snapshot,
+        preset_menu_label,
+    };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
         PowerPolicySettings, PowerPolicyState, ProfilePayload, SnapshotPayload, TelemetryPayload,
@@ -1476,5 +1622,45 @@ mod tests {
     fn tray_preset_labels_include_their_editable_value() {
         assert_eq!(preset_menu_label(0, 10), "应用预设 1：10 W");
         assert_eq!(preset_menu_label(2, 43), "应用预设 3：43 W");
+    }
+
+    #[test]
+    fn diagnostics_export_is_versioned_and_sanitized() {
+        let snapshot = sample_snapshot();
+        let policy = PowerPolicyState {
+            settings: Some(PowerPolicySettings {
+                enabled: true,
+                battery_target: PowerLimitTarget::uniform(10),
+                ac_target: PowerLimitTarget::uniform(12),
+            }),
+            last_observed_power_line: Some(PowerLineState::Ac),
+            last_applied_target: Some(PowerLimitTarget::uniform(12)),
+            last_attempt_at: Some("2026-11-11T00:00:00Z".to_owned()),
+            last_attempt_succeeded: Some(true),
+            last_error: None,
+        };
+        let document = diagnostics_document(
+            &snapshot,
+            Some(&policy),
+            false,
+            Some("0.6.0-native-test"),
+            1_762_819_200_000,
+        );
+        let text = serde_json::to_string_pretty(&document).unwrap();
+
+        assert_eq!(document["schemaVersion"], 1);
+        assert_eq!(document["packageVersion"], "0.6.0-native-test");
+        assert_eq!(
+            document["snapshot"]["platform"]["cpu"]["processorName"],
+            "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics"
+        );
+        assert_eq!(
+            document["powerPolicy"]["settings"]["batteryTarget"]["stapmWatts"],
+            10
+        );
+        assert_eq!(document["privacy"]["containsLocalPaths"], false);
+        assert_eq!(document["privacy"]["uploaded"], false);
+        assert!(!text.contains(r"\\.\pipe\"));
+        assert!(!text.contains(r"C:\"));
     }
 }

@@ -296,6 +296,57 @@ try {
         }
     }
 
+    $diagnosticsExportResult = "Not requested"
+    if ($VerifyWorker) {
+        $exportButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+            $window,
+            107)
+        if ($exportButton -eq [IntPtr]::Zero) {
+            throw "Rust GUI diagnostics export button was not found."
+        }
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $exportButton,
+            0x00F5,
+            [UIntPtr]107,
+            [IntPtr]::Zero) | Out-Null
+
+        $diagnosticsDirectory = Join-Path `
+            $isolatedLocalAppData `
+            "AmdMobilePower\diagnostics"
+        $diagnosticsPath = $null
+        $deadline = [DateTime]::UtcNow.AddSeconds(5)
+        while ([DateTime]::UtcNow -lt $deadline) {
+            $diagnosticsPath = Get-ChildItem `
+                -LiteralPath $diagnosticsDirectory `
+                -Filter "native-gui-diagnostics-*.json" `
+                -ErrorAction SilentlyContinue |
+                Sort-Object LastWriteTimeUtc -Descending |
+                Select-Object -First 1 -ExpandProperty FullName
+            if ($diagnosticsPath) {
+                break
+            }
+            Start-Sleep -Milliseconds 50
+        }
+        if (-not $diagnosticsPath) {
+            throw "Rust GUI did not write a diagnostics JSON file."
+        }
+        $diagnosticsText = Get-Content -LiteralPath $diagnosticsPath -Raw
+        $diagnostics = $diagnosticsText | ConvertFrom-Json
+        if ($diagnostics.schemaVersion -ne 1 -or
+            $diagnostics.product -ne "AMD Mobile Power native preview" -or
+            $diagnostics.privacy.containsLocalPaths -ne $false -or
+            $diagnostics.privacy.containsProcessIds -ne $false -or
+            $diagnostics.privacy.uploaded -ne $false -or
+            $diagnostics.snapshot.platform.cpu.processorName -notmatch "^AMD Ryzen") {
+            throw "Rust GUI diagnostics report is incomplete: $diagnosticsText"
+        }
+        if ($diagnosticsText.Contains($isolatedLocalAppData) -or
+            $diagnosticsText -match "\\\\\.\\pipe\\") {
+            throw "Rust GUI diagnostics report leaked a local path or pipe name."
+        }
+        $diagnosticsExportResult = "PASS"
+    }
+
     $writePresetResult = "Not requested"
     $presetEditingResult = "Not requested"
     if ($VerifyWriteControls) {
@@ -533,6 +584,7 @@ try {
                 $null
             }
             WorkerStatus = $workerStatus
+            DiagnosticsExport = $diagnosticsExportResult
             TargetWatts = if ($ExecuteNoChangePreset) { "45/45/45" } else { $null }
             WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
             PresetEditing = $presetEditingResult
@@ -553,6 +605,7 @@ try {
         SingleInstanceWake = "PASS"
         WorkerReadOnly = if ($VerifyWorker) { "PASS" } else { "Not requested" }
         WorkerStatus = if ($VerifyWorker) { $workerStatus } else { $null }
+        DiagnosticsExport = $diagnosticsExportResult
         WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
         PresetEditing = $presetEditingResult
         WritePreset = $writePresetResult

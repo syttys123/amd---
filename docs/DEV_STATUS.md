@@ -973,12 +973,29 @@ third_party/
   controlled AC no-change policy write on the live `10/10/10 W` state.
   Evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.8-release-gate-2026-11-11.json`.
+- Added a native GUI `导出诊断` action in both read-only and write-enabled
+  modes. It writes schema-1 JSON under
+  `%LocalAppData%\AmdMobilePower\diagnostics\` with the current snapshot,
+  optional power policy, package/GUI versions, capture timestamp, and an
+  explicit privacy block. The report omits paths, process IDs, account names,
+  serial numbers, logs, pipe names, and has no upload path. Runtime verification
+  clicked the real button under an isolated `%LocalAppData%`, parsed the
+  generated JSON, and confirmed the 8845HS AC snapshot and privacy fields.
+  Rust tests are now 24 in total (`17` library + `7` GUI), Clippy remains clean
+  with `-D warnings`, and user-action status messages now stay visible for five
+  seconds instead of being replaced by the next telemetry tick. Screenshots:
+  `assets/native-gui-readonly-diagnostics-2026-11-11.png` and
+  `assets/native-gui-write-diagnostics-2026-11-11.png`.
 
 Development screenshot:
 
 ![Compact mode at 12 W](assets/gui-simple-12w-2026-11-10.png)
 
 ![Native preview editable presets](assets/native-gui-editable-presets-2026-11-11.png)
+
+![Native preview read-only diagnostics](assets/native-gui-readonly-diagnostics-2026-11-11.png)
+
+![Native preview write diagnostics](assets/native-gui-write-diagnostics-2026-11-11.png)
 
 ## In Progress
 

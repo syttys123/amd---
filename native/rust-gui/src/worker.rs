@@ -31,7 +31,7 @@ pub struct PowerPolicySettings {
     pub ac_target: PowerLimitTarget,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PowerPolicyState {
     pub settings: Option<PowerPolicySettings>,
@@ -73,14 +73,14 @@ pub struct HealthPayload {
     pub hardware_initialized: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SnapshotPayload {
     pub platform: PlatformPayload,
     pub telemetry: TelemetryPayload,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlatformPayload {
     pub cpu: CpuPayload,
@@ -90,7 +90,7 @@ pub struct PlatformPayload {
     pub unsupported_reason: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfilePayload {
     pub id: String,
@@ -101,7 +101,7 @@ pub struct ProfilePayload {
     pub is_verified: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CpuPayload {
     pub processor_name: String,
@@ -112,7 +112,7 @@ pub struct CpuPayload {
     pub pm_table_version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LimitsPayload {
     pub supports_stapm: bool,
@@ -121,7 +121,7 @@ pub struct LimitsPayload {
     pub supports_any: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TelemetryPayload {
     pub target_watts: Option<f64>,
@@ -286,9 +286,7 @@ fn normalize_pipe_name(value: String) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        normalize_pipe_name, PowerLimitTarget, PowerPolicySettings, WorkerClient,
-    };
+    use super::{normalize_pipe_name, PowerLimitTarget, PowerPolicySettings, WorkerClient};
 
     #[test]
     fn pipe_name_is_normalized_for_the_windows_namespace() {
