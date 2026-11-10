@@ -378,6 +378,18 @@ and closes the menu without clicking a power action. With
 `-VerifyGracefulExit`, it invokes `退出` after the screenshot and verifies clean
 GUI/worker teardown.
 
+Verify the taskbar and notification-area lifecycle against a packaged build:
+
+```powershell
+.\verify-ui-lifecycle.ps1 `
+  -PackageDirectory artifacts\packages\amd-mobile-power-v1.0.4-win-x64-lite
+```
+
+The script launches the package in read-only mode and verifies three
+minimize/restore cycles, close-to-tray, second-instance wake-up, and the absence
+of new `AmdMobilePower.exe` crash events. It requires an interactive desktop
+and refuses to run while another GUI instance is active.
+
 The current verified local stable package uses SHA256:
 
 ```text

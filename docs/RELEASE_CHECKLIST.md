@@ -60,6 +60,8 @@
       the unified power-line label.
       Evidence: `verify-release.ps1 -VerifyDashboard`; live worker telemetry
       displayed `动态上限 25.0 W · 电源` with zero target-left artifact pixels.
+- [ ] Packaged taskbar and notification-area lifecycle passes.
+      Evidence pending: `verify-release.ps1 -VerifyUiLifecycle`.
 - [x] No machine-specific diagnostics, logs, or user data are included.
 
 ## Documentation And Media

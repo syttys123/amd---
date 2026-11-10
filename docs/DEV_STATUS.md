@@ -694,6 +694,18 @@ third_party/
 - Verified the deployed tray lifecycle: single-click restore passed, the tray
   menu opened with 11 items and exited gracefully, and terminating the GUI left
   no orphaned worker process.
+- Diagnosed the remaining `1.0.3` WER crash as a WinForms message-chain
+  `System.StackOverflowException` caused by the `Resize` handler hiding the
+  form whenever `WindowState` briefly became `Minimized`. Minimizing now keeps
+  the window in the taskbar; only close/X, `--tray`, or the explicit hide action
+  hides it to the notification area.
+- Unified show and hide requests behind `RequestShowFromTray()` and
+  `RequestHideToTray()`, made each action idempotent, and routed the
+  single-instance listener through the same queued restore path.
+- Added `verify-ui-lifecycle.ps1` and the `-VerifyUiLifecycle` release gate. It
+  checks three Win32 minimize/restore cycles, close-to-tray, second-instance
+  wake-up, and new Windows Application crash events. The development Release
+  build passed in PowerShell 7 with `ApplicationCrashEvents = 0`.
 
 Development screenshot:
 
@@ -715,9 +727,11 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Collect a read-only diagnostics report from a second AMD laptop before broad
-public support. Keep `C:\RyzenAdj` on `1.0.3` unless a newer package completes
-the same release and deployment gates.
+Build `1.0.4` from the lifecycle fix, run the complete release gate, pass the
+controlled no-change hardware write, and promote it to `C:\RyzenAdj` only after
+the current `1.0.3` deployment has a recoverable backup. Then start the Rust GUI
+and C++ privileged-worker migration in a separate branch while `1.0.4` remains
+the stable rollback point.
 
 ## Known Risks
 

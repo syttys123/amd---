@@ -93,7 +93,9 @@ internal sealed class MainForm : Form
     private bool _connected;
     private bool _applying;
     private bool _trayHintShown;
+    private bool _trayHidden;
     private bool _exitRequested;
+    private bool _hideQueued;
     private bool _showQueued;
     private bool _syncingTargets;
     private UiMode _uiMode;
@@ -136,23 +138,11 @@ internal sealed class MainForm : Form
         BeginInvoke(ApplyDpiCompensatedWindowSize);
         if (_startHidden)
         {
-            BeginInvoke(HideToTray);
+            RequestHideToTray();
         }
 
         _refreshTimer.Start();
         _ = RefreshSnapshotAsync(manual: false);
-    }
-
-    protected override void WndProc(ref Message message)
-    {
-        const int WmClose = 0x0010;
-        if (message.Msg == WmClose && !_exitRequested)
-        {
-            BeginInvoke(HideToTray);
-            return;
-        }
-
-        base.WndProc(ref message);
     }
 
     protected override void OnFormClosing(FormClosingEventArgs eventArgs)
@@ -160,7 +150,7 @@ internal sealed class MainForm : Form
         if (!_exitRequested)
         {
             eventArgs.Cancel = true;
-            BeginInvoke(HideToTray);
+            RequestHideToTray();
             return;
         }
 
@@ -255,18 +245,11 @@ internal sealed class MainForm : Form
         root.Controls.Add(_footerHost, 0, 2);
         UpdateDisplayModeControls();
 
-        Resize += delegate
-        {
-            if (WindowState == FormWindowState.Minimized)
-            {
-                HideToTray();
-            }
-        };
         KeyDown += delegate (object? sender, KeyEventArgs eventArgs)
         {
             if (eventArgs.KeyCode == Keys.Escape)
             {
-                HideToTray();
+                RequestHideToTray();
             }
         };
     }
@@ -1943,7 +1926,7 @@ internal sealed class MainForm : Form
         _trayMenu.Items.Add(new ToolStripSeparator());
 
         ToolStripMenuItem hideItem = new("隐藏到托盘");
-        hideItem.Click += delegate { HideToTray(); };
+        hideItem.Click += delegate { RequestHideToTray(); };
         _trayMenu.Items.Add(hideItem);
 
         ToolStripMenuItem exitItem = new("退出");
@@ -3038,7 +3021,7 @@ internal sealed class MainForm : Form
                 try
                 {
                     _showEvent.WaitOne();
-                    if (IsDisposed)
+                    if (IsDisposed || _lifetime.IsCancellationRequested)
                     {
                         break;
                     }
@@ -3047,10 +3030,21 @@ internal sealed class MainForm : Form
                         Thread.Sleep(50);
                         continue;
                     }
-                    BeginInvoke(ShowFromTray);
+                    RequestShowFromTray();
                 }
-                catch
+                catch (ObjectDisposedException)
                 {
+                    break;
+                }
+                catch (InvalidOperationException)
+                {
+                    Thread.Sleep(50);
+                }
+                catch (Exception error)
+                {
+                    AppDiagnostics.Gui.Error(
+                        "GUI show listener stopped unexpectedly.",
+                        error);
                     break;
                 }
             }
@@ -3068,15 +3062,18 @@ internal sealed class MainForm : Form
         {
             return;
         }
-        if (WindowState == FormWindowState.Minimized)
-        {
-            WindowState = FormWindowState.Normal;
-        }
+
+        AppDiagnostics.Gui.Info("Restoring GUI window.");
+        _trayHidden = false;
         ShowInTaskbar = true;
         Opacity = 1;
         if (!Visible)
         {
             Show();
+        }
+        if (WindowState == FormWindowState.Minimized)
+        {
+            WindowState = FormWindowState.Normal;
         }
         Activate();
         BringToFront();
@@ -3089,6 +3086,21 @@ internal sealed class MainForm : Form
             return;
         }
 
+        if (InvokeRequired)
+        {
+            try
+            {
+                BeginInvoke((Action)RequestShowFromTray);
+            }
+            catch (Exception error) when (
+                error is InvalidOperationException or ObjectDisposedException)
+            {
+                AppDiagnostics.Gui.Warning(
+                    $"Unable to queue GUI restore request: {error.Message}");
+            }
+            return;
+        }
+
         _showQueued = true;
         try
         {
@@ -3098,20 +3110,26 @@ internal sealed class MainForm : Form
                 ShowFromTray();
             });
         }
-        catch (InvalidOperationException)
+        catch (Exception error) when (
+            error is InvalidOperationException or ObjectDisposedException)
         {
+            AppDiagnostics.Gui.Warning(
+                $"Unable to show GUI window: {error.Message}");
             _showQueued = false;
         }
     }
 
     private void HideToTray()
     {
-        if (IsDisposed || _exitRequested)
+        if (IsDisposed || _exitRequested || _trayHidden)
         {
             return;
         }
-        Hide();
+
+        AppDiagnostics.Gui.Info("Hiding GUI window to notification area.");
+        _trayHidden = true;
         ShowInTaskbar = false;
+        Hide();
         if (!_trayHintShown)
         {
             _notifyIcon.ShowBalloonTip(
@@ -3120,6 +3138,31 @@ internal sealed class MainForm : Form
                 "程序仍在托盘运行。",
                 ToolTipIcon.Info);
             _trayHintShown = true;
+        }
+    }
+
+    private void RequestHideToTray()
+    {
+        if (IsDisposed || _exitRequested || _hideQueued || _trayHidden)
+        {
+            return;
+        }
+
+        _hideQueued = true;
+        try
+        {
+            BeginInvoke(delegate
+            {
+                _hideQueued = false;
+                HideToTray();
+            });
+        }
+        catch (Exception error) when (
+            error is InvalidOperationException or ObjectDisposedException)
+        {
+            AppDiagnostics.Gui.Warning(
+                $"Unable to queue GUI hide request: {error.Message}");
+            _hideQueued = false;
         }
     }
 

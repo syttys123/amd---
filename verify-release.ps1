@@ -6,6 +6,7 @@ param(
     [switch]$VerifyShellIntegration,
     [switch]$VerifyTrayMenu,
     [switch]$VerifyTrayExit,
+    [switch]$VerifyUiLifecycle,
     [switch]$VerifyDiagnostics,
     [switch]$VerifyDashboard
 )
@@ -254,6 +255,14 @@ try {
         $trayParentExit = "PASS"
     }
 
+    $uiLifecycle = "Not requested"
+    if ($VerifyUiLifecycle) {
+        & (Join-Path $root "verify-ui-lifecycle.ps1") `
+            -PackageDirectory $stage `
+            -NoBuild | Out-Null
+        $uiLifecycle = "PASS"
+    }
+
     $diagnostics = "Not requested"
     $diagnosticsPath = $null
     if ($VerifyDiagnostics) {
@@ -359,6 +368,7 @@ try {
         TrayRecovery = $trayRecovery
         TrayParentExit = $trayParentExit
         TrayExit = if ($VerifyTrayExit) { "PASS" } else { "Not requested" }
+        UiLifecycle = $uiLifecycle
         TrayMenuScreenshot = $trayMenuScreenshot
         Diagnostics = $diagnostics
         DiagnosticsReport = $diagnosticsPath

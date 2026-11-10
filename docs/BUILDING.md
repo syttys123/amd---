@@ -44,10 +44,11 @@ install/overwrite/uninstall checks, and current-user shell integration:
 
 ```powershell
 .\verify-release.ps1 `
-  -Version 1.0.3 `
+  -Version 1.0.4 `
   -FrameworkDependent `
   -VerifyShellIntegration `
   -VerifyTrayMenu `
+  -VerifyUiLifecycle `
   -VerifyDashboard `
   -VerifyDiagnostics
 ```
@@ -57,6 +58,10 @@ diagnostics; a dirty result is not release evidence. Omit
 `-VerifyShellIntegration` on a machine where the fixed Start menu or uninstall
 entry already exists. `-VerifyTrayMenu` requires an interactive desktop and
 writes its runtime screenshot under `artifacts/verify`, not into tracked media.
+`-VerifyUiLifecycle` launches the packaged GUI in read-only mode, runs three
+minimize/restore cycles through Win32, verifies close-to-tray, wakes the
+existing process with a second launch, and fails if Windows records a new
+application crash during the run. It requires an interactive desktop.
 `-VerifyDiagnostics` launches the packaged worker in read-only mode, exports a
 sanitized compatibility report through the packaged collector, and requires
 graceful shutdown. `-VerifyDashboard` validates the packaged simple-mode
@@ -98,6 +103,18 @@ primary actions and three editable presets, validates the upward placement
 against the screen bounds, captures the media asset, closes the menu without
 invoking an action, and stops only the processes it started. This check needs
 an interactive Windows desktop and is not part of headless CI.
+
+Verify the taskbar and notification-area lifecycle without touching hardware
+writes:
+
+```powershell
+.\verify-ui-lifecycle.ps1 `
+  -PackageDirectory artifacts\packages\amd-mobile-power-v1.0.4-win-x64-lite
+```
+
+The script refuses to run while another GUI is active. It checks three
+minimize/restore cycles, the close-to-tray path, second-instance wake-up, and
+the Windows Application log for new `AmdMobilePower.exe` crash events.
 
 ## Build RyzenAdj
 
