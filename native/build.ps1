@@ -68,6 +68,7 @@ if (-not $cmake) {
 $cppBuild = Join-Path $repositoryRoot "artifacts\native-build\cpp-worker"
 $workerRuntime = Join-Path $repositoryRoot "artifacts\native-build\worker-runtime"
 $ryzenAdjRuntime = Join-Path $repositoryRoot "artifacts\ryzenadj-runtime"
+$rustGuiManifest = Join-Path $root "rust-gui\Cargo.toml"
 Push-Location $repositoryRoot
 try {
     & $cmake `
@@ -82,6 +83,23 @@ try {
     & $cmake --build $cppBuild --config $Configuration
     if ($LASTEXITCODE -ne 0) {
         throw "C++ worker build failed."
+    }
+
+    & cargo test `
+        --manifest-path $rustGuiManifest `
+        --locked `
+        --offline
+    if ($LASTEXITCODE -ne 0) {
+        throw "Rust GUI lifecycle tests failed."
+    }
+
+    & cargo build `
+        --manifest-path $rustGuiManifest `
+        --release `
+        --locked `
+        --offline
+    if ($LASTEXITCODE -ne 0) {
+        throw "Rust GUI build failed."
     }
 
     $cargoArguments = @(

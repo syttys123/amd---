@@ -31,6 +31,7 @@ data, and shuts it down. It does not expose or call any write function.
 
 The script builds:
 
+- `native\rust-gui` with Cargo and runs its lifecycle state-machine tests.
 - `native\rust-probe` with Cargo.
 - `native\cpp-worker` with the Visual Studio CMake toolchain.
 

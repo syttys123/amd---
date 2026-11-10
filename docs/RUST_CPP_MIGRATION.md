@@ -42,6 +42,9 @@ native build passes the same release and hardware gates.
 
 The first migration slice adds:
 
+- `native/rust-gui`: a dependency-free lifecycle state machine for window
+  visibility, taskbar/tray behavior, queued single-instance wake-up, and
+  explicit exit. It is covered by unit tests before any Win32 calls are added.
 - `native/rust-probe`: a dependency-light Rust named-pipe client that sends
   `getHealth` and parses the v1 response.
 - `native/cpp-worker`: a Windows named-pipe worker skeleton that implements
@@ -56,3 +59,9 @@ The first migration slice adds:
 
 The C++ skeleton intentionally has no hardware adapter yet. It is a transport
 and process-boundary milestone, not a replacement for the stable worker.
+
+The Rust GUI lifecycle layer intentionally separates `MinimizeWindow` from
+`HideWindow`. A minimized window remains in the taskbar; only close, `--tray`,
+or an explicit hide request moves it to the notification area. A second
+instance queues a wake request for the UI thread instead of manipulating the
+window from the pipe callback thread.
