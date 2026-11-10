@@ -15,6 +15,39 @@ jobs:
         with:
           dotnet-version: 10.0.400
       - uses: dtolnay/rust-toolchain@stable
+      - name: Verify PowerShell syntax
+        shell: pwsh
+        run: |
+          $files = @(
+            "native/build.ps1",
+            "native/build-package.ps1",
+            "native/verify-native.ps1",
+            "native/verify-rust-gui.ps1",
+            "native/verify-release.ps1",
+            "native/verify-upgrade.ps1",
+            "native/capture-rust-gui-redesign.ps1"
+          )
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $file),
+              [ref]$tokens,
+              [ref]$errors
+            ) | Out-Null
+            if ($errors.Count -gt 0) {
+              throw "$file syntax errors: $($errors.Message -join '; ')"
+            }
+          }
+      - name: Verify Rust formatting and lint
+        shell: pwsh
+        run: |
+          cargo fmt --manifest-path native\rust-gui\Cargo.toml -- --check
+          cargo clippy `
+            --manifest-path native\rust-gui\Cargo.toml `
+            --all-targets `
+            --locked `
+            -- -D warnings
       - name: Verify native migration slice
         shell: pwsh
         run: |
@@ -27,7 +60,7 @@ jobs:
         shell: pwsh
         run: |
           .\native\build.ps1
-          $version = "0.5.0-ci." + $env:GITHUB_RUN_NUMBER
+          $version = "0.6.0-native-ci." + $env:GITHUB_RUN_NUMBER
           .\native\build-package.ps1 `
             -NoBuild `
             -SkipRuntimeVerification `
@@ -39,7 +72,7 @@ jobs:
       - name: Verify release gates and build package
         shell: pwsh
         run: |
-          $version = "0.1.0-" + $env:GITHUB_SHA.Substring(0, 7)
+          $version = "1.0.5-ci." + $env:GITHUB_SHA.Substring(0, 7)
           .\verify-release.ps1 `
             -Version $version `
             -VerifyShellIntegration `

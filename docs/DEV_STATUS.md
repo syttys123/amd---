@@ -81,6 +81,10 @@ not authoritative.
 - Native simple/advanced screenshots are now reproducible through
   `native\capture-rust-gui-redesign.ps1`, which uses an isolated
   `%LocalAppData%` and unique worker pipe and does not request a power write.
+- The Windows CI definition now checks PowerShell syntax, Rust formatting,
+  Clippy with `-D warnings`, native builds/tests, native package generation,
+  dependency audit, and the existing .NET release gate. The external GitHub
+  Actions billing/spending-limit blocker still prevents observing a hosted run.
 
 ## Development Workflow
 
