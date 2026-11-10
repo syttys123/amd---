@@ -115,6 +115,9 @@ try {
     $targetLabel = $null
     $powerLine = $null
     $targetInput = $null
+    $writeStateLabel = $null
+    $statusLabel = $null
+    $detailsButton = $null
     $deadline = [DateTime]::UtcNow.AddSeconds(10)
     while ([DateTime]::UtcNow -lt $deadline) {
         $elements = $rootElement.FindAll(
@@ -141,7 +144,29 @@ try {
                 $_.Current.Name -eq "简洁模式目标功耗"
             } |
             Select-Object -First 1
-        if ($targetLabel -and $powerLine -and $targetInput) {
+        $writeStateLabel = $elements |
+            Where-Object {
+                $_.Current.ControlType -eq
+                    [System.Windows.Automation.ControlType]::Text -and
+                $_.Current.Name -match "^(只读模式|写入已解锁|平台不支持写入)$"
+            } |
+            Select-Object -First 1
+        $statusLabel = $elements |
+            Where-Object {
+                $_.Current.ControlType -eq
+                    [System.Windows.Automation.ControlType]::Text -and
+                $_.Current.Name -match "^(正在连接 worker\.\.\.|worker 已连接，状态已更新|状态已刷新)"
+            } |
+            Select-Object -First 1
+        $detailsButton = $elements |
+            Where-Object {
+                $_.Current.ControlType -eq
+                    [System.Windows.Automation.ControlType]::Button -and
+                $_.Current.Name -eq "详情"
+            } |
+            Select-Object -First 1
+        if ($targetLabel -and $powerLine -and $targetInput -and
+            $writeStateLabel -and $statusLabel) {
             break
         }
         Start-Sleep -Milliseconds 250
@@ -154,6 +179,28 @@ try {
     }
     if (-not $targetInput) {
         throw "Simple-mode dashboard is missing the target-power input."
+    }
+    if (-not $writeStateLabel) {
+        throw "Simple-mode dashboard is missing the write-state label."
+    }
+    if (-not $statusLabel) {
+        throw "Simple-mode dashboard is missing the status message."
+    }
+    if ($detailsButton) {
+        throw "Simple-mode dashboard still exposes the overlapping details button."
+    }
+
+    $stateBounds = $writeStateLabel.Current.BoundingRectangle
+    $statusBounds = $statusLabel.Current.BoundingRectangle
+    $statusOverlap =
+        -not (
+            $stateBounds.Right -le $statusBounds.Left -or
+            $statusBounds.Right -le $stateBounds.Left -or
+            $stateBounds.Bottom -le $statusBounds.Top -or
+            $statusBounds.Bottom -le $stateBounds.Top
+        )
+    if ($statusOverlap) {
+        throw "Simple-mode write-state and status labels overlap."
     }
 
     $width = $windowRect.Right - $windowRect.Left
@@ -215,6 +262,8 @@ try {
         PowerLineText = $powerLine.Current.Name
         TargetInputText = $targetInput.Current.Name
         TargetLeftArtifactPixels = 0
+        StatusBarDetailsButton = "Absent"
+        StatusBarOverlap = "PASS"
         WindowBounds = (
             "{0},{1},{2},{3}" -f
                 $windowRect.Left,

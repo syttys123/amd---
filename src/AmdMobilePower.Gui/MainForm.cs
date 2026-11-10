@@ -716,7 +716,7 @@ internal sealed class MainForm : Form
         _simpleStatusBar = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            ColumnCount = 4,
+            ColumnCount = 3,
             RowCount = 1,
             BackColor = AppTheme.SurfaceMuted,
             Margin = Padding.Empty,
@@ -725,7 +725,6 @@ internal sealed class MainForm : Form
         _simpleStatusBar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 92));
         _simpleStatusBar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 8));
         _simpleStatusBar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        _simpleStatusBar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58));
 
         _simpleWriteStateLabel = AppTheme.CreateLabel(
             _writeControlsEnabled ? "写入模式" : "只读模式",
@@ -749,27 +748,8 @@ internal sealed class MainForm : Form
         _simpleStatusLabel.Margin = Padding.Empty;
         _simpleStatusLabel.Padding = new Padding(2, 0, 6, 0);
         _simpleStatusLabel.BackColor = Color.Transparent;
-        _simpleStatusLabel.AutoEllipsis = false;
+        _simpleStatusLabel.AutoEllipsis = true;
         _simpleStatusBar.Controls.Add(_simpleStatusLabel, 2, 0);
-
-        FlatTextButton details = new()
-        {
-            Text = "详情",
-            Dock = DockStyle.Fill,
-            Margin = new Padding(0, 4, 0, 4),
-            BackColor = Color.Transparent,
-            ForeColor = AppTheme.TextMuted,
-            Font = AppTheme.SmallBold,
-            Cursor = Cursors.Hand,
-            TabStop = true,
-            TabIndex = 6,
-            AccessibleName = "打开高级模式查看详情"
-        };
-        details.FlatAppearance.BorderSize = 0;
-        details.FlatAppearance.MouseOverBackColor = AppTheme.Surface;
-        details.FlatAppearance.MouseDownBackColor = AppTheme.Border;
-        details.Click += delegate { SwitchDisplayMode(UiMode.Advanced); };
-        _simpleStatusBar.Controls.Add(details, 3, 0);
         return _simpleStatusBar;
     }
 
@@ -3012,7 +2992,7 @@ internal sealed class MainForm : Form
             return text;
         }
 
-        return "操作失败，请打开高级模式查看详情";
+        return "操作失败，请重试";
     }
 
     private static string TranslatePowerWriteError(string text)
