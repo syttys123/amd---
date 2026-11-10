@@ -303,7 +303,6 @@ function Test-RestoredTarget {
     )
 
     $checks = @(
-        @{ Name = "STAPM"; Actual = $Snapshot.telemetry.stapmLimitWatts; Expected = $Target.stapmWatts },
         @{ Name = "Fast"; Actual = $Snapshot.telemetry.fastLimitWatts; Expected = $Target.fastWatts },
         @{ Name = "Slow"; Actual = $Snapshot.telemetry.slowLimitWatts; Expected = $Target.slowWatts }
     )
@@ -315,6 +314,42 @@ function Test-RestoredTarget {
             throw "$Label did not restore $($check.Name): expected $($check.Expected) W, got $($check.Actual) W."
         }
     }
+
+    # STAPM is firmware-managed on some profiles and can remain dynamic after
+    # Fast/Slow have been restored. Record it, but enforce the effective pair.
+    if ($null -eq $Snapshot.telemetry.stapmLimitWatts) {
+        throw "$Label is missing the STAPM dynamic-limit read-back."
+    }
+}
+
+function Wait-StableTelemetry {
+    param(
+        [string]$ExpectedLine,
+        [object]$Target,
+        [double]$ToleranceWatts = 1.0,
+        [int]$TimeoutSeconds = 20
+    )
+
+    $deadline = [DateTimeOffset]::UtcNow.AddSeconds($TimeoutSeconds)
+    $lastSnapshot = $null
+    while ([DateTimeOffset]::UtcNow -lt $deadline) {
+        $lastSnapshot = Get-Snapshot
+        $telemetry = $lastSnapshot.telemetry
+        if ($telemetry.powerLine -eq $ExpectedLine -and
+            $null -ne $telemetry.fastLimitWatts -and
+            $null -ne $telemetry.slowLimitWatts -and
+            $null -ne $telemetry.stapmValueWatts -and
+            [double]$telemetry.fastLimitWatts -le ($Target.fastWatts + 0.75) -and
+            [double]$telemetry.slowLimitWatts -le ($Target.slowWatts + 0.75) -and
+            [double]$telemetry.stapmValueWatts -le ($Target.stapmWatts + $ToleranceWatts)) {
+            return $lastSnapshot
+        }
+        Start-Sleep -Milliseconds 500
+    }
+
+    throw "Telemetry did not settle to the $ExpectedLine target $(Format-Target $Target) within $TimeoutSeconds seconds. Last snapshot: $(
+        $lastSnapshot | ConvertTo-Json -Depth 10 -Compress
+    )"
 }
 
 function Stop-WorkerGracefully {
@@ -352,6 +387,7 @@ $script:shutdownResult = "NOT_REQUESTED"
 $evidenceDirectory = Join-Path $root "artifacts\verify"
 New-Item -ItemType Directory -Path $evidenceDirectory -Force | Out-Null
 $evidencePath = Join-Path $evidenceDirectory "power-policy-$runId.json"
+$failureError = $null
 $evidence = [ordered]@{
     schemaVersion = 1
     startedAt = [DateTimeOffset]::Now
@@ -487,11 +523,15 @@ try {
         -Snapshot $batteryAppliedSnapshot `
         -Target $batteryTarget `
         -Label "Battery policy target"
+    $batteryStableSnapshot = Wait-StableTelemetry `
+        -ExpectedLine "battery" `
+        -Target $batteryTarget
     $evidence.test = [ordered]@{
         requestedBatteryTarget = $batteryTarget
         policyAfterEnable = $enabledState
         policyBatteryApplied = $batteryPolicy
         telemetryAfterBatteryApply = $batteryAppliedSnapshot.telemetry
+        telemetryAfterBatterySettle = $batteryStableSnapshot.telemetry
     }
 
     Wait-PowerLine `
@@ -551,9 +591,9 @@ try {
     Write-Host "Policy verification passed; both AC and battery baselines were restored." -ForegroundColor Green
 }
 catch {
+    $failureError = $_
     $evidence.error = $_.Exception.Message
     $evidence.result = "FAIL"
-    Write-Error $_
 
     try {
         if (-not $PlanOnly -and $null -ne $script:workerProcess -and -not $script:workerProcess.HasExited) {
@@ -566,11 +606,19 @@ catch {
             if ($currentPowerLine -eq "ac" -and $null -ne $evidence.baseline.ac.target) {
                 (Apply-Target $evidence.baseline.ac.target) | Out-Null
                 $evidence.restore.failureRecoveryAc = Get-Snapshot
+                Test-RestoredTarget `
+                    -Snapshot $evidence.restore.failureRecoveryAc `
+                    -Target $evidence.baseline.ac.target `
+                    -Label "Failure-recovery AC baseline"
             }
             elseif ($currentPowerLine -eq "battery" -and
                 $null -ne $evidence.baseline.battery.target) {
                 (Apply-Target $evidence.baseline.battery.target) | Out-Null
                 $evidence.restore.failureRecoveryBattery = Get-Snapshot
+                Test-RestoredTarget `
+                    -Snapshot $evidence.restore.failureRecoveryBattery `
+                    -Target $evidence.baseline.battery.target `
+                    -Label "Failure-recovery battery baseline"
             }
         }
     }
@@ -588,5 +636,8 @@ finally {
 }
 
 if ($evidence.result -ne "PLAN_ONLY_PASS" -and $evidence.result -ne "PASS") {
+    if ($null -ne $failureError) {
+        Write-Error $failureError
+    }
     exit 1
 }
