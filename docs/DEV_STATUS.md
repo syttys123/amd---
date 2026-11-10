@@ -857,6 +857,18 @@ third_party/
   deployed product and daily driver at `C:\RyzenAdj` (`1.0.4`). The native
   Rust/C++ line stays an experimental preview until it reaches feature and UI
   parity; it will not replace the GUI on the strength of packaging alone.
+- Fixed two GUI-line defects found while re-verifying the deployed package.
+  `verify-dashboard.ps1` was not DPI aware, so at 125% scaling `GetWindowRect`
+  and `CopyFromScreen` returned virtualized logical pixels and captured a
+  `574x438` crop of the real `718x547` window, silently excluding the
+  `简洁/高级/置顶` header controls from the automated checks. It now calls
+  `SetProcessDpiAwarenessContext(PER_MONITOR_AWARE_V2)` before launching the
+  GUI. The simple-mode `快捷功耗` strip label also wrapped to two lines and
+  clipped in a fixed 52 px column; the column is now sized from
+  `TextRenderer.MeasureText`, so it renders on one line at 125% scaling.
+  Verified by rebuilding the Lite package, re-running `verify-dashboard.ps1`
+  against it, and confirming the full-window capture
+  (`assets/main-dashboard-simple-dpi-2026-11-10.png`) plus 71/71 tests.
 
 Development screenshot:
 

@@ -609,10 +609,17 @@ internal sealed class MainForm : Form
             "快捷功耗",
             AppTheme.Small,
             AppTheme.TextMuted);
-        presetLabel.Dock = DockStyle.Fill;
+        presetLabel.AutoSize = true;
+        presetLabel.Anchor = AnchorStyles.Left;
         presetLabel.Margin = Padding.Empty;
         presetLabel.AutoEllipsis = false;
         presets.Controls.Add(presetLabel, 0, 0);
+        // CJK glyph widths and DPI scaling vary, so size the label column from
+        // the rendered text instead of a fixed width that can wrap or clip.
+        Size presetLabelSize = TextRenderer.MeasureText(
+            presetLabel.Text,
+            presetLabel.Font);
+        presets.ColumnStyles[0].Width = presetLabelSize.Width + 10;
 
         for (int index = 0; index < _simplePresetButtons.Length; index++)
         {

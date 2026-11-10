@@ -22,10 +22,15 @@ The current deployed `1.0.4` compact layout and lifecycle check is recorded in
 | Deployed `1.0.1` status bar | `assets/main-dashboard-v1.0.1-status-2026-11-10.png` | `C:\RyzenAdj` package on battery, `动态上限 25.0 W · 电池`, bottom `详情` absent, write-state/status non-overlap PASS, target-left artifact pixels 0 |
 | Deployed `1.0.4` compact header/status | `artifacts/verify/deployed-dashboard-v1.0.4-20261110-190306.png` | Complete `AMD Mobile Power` header, 245 px right gap, 78 px write-state cell, status overlap PASS, target-left artifact pixels 0 |
 | Tray context menu | `assets/tray-menu-clean-package-2026-11-10.png` | `verify-tray-menu.ps1` found the real hidden-tray icon, opened the upward anchored menu, read 11 items, captured the visible bounds, invoked Exit, and confirmed no GUI/worker remained |
+| Simple mode, DPI-aware capture | `assets/main-dashboard-simple-dpi-2026-11-10.png` | Full `718x547` window at 125% scaling after `verify-dashboard.ps1` became per-monitor DPI aware; `简洁/高级/置顶` header controls and write-state cell are inside the capture, `快捷功耗` renders on one line, status overlap PASS, target-left artifact pixels 0 |
 
 All screenshots were captured on the development laptop at 125% scaling.
-Coordinates were checked with UI Automation using the root window rectangle, not
-the DPI-virtualized rectangle from the capture process.
+Coordinates were checked with UI Automation using the root window rectangle.
+`verify-dashboard.ps1` now calls `SetProcessDpiAwarenessContext` with
+`PER_MONITOR_AWARE_V2` before launching the GUI, so `GetWindowRect` and
+`CopyFromScreen` operate in physical pixels. Earlier captures used the
+DPI-virtualized rectangle and silently cropped the right edge of the window,
+which excluded the header mode controls from the automated checks.
 
 Runtime layout checks also passed for compact and advanced mode:
 
