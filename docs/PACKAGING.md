@@ -92,25 +92,28 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.5-win-x64-native-pre
 
 - Size: `453,794` bytes.
 - SHA256:
-  `d0b4f09f1b3239b3780f89f51a87694d1b108fb7e934eb839c6b3867b36a71ac`.
-- Source commit: `6f2386a6df4617cea09ad295f536121be20847ff`.
+  `8e832f8b0c5f8f764fffd4616ea06b404cb513b0c5a77dc1d68d6e8e58fc7b66`.
+- Source commit: `75c072881e34a30efee6c88890dec34f49b98aa0`.
 - Working tree at build time: clean.
 - Runtime verification: hardware read-only/write-guard, GUI lifecycle with
   three Win32 minimize/restore cycles, policy read-only plan, compatibility
   collector, isolated install/uninstall, and real shell integration passed.
-- Hardware policy write: deferred to a controlled AC session. The read-only
-  plan rounds the firmware-dynamic STAPM limit, so the automatic no-change
-  writer is not run unattended.
+- Hardware policy write: controlled AC no-change write passed by applying the
+  live `44/45/45 W` state, verifying it, disabling the policy, and shutting the
+  worker down through the protocol.
 - Aggregate evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.5-release-gate-2026-11-10.json`.
 - Package evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.5-clean-2026-11-10.json`.
 - Shell evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.5-shell-integration-2026-11-10.json`.
+- Hardware policy evidence:
+  `docs/evidence/hardware/v0.6.0-native-rc.5-power-policy-no-change-2026-11-10.json`.
 
-This RC is not yet the public stable release: a second physical AMD laptop
-still needs read-only compatibility evidence before promotion beyond the
-verified development device.
+This RC is not yet the public stable release. The `.NET` GUI remains the
+deployed product, and the native preview still needs UI parity plus read-only
+compatibility evidence from a second physical AMD laptop before any promotion
+discussion.
 Track the candidate's open gates in `docs/NATIVE_RC_STATUS.md`.
 
 ## Portable ZIP

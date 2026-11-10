@@ -835,23 +835,28 @@ third_party/
   single documentation commit invalidated an otherwise identical package and
   forced a rebuild.
 - Rebuilt the native candidate as `0.6.0-native-rc.5` from clean commit
-  `6f2386a`. The local gate passed the offline build, C++ policy tests, 14 Rust
+  `75c0728`. The local gate passed the offline build, C++ policy tests, 14 Rust
   GUI tests, read-only 8845HS hardware capability/telemetry
-  (`43.45/45/45 W` on AC), the write-control guard, the read-only policy plan
+  (`43.33/45/45 W` on AC), the write-control guard, the read-only policy plan
   and write gate, package checksum verification, isolated install/uninstall,
-  and real Start menu/Startup/uninstall-entry integration. Evidence:
+  real Start menu/Startup/uninstall-entry integration, and a controlled AC
+  no-change power-policy write. Evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.5-release-gate-2026-11-10.json`.
-- Left the `rc.5` hardware no-change policy write for a controlled AC session
-  instead of running it unattended. `verify-power-policy.ps1
-  -ExecuteNoChangePolicy` derives its STAPM target from
-  `get_stapm_limit`, which this firmware reports dynamically (`43.45 W` right
-  now), so the "no-change" writer can round STAPM down and pin it below the
-  `45 W` that `rc.4` recorded. The `rc.4` no-change evidence is preserved.
+- Ran the `rc.5` no-change policy write on AC: the worker requested the live
+  `44/45/45 W` state, applied it, reported `lastAttemptSucceeded`, disabled the
+  policy, and shut down through the protocol. Evidence:
+  `docs/evidence/hardware/v0.6.0-native-rc.5-power-policy-no-change-2026-11-10.json`.
+  The firmware reports STAPM dynamically below the Fast ceiling, so the request
+  is the rounded live value rather than a fixed constant.
 - Taught `native/prepare-release-review.ps1` to include the hardware
   no-change evidence only when the aggregate gate recorded
   `NoChangePolicy = PASS`, and to surface that field in its manifest. A
   candidate that intentionally skipped the hardware write no longer fails
   bundle generation with a missing-file error.
+- Product decision after the native preview work: the `.NET` GUI remains the
+  deployed product and daily driver at `C:\RyzenAdj` (`1.0.4`). The native
+  Rust/C++ line stays an experimental preview until it reaches feature and UI
+  parity; it will not replace the GUI on the strength of packaging alone.
 
 Development screenshot:
 
@@ -873,9 +878,10 @@ Development screenshot:
 - Connect the native worker's now-present validated `applyTarget` path to a
   packaged native runtime and broaden the hardware matrix beyond the 8845HS;
   keep `1.0.4` as the stable fallback.
-- Wire the native policy settings into the Rust GUI, including persistence and
-  profile-aware user editing; the worker-side policy is implemented but not
-  yet exposed through the preview GUI.
+- Bring the native Rust preview GUI to parity with the `.NET` GUI (simple and
+  advanced modes, localized copy, tray/taskbar behavior, diagnostics) before
+  any promotion discussion. Policy editing and persistence already exist in
+  the preview.
 
 ## Next Concrete Task
 
@@ -884,6 +890,9 @@ while `C:\RyzenAdj` stays on the verified `1.0.4` rollback point. Keep the
 existing named-pipe protocol and hardware-safety boundaries as the migration
 contract, and use the recorded native-preview packaging evidence as the
 baseline before promoting anything beyond the current stable deployment.
+
+The `.NET` GUI remains the shipped product. Native parity work continues on the
+side branch and does not gate `.NET` fixes or releases.
 
 ## Known Risks
 
