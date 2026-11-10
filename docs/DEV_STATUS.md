@@ -45,11 +45,10 @@ not authoritative.
 - The current local stable package is `1.0.2`: 594,482 bytes, SHA256
   `ddf5d70bcfd802e1db317dbacbd40ab63eba024fc3d2c7db175829ee5d2f6f93`,
   built from clean commit `9fb180a` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` still contains the verified `1.0.1` package while the `1.0.2`
-  deployment gate is being completed. The previous `1.0.0` deployment is
-  preserved as
-  `C:\RyzenAdj.before-v1.0.1-20261110-135925` and under
-  `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.1-20261110-135925`.
+- `C:\RyzenAdj` now contains the verified `1.0.2` package. The previous `1.0.1`
+  deployment is preserved as `C:\RyzenAdj.before-v1.0.2-20261110-154346` and
+  under
+  `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.2-20261110-154346`.
 
 ## Development Workflow
 
@@ -666,6 +665,15 @@ third_party/
   STAPM/Fast/Slow read back at the requested limits, actual power remained
   below the ceiling, and worker shutdown used the graceful protocol. Evidence:
   `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.2-2026-11-10.json`.
+- Promoted `1.0.2` to `C:\RyzenAdj` after a hash-verified 42-file backup of the
+  complete `1.0.1` deployment. The deployed path passed all 40 package hashes,
+  the dashboard boundary gate, read-only diagnostics reporting worker `1.0.2`,
+  and a write-mode shortcut launch where both GUI and worker came from
+  `C:\RyzenAdj` and logged `writes=True`. Evidence:
+  `docs/evidence/packaging/v1.0.2-deployment-2026-11-10.json`.
+- Verified the deployed tray lifecycle: single-click restore passed, the tray
+  menu opened with 11 items and exited gracefully, and terminating the GUI left
+  no orphaned worker process.
 
 Development screenshot:
 
@@ -687,9 +695,9 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Promote the verified `1.0.2` package to `C:\RyzenAdj`, then verify the deployed
-write shortcut and tray lifecycle. After that, collect a read-only diagnostics
-report from a second AMD laptop before broad public support.
+Collect a read-only diagnostics report from a second AMD laptop before broad
+public support. Keep `C:\RyzenAdj` on `1.0.2` unless a newer package completes
+the same release and deployment gates.
 
 ## Known Risks
 
@@ -719,6 +727,6 @@ Do not publish a stable release or promotional video until:
 
 The controlled no-change write gate and supervised AC/battery policy transition
 are complete for the development 8845HS. The `1.0.2` release gate passes on this
-laptop, and its deployment verification is in progress. Broad public hardware
+laptop, and its deployment verification also passes. Broad public hardware
 support still requires a second verified AMD platform or generation.
 

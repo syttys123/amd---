@@ -389,6 +389,6 @@ gate. It never logs in or uploads.
 
 The `v0.1.0`, `v0.1.3-dev`, `v1.0.0`, and `v1.0.1` packages are retained as
 historical development/stable artifacts. The current `v1.0.2` package is a
-locally verified stable candidate for one physical AMD laptop, not a public
+locally verified stable deployment for one physical AMD laptop, not a public
 release. Public hardware support still needs a second AMD platform and the
 remaining human gates.

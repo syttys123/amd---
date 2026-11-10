@@ -4,7 +4,7 @@ AMD Mobile Power is an early-development Windows utility for monitoring and,
 after supervised validation, controlling firmware power limits on supported AMD
 thin-and-light laptops.
 
-> Status: no public release yet. A local `1.0.2` stable candidate is validated on
+> Status: no public release yet. A local `1.0.2` stable deployment is validated on
 > one AMD laptop. The normal GUI and packaged build are read-only unless launched
 > with the reviewed local write-control flag. Controlled 10 W and 12 W writes,
 > a packaged no-change write gate, and a supervised AC-to-battery-to-AC policy

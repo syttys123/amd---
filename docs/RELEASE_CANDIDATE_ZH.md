@@ -42,6 +42,8 @@ Evidence:
 - Bottom `详情` button absent and write-state/status bounds overlap check: PASS
 - Packaged read-only diagnostics collector: PASS
 - Packaged stable-package no-change hardware write: PASS
+- Local deployment to `C:\RyzenAdj`: PASS
+- Deployed tray single-click restore and graceful menu exit: PASS
 - GUI and collector diagnostic field whitelist / path redaction: PASS
 - RyzenAdj family `0-15` profile coverage: PASS
 
