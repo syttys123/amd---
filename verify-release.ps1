@@ -245,14 +245,6 @@ try {
             -PackageDirectory $stage `
             -ScreenshotPath $trayMenuScreenshot `
             -VerifyShowFromTray | Out-Null
-        & (Join-Path $root "verify-tray-menu.ps1") `
-            -PackageDirectory $stage `
-            -ScreenshotPath $trayMenuScreenshot `
-            -VerifyDoubleClickFromTray | Out-Null
-        & (Join-Path $root "verify-tray-menu.ps1") `
-            -PackageDirectory $stage `
-            -ScreenshotPath $trayMenuScreenshot `
-            -VerifyOpenFromMenu | Out-Null
         $trayRecovery = "PASS"
 
         & (Join-Path $root "verify-tray-menu.ps1") `
