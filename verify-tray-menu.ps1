@@ -328,7 +328,7 @@ function Wait-PackageProcessesStopped {
         Start-Sleep -Milliseconds 200
     }
 
-    throw "GUI or worker process remained after the tray Exit action."
+    throw "GUI or worker process remained after tray verification."
 }
 
 $menuVisible = $false
@@ -767,4 +767,5 @@ finally {
             [AmdTrayNative]::Escape, 0, 2, [UIntPtr]::Zero)
     }
     Stop-PackageProcesses
+    Wait-PackageProcessesStopped
 }

@@ -45,6 +45,39 @@ function Get-KeyValueFile {
     return $values
 }
 
+function Invoke-TrayVerification {
+    param(
+        [string]$ScriptPath,
+        [string]$Stage,
+        [string]$ScreenshotPath,
+        [hashtable]$Options,
+        [int]$Attempts = 3
+    )
+
+    $lastError = $null
+    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+        try {
+            $parameters = @{
+                PackageDirectory = $Stage
+                ScreenshotPath = $ScreenshotPath
+            }
+            foreach ($key in $Options.Keys) {
+                $parameters[$key] = $Options[$key]
+            }
+            & $ScriptPath @parameters | Out-Null
+            return
+        }
+        catch {
+            $lastError = $_
+            Start-Sleep -Seconds 1
+        }
+    }
+
+    throw "Tray verification failed after $Attempts attempts: $(
+        $lastError.Exception.Message
+    )"
+}
+
 Push-Location $root
 try {
     $status = @(git status --porcelain --ignore-submodules=dirty)
@@ -236,22 +269,25 @@ try {
         $trayMenuScreenshot = Join-Path (
             $trayVerifyDirectory
         ) ("tray-menu-" + [Guid]::NewGuid().ToString("N") + ".png")
-        & (Join-Path $root "verify-tray-menu.ps1") `
-            -PackageDirectory $stage `
+        Invoke-TrayVerification `
+            -ScriptPath (Join-Path $root "verify-tray-menu.ps1") `
+            -Stage $stage `
             -ScreenshotPath $trayMenuScreenshot `
-            -VerifyGracefulExit:$VerifyTrayExit
+            -Options @{ VerifyGracefulExit = $true }
         $trayMenu = "PASS"
 
-        & (Join-Path $root "verify-tray-menu.ps1") `
-            -PackageDirectory $stage `
+        Invoke-TrayVerification `
+            -ScriptPath (Join-Path $root "verify-tray-menu.ps1") `
+            -Stage $stage `
             -ScreenshotPath $trayMenuScreenshot `
-            -VerifyShowFromTray | Out-Null
+            -Options @{ VerifyShowFromTray = $true }
         $trayRecovery = "PASS"
 
-        & (Join-Path $root "verify-tray-menu.ps1") `
-            -PackageDirectory $stage `
+        Invoke-TrayVerification `
+            -ScriptPath (Join-Path $root "verify-tray-menu.ps1") `
+            -Stage $stage `
             -ScreenshotPath $trayMenuScreenshot `
-            -VerifyParentExit | Out-Null
+            -Options @{ VerifyParentExit = $true }
         $trayParentExit = "PASS"
     }
 
