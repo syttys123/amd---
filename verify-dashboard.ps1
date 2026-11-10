@@ -113,11 +113,13 @@ try {
     $rootElement =
         [System.Windows.Automation.AutomationElement]::FromHandle($windowHandle)
     $targetLabel = $null
+    $headerTitle = $null
     $powerLine = $null
     $targetInput = $null
     $writeStateLabel = $null
     $statusLabel = $null
     $detailsButton = $null
+    $simpleModeButton = $null
     $deadline = [DateTime]::UtcNow.AddSeconds(10)
     while ([DateTime]::UtcNow -lt $deadline) {
         $elements = $rootElement.FindAll(
@@ -128,6 +130,13 @@ try {
                 $_.Current.ControlType -eq
                     [System.Windows.Automation.ControlType]::Text -and
                 $_.Current.Name -eq "目标功耗"
+            } |
+            Select-Object -First 1
+        $headerTitle = $elements |
+            Where-Object {
+                $_.Current.ControlType -eq
+                    [System.Windows.Automation.ControlType]::Text -and
+                $_.Current.Name -eq "AMD Mobile Power"
             } |
             Select-Object -First 1
         $powerLine = $elements |
@@ -165,14 +174,25 @@ try {
                 $_.Current.Name -eq "详情"
             } |
             Select-Object -First 1
-        if ($targetLabel -and $powerLine -and $targetInput -and
-            $writeStateLabel -and $statusLabel) {
+        $simpleModeButton = $elements |
+            Where-Object {
+                $_.Current.ControlType -eq
+                    [System.Windows.Automation.ControlType]::Button -and
+                $_.Current.Name -eq "简洁模式"
+            } |
+            Select-Object -First 1
+        if ($targetLabel -and $headerTitle -and $powerLine -and
+            $targetInput -and $writeStateLabel -and $statusLabel -and
+            $simpleModeButton) {
             break
         }
         Start-Sleep -Milliseconds 250
     }
     if (-not $targetLabel) {
         throw "Simple-mode dashboard is missing the target-power label."
+    }
+    if (-not $headerTitle) {
+        throw "Simple-mode dashboard is missing the full AMD Mobile Power title."
     }
     if (-not $powerLine) {
         throw "Simple-mode dashboard is missing a live dynamic-limit power-line text."
@@ -185,6 +205,9 @@ try {
     }
     if (-not $statusLabel) {
         throw "Simple-mode dashboard is missing the status message."
+    }
+    if (-not $simpleModeButton) {
+        throw "Simple-mode dashboard is missing the simple/advanced mode switch."
     }
     if ($detailsButton) {
         throw "Simple-mode dashboard still exposes the overlapping details button."
@@ -205,6 +228,16 @@ try {
 
     $width = $windowRect.Right - $windowRect.Left
     $height = $windowRect.Bottom - $windowRect.Top
+    $headerBounds = $headerTitle.Current.BoundingRectangle
+    $modeBounds = $simpleModeButton.Current.BoundingRectangle
+    $headerRightGap = [int]($modeBounds.Left - $headerBounds.Right)
+    if ($headerBounds.Right -gt $modeBounds.Left -or $headerRightGap -lt 12) {
+        throw "The full header title overlaps or crowds the mode controls; gap=$headerRightGap px."
+    }
+    $stateWidthRatio = $stateBounds.Width / $width
+    if ($stateWidthRatio -gt 0.15) {
+        throw "The write-state status label is too wide: width=$($stateBounds.Width) px, ratio=$stateWidthRatio."
+    }
     $targetBounds = $null
     $left = $null
     $right = $null
@@ -326,9 +359,13 @@ try {
         Hash.ToLowerInvariant()
     $report = [pscustomobject]@{
         Verification = "PASS"
+        HeaderTitleText = $headerTitle.Current.Name
+        HeaderRightGapPixels = $headerRightGap
         PowerLineText = $powerLine.Current.Name
         TargetInputText = $targetInput.Current.Name
         TargetLeftArtifactPixels = 0
+        StatusStateWidthPixels = [int]$stateBounds.Width
+        StatusStateWidthRatio = [Math]::Round($stateWidthRatio, 4)
         StatusBarDetailsButton = "Absent"
         StatusBarOverlap = "PASS"
         WindowBounds = (

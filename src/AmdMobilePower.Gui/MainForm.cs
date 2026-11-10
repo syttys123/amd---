@@ -723,7 +723,7 @@ internal sealed class MainForm : Form
             Margin = Padding.Empty,
             Padding = Padding.Empty
         };
-        _simpleStatusBar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 92));
+        _simpleStatusBar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 78));
         _simpleStatusBar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 8));
         _simpleStatusBar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
@@ -2651,16 +2651,27 @@ internal sealed class MainForm : Form
         bool simple = _uiMode == UiMode.Simple;
         _headerIcon.Visible = !simple;
         _connectionBadge.Visible = !simple;
-        _headerTitle.Text = simple ? "AMD Power" : "AMD Mobile Power";
+        _headerTitle.Text = "AMD Mobile Power";
         _headerTitle.Font = simple ? AppTheme.CompactTitle : AppTheme.Title;
-        _headerTitle.Location = new Point(simple ? 18 : 86, simple ? 4 : 12);
-        _headerTitle.Height = simple ? 24 : 30;
-        _headerPlatform.Location = new Point(simple ? 18 : 88, simple ? 27 : 43);
+        _headerTitle.Location = new Point(simple ? 18 : 86, simple ? 3 : 12);
+        _headerTitle.Height = simple ? 26 : 30;
+        _headerPlatform.Location = new Point(simple ? 18 : 88, simple ? 29 : 43);
         _headerPlatform.Height = simple ? 20 : 22;
         int textWidth = simple
             ? Math.Max(120, _headerHost.ClientSize.Width - 224)
             : Math.Max(180, _headerHost.ClientSize.Width - 450);
-        _headerTitle.Width = textWidth;
+        _headerTitle.AutoSize = simple;
+        _headerTitle.MaximumSize = simple
+            ? new Size(textWidth, 26)
+            : Size.Empty;
+        if (simple)
+        {
+            _headerTitle.PerformLayout();
+        }
+        else
+        {
+            _headerTitle.Width = textWidth;
+        }
         _headerPlatform.Width = textWidth;
         UpdateHeaderPlatformText();
 
