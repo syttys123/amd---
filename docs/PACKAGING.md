@@ -54,6 +54,9 @@ rollback directory during the directory switch, and then removes the rollback
 copy only after the staged payload is in place. Package verification performs a
 fresh install, a same-version overwrite, and uninstall; a separate guard test
 confirms that unrelated user files in an unmarked directory are not replaced.
+`native\verify-upgrade.ps1` additionally installs the previous package,
+upgrades to the new package in place, compares the installed payload with the
+new archive, and runs the upgraded GUI/worker read-only before uninstalling.
 
 For a local release candidate, run the aggregate native gate from a clean
 worktree:

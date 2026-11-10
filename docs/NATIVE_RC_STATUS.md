@@ -54,6 +54,9 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.10-win-x64-native-pr
 - Staged checksum verification for every package file.
 - Isolated install and uninstall.
 - Real Start menu, Startup shortcut, and uninstall-entry create/remove cycle.
+- Cross-version upgrade from `rc.9` to `rc.10`: staged replacement passed,
+  installed payload hashes matched the new archive, upgraded GUI/worker passed
+  read-only verification, and uninstall left no install directory.
 - Read-only AC and battery policy plan with the write gate rejecting
   `setPowerPolicy` while writes are disabled.
 - Chinese dashboard and title header verified through `verify-rust-gui.ps1`
@@ -69,6 +72,7 @@ Evidence:
 - `docs/evidence/packaging/v0.6.0-native-rc.10-release-gate-2026-11-11.json`
 - `docs/evidence/packaging/v0.6.0-native-rc.10-shell-integration-2026-11-11.json`
 - `docs/evidence/packaging/v0.6.0-native-rc.10-install-upgrade-2026-11-11.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.10-cross-version-upgrade-2026-11-11.json`
 - `docs/evidence/hardware/v0.6.0-native-rc.9-power-policy-no-change-2026-11-11.json`
 - `docs/evidence/ui/native-gui-editable-presets-2026-11-11.json`
 - `docs/evidence/ui/native-gui-diagnostics-export-2026-11-11.json`

@@ -75,6 +75,9 @@ not authoritative.
   directories, preserves a marked prior installation for rollback, refuses
   unmarked non-empty targets, and is verified through fresh install,
   same-version overwrite, and uninstall.
+- A real `rc.9` to `rc.10` cross-version upgrade passed: every installed file
+  matched the new package, the upgraded GUI/worker connected read-only, and
+  uninstall removed the entire installation.
 
 ## Development Workflow
 

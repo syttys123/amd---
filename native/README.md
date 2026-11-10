@@ -167,6 +167,19 @@ the result under `docs\evidence\packaging`, and removes every created artifact
 in a `finally` path. The current clean run is
 `docs/evidence/packaging/v0.6.0-native-rc.10-shell-integration-2026-11-11.json`.
 
+Verify a real cross-version upgrade from the previous package:
+
+```powershell
+.\native\verify-upgrade.ps1 `
+  -OldPackage .\artifacts\native-packages\amd-mobile-power-v0.6.0-native-rc.9-win-x64-native-preview.zip `
+  -NewPackage .\artifacts\native-packages\amd-mobile-power-v0.6.0-native-rc.10-win-x64-native-preview.zip `
+  -EvidencePath .\docs\evidence\packaging\v0.6.0-native-rc.10-cross-version-upgrade-2026-11-11.json
+```
+
+The upgrade gate installs the old package, upgrades in place, compares every
+installed file with the new package, rejects retained superseded files, runs
+the upgraded GUI/worker read-only, and uninstalls the result.
+
 ## Current Native Slice
 
 The native slice verifies the process boundary and the existing v1 JSON-lines
