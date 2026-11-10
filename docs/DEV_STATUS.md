@@ -764,12 +764,14 @@ third_party/
   `docs/evidence/hardware/mechrevo-wujie15-8845hs-native-gui-no-change-2026-11-10T12-24-30Z.json`.
 - Added `native/build-package.ps1` and a portable native preview README. The
   package stages the Rust GUI, C++ worker, runtime DLL/SYS files, licenses,
-  notices, build metadata, SHA256 checksums, then extracts and reruns the GUI
-  lifecycle, read-only worker, and write-control UI gates in isolation.
-  The clean `0.3.0-native-preview.1` ZIP is 414,716 bytes with SHA256
-  `0a5b4390c74c206376224386d88b601f4ec1886bd877ea4a52b659d5b0e43dd9`,
-  built from commit `b0bef13`, with all checksum entries verified. Evidence:
-  `docs/evidence/packaging/v0.3.0-native-preview.1-clean-2026-11-10.json`.
+  notices, build metadata, SHA256 checksums, and isolated install/uninstall
+  helpers, then extracts and reruns the GUI lifecycle, read-only worker,
+  write-control UI, compatibility collector, and shell-integration
+  fingerprints in isolation. The clean `0.4.0-native-preview.1` ZIP is
+  417,429 bytes with SHA256
+  `ea6fd74c246d85d78f494fdacb740ca4db2e18f657a86b3216716275b277df6d`,
+  built from commit `f05e9b4`, with all checksum entries verified. Evidence:
+  `docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`.
 - Added `native/collect-native-diagnostics.ps1` to the native preview package.
   It starts the bundled worker with read-only hardware access, queries health,
   capabilities, and telemetry over the v1 named pipe, writes a sanitized local
@@ -807,11 +809,11 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Build and verify a portable native runtime while `C:\RyzenAdj` stays on the
-verified `1.0.4` rollback point. Keep the existing named-pipe protocol and
-hardware-safety boundaries as the migration contract, and require the same
-lifecycle, tray, diagnostics, and no-change hardware gates before replacing the
-stable deployment.
+Collect a read-only compatibility report from a second physical AMD laptop
+while `C:\RyzenAdj` stays on the verified `1.0.4` rollback point. Then exercise
+the native preview installer with real Start menu and Startup shortcuts on the
+development host, and keep the existing named-pipe protocol and hardware-safety
+boundaries as the migration contract before replacing the stable deployment.
 
 ## Known Risks
 

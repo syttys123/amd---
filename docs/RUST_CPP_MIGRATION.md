@@ -109,8 +109,12 @@ see
 
 `native/build-package.ps1` creates a portable native preview ZIP with the GUI,
 C++ worker, runtime DLL/SYS files, notices, licenses, build metadata, and
-checksums. It extracts the ZIP and reruns the lifecycle/read-only/write-control
-UI gates before reporting success. The ZIP also contains
+checksums. The ZIP includes `install-preview.ps1` and
+`uninstall-preview.ps1`; the latter refuses to remove an unmarked directory.
+It extracts the ZIP and reruns the lifecycle/read-only/write-control UI,
+isolated install/uninstall, and shell-integration-fingerprint gates before
+reporting success. The ZIP also contains
 `collect-native-diagnostics.ps1`, a read-only, sanitized compatibility
 collector that starts the bundled worker without write controls and writes a
-local JSON report.
+local JSON report. The clean `0.4.0-native-preview.1` package is recorded in
+`docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`.

@@ -86,7 +86,14 @@ Build and verify the portable native preview ZIP:
 
 The resulting package is under `artifacts\native-packages`; the script extracts
 the ZIP and reruns the GUI lifecycle, read-only worker, and write-control
-button checks.
+button checks. It also exercises the packaged isolated install/uninstall flow
+and verifies that the real Startup-folder and current-user uninstall registry
+integration does not change. Install and remove the preview with
+`install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
+
+The current clean package is `0.4.0-native-preview.1`; its hash and evidence
+are recorded in `docs/PACKAGING.md` and
+`docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`.
 
 ## Current Native Slice
 

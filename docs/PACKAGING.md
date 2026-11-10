@@ -9,28 +9,31 @@ Build a portable native preview without replacing the stable .NET deployment:
 ```
 
 The native preview contains the Rust GUI, C++ worker, RyzenAdj/WinRing0/InpOut
-runtime files, third-party notices, licenses, build metadata, and SHA256
-checksums. The build script extracts the ZIP into an isolated directory and
-reruns the GUI lifecycle, read-only worker, write-control button, and
-read-only compatibility-collector gates.
+runtime files, third-party notices, licenses, build metadata, SHA256 checksums,
+and isolated `install-preview.ps1` / `uninstall-preview.ps1` helpers. The build
+script extracts the ZIP into an isolated directory and reruns the GUI
+lifecycle, read-only worker, write-control button, read-only
+compatibility-collector, isolated install/uninstall, and real
+Startup/registry-fingerprint gates.
 It is a migration artifact, not the stable `C:\RyzenAdj` deployment.
 
 Current clean native preview:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.3.0-native-preview.1-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.4.0-native-preview.1-win-x64-native-preview.zip
 ```
 
-- Size: `414,716` bytes.
+- Size: `417,429` bytes.
 - SHA256:
-  `0a5b4390c74c206376224386d88b601f4ec1886bd877ea4a52b659d5b0e43dd9`.
-- Source commit: `b0bef13ff60ef35b578eaecf8146698fd839394b`.
+  `ea6fd74c246d85d78f494fdacb740ca4db2e18f657a86b3216716275b277df6d`.
+- Source commit: `f05e9b451f86fbd4b12b6c055a0b0f84a3dd839b`.
 - Working tree at build time: clean.
 - Verification: package ZIP, extracted GUI lifecycle, read-only worker,
-  write-control buttons, read-only compatibility collector, and all staged
-  SHA256 entries passed.
+  write-control buttons, read-only compatibility collector, isolated
+  install/uninstall, unchanged real Startup/registry integration, and all
+  staged SHA256 entries passed.
 - Evidence:
-  `docs/evidence/packaging/v0.3.0-native-preview.1-clean-2026-11-10.json`.
+  `docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`.
 
 ## Portable ZIP
 
