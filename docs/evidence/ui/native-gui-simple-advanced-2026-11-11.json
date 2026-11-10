@@ -1,0 +1,16 @@
+{
+  "SourceCommit": "e5e00ef57eeebdc0fa0762a8bf86cb5bb5b0005a",
+  "Verification": "PASS",
+  "Path": "Rust GUI -> C++ worker -> RyzenAdj",
+  "Processor": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+  "WorkerStatus": "已连接 worker\n处理器：AMD Ryzen 7 8845HS w/ Radeon 780M Graphics     \n家族：10 Hawk Point\n平台配置：Hawk Point 8845HS development profile [5-60 W]\nPM 表：4c0009\n供电：交流电\n\n目标功耗：无数据\nSTAPM 上限：10.00 W\nFast 上限：10.00 W\nSlow 上限：10.00 W\nCPU 温度：43.5 °C\n可写字段：STAPM=是 Fast=是 Slow=是\n平台状态：支持写入\n固件钳制：否\n更新时间：2026-11-10T16:57:22Z\n自动策略：未配置",
+  "DiagnosticsExport": "PASS",
+  "ViewModes": "PASS",
+  "TopMost": "PASS",
+  "TargetWatts": null,
+  "WriteControls": "PASS",
+  "PresetEditing": "PASS",
+  "WritePreset": "Not requested",
+  "PolicySave": "PASS",
+  "RecordedAt": "2026-11-11T00:57:25.8224556+08:00"
+}
