@@ -148,9 +148,9 @@ previous marked installation for rollback during the switch, and refuses to
 write into an unmarked non-empty directory. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
 
-The current internal release candidate is `0.6.0-native-rc.10`: 524,700 bytes,
+The current internal release candidate is `0.6.0-native-rc.10`: 525,189 bytes,
 SHA256
-`112cc0eb0af0de8f9ac8f77673fb482f127f53da35362db0230c35702c09c6bc`.
+`dae33a20bd58e6c41235be650c47380b8a9a60f8750b603303d2f1b035ac1f52`.
 Its aggregate read-only gate is recorded in
 `docs/evidence/packaging/v0.6.0-native-rc.10-release-gate-2026-11-11.json`.
 The write-enabled no-change gate remains pending.

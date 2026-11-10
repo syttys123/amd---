@@ -109,41 +109,39 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 Current internal native release candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.9-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.10-win-x64-native-preview.zip
 ```
 
-- Size: `474,790` bytes.
+- Size: `525,189` bytes.
 - SHA256:
-  `c4a3bfaf872a43a0a258f579a0f532ff87514816aec51827eb8b4c314fbba9b5`.
-- Source commit: `bdb0995298268faabf44ecb24492e0bbc7a70ef5`.
+  `dae33a20bd58e6c41235be650c47380b8a9a60f8750b603303d2f1b035ac1f52`.
+- Source commit: `035e3088d45f3f489a64c899d385eae72bb6584c`.
 - Working tree at build time: clean.
-- Runtime verification: hardware read-only/write-guard, GUI lifecycle with
-  three Win32 minimize/restore cycles, editable preset persistence, policy
-  save, compatibility collector, isolated install/uninstall, and real shell
-  integration passed.
-- Localized Rust dashboard and title header verified through
-  `verify-rust-gui.ps1 -VerifyWorker` with `WorkerReadOnly = PASS`.
-- Three editable quick presets (`12/25/45 W` initially) are clamped to the
-  platform profile, persisted without replacing the battery/AC policy, and
-  exposed as direct `应用预设` commands in the tray menu.
+- Runtime verification: hardware read-only/write-guard, clean-room native GUI
+  lifecycle with three Win32 minimize/restore cycles, extracted read-only
+  worker, compatibility collector, staged install/overwrite/uninstall, and
+  real shell integration passed. `PolicyWriteVerification=Skipped`.
+- The clean-room native UI was verified in simple and advanced modes at 125%
+  scaling with no structural overlap.
 - `导出诊断` works in read-only and write-enabled modes, writing schema-1 JSON
   with an explicit privacy block and no paths, process IDs, logs, pipe names,
   or upload path.
-- Hardware policy write: controlled AC no-change write passed by applying the
-  live `10/10/10 W` state, verifying it, disabling the policy, and shutting the
-  worker down through the protocol.
+- Installer verification covers fresh install, same-version overwrite,
+  staged rollback switching, uninstall, and refusal to overwrite an unmarked
+  non-empty directory.
 - Aggregate evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.9-release-gate-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.10-release-gate-2026-11-11.json`.
 - Package evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.9-clean-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.10-clean-2026-11-11.json`.
 - Shell evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.9-shell-integration-2026-11-11.json`.
-- Hardware policy evidence:
-  `docs/evidence/hardware/v0.6.0-native-rc.9-power-policy-no-change-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.10-shell-integration-2026-11-11.json`.
+- Install upgrade evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.10-install-upgrade-2026-11-11.json`.
 
 This RC is not yet the public stable release. The `.NET` GUI remains the
-deployed product, and the native preview still needs UI parity plus read-only
-compatibility evidence from a second physical AMD laptop before any promotion
+deployed product, and the native preview still needs a supervised rc.10
+no-change write plus read-only compatibility evidence from a second physical
+AMD laptop before any promotion
 discussion.
 Track the candidate's open gates in `docs/NATIVE_RC_STATUS.md`.
 
