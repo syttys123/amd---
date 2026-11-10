@@ -11,21 +11,20 @@ The native package is not a drop-in replacement and will only be considered
 for promotion if it reaches feature and UI parity without regressing the
 current experience.
 
-Note (2026-11-10): the Rust GUI has since been localized to Chinese, so the
-`rc.5` package below predates that runtime change and must be rebuilt as a new
-candidate before it is quoted as current. The recorded `rc.5` evidence stays
-valid for the exact bytes it describes.
+Note (2026-11-10): `rc.6` supersedes `rc.5`. It carries the Chinese Rust
+dashboard, the new title header, and the updated `verify-rust-gui.ps1`
+assertions. The `rc.5` evidence stays valid for the exact bytes it describes.
 
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.5-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.6-win-x64-native-preview.zip
 ```
 
-- Size: `453,794` bytes.
+- Size: `454,751` bytes.
 - SHA256:
-  `8e832f8b0c5f8f764fffd4616ea06b404cb513b0c5a77dc1d68d6e8e58fc7b66`.
-- Source commit: `75c072881e34a30efee6c88890dec34f49b98aa0`.
+  `cb488e0b96b4c318ef93d01c696c28da36a8789e36ace1a007b80764bc55075b`.
+- Source commit: `5819fe29fc3549423148007d7294f2ccf30b1fbd`.
 - Working tree at build time: clean.
 
 ## Passed Gates
@@ -42,23 +41,26 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.5-win-x64-native-pre
 - Real Start menu, Startup shortcut, and uninstall-entry create/remove cycle.
 - Read-only AC and battery policy plan with the write gate rejecting
   `setPowerPolicy` while writes are disabled.
-- Controlled AC no-change power-policy write: requested `44/45/45 W` from the
-  live firmware-dynamic state, applied and verified, policy disabled, worker
-  shut down through the graceful protocol.
+- Chinese dashboard and title header verified through `verify-rust-gui.ps1`
+  `-VerifyWorker`, which reads `WorkerReadOnly = PASS` and the localized
+  `已连接 worker` / `供电` / `Fast 上限` fields.
+- Controlled AC no-change power-policy write: requested the live `10/10/10 W`
+  state, applied and verified, policy disabled, worker shut down through the
+  graceful protocol.
 
 Evidence:
 
-- `docs/evidence/packaging/v0.6.0-native-rc.5-release-gate-2026-11-10.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.5-clean-2026-11-10.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.5-shell-integration-2026-11-10.json`
-- `docs/evidence/hardware/v0.6.0-native-rc.5-power-policy-no-change-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.6-release-gate-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.6-clean-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.6-shell-integration-2026-11-10.json`
+- `docs/evidence/hardware/v0.6.0-native-rc.6-power-policy-no-change-2026-11-10.json`
 
 Superseded candidates `0.6.0-native-rc.4` and earlier keep their own evidence.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v0.6.0-native-rc.5
+artifacts/native-release-review/v0.6.0-native-rc.6
 ```
 
 Generate it with `native/prepare-release-review.ps1`; the bundle is
@@ -66,8 +68,9 @@ Generate it with `native/prepare-release-review.ps1`; the bundle is
 
 ## Open Gates
 
-- Feature and UI parity with the `.NET` GUI (simple/advanced modes, localized
-  copy, tray/taskbar behavior, diagnostics) before any promotion discussion.
+- Feature and UI parity with the `.NET` GUI: the native preview still lacks the
+  `.NET` simple/advanced mode switch, editable presets, diagnostics export,
+  tray preset menu, and structured layout.
 - At least one second physical AMD laptop must provide read-only compatibility
   evidence using `collect-native-diagnostics.ps1`.
 - Windows CI must be able to run after the repository account billing or

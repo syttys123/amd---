@@ -924,6 +924,16 @@ third_party/
   packaged compatibility collector. The read-only worker gate passes with the
   localized dashboard, and `native/verify-rust-gui.ps1 -VerifyWorker` reports
   `WorkerReadOnly = PASS`.
+- Built and fully gated `0.6.0-native-rc.6` from clean commit `5819fe2` after
+  the shipped `.NET` app exited and released RyzenAdj. The package is
+  `454,751` bytes with SHA256
+  `cb488e0b96b4c318ef93d01c696c28da36a8789e36ace1a007b80764bc55075b`. The
+  aggregate gate passed the offline build, both C++ suites, 18 Rust tests,
+  read-only 8845HS capability/telemetry on AC, the write-control guard, the
+  read-only policy plan, real shell integration, a controlled AC no-change
+  policy write against the live `10/10/10 W` state, and the localized Rust
+  dashboard through `verify-rust-gui.ps1 -VerifyWorker`. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.6-release-gate-2026-11-10.json`.
 
 Development screenshot:
 
