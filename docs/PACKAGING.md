@@ -87,13 +87,13 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 Current internal native release candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.6-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.7-win-x64-native-preview.zip
 ```
 
-- Size: `454,751` bytes.
+- Size: `454,752` bytes.
 - SHA256:
-  `cb488e0b96b4c318ef93d01c696c28da36a8789e36ace1a007b80764bc55075b`.
-- Source commit: `5819fe29fc3549423148007d7294f2ccf30b1fbd`.
+  `47529a5dd428e1037f6aa4070852c303b37bc89b8b589861d7857ac4841b3473`.
+- Source commit: `c0995aad649e5ca4495c804a466738d5c5473be5`.
 - Working tree at build time: clean.
 - Runtime verification: hardware read-only/write-guard, GUI lifecycle with
   three Win32 minimize/restore cycles, policy read-only plan, compatibility
@@ -104,13 +104,13 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.6-win-x64-native-pre
   live `10/10/10 W` state, verifying it, disabling the policy, and shutting the
   worker down through the protocol.
 - Aggregate evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.6-release-gate-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.7-release-gate-2026-11-10.json`.
 - Package evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.6-clean-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.7-clean-2026-11-10.json`.
 - Shell evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.6-shell-integration-2026-11-10.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.7-shell-integration-2026-11-10.json`.
 - Hardware policy evidence:
-  `docs/evidence/hardware/v0.6.0-native-rc.6-power-policy-no-change-2026-11-10.json`.
+  `docs/evidence/hardware/v0.6.0-native-rc.7-power-policy-no-change-2026-11-10.json`.
 
 This RC is not yet the public stable release. The `.NET` GUI remains the
 deployed product, and the native preview still needs UI parity plus read-only

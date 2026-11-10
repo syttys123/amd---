@@ -11,20 +11,21 @@ The native package is not a drop-in replacement and will only be considered
 for promotion if it reaches feature and UI parity without regressing the
 current experience.
 
-Note (2026-11-10): `rc.6` supersedes `rc.5`. It carries the Chinese Rust
-dashboard, the new title header, and the updated `verify-rust-gui.ps1`
-assertions. The `rc.5` evidence stays valid for the exact bytes it describes.
+Note (2026-11-10): `rc.7` supersedes `rc.6` and `rc.5`. It carries the Chinese
+Rust dashboard, the title header, and a dashboard layout that no longer clips
+the auto-policy line. Earlier evidence stays valid for the exact bytes each
+candidate describes.
 
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.6-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.7-win-x64-native-preview.zip
 ```
 
-- Size: `454,751` bytes.
+- Size: `454,752` bytes.
 - SHA256:
-  `cb488e0b96b4c318ef93d01c696c28da36a8789e36ace1a007b80764bc55075b`.
-- Source commit: `5819fe29fc3549423148007d7294f2ccf30b1fbd`.
+  `47529a5dd428e1037f6aa4070852c303b37bc89b8b589861d7857ac4841b3473`.
+- Source commit: `c0995aad649e5ca4495c804a466738d5c5473be5`.
 - Working tree at build time: clean.
 
 ## Passed Gates
@@ -50,17 +51,17 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.6-win-x64-native-pre
 
 Evidence:
 
-- `docs/evidence/packaging/v0.6.0-native-rc.6-release-gate-2026-11-10.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.6-clean-2026-11-10.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.6-shell-integration-2026-11-10.json`
-- `docs/evidence/hardware/v0.6.0-native-rc.6-power-policy-no-change-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.7-release-gate-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.7-clean-2026-11-10.json`
+- `docs/evidence/packaging/v0.6.0-native-rc.7-shell-integration-2026-11-10.json`
+- `docs/evidence/hardware/v0.6.0-native-rc.7-power-policy-no-change-2026-11-10.json`
 
 Superseded candidates `0.6.0-native-rc.4` and earlier keep their own evidence.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v0.6.0-native-rc.6
+artifacts/native-release-review/v0.6.0-native-rc.7
 ```
 
 Generate it with `native/prepare-release-review.ps1`; the bundle is

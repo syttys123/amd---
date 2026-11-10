@@ -934,6 +934,15 @@ third_party/
   policy write against the live `10/10/10 W` state, and the localized Rust
   dashboard through `verify-rust-gui.ps1 -VerifyWorker`. Evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.6-release-gate-2026-11-10.json`.
+- Fixed the last dashboard clipping in the native preview and rebuilt as
+  `0.6.0-native-rc.7` from clean commit `c0995aa`. At 125% scaling the
+  `自动策略` line fell past the status label, so the dashboard lost two blank
+  separators and the window grew to `620x540`/`620x380`. Verified with a
+  DPI-aware capture and the full gate: `454,752` bytes, SHA256
+  `47529a5dd428e1037f6aa4070852c303b37bc89b8b589861d7857ac4841b3473`, shell
+  integration PASS, AC no-change write PASS on the live `10/10/10 W` state, and
+  `WorkerReadOnly = PASS` with the complete localized dashboard. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.7-release-gate-2026-11-10.json`.
 
 Development screenshot:
 
