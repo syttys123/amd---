@@ -719,6 +719,11 @@ third_party/
   exit, dashboard, read-only diagnostics, a write-mode GUI/worker launch, and a
   deployed no-change hardware test. Evidence:
   `docs/evidence/packaging/v1.0.4-deployment-2026-11-10.json`.
+- Started branch `main` with a first native vertical slice:
+  Rust named-pipe probe/client and a C++ worker skeleton. The Rust probe
+  successfully reads health from both the C++ skeleton and the deployed C#
+  worker `1.0.4`, and both shutdown paths pass. Evidence:
+  `docs/RUST_CPP_MIGRATION.md` and `native/verify-native.ps1`.
 
 Development screenshot:
 
@@ -737,6 +742,8 @@ Development screenshot:
 - Obtain read-only capability evidence from a second physical AMD laptop.
 - Resolve GitHub Actions account billing/visibility and complete final public
   release review.
+- Continue the Rust GUI + C++ worker migration with capability and snapshot
+  reads, then validated hardware writes; keep `1.0.4` as the stable fallback.
 
 ## Next Concrete Task
 

@@ -1,0 +1,103 @@
+param(
+    [string]$Configuration = "Release",
+    [switch]$Offline
+)
+
+$ErrorActionPreference = "Stop"
+
+$root = Split-Path -Parent $PSCommandPath
+$repositoryRoot = Split-Path -Parent $root
+$cmakeCandidates = @(
+    "cmake.exe",
+    "C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe",
+    "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
+)
+
+$vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+$visualStudioPath = $null
+if (Test-Path -LiteralPath $vswhere) {
+    $visualStudioResult = & $vswhere `
+        -latest `
+        -products * `
+        -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+        -property installationPath
+    $visualStudioPath = if ($visualStudioResult) {
+        ($visualStudioResult | Select-Object -First 1).Trim()
+    }
+    else {
+        $null
+    }
+}
+
+$generator = if ($visualStudioPath -match "\\2026\\") {
+    "Visual Studio 18 2026"
+}
+elseif ($visualStudioPath -match "\\2022\\") {
+    "Visual Studio 17 2022"
+}
+elseif ($visualStudioPath -match "\\2019\\") {
+    "Visual Studio 16 2019"
+}
+else {
+    "Visual Studio 18 2026"
+}
+
+if ($visualStudioPath) {
+    $visualStudioCmake = Join-Path $visualStudioPath `
+        "Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
+    if (Test-Path -LiteralPath $visualStudioCmake) {
+        $cmakeCandidates = @($visualStudioCmake) + $cmakeCandidates
+    }
+}
+
+$cmake = $cmakeCandidates |
+    Where-Object {
+        if ($_ -eq "cmake.exe") {
+            [bool](Get-Command $_ -ErrorAction SilentlyContinue)
+        }
+        else {
+            Test-Path -LiteralPath $_
+        }
+    } |
+    Select-Object -First 1
+
+if (-not $cmake) {
+    throw "CMake was not found."
+}
+
+$cppBuild = Join-Path $repositoryRoot "artifacts\native-build\cpp-worker"
+Push-Location $repositoryRoot
+try {
+    & $cmake `
+        -S (Join-Path $root "cpp-worker") `
+        -B $cppBuild `
+        -G $generator `
+        -A x64
+    if ($LASTEXITCODE -ne 0) {
+        throw "C++ worker CMake configuration failed."
+    }
+
+    & $cmake --build $cppBuild --config $Configuration
+    if ($LASTEXITCODE -ne 0) {
+        throw "C++ worker build failed."
+    }
+
+    $cargoArguments = @(
+        "build",
+        "--manifest-path", (Join-Path $root "rust-probe\Cargo.toml"),
+        "--release",
+        "--locked"
+    )
+    if ($Offline) {
+        $cargoArguments += "--offline"
+    }
+    & cargo @cargoArguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "Rust probe build failed."
+    }
+}
+finally {
+    Pop-Location
+}
+
+Write-Output "Native migration build completed."
