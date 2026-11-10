@@ -129,7 +129,8 @@ if (-not $NoVerify) {
     if ($report.collectionStatus -ne "PASS" -or
         $report.worker.hardwareInitialized -ne $true -or
         $report.worker.writeControlsEnabled -ne $false -or
-        $report.platform.isSupported -ne $true) {
+        $report.platform.isSupported -ne $true -or
+        $null -eq $report.platform.profile) {
         throw "Native compatibility report did not pass its schema/hardware checks."
     }
     if ($reportText -match [regex]::Escape($repositoryRoot) -or

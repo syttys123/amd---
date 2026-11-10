@@ -4,7 +4,8 @@ use amd_mobile_power_gui::lifecycle::{
     LifecycleAction, LifecycleEvent, LifecycleState, Transition, WindowVisibility,
 };
 use amd_mobile_power_gui::worker::{
-    ApplyTargetResult, PowerLimitTarget, SnapshotPayload, WorkerClient, DEFAULT_PIPE_NAME,
+    ApplyTargetResult, PowerLimitTarget, ProfilePayload, SnapshotPayload, WorkerClient,
+    DEFAULT_PIPE_NAME,
 };
 use std::ffi::c_void;
 use std::mem::size_of;
@@ -67,6 +68,8 @@ struct GuiApp {
     write_enabled: bool,
     selected_target: PowerLimitTarget,
     apply_in_flight: bool,
+    preset_watts: [i32; 3],
+    preset_buttons: Option<[HWND; 3]>,
 }
 
 impl GuiApp {
@@ -82,8 +85,15 @@ impl GuiApp {
             write_enabled: false,
             selected_target: PowerLimitTarget::uniform(12),
             apply_in_flight: false,
+            preset_watts: [12, 25, 45],
+            preset_buttons: None,
         }
     }
+}
+
+struct StatusUpdate {
+    text: String,
+    profile: Option<ProfilePayload>,
 }
 
 impl Drop for GuiApp {
@@ -159,12 +169,31 @@ fn format_snapshot(snapshot: &SnapshotPayload) -> String {
             .as_deref()
             .unwrap_or("unsupported")
     };
+    let profile = snapshot
+        .platform
+        .matched_profile
+        .as_ref()
+        .map(|profile| {
+            format!(
+                "{} [{}-{} W]{}",
+                profile.display_name,
+                profile.minimum_watts,
+                profile.maximum_watts,
+                if profile.is_verified {
+                    ""
+                } else {
+                    " (unverified)"
+                }
+            )
+        })
+        .unwrap_or_else(|| "n/a".to_owned());
 
     format!(
         concat!(
             "Worker: connected\n",
             "CPU: {}\n",
             "Family: {} {}\n",
+            "Profile: {}\n",
             "PM table: {}\n",
             "Power source: {}\n",
             "\n",
@@ -184,6 +213,7 @@ fn format_snapshot(snapshot: &SnapshotPayload) -> String {
             .map(|value| value.to_string())
             .unwrap_or_else(|| "n/a".to_owned()),
         cpu.ryzen_adj_family_name.as_deref().unwrap_or(""),
+        profile,
         cpu.pm_table_version.as_deref().unwrap_or("n/a"),
         telemetry.power_line,
         format_watts(telemetry.target_watts),
@@ -267,8 +297,8 @@ unsafe fn app_from_window(hwnd: HWND) -> *mut GuiApp {
     GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut GuiApp
 }
 
-unsafe fn post_status(hwnd: HWND, text: String) {
-    let pointer = Box::into_raw(Box::new(text));
+unsafe fn post_status(hwnd: HWND, update: StatusUpdate) {
+    let pointer = Box::into_raw(Box::new(update));
     if PostMessageW(hwnd, WM_APP_STATUS, 0, pointer as isize) == 0 {
         drop(Box::from_raw(pointer));
     }
@@ -283,12 +313,18 @@ fn start_worker_monitor(
         let hwnd = hwnd_address as HWND;
         let client = WorkerClient::new(pipe_name);
         while !stop.load(Ordering::SeqCst) {
-            let text = match client.snapshot() {
-                Ok(snapshot) => format_snapshot(&snapshot),
-                Err(error) => format!("Worker: unavailable\n{error}"),
+            let update = match client.snapshot() {
+                Ok(snapshot) => StatusUpdate {
+                    text: format_snapshot(&snapshot),
+                    profile: snapshot.platform.matched_profile.clone(),
+                },
+                Err(error) => StatusUpdate {
+                    text: format!("Worker: unavailable\n{error}"),
+                    profile: None,
+                },
             };
             unsafe {
-                post_status(hwnd, text);
+                post_status(hwnd, update);
             }
             thread::sleep(Duration::from_secs(1));
         }
@@ -317,7 +353,7 @@ unsafe fn create_status_label(
     )
 }
 
-unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) {
+unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) -> [HWND; 3] {
     let button_class = wide("BUTTON");
     let controls = [
         (PRESET_12, "12 W", 18, 330, 90),
@@ -325,8 +361,9 @@ unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) {
         (PRESET_45, "45 W", 214, 330, 90),
         (APPLY_TARGET, "Apply", 360, 330, 120),
     ];
+    let mut presets = [std::ptr::null_mut(); 3];
     let mut first_preset = true;
-    for (id, label, x, y, width) in controls {
+    for (index, (id, label, x, y, width)) in controls.into_iter().enumerate() {
         let text = wide(label);
         let is_apply = id == APPLY_TARGET;
         let style = WS_CHILD
@@ -355,7 +392,11 @@ unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) {
             SendMessageW(button, BM_SETCHECK, 1, 0);
             first_preset = false;
         }
+        if index < presets.len() {
+            presets[index] = button;
+        }
     }
+    presets
 }
 
 fn format_apply_result(
@@ -399,6 +440,31 @@ fn start_apply(hwnd_address: usize, pipe_name: String, target: PowerLimitTarget)
             }
         }
     });
+}
+
+unsafe fn apply_profile_to_presets(app: &mut GuiApp, profile: &ProfilePayload) {
+    let minimum = profile.minimum_watts;
+    let maximum = profile.maximum_watts;
+    if minimum > maximum {
+        return;
+    }
+    app.preset_watts = [
+        12.clamp(minimum, maximum),
+        25.clamp(minimum, maximum),
+        45.clamp(minimum, maximum),
+    ];
+    if app.selected_target.stapm_watts < minimum || app.selected_target.stapm_watts > maximum {
+        app.selected_target = PowerLimitTarget::uniform(app.preset_watts[0]);
+    }
+    if let Some(buttons) = app.preset_buttons {
+        for (index, button) in buttons.into_iter().enumerate() {
+            if button.is_null() {
+                continue;
+            }
+            let text = wide(&format!("{} W", app.preset_watts[index]));
+            SetWindowTextW(button, text.as_ptr());
+        }
+    }
 }
 
 unsafe fn apply_actions(hwnd: HWND, transition: Transition) {
@@ -536,12 +602,15 @@ unsafe extern "system" fn window_proc(
             0
         }
         WM_APP_STATUS => {
-            let pointer = lparam as *mut String;
+            let pointer = lparam as *mut StatusUpdate;
             if !pointer.is_null() {
-                let text = Box::from_raw(pointer);
+                let update = Box::from_raw(pointer);
                 if !app.status_label.is_null() {
-                    let text = wide(&text);
+                    let text = wide(&update.text);
                     SetWindowTextW(app.status_label, text.as_ptr());
+                }
+                if let Some(profile) = &update.profile {
+                    apply_profile_to_presets(app, profile);
                 }
             }
             0
@@ -567,12 +636,13 @@ unsafe extern "system" fn window_proc(
                     dispatch(app, hwnd, LifecycleEvent::TrayExitRequested);
                 }
                 PRESET_12 | PRESET_25 | PRESET_45 if app.write_enabled => {
-                    app.selected_target = match wparam & 0xFFFF {
-                        PRESET_12 => PowerLimitTarget::uniform(12),
-                        PRESET_25 => PowerLimitTarget::uniform(25),
-                        PRESET_45 => PowerLimitTarget::uniform(45),
-                        _ => app.selected_target,
+                    let preset_index = match wparam & 0xFFFF {
+                        PRESET_12 => 0,
+                        PRESET_25 => 1,
+                        PRESET_45 => 2,
+                        _ => 0,
                     };
+                    app.selected_target = PowerLimitTarget::uniform(app.preset_watts[preset_index]);
                 }
                 APPLY_TARGET if app.write_enabled && !app.apply_in_flight => {
                     app.apply_in_flight = true;
@@ -686,7 +756,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         (*app).write_enabled = options.enable_write_controls;
         (*app).status_label = create_status_label(hwnd, instance);
         if options.enable_write_controls {
-            create_action_buttons(hwnd, instance);
+            (*app).preset_buttons = Some(create_action_buttons(hwnd, instance));
         }
     }
 

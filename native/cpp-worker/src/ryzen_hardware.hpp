@@ -26,9 +26,19 @@ struct LimitCapability {
     bool supports_slow = false;
 };
 
+struct ProfileInfo {
+    std::string id;
+    std::string display_name;
+    int minimum_watts = 5;
+    int maximum_watts = 45;
+    int default_watts = 15;
+    bool verified = false;
+};
+
 struct PlatformCapability {
     PlatformInfo cpu;
     LimitCapability limits;
+    std::optional<ProfileInfo> profile;
     bool is_supported = false;
     std::optional<std::string> unsupported_reason;
 };
@@ -62,7 +72,7 @@ public:
     TelemetrySnapshot Refresh(std::string& error);
     PowerLimitApplicationResult ApplyTarget(
         const PowerLimitTarget& target,
-        const LimitCapability& capability);
+        const PlatformCapability& capability);
 
 private:
     std::wstring runtime_directory_;

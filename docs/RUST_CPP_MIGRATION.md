@@ -59,6 +59,12 @@ The first migration slice adds:
   use a fake backend and cover eight success, clamp, partial-write, read-back,
   restore-failure, invalid-target, unsupported-platform, and invalid-previous
   state cases.
+- `native/cpp-worker`: conservative family profiles now map RyzenAdj family
+  `2/3/5` (Renoir/Cezanne/Lucienne), `7` (Rembrandt), `8` (Mendocino), `9`
+  (Phoenix), `10` (Hawk Point), `11/15` (Dragon/Fire Range), `12/13`
+  (Krackan/Strix), `14` (Strix Halo), and legacy families `0/1/4/6` to
+  explicit 5-65 W ceilings. Only the development `8845HS + 4c0009` match is
+  marked verified; all other family profiles are conservative and unverified.
 - `native/rust-probe`: a dependency-light Rust named-pipe client that sends
   `getHealth` and parses the v1 response.
 - `native/cpp-worker`: a Windows named-pipe worker skeleton that implements
@@ -96,6 +102,7 @@ back, read back `45/45/45 W`, and shut down without restore; see
 The Rust GUI now exposes the same gate: without `--enable-write-controls` it is
 read-only. With the flag it shows 12 W, 25 W, and 45 W presets plus Apply, and
 runs the write in a background thread so the window and tray remain responsive.
+The preset values are clamped to the matched profile range at runtime.
 The 45 W preset was exercised as a supervised no-change apply on the 8845HS;
 see
 `docs/evidence/hardware/mechrevo-wujie15-8845hs-native-gui-no-change-2026-11-10T12-24-30Z.json`.

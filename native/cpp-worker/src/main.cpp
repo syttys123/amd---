@@ -21,7 +21,7 @@ namespace {
 
 constexpr wchar_t kDefaultPipeName[] =
     L"\\\\.\\pipe\\AmdMobilePower.NativeWorker.v1";
-constexpr std::string_view kWorkerVersion = "0.3.0-native";
+constexpr std::string_view kWorkerVersion = "0.4.0-native";
 constexpr auto kShutdownDelay = std::chrono::milliseconds(150);
 
 struct Request {
@@ -253,6 +253,23 @@ void AppendOptionalDouble(
     }
 }
 
+void AppendProfile(
+    std::ostringstream& output,
+    const std::optional<amd_mobile_power::ProfileInfo>& profile) {
+    if (!profile) {
+        output << "null";
+        return;
+    }
+    output
+        << "{\"id\":\"" << EscapeJsonString(profile->id)
+        << "\",\"displayName\":\"" << EscapeJsonString(profile->display_name)
+        << "\",\"minimumWatts\":" << profile->minimum_watts
+        << ",\"maximumWatts\":" << profile->maximum_watts
+        << ",\"defaultWatts\":" << profile->default_watts
+        << ",\"isVerified\":" << (profile->verified ? "true" : "false")
+        << "}";
+}
+
 std::string PlatformPayload(const amd_mobile_power::PlatformCapability& capability) {
     std::ostringstream output;
     output << "{\"cpu\":{\"processorName\":\""
@@ -287,6 +304,8 @@ std::string PlatformPayload(const amd_mobile_power::PlatformCapability& capabili
            << (capability.is_supported ? "true" : "false")
            << ",\"unsupportedReason\":";
     AppendOptionalString(output, capability.unsupported_reason);
+    output << ",\"matchedProfile\":";
+    AppendProfile(output, capability.profile);
     output << "}";
     return output.str();
 }
@@ -295,7 +314,9 @@ std::string CapabilityPayload(
     const amd_mobile_power::PlatformCapability& capability) {
     std::ostringstream output;
     output << "{\"platform\":" << PlatformPayload(capability)
-           << ",\"matchedProfile\":null}";
+           << ",\"matchedProfile\":";
+    AppendProfile(output, capability.profile);
+    output << "}";
     return output.str();
 }
 
@@ -332,7 +353,9 @@ std::string SnapshotPayload(
     const amd_mobile_power::TelemetrySnapshot& telemetry) {
     std::ostringstream output;
     output << "{\"platform\":" << PlatformPayload(capability)
-           << ",\"matchedProfile\":null,\"telemetry\":"
+           << ",\"matchedProfile\":";
+    AppendProfile(output, capability.profile);
+    output << ",\"telemetry\":"
            << TelemetryPayload(telemetry) << "}";
     return output.str();
 }
@@ -653,6 +676,8 @@ int wmain(int argc, wchar_t* argv[]) {
                             const auto validation =
                                 amd_mobile_power::ValidatePowerLimitTarget(
                                     payload->target,
+                                    capability.profile->minimum_watts,
+                                    capability.profile->maximum_watts,
                                     capability.limits.supports_fast,
                                     capability.limits.supports_slow);
                             if (validation) {
@@ -663,7 +688,7 @@ int wmain(int argc, wchar_t* argv[]) {
                             } else {
                                 const auto result = hardware->ApplyTarget(
                                     payload->target,
-                                    capability.limits);
+                                    capability);
                                 if (result.IsSuccessful()) {
                                     response = SuccessResponse(
                                         request.request_id,

@@ -165,6 +165,7 @@ $report = [ordered]@{
             isSupported = $platform.isSupported
             unsupportedReason = $platform.unsupportedReason
             limits = $platform.limits
+            profile = $platform.matchedProfile
         }
     }
     else {

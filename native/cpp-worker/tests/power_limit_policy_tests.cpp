@@ -1,4 +1,5 @@
 #include "../src/power_limit_policy.hpp"
+#include "../src/profile_catalog.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -100,6 +101,8 @@ bool ApplySucceedsWithReadback() {
     const PowerLimitApplicationResult result = ApplyPowerLimitTarget(
         backend,
         PowerLimitTarget{20, 30, 40},
+        5,
+        60,
         true,
         true);
     return Expect(result.IsSuccessful(), "clamped STAPM should remain successful") &&
@@ -118,6 +121,8 @@ bool RejectedStapmDoesNotUndoFastAndSlow() {
     const PowerLimitApplicationResult result = ApplyPowerLimitTarget(
         backend,
         PowerLimitTarget{25, 20, 20},
+        5,
+        60,
         true,
         true);
     return Expect(result.IsSuccessful(), "rejected STAPM should not fail Fast/Slow") &&
@@ -134,6 +139,8 @@ bool PartialWriteFailureRestoresPreviousTarget() {
     const PowerLimitApplicationResult result = ApplyPowerLimitTarget(
         backend,
         PowerLimitTarget{20, 30, 40},
+        5,
+        60,
         true,
         true);
     return Expect(!result.IsSuccessful(), "Fast write failure should fail the apply") &&
@@ -154,6 +161,8 @@ bool UnexpectedReadbackIncreaseRestoresPreviousTarget() {
     const PowerLimitApplicationResult result = ApplyPowerLimitTarget(
         backend,
         PowerLimitTarget{20, 30, 40},
+        5,
+        60,
         true,
         true);
     return Expect(!result.IsSuccessful(), "readback above target should fail") &&
@@ -168,6 +177,8 @@ bool RestoreFailureIsReported() {
     const PowerLimitApplicationResult result = ApplyPowerLimitTarget(
         backend,
         PowerLimitTarget{20, 30, 40},
+        5,
+        60,
         true,
         true);
     return Expect(!result.IsSuccessful(), "failed restore should remain unsuccessful") &&
@@ -186,6 +197,8 @@ bool InvalidTargetIsRejectedBeforeWrite() {
     const PowerLimitApplicationResult result = ApplyPowerLimitTarget(
         backend,
         PowerLimitTarget{4, 30, 40},
+        5,
+        60,
         true,
         true);
     return Expect(!result.IsSuccessful(), "out-of-range target should be rejected") &&
@@ -197,6 +210,8 @@ bool UnsupportedFastIsRejectedBeforeWrite() {
     const PowerLimitApplicationResult result = ApplyPowerLimitTarget(
         backend,
         PowerLimitTarget{20, 30, 40},
+        5,
+        60,
         false,
         true);
     return Expect(!result.IsSuccessful(), "unsupported Fast should be rejected") &&
@@ -209,10 +224,59 @@ bool InvalidPreviousReadbackIsRejectedBeforeWrite() {
     const PowerLimitApplicationResult result = ApplyPowerLimitTarget(
         backend,
         PowerLimitTarget{20, 30, 40},
+        5,
+        60,
         true,
         true);
     return Expect(!result.IsSuccessful(), "invalid previous readback should fail") &&
         Expect(backend.writes.empty(), "previous invalid state must not write");
+}
+
+bool ProfileCatalogSelectsVerifiedAndConservativeFamilies() {
+    const auto* development = amd_mobile_power::FindPlatformProfile(
+        10,
+        "AMD Ryzen 7 8845HS",
+        "4c0009");
+    const auto* generic_hawk = amd_mobile_power::FindPlatformProfile(
+        10,
+        "AMD Ryzen 5 8640HS",
+        "4c0009");
+    const auto* phoenix = amd_mobile_power::FindPlatformProfile(
+        9,
+        "AMD Ryzen 7 7840U",
+        "unknown");
+    const auto* renoir = amd_mobile_power::FindPlatformProfile(
+        3,
+        "AMD Ryzen 5 5500U",
+        "unknown");
+    const auto* unknown = amd_mobile_power::FindPlatformProfile(
+        99,
+        "AMD Unknown",
+        "unknown");
+
+    return Expect(
+               development != nullptr &&
+                   development->id == "hawk-point-8845hs" &&
+                   development->maximum_watts == 60 &&
+                   development->verified,
+               "8845HS should select the verified development profile") &&
+        Expect(
+            generic_hawk != nullptr &&
+                generic_hawk->id == "ryzenadj-hawk-point" &&
+                generic_hawk->maximum_watts == 45 &&
+                !generic_hawk->verified,
+            "generic Hawk Point should remain conservative") &&
+        Expect(
+            phoenix != nullptr &&
+                phoenix->id == "ryzenadj-phoenix",
+            "Phoenix family should map to a profile") &&
+        Expect(
+            renoir != nullptr &&
+                renoir->id == "ryzenadj-renoir-cezanne",
+            "Renoir/Cezanne family should map to a profile") &&
+        Expect(
+            unknown == nullptr,
+            "unknown family must remain unsupported");
 }
 
 }  // namespace
@@ -226,7 +290,8 @@ int main() {
         RestoreFailureIsReported() &&
         InvalidTargetIsRejectedBeforeWrite() &&
         UnsupportedFastIsRejectedBeforeWrite() &&
-        InvalidPreviousReadbackIsRejectedBeforeWrite();
+        InvalidPreviousReadbackIsRejectedBeforeWrite() &&
+        ProfileCatalogSelectsVerifiedAndConservativeFamilies();
     if (!passed) {
         return 1;
     }

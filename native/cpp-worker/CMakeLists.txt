@@ -8,12 +8,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(amdmobilepower_native_worker
     src/main.cpp
     src/power_limit_policy.cpp
+    src/profile_catalog.cpp
     src/ryzen_hardware.cpp
 )
 
 add_executable(amdmobilepower_power_limit_policy_tests
     tests/power_limit_policy_tests.cpp
     src/power_limit_policy.cpp
+    src/profile_catalog.cpp
 )
 
 target_compile_definitions(amdmobilepower_native_worker PRIVATE

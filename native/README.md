@@ -50,6 +50,11 @@ The native worker has no write capability unless both `--enable-hardware` and
 `--enable-write-controls` are supplied. The default verification gate checks
 that `applyTarget` is rejected without the write flag.
 
+The native worker maps RyzenAdj families to conservative profiles. Only the
+development `8845HS + 4c0009` match is marked verified; other families are
+experimental and receive narrower profile ceilings until hardware evidence is
+collected.
+
 Check the write-enabled worker without changing power state:
 
 ```powershell

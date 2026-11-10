@@ -1,4 +1,5 @@
 #include "ryzen_hardware.hpp"
+#include "profile_catalog.hpp"
 
 #include <windows.h>
 
@@ -323,12 +324,25 @@ PlatformCapability RyzenHardware::Probe() {
         table_version << std::hex << get_table_version_(ryzen_access_);
         capability.cpu.pm_table_version = table_version.str();
     }
-    capability.is_supported = family >= 0;
-    capability.limits = LimitCapability{
-        capability.is_supported,
-        capability.is_supported,
-        capability.is_supported};
-    if (!capability.is_supported) {
+
+    const auto* profile = FindPlatformProfile(
+        family,
+        capability.cpu.processor_name,
+        capability.cpu.pm_table_version.value_or(""));
+    if (profile != nullptr) {
+        capability.profile = ProfileInfo{
+            profile->id,
+            profile->display_name,
+            profile->minimum_watts,
+            profile->maximum_watts,
+            profile->default_watts,
+            profile->verified};
+        capability.limits = LimitCapability{
+            profile->supports_stapm,
+            profile->supports_fast,
+            profile->supports_slow};
+        capability.is_supported = true;
+    } else {
         capability.unsupported_reason =
             "Unsupported RyzenAdj family: " + std::to_string(family);
     }
@@ -367,7 +381,7 @@ TelemetrySnapshot RyzenHardware::Refresh(std::string& error) {
 
 PowerLimitApplicationResult RyzenHardware::ApplyTarget(
     const PowerLimitTarget& target,
-    const LimitCapability& capability) {
+    const PlatformCapability& capability) {
     PowerLimitApplicationResult result;
     result.target = target;
     if (!initialized_ || ryzen_access_ == nullptr) {
@@ -378,6 +392,10 @@ PowerLimitApplicationResult RyzenHardware::ApplyTarget(
         set_fast_limit_ == nullptr ||
         set_slow_limit_ == nullptr) {
         result.error = "RyzenAdj write functions are unavailable";
+        return result;
+    }
+    if (!capability.is_supported || !capability.profile) {
+        result.error = "The platform has no write-capable profile";
         return result;
     }
 
@@ -393,8 +411,10 @@ PowerLimitApplicationResult RyzenHardware::ApplyTarget(
     return ApplyPowerLimitTarget(
         backend,
         target,
-        capability.supports_fast,
-        capability.supports_slow);
+        capability.profile->minimum_watts,
+        capability.profile->maximum_watts,
+        capability.limits.supports_fast,
+        capability.limits.supports_slow);
 }
 
 std::string RyzenHardware::ReadProcessorName() const {

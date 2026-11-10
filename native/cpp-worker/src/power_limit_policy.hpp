@@ -7,8 +7,6 @@
 
 namespace amd_mobile_power {
 
-constexpr int kMinimumTargetWatts = 5;
-constexpr int kMaximumTargetWatts = 60;
 constexpr int kMinimumRestoreWatts = 1;
 constexpr int kMaximumRestoreWatts = 200;
 constexpr double kReadbackToleranceWatts = 0.75;
@@ -63,12 +61,16 @@ public:
 
 std::optional<std::string> ValidatePowerLimitTarget(
     const PowerLimitTarget& target,
+    int minimum_watts,
+    int maximum_watts,
     bool supports_fast,
     bool supports_slow);
 
 PowerLimitApplicationResult ApplyPowerLimitTarget(
     IPowerLimitBackend& backend,
     const PowerLimitTarget& target,
+    int minimum_watts,
+    int maximum_watts,
     bool supports_fast,
     bool supports_slow);
 

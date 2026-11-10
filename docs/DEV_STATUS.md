@@ -776,6 +776,13 @@ third_party/
   JSON compatibility report, and never enables write controls or network
   access. The package build gate now runs the collector against the extracted
   package and rejects reports containing local package paths or pipe names.
+- Added a native conservative family/profile catalog for RyzenAdj families
+  `2/3/5`, `7`, `8`, `9`, `10`, `11/15`, `12/13`, `14`, and legacy
+  `0/1/4/6`. The `8845HS + 4c0009` development match is the only verified
+  profile; every other profile is capped conservatively between 30 W and 65 W.
+  Capability payloads now expose profile id, display name, range, default, and
+  verification state. The Rust GUI clamps its 12/25/45 presets to the active
+  profile and still passed the full 45/45/45 W no-change path.
 
 Development screenshot:
 

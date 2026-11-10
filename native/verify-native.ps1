@@ -189,6 +189,13 @@ if ($VerifyHardware) {
         if ($capabilities.platform.limits.supportsAny -ne $true) {
             throw "Native hardware worker did not report supported limits."
         }
+        if ($null -eq $capabilities.platform.matchedProfile) {
+            throw "Native hardware worker did not report a matched profile."
+        }
+        if ($capabilities.platform.matchedProfile.minimumWatts -lt 5 -or
+            $capabilities.platform.matchedProfile.maximumWatts -gt 65) {
+            throw "Native hardware worker reported an unsafe profile range."
+        }
         if ($snapshot.telemetry.powerLine -notin @("ac", "battery")) {
             throw "Native hardware snapshot did not report AC or battery."
         }
@@ -210,6 +217,8 @@ if ($VerifyHardware) {
             Processor = $capabilities.platform.cpu.processorName
             Family = $capabilities.platform.cpu.ryzenAdjFamily
             FamilyName = $capabilities.platform.cpu.ryzenAdjFamilyName
+            Profile = $capabilities.platform.matchedProfile.id
+            ProfileRange = "$($capabilities.platform.matchedProfile.minimumWatts)-$($capabilities.platform.matchedProfile.maximumWatts) W"
             PmTableVersion = $capabilities.platform.cpu.pmTableVersion
             PowerLine = $snapshot.telemetry.powerLine
             StapmLimitWatts = $snapshot.telemetry.stapmLimitWatts
@@ -282,6 +291,12 @@ if ($VerifyWriteGuard) {
     }
     HardwarePmTable = if ($hardwareResult) {
         $hardwareResult.PmTableVersion
+    }
+    else {
+        $null
+    }
+    HardwareProfile = if ($hardwareResult) {
+        "$($hardwareResult.Profile) [$($hardwareResult.ProfileRange)]"
     }
     else {
         $null

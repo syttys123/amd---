@@ -17,8 +17,8 @@ struct WriteAttempt {
     }
 };
 
-bool IsValidTarget(int watts) {
-    return watts >= kMinimumTargetWatts && watts <= kMaximumTargetWatts;
+bool IsValidTarget(int watts, int minimum_watts, int maximum_watts) {
+    return watts >= minimum_watts && watts <= maximum_watts;
 }
 
 bool IsRestorable(int watts) {
@@ -190,15 +190,19 @@ const char* PowerLimitKindName(PowerLimitKind kind) {
 
 std::optional<std::string> ValidatePowerLimitTarget(
     const PowerLimitTarget& target,
+    int minimum_watts,
+    int maximum_watts,
     bool supports_fast,
     bool supports_slow) {
-    const auto validate = [](const char* name, int watts) -> std::optional<std::string> {
-        if (IsValidTarget(watts)) {
+    const auto validate = [minimum_watts, maximum_watts](
+                              const char* name,
+                              int watts) -> std::optional<std::string> {
+        if (IsValidTarget(watts, minimum_watts, maximum_watts)) {
             return std::nullopt;
         }
         return std::string(name) + ": Power must be between " +
-            std::to_string(kMinimumTargetWatts) + "W and " +
-            std::to_string(kMaximumTargetWatts) + "W.";
+            std::to_string(minimum_watts) + "W and " +
+            std::to_string(maximum_watts) + "W.";
     };
 
     if (const auto error = validate("STAPM", target.stapm_watts)) {
@@ -230,12 +234,18 @@ std::optional<std::string> ValidatePowerLimitTarget(
 PowerLimitApplicationResult ApplyPowerLimitTarget(
     IPowerLimitBackend& backend,
     const PowerLimitTarget& target,
+    int minimum_watts,
+    int maximum_watts,
     bool supports_fast,
     bool supports_slow) {
     PowerLimitApplicationResult result;
     result.target = target;
-    if (const auto validation =
-            ValidatePowerLimitTarget(target, supports_fast, supports_slow)) {
+    if (const auto validation = ValidatePowerLimitTarget(
+            target,
+            minimum_watts,
+            maximum_watts,
+            supports_fast,
+            supports_slow)) {
         result.error = validation;
         return result;
     }

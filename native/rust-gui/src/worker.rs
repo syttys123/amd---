@@ -58,8 +58,20 @@ pub struct SnapshotPayload {
 pub struct PlatformPayload {
     pub cpu: CpuPayload,
     pub limits: LimitsPayload,
+    pub matched_profile: Option<ProfilePayload>,
     pub is_supported: bool,
     pub unsupported_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfilePayload {
+    pub id: String,
+    pub display_name: String,
+    pub minimum_watts: i32,
+    pub maximum_watts: i32,
+    pub default_watts: i32,
+    pub is_verified: bool,
 }
 
 #[derive(Debug, Deserialize)]
