@@ -46,6 +46,18 @@ Run the packaged collector without opening the GUI or enabling writes:
 The collector starts the adjacent worker with read-only hardware access, exports
 a local JSON report, and never connects to the network.
 
+Install
+-------
+
+From an extracted package:
+
+  powershell -ExecutionPolicy Bypass -File .\install-preview.ps1
+
+The installer uses a separate `AmdMobilePowerNativePreview` install and
+uninstall entry. It starts the GUI in read-only mode from the Startup folder
+and does not replace the stable `C:\RyzenAdj` deployment. Use
+`uninstall-preview.ps1` from the installed directory to remove it.
+
 Requirements
 ------------
 

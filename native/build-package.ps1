@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.3.0-native-preview.1",
+    [string]$Version = "0.4.0-native-preview.1",
     [switch]$NoBuild,
     [switch]$NoVerify,
     [string]$EvidencePath
@@ -33,10 +33,47 @@ function Reset-ArtifactDirectory {
     New-Item -ItemType Directory -Path $resolvedPath -Force | Out-Null
 }
 
+function Get-ShellIntegrationSnapshot {
+    $startMenuShortcut = Join-Path `
+        ([Environment]::GetFolderPath("Programs")) `
+        "AMD Mobile Power Native Preview\AMD Mobile Power Native Preview.lnk"
+    $startupShortcut = Join-Path `
+        ([Environment]::GetFolderPath("Startup")) `
+        "AMD Mobile Power Native Preview.lnk"
+    $uninstallKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\AmdMobilePowerNativePreview"
+    $uninstallVersion = $null
+    if (Test-Path -LiteralPath $uninstallKey) {
+        $uninstallVersion = (Get-ItemProperty `
+            -LiteralPath $uninstallKey `
+            -Name "DisplayVersion" `
+            -ErrorAction SilentlyContinue).DisplayVersion
+    }
+    [pscustomobject]@{
+        StartMenuExists = Test-Path -LiteralPath $startMenuShortcut
+        StartMenuTimestamp = if (Test-Path -LiteralPath $startMenuShortcut) {
+            (Get-Item -LiteralPath $startMenuShortcut).LastWriteTimeUtc.Ticks
+        }
+        else {
+            $null
+        }
+        StartupExists = Test-Path -LiteralPath $startupShortcut
+        StartupTimestamp = if (Test-Path -LiteralPath $startupShortcut) {
+            (Get-Item -LiteralPath $startupShortcut).LastWriteTimeUtc.Ticks
+        }
+        else {
+            $null
+        }
+        UninstallExists = Test-Path -LiteralPath $uninstallKey
+        UninstallVersion = $uninstallVersion
+    }
+}
+
 if (-not $NoBuild) {
-    & (Join-Path $root "build.ps1") -Offline
-    if ($LASTEXITCODE -ne 0) {
-        throw "Native build failed."
+    try {
+        & (Join-Path $root "build.ps1") -Offline
+    }
+    catch {
+        throw "Native build failed: $($_.Exception.Message)"
     }
 }
 
@@ -72,6 +109,10 @@ Copy-Item -LiteralPath (Join-Path $root "portable-README.txt") `
     -Destination (Join-Path $stage "README.txt") -Force
 Copy-Item -LiteralPath (Join-Path $root "collect-native-diagnostics.ps1") `
     -Destination (Join-Path $stage "collect-native-diagnostics.ps1") -Force
+Copy-Item -LiteralPath (Join-Path $root "install-preview.ps1") `
+    -Destination (Join-Path $stage "install-preview.ps1") -Force
+Copy-Item -LiteralPath (Join-Path $root "uninstall-preview.ps1") `
+    -Destination (Join-Path $stage "uninstall-preview.ps1") -Force
 
 $commit = (& git -C $repositoryRoot rev-parse HEAD).Trim()
 $statusText = (& git -C $repositoryRoot status --porcelain --ignore-submodules=dirty |
@@ -107,22 +148,29 @@ if (-not $NoVerify) {
     Reset-ArtifactDirectory $verifyRoot
     Expand-Archive -LiteralPath $zipPath -DestinationPath $verifyRoot -Force
     $verifyGui = Join-Path $verifyRoot "$stageName\amd-mobile-power-gui.exe"
-    & (Join-Path $root "verify-rust-gui.ps1") `
-        -NoBuild `
-        -VerifyWorker `
-        -VerifyWriteControls `
-        -GuiExecutable $verifyGui
-    if ($LASTEXITCODE -ne 0) {
-        throw "Extracted native package verification failed."
+    try {
+        & (Join-Path $root "verify-rust-gui.ps1") `
+            -NoBuild `
+            -VerifyWorker `
+            -VerifyWriteControls `
+            -GuiExecutable $verifyGui
+    }
+    catch {
+        throw "Extracted native package verification failed: $($_.Exception.Message)"
     }
 
     $collector = Join-Path `
         $verifyRoot `
         "$stageName\collect-native-diagnostics.ps1"
     $reportPath = Join-Path $verifyRoot "native-compatibility-report.json"
-    & $collector -OutputPath $reportPath
-    if ($LASTEXITCODE -ne 0) {
-        throw "Extracted native compatibility collector failed."
+    $collectorOutput = & powershell.exe `
+        -NoProfile `
+        -ExecutionPolicy Bypass `
+        -File $collector `
+        -OutputPath $reportPath 2>&1
+    $collectorExitCode = $LASTEXITCODE
+    if ($collectorExitCode -ne 0) {
+        throw "Extracted native compatibility collector failed: $collectorOutput"
     }
     $reportText = Get-Content -LiteralPath $reportPath -Raw
     $report = $reportText | ConvertFrom-Json
@@ -137,6 +185,43 @@ if (-not $NoVerify) {
         $reportText -match [regex]::Escape("\\.\pipe\")) {
         throw "Native compatibility report contains a local path or pipe name."
     }
+
+    $installer = Join-Path `
+        $verifyRoot `
+        "$stageName\install-preview.ps1"
+    $uninstaller = Join-Path `
+        $verifyRoot `
+        "$stageName\uninstall-preview.ps1"
+    $isolatedInstall = Join-Path $verifyRoot "isolated-install"
+    $shellBefore = Get-ShellIntegrationSnapshot | ConvertTo-Json -Compress
+    $installOutput = & powershell.exe `
+        -NoProfile `
+        -ExecutionPolicy Bypass `
+        -File $installer `
+        -InstallDirectory $isolatedInstall `
+        -NoStartup `
+        -NoShellIntegration `
+        -NoLaunch 2>&1
+    $installExitCode = $LASTEXITCODE
+    if ($installExitCode -ne 0 -or
+        -not (Test-Path -LiteralPath (Join-Path $isolatedInstall "amd-mobile-power-gui.exe"))) {
+        throw "Native preview isolated install failed: $installOutput"
+    }
+    $uninstallOutput = & powershell.exe `
+        -NoProfile `
+        -ExecutionPolicy Bypass `
+        -File $uninstaller `
+        -InstallDirectory $isolatedInstall `
+        -NoStartup `
+        -NoShellIntegration 2>&1
+    $uninstallExitCode = $LASTEXITCODE
+    if ($uninstallExitCode -ne 0 -or (Test-Path -LiteralPath $isolatedInstall)) {
+        throw "Native preview isolated uninstall failed: $uninstallOutput"
+    }
+    $shellAfter = Get-ShellIntegrationSnapshot | ConvertTo-Json -Compress
+    if ($shellBefore -ne $shellAfter) {
+        throw "Isolated native preview install/uninstall touched real shell or registry integration."
+    }
 }
 
 $result = [pscustomobject]@{
@@ -146,6 +231,7 @@ $result = [pscustomobject]@{
     WorkingTree = $workingTree
     Verification = if ($NoVerify) { "Skipped" } else { "PASS" }
     CompatibilityCollector = if ($NoVerify) { "Skipped" } else { "PASS" }
+    InstallFlow = if ($NoVerify) { "Skipped" } else { "PASS" }
 }
 
 if ($EvidencePath) {
@@ -162,6 +248,7 @@ if ($EvidencePath) {
         WorkingTree = $workingTree
         Verification = $result.Verification
         CompatibilityCollector = $result.CompatibilityCollector
+        InstallFlow = $result.InstallFlow
         RecordedAt = (Get-Date).ToString("o")
     } |
         ConvertTo-Json -Depth 6 |
