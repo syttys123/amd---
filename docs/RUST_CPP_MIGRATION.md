@@ -117,4 +117,7 @@ reporting success. The ZIP also contains
 `collect-native-diagnostics.ps1`, a read-only, sanitized compatibility
 collector that starts the bundled worker without write controls and writes a
 local JSON report. The clean `0.4.0-native-preview.1` package is recorded in
-`docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`.
+`docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`;
+the real current-user Start menu, Startup, and uninstall-entry lifecycle is
+recorded in
+`docs/evidence/packaging/v0.4.0-native-preview.1-shell-integration-2026-11-10.json`.

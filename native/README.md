@@ -95,6 +95,18 @@ The current clean package is `0.4.0-native-preview.1`; its hash and evidence
 are recorded in `docs/PACKAGING.md` and
 `docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`.
 
+Exercise the real Start menu, Startup shortcut, and current-user uninstall
+entry without launching the GUI:
+
+```powershell
+.\native\verify-preview-shell-integration.ps1
+```
+
+The verifier refuses to overwrite an existing native-preview entry, records
+the result under `docs\evidence\packaging`, and removes every created artifact
+in a `finally` path. The recorded clean run is
+`docs/evidence/packaging/v0.4.0-native-preview.1-shell-integration-2026-11-10.json`.
+
 ## Current Native Slice
 
 The native slice verifies the process boundary and the existing v1 JSON-lines

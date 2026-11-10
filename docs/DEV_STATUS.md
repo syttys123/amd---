@@ -772,6 +772,13 @@ third_party/
   `ea6fd74c246d85d78f494fdacb740ca4db2e18f657a86b3216716275b277df6d`,
   built from commit `f05e9b4`, with all checksum entries verified. Evidence:
   `docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`.
+- Added `native/verify-preview-shell-integration.ps1` and exercised the real
+  current-user Start menu, Startup shortcut, and uninstall entry for the clean
+  `0.4.0-native-preview.1` package without launching the GUI. The verifier
+  created the expected shortcuts and version metadata, then removed the
+  install directory, both shortcuts, and the uninstall key with zero residual
+  artifacts. Evidence:
+  `docs/evidence/packaging/v0.4.0-native-preview.1-shell-integration-2026-11-10.json`.
 - Added `native/collect-native-diagnostics.ps1` to the native preview package.
   It starts the bundled worker with read-only hardware access, queries health,
   capabilities, and telemetry over the v1 named pipe, writes a sanitized local
@@ -810,10 +817,10 @@ Development screenshot:
 ## Next Concrete Task
 
 Collect a read-only compatibility report from a second physical AMD laptop
-while `C:\RyzenAdj` stays on the verified `1.0.4` rollback point. Then exercise
-the native preview installer with real Start menu and Startup shortcuts on the
-development host, and keep the existing named-pipe protocol and hardware-safety
-boundaries as the migration contract before replacing the stable deployment.
+while `C:\RyzenAdj` stays on the verified `1.0.4` rollback point. Keep the
+existing named-pipe protocol and hardware-safety boundaries as the migration
+contract, and use the recorded native-preview packaging evidence as the
+baseline before promoting anything beyond the current stable deployment.
 
 ## Known Risks
 

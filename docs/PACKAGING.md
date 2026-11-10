@@ -35,6 +35,12 @@ artifacts/native-packages/amd-mobile-power-v0.4.0-native-preview.1-win-x64-nativ
 - Evidence:
   `docs/evidence/packaging/v0.4.0-native-preview.1-clean-2026-11-10.json`.
 
+The same package passed a real current-user shell-integration exercise without
+launching the GUI: the Start menu shortcut, Startup shortcut, and uninstall
+entry were created with version `0.4.0-native-preview.1`, then all four tested
+paths and registry state were removed with zero residual artifacts. Evidence:
+`docs/evidence/packaging/v0.4.0-native-preview.1-shell-integration-2026-11-10.json`.
+
 ## Portable ZIP
 
 Build a self-contained Windows x64 portable package from a clean source tree:
