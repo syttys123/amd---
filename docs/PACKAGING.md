@@ -17,6 +17,22 @@ compatibility-collector, isolated install/uninstall, and real
 Startup/registry-fingerprint gates.
 It is a migration artifact, not the stable `C:\RyzenAdj` deployment.
 
+The build always re-hashes every staged `SHA256SUMS.txt` entry before creating
+the ZIP. On a headless CI machine without an AMD RyzenAdj device, use:
+
+```powershell
+.\native\build-package.ps1 `
+  -NoBuild `
+  -SkipRuntimeVerification `
+  -Version 0.5.0-ci.1
+```
+
+This still builds the complete package, verifies all staged checksums, runs the
+GUI lifecycle and write-control checks, and exercises isolated
+install/uninstall. It explicitly reports `RuntimeVerification=Skipped` and
+`CompatibilityCollector=Skipped`; those hardware gates remain required before
+promotion or release evidence.
+
 Current clean native preview:
 
 ```text

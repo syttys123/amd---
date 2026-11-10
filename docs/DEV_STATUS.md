@@ -809,6 +809,12 @@ third_party/
   `%LocalAppData%\AmdMobilePower\rust-ui-state.json` persistence. The GUI
   verifier now isolates `%LocalAppData%` and covers the save path without
   touching user state.
+- Extended the Windows CI workflow to build the pinned RyzenAdj runtime and a
+  checksum-verified native preview ZIP, upload both the package and SHA256
+  sidecar, and keep hardware runtime verification explicitly skipped on
+  headless runners. `native/build-package.ps1` now validates every staged
+  checksum entry before zipping and exposes `RuntimeVerification` /
+  `CompatibilityCollector` evidence fields.
 
 Development screenshot:
 

@@ -108,19 +108,29 @@ try {
         throw "C++ power-policy tests failed."
     }
 
-    & cargo test `
-        --manifest-path $rustGuiManifest `
-        --locked `
-        --offline
+    $rustGuiTestArguments = @(
+        "test",
+        "--manifest-path", $rustGuiManifest,
+        "--locked"
+    )
+    if ($Offline) {
+        $rustGuiTestArguments += "--offline"
+    }
+    & cargo @rustGuiTestArguments
     if ($LASTEXITCODE -ne 0) {
         throw "Rust GUI lifecycle tests failed."
     }
 
-    & cargo build `
-        --manifest-path $rustGuiManifest `
-        --release `
-        --locked `
-        --offline
+    $rustGuiBuildArguments = @(
+        "build",
+        "--manifest-path", $rustGuiManifest,
+        "--release",
+        "--locked"
+    )
+    if ($Offline) {
+        $rustGuiBuildArguments += "--offline"
+    }
+    & cargo @rustGuiBuildArguments
     if ($LASTEXITCODE -ne 0) {
         throw "Rust GUI build failed."
     }

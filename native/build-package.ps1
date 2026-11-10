@@ -2,6 +2,7 @@ param(
     [string]$Version = "0.5.0-native-preview.1",
     [switch]$NoBuild,
     [switch]$NoVerify,
+    [switch]$SkipRuntimeVerification,
     [string]$EvidencePath
 )
 
@@ -31,6 +32,36 @@ function Reset-ArtifactDirectory {
         Remove-Item -LiteralPath $resolvedPath -Recurse -Force
     }
     New-Item -ItemType Directory -Path $resolvedPath -Force | Out-Null
+}
+
+function Assert-StagedChecksums {
+    param([string]$Path)
+
+    $checksumPath = Join-Path $Path "SHA256SUMS.txt"
+    if (-not (Test-Path -LiteralPath $checksumPath)) {
+        throw "The staged package has no SHA256SUMS.txt."
+    }
+    $entries = 0
+    foreach ($line in Get-Content -LiteralPath $checksumPath) {
+        if ($line -notmatch "^([0-9a-f]{64})  (.+)$") {
+            throw "Invalid staged checksum entry: $line"
+        }
+        $expected = $Matches[1]
+        $relative = $Matches[2].Replace("/", "\")
+        $file = Join-Path $Path $relative
+        if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+            throw "Staged checksum target is missing: $relative"
+        }
+        $actual = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($actual -ne $expected) {
+            throw "Staged checksum mismatch for ${relative}: $actual != $expected"
+        }
+        ++$entries
+    }
+    if ($entries -eq 0) {
+        throw "The staged package has an empty SHA256SUMS.txt."
+    }
+    return $entries
 }
 
 function Get-ShellIntegrationSnapshot {
@@ -136,6 +167,7 @@ $checksumLines = Get-ChildItem -LiteralPath $stage -File -Recurse |
         "$hash  $relative"
     }
 $checksumLines | Set-Content -LiteralPath (Join-Path $stage "SHA256SUMS.txt") -Encoding ascii
+$checksumCount = Assert-StagedChecksums -Path $stage
 
 if (Test-Path -LiteralPath $zipPath) {
     Remove-Item -LiteralPath $zipPath -Force
@@ -148,43 +180,56 @@ if (-not $NoVerify) {
     Reset-ArtifactDirectory $verifyRoot
     Expand-Archive -LiteralPath $zipPath -DestinationPath $verifyRoot -Force
     $verifyGui = Join-Path $verifyRoot "$stageName\amd-mobile-power-gui.exe"
-    try {
-        & (Join-Path $root "verify-rust-gui.ps1") `
-            -NoBuild `
-            -VerifyWorker `
-            -VerifyWriteControls `
-            -ExecutePolicySave `
-            -GuiExecutable $verifyGui
+    if ($SkipRuntimeVerification) {
+        try {
+            & (Join-Path $root "verify-rust-gui.ps1") `
+                -NoBuild `
+                -VerifyWriteControls `
+                -GuiExecutable $verifyGui
+        }
+        catch {
+            throw "Extracted native GUI verification failed: $($_.Exception.Message)"
+        }
     }
-    catch {
-        throw "Extracted native package verification failed: $($_.Exception.Message)"
-    }
+    else {
+        try {
+            & (Join-Path $root "verify-rust-gui.ps1") `
+                -NoBuild `
+                -VerifyWorker `
+                -VerifyWriteControls `
+                -ExecutePolicySave `
+                -GuiExecutable $verifyGui
+        }
+        catch {
+            throw "Extracted native package verification failed: $($_.Exception.Message)"
+        }
 
-    $collector = Join-Path `
-        $verifyRoot `
-        "$stageName\collect-native-diagnostics.ps1"
-    $reportPath = Join-Path $verifyRoot "native-compatibility-report.json"
-    $collectorOutput = & powershell.exe `
-        -NoProfile `
-        -ExecutionPolicy Bypass `
-        -File $collector `
-        -OutputPath $reportPath 2>&1
-    $collectorExitCode = $LASTEXITCODE
-    if ($collectorExitCode -ne 0) {
-        throw "Extracted native compatibility collector failed: $collectorOutput"
-    }
-    $reportText = Get-Content -LiteralPath $reportPath -Raw
-    $report = $reportText | ConvertFrom-Json
-    if ($report.collectionStatus -ne "PASS" -or
-        $report.worker.hardwareInitialized -ne $true -or
-        $report.worker.writeControlsEnabled -ne $false -or
-        $report.platform.isSupported -ne $true -or
-        $null -eq $report.platform.profile) {
-        throw "Native compatibility report did not pass its schema/hardware checks."
-    }
-    if ($reportText -match [regex]::Escape($repositoryRoot) -or
-        $reportText -match [regex]::Escape("\\.\pipe\")) {
-        throw "Native compatibility report contains a local path or pipe name."
+        $collector = Join-Path `
+            $verifyRoot `
+            "$stageName\collect-native-diagnostics.ps1"
+        $reportPath = Join-Path $verifyRoot "native-compatibility-report.json"
+        $collectorOutput = & powershell.exe `
+            -NoProfile `
+            -ExecutionPolicy Bypass `
+            -File $collector `
+            -OutputPath $reportPath 2>&1
+        $collectorExitCode = $LASTEXITCODE
+        if ($collectorExitCode -ne 0) {
+            throw "Extracted native compatibility collector failed: $collectorOutput"
+        }
+        $reportText = Get-Content -LiteralPath $reportPath -Raw
+        $report = $reportText | ConvertFrom-Json
+        if ($report.collectionStatus -ne "PASS" -or
+            $report.worker.hardwareInitialized -ne $true -or
+            $report.worker.writeControlsEnabled -ne $false -or
+            $report.platform.isSupported -ne $true -or
+            $null -eq $report.platform.profile) {
+            throw "Native compatibility report did not pass its schema/hardware checks."
+        }
+        if ($reportText -match [regex]::Escape($repositoryRoot) -or
+            $reportText -match [regex]::Escape("\\.\pipe\")) {
+            throw "Native compatibility report contains a local path or pipe name."
+        }
     }
 
     $installer = Join-Path `
@@ -231,7 +276,22 @@ $result = [pscustomobject]@{
     Size = (Get-Item -LiteralPath $zipPath).Length
     WorkingTree = $workingTree
     Verification = if ($NoVerify) { "Skipped" } else { "PASS" }
-    CompatibilityCollector = if ($NoVerify) { "Skipped" } else { "PASS" }
+    ChecksumEntries = $checksumCount
+    RuntimeVerification = if ($SkipRuntimeVerification) {
+        "Skipped"
+    }
+    elseif ($NoVerify) {
+        "Skipped"
+    }
+    else {
+        "PASS"
+    }
+    CompatibilityCollector = if ($SkipRuntimeVerification -or $NoVerify) {
+        "Skipped"
+    }
+    else {
+        "PASS"
+    }
     InstallFlow = if ($NoVerify) { "Skipped" } else { "PASS" }
 }
 
@@ -248,6 +308,8 @@ if ($EvidencePath) {
         SourceCommit = $commit
         WorkingTree = $workingTree
         Verification = $result.Verification
+        ChecksumEntries = $result.ChecksumEntries
+        RuntimeVerification = $result.RuntimeVerification
         CompatibilityCollector = $result.CompatibilityCollector
         InstallFlow = $result.InstallFlow
         RecordedAt = (Get-Date).ToString("o")

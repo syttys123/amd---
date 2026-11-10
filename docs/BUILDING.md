@@ -140,4 +140,18 @@ JSON files into its output directory when they exist.
 toolchain and selects the matching CMake generator for Visual Studio 2019,
 2022, or 2026.
 
+Build and verify the native migration slice after staging RyzenAdj:
+
+```powershell
+.\native\build.ps1 -Offline
+.\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui `
+  -VerifyRustWorker -VerifyWriteGuard
+.\native\build-package.ps1 -NoBuild
+```
+
+The package path and hardware evidence requirements are documented in
+`docs/PACKAGING.md`. For a headless CI package build, add
+`-SkipRuntimeVerification` to `native\build-package.ps1`; the resulting ZIP is
+not a substitute for the hardware release gate.
+
 Build output is intentionally ignored by Git.
