@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using AmdMobilePower.Core.Contracts;
 using AmdMobilePower.Core.Hardware;
@@ -11,12 +12,14 @@ internal sealed class WorkerProcessController : IAsyncDisposable
     private static readonly TimeSpan DefaultRequestTimeout = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan DefaultApplyTimeout = TimeSpan.FromSeconds(8);
     private static readonly TimeSpan DefaultStartupTimeout = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan DefaultKillTimeout = TimeSpan.FromSeconds(3);
 
     private readonly IWorkerClient _client;
     private readonly bool _allowHardwareWrites;
     private readonly TimeSpan _requestTimeout;
     private readonly TimeSpan _applyTimeout;
     private readonly TimeSpan _startupTimeout;
+    private readonly TimeSpan _killTimeout;
     private readonly Func<HardwareProcessConflict?> _findHardwareConflict;
     private readonly Func<string> _locateWorkerExecutable;
     private readonly Func<ProcessStartInfo, IWorkerProcess> _startWorkerProcess;
@@ -44,13 +47,15 @@ internal sealed class WorkerProcessController : IAsyncDisposable
         TimeSpan startupTimeout,
         Func<HardwareProcessConflict?> findHardwareConflict,
         Func<string> locateWorkerExecutable,
-        Func<ProcessStartInfo, IWorkerProcess> startWorkerProcess)
+        Func<ProcessStartInfo, IWorkerProcess> startWorkerProcess,
+        TimeSpan? killTimeout = null)
     {
         _client = client;
         _allowHardwareWrites = allowHardwareWrites;
         _requestTimeout = requestTimeout;
         _applyTimeout = applyTimeout;
         _startupTimeout = startupTimeout;
+        _killTimeout = killTimeout ?? DefaultKillTimeout;
         _findHardwareConflict = findHardwareConflict;
         _locateWorkerExecutable = locateWorkerExecutable;
         _startWorkerProcess = startWorkerProcess;
@@ -196,8 +201,35 @@ internal sealed class WorkerProcessController : IAsyncDisposable
                 {
                     if (!process.HasExited)
                     {
-                        process.Kill(entireProcessTree: true);
-                        await process.WaitForExitAsync().ConfigureAwait(false);
+                        try
+                        {
+                            process.Kill(entireProcessTree: true);
+                        }
+                        catch (Exception killError) when (
+                            killError is InvalidOperationException or Win32Exception)
+                        {
+                            // The process exited between the check and the kill.
+                        }
+
+                        if (!process.HasExited)
+                        {
+                            using CancellationTokenSource killTimeout =
+                                new(_killTimeout);
+                            try
+                            {
+                                await process
+                                    .WaitForExitAsync(killTimeout.Token)
+                                    .ConfigureAwait(false);
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                // A worker stuck inside a kernel driver call may
+                                // not terminate promptly. Surface the existing
+                                // fault instead of blocking the caller forever;
+                                // the driver state still needs the reboot that
+                                // the fault message already asks for.
+                            }
+                        }
                     }
                 }
             }

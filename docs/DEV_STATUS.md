@@ -905,6 +905,16 @@ third_party/
 - Expanded `docs/HARDWARE_MATRIX.md` "Required Capture" with the packaged
   collector command plus the per-limit capability flags, supported state and
   reason, and matched profile range that a second device must record.
+- Hardened the `.NET` GUI's hardware-fault path. `StopWorkerProcessAsync`
+  previously killed a stuck worker and then awaited `WaitForExitAsync()` with
+  no deadline, so a worker wedged inside a WinRing0/inpout kernel call could
+  hang the fault path forever. The post-kill wait is now bounded by an
+  injectable timeout (default 3 s); if the process still will not terminate the
+  controller surfaces the existing "读取硬件超时 / 请重启 Windows" fault instead
+  of blocking. Added
+  `GetSnapshotAsync_WorkerStuckInDriver_StillFaultsWithinKillTimeout`, which
+  drives a fake process that ignores `Kill` and never exits. `dotnet test`
+  is now 72/72.
 
 Development screenshot:
 
