@@ -3,7 +3,9 @@
 use amd_mobile_power_gui::lifecycle::{
     LifecycleAction, LifecycleEvent, LifecycleState, Transition, WindowVisibility,
 };
-use amd_mobile_power_gui::worker::{SnapshotPayload, WorkerClient, DEFAULT_PIPE_NAME};
+use amd_mobile_power_gui::worker::{
+    ApplyTargetResult, PowerLimitTarget, SnapshotPayload, WorkerClient, DEFAULT_PIPE_NAME,
+};
 use std::ffi::c_void;
 use std::mem::size_of;
 use std::os::windows::process::CommandExt;
@@ -14,7 +16,8 @@ use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
 use windows_sys::Win32::Foundation::{
-    CloseHandle, GetLastError, ERROR_ALREADY_EXISTS, HANDLE, HWND, LPARAM, LRESULT, WPARAM,
+    CloseHandle, GetLastError, ERROR_ALREADY_EXISTS, HANDLE, HINSTANCE, HWND, LPARAM, LRESULT,
+    WPARAM,
 };
 use windows_sys::Win32::Graphics::Gdi::{UpdateWindow, HBRUSH};
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
@@ -23,7 +26,6 @@ use windows_sys::Win32::System::Threading::CreateMutexW;
 use windows_sys::Win32::UI::Shell::{
     Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE, NOTIFYICONDATAW,
 };
-use windows_sys::Win32::UI::WindowsAndMessaging::SC_MINIMIZE;
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     AppendMenuW, CreatePopupMenu, CreateWindowExW, DefWindowProcW, DestroyMenu, DestroyWindow,
     DispatchMessageW, FindWindowW, GetCursorPos, GetMessageW, GetWindowLongPtrW, LoadCursorW,
@@ -35,6 +37,9 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     WM_LBUTTONUP, WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOMMAND,
     WNDCLASSEXW, WS_CHILD, WS_EX_APPWINDOW, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
 };
+use windows_sys::Win32::UI::WindowsAndMessaging::{
+    SendMessageW, BM_SETCHECK, BS_AUTORADIOBUTTON, SC_MINIMIZE, WS_TABSTOP,
+};
 
 const APP_TITLE: &str = "AMD Mobile Power - Rust GUI Preview";
 const WINDOW_CLASS: &str = "AmdMobilePower.RustGui.Migration.v1";
@@ -43,8 +48,13 @@ const TRAY_ICON_ID: u32 = 1;
 const WM_APP_WAKE: u32 = WM_APP + 1;
 const WM_APP_TRAY: u32 = WM_APP + 2;
 const WM_APP_STATUS: u32 = WM_APP + 3;
+const WM_APP_APPLY_RESULT: u32 = WM_APP + 4;
 const MENU_SHOW: usize = 1;
 const MENU_EXIT: usize = 2;
+const PRESET_12: usize = 101;
+const PRESET_25: usize = 102;
+const PRESET_45: usize = 103;
+const APPLY_TARGET: usize = 104;
 
 struct GuiApp {
     state: LifecycleState,
@@ -54,6 +64,9 @@ struct GuiApp {
     monitor_thread: Option<JoinHandle<()>>,
     worker_child: Option<Child>,
     worker_pipe: String,
+    write_enabled: bool,
+    selected_target: PowerLimitTarget,
+    apply_in_flight: bool,
 }
 
 impl GuiApp {
@@ -66,6 +79,9 @@ impl GuiApp {
             monitor_thread: None,
             worker_child: None,
             worker_pipe: String::new(),
+            write_enabled: false,
+            selected_target: PowerLimitTarget::uniform(12),
+            apply_in_flight: false,
         }
     }
 }
@@ -92,6 +108,7 @@ struct Options {
     start_hidden: bool,
     pipe_name: String,
     worker_executable: Option<PathBuf>,
+    enable_write_controls: bool,
 }
 
 impl Default for Options {
@@ -100,6 +117,7 @@ impl Default for Options {
             start_hidden: false,
             pipe_name: DEFAULT_PIPE_NAME.to_owned(),
             worker_executable: None,
+            enable_write_controls: false,
         }
     }
 }
@@ -199,6 +217,7 @@ fn parse_options() -> Result<Options, String> {
                         "--worker-executable requires a value".to_owned()
                     })?));
             }
+            "--enable-write-controls" => options.enable_write_controls = true,
             value => return Err(format!("unknown argument: {value}")),
         }
     }
@@ -226,10 +245,15 @@ fn start_worker(options: &Options) -> Result<Option<Child>, String> {
     let Some(executable) = worker_executable_path(options) else {
         return Ok(None);
     };
-    let child = Command::new(&executable)
+    let mut command = Command::new(&executable);
+    command
         .arg("--pipe-name")
         .arg(&options.pipe_name)
-        .arg("--enable-hardware")
+        .arg("--enable-hardware");
+    if options.enable_write_controls {
+        command.arg("--enable-write-controls");
+    }
+    let child = command
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -291,6 +315,90 @@ unsafe fn create_status_label(
         instance,
         std::ptr::null(),
     )
+}
+
+unsafe fn create_action_buttons(hwnd: HWND, instance: HINSTANCE) {
+    let button_class = wide("BUTTON");
+    let controls = [
+        (PRESET_12, "12 W", 18, 330, 90),
+        (PRESET_25, "25 W", 116, 330, 90),
+        (PRESET_45, "45 W", 214, 330, 90),
+        (APPLY_TARGET, "Apply", 360, 330, 120),
+    ];
+    let mut first_preset = true;
+    for (id, label, x, y, width) in controls {
+        let text = wide(label);
+        let is_apply = id == APPLY_TARGET;
+        let style = WS_CHILD
+            | WS_VISIBLE
+            | WS_TABSTOP
+            | if is_apply {
+                0
+            } else {
+                BS_AUTORADIOBUTTON as u32
+            };
+        let button = CreateWindowExW(
+            0,
+            button_class.as_ptr(),
+            text.as_ptr(),
+            style,
+            x,
+            y,
+            width,
+            32,
+            hwnd,
+            id as usize as HMENU,
+            instance,
+            std::ptr::null(),
+        );
+        if first_preset && !button.is_null() {
+            SendMessageW(button, BM_SETCHECK, 1, 0);
+            first_preset = false;
+        }
+    }
+}
+
+fn format_apply_result(
+    target: PowerLimitTarget,
+    result: Result<ApplyTargetResult, String>,
+) -> String {
+    match result {
+        Ok(result) if result.is_successful => {
+            let mut text = format!(
+                "Applied {} W / {} W / {} W.\n",
+                target.stapm_watts, target.fast_watts, target.slow_watts
+            );
+            if result.has_firmware_clamp || result.has_stapm_warning {
+                text.push_str("Firmware reported a clamp or STAPM warning.");
+            } else {
+                text.push_str("Readback verified.");
+            }
+            text
+        }
+        Ok(result) => format!(
+            "Apply failed.\n{}\nRestore attempted: {}\nRestore succeeded: {}",
+            result
+                .error
+                .unwrap_or_else(|| "worker returned an unsuccessful result".to_owned()),
+            result.restore_attempted,
+            result.restored_previous_limits
+        ),
+        Err(error) => format!("Apply failed.\n{error}"),
+    }
+}
+
+fn start_apply(hwnd_address: usize, pipe_name: String, target: PowerLimitTarget) {
+    thread::spawn(move || {
+        let result = WorkerClient::new(pipe_name).apply_target(target);
+        let text = format_apply_result(target, result);
+        unsafe {
+            let pointer = Box::into_raw(Box::new(text));
+            let hwnd = hwnd_address as HWND;
+            if PostMessageW(hwnd, WM_APP_APPLY_RESULT, 0, pointer as isize) == 0 {
+                drop(Box::from_raw(pointer));
+            }
+        }
+    });
 }
 
 unsafe fn apply_actions(hwnd: HWND, transition: Transition) {
@@ -438,6 +546,18 @@ unsafe extern "system" fn window_proc(
             }
             0
         }
+        WM_APP_APPLY_RESULT => {
+            app.apply_in_flight = false;
+            let pointer = lparam as *mut String;
+            if !pointer.is_null() {
+                let text = Box::from_raw(pointer);
+                if !app.status_label.is_null() {
+                    let text = wide(&text);
+                    SetWindowTextW(app.status_label, text.as_ptr());
+                }
+            }
+            0
+        }
         WM_COMMAND => {
             match wparam & 0xFFFF {
                 MENU_SHOW => {
@@ -445,6 +565,27 @@ unsafe extern "system" fn window_proc(
                 }
                 MENU_EXIT => {
                     dispatch(app, hwnd, LifecycleEvent::TrayExitRequested);
+                }
+                PRESET_12 | PRESET_25 | PRESET_45 if app.write_enabled => {
+                    app.selected_target = match wparam & 0xFFFF {
+                        PRESET_12 => PowerLimitTarget::uniform(12),
+                        PRESET_25 => PowerLimitTarget::uniform(25),
+                        PRESET_45 => PowerLimitTarget::uniform(45),
+                        _ => app.selected_target,
+                    };
+                }
+                APPLY_TARGET if app.write_enabled && !app.apply_in_flight => {
+                    app.apply_in_flight = true;
+                    if !app.status_label.is_null() {
+                        let text = wide(&format!(
+                            "Applying {} W / {} W / {} W...",
+                            app.selected_target.stapm_watts,
+                            app.selected_target.fast_watts,
+                            app.selected_target.slow_watts
+                        ));
+                        SetWindowTextW(app.status_label, text.as_ptr());
+                    }
+                    start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target);
                 }
                 _ => {}
             }
@@ -511,6 +652,11 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
+    let window_height = if options.enable_write_controls {
+        420
+    } else {
+        360
+    };
     let hwnd = unsafe {
         CreateWindowExW(
             WS_EX_APPWINDOW,
@@ -520,7 +666,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             CW_USEDEFAULT,
             CW_USEDEFAULT,
             620,
-            360,
+            window_height,
             std::ptr::null_mut(),
             std::ptr::null_mut(),
             instance,
@@ -537,7 +683,11 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let app = Box::into_raw(Box::new(GuiApp::new(mutex)));
     unsafe {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, app as isize);
+        (*app).write_enabled = options.enable_write_controls;
         (*app).status_label = create_status_label(hwnd, instance);
+        if options.enable_write_controls {
+            create_action_buttons(hwnd, instance);
+        }
     }
 
     match start_worker(&options) {

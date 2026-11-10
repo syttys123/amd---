@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
@@ -6,6 +6,35 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub const DEFAULT_PIPE_NAME: &str = r"\\.\pipe\AmdMobilePower.RustGui.Worker.v1";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PowerLimitTarget {
+    pub stapm_watts: i32,
+    pub fast_watts: i32,
+    pub slow_watts: i32,
+}
+
+impl PowerLimitTarget {
+    pub fn uniform(watts: i32) -> Self {
+        Self {
+            stapm_watts: watts,
+            fast_watts: watts,
+            slow_watts: watts,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApplyTargetResult {
+    pub is_successful: bool,
+    pub error: Option<String>,
+    pub has_firmware_clamp: bool,
+    pub has_stapm_warning: bool,
+    pub restore_attempted: bool,
+    pub restored_previous_limits: bool,
+}
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -99,20 +128,29 @@ impl WorkerClient {
     }
 
     pub fn health(&self) -> Result<HealthPayload, String> {
-        let payload = self.request("getHealth")?;
+        let payload = self.request("getHealth", Value::Null)?;
         serde_json::from_value(payload).map_err(|error| error.to_string())
     }
 
     pub fn snapshot(&self) -> Result<SnapshotPayload, String> {
-        let payload = self.request("getSnapshot")?;
+        let payload = self.request("getSnapshot", Value::Null)?;
+        serde_json::from_value(payload).map_err(|error| error.to_string())
+    }
+
+    pub fn apply_target(&self, target: PowerLimitTarget) -> Result<ApplyTargetResult, String> {
+        let payload = serde_json::to_value(serde_json::json!({
+            "target": target
+        }))
+        .map_err(|error| format!("unable to build applyTarget payload: {error}"))?;
+        let payload = self.request("applyTarget", payload)?;
         serde_json::from_value(payload).map_err(|error| error.to_string())
     }
 
     pub fn shutdown(&self) -> Result<(), String> {
-        self.request("shutdown").map(|_| ())
+        self.request("shutdown", Value::Null).map(|_| ())
     }
 
-    fn request(&self, command: &str) -> Result<Value, String> {
+    fn request(&self, command: &str, payload: Value) -> Result<Value, String> {
         let request_id = format!(
             "rust-gui-{}-{}-{}",
             std::process::id(),
@@ -126,7 +164,7 @@ impl WorkerClient {
             "protocolVersion": 1,
             "requestId": request_id,
             "command": command,
-            "payload": null
+            "payload": payload
         });
 
         let stream = OpenOptions::new()
@@ -207,6 +245,19 @@ mod tests {
         assert_eq!(
             normalize_pipe_name("AmdMobilePower.Test".to_owned()),
             r"\\.\pipe\AmdMobilePower.Test"
+        );
+    }
+
+    #[test]
+    fn target_payload_uses_the_v1_camel_case_contract() {
+        let value = serde_json::to_value(super::PowerLimitTarget::uniform(12)).unwrap();
+        assert_eq!(
+            value,
+            serde_json::json!({
+                "stapmWatts": 12,
+                "fastWatts": 12,
+                "slowWatts": 12
+            })
         );
     }
 }

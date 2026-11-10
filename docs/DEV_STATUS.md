@@ -755,6 +755,12 @@ third_party/
   `45/45/45 W`, did not trigger restore, and shut the worker down cleanly.
   Evidence:
   `docs/evidence/hardware/mechrevo-wujie15-8845hs-native-no-change-2026-11-10T12-16-14Z.json`.
+- Added opt-in write controls to the Rust GUI: 12 W, 25 W, and 45 W presets plus
+  Apply, all hidden unless `--enable-write-controls` is passed. The GUI sends
+  `applyTarget` from a background thread, keeps tray/window interaction
+  responsive, and reports readback/clamp/restore status. A supervised
+  `45/45/45 W` no-change preset through the full Rust GUI -> C++ worker ->
+  RyzenAdj path passed with no restore attempt.
 
 Development screenshot:
 
@@ -774,16 +780,16 @@ Development screenshot:
 - Resolve GitHub Actions account billing/visibility and complete final public
   release review.
 - Connect the native worker's now-present validated `applyTarget` path to a
-  supervised no-change hardware test, then connect the Rust GUI write controls;
+  packaged native runtime and broaden the hardware matrix beyond the 8845HS;
   keep `1.0.4` as the stable fallback.
 
 ## Next Concrete Task
 
-Run the native worker's validated write path through a supervised no-change
-hardware test while `C:\RyzenAdj` stays on the verified `1.0.4` rollback point.
-Keep the existing named-pipe protocol and hardware-safety boundaries as the
-migration contract, and require the same lifecycle, tray, diagnostics, and
-no-change hardware gates before replacing the stable deployment.
+Build and verify a portable native runtime while `C:\RyzenAdj` stays on the
+verified `1.0.4` rollback point. Keep the existing named-pipe protocol and
+hardware-safety boundaries as the migration contract, and require the same
+lifecycle, tray, diagnostics, and no-change hardware gates before replacing the
+stable deployment.
 
 ## Known Risks
 

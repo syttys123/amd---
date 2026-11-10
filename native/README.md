@@ -63,6 +63,16 @@ supervised no-change write and generate hardware evidence, explicitly pass:
 .\native\verify-write-controls.ps1 -NoBuild -ExecuteNoChangeWrite
 ```
 
+The Rust GUI write controls are also opt-in:
+
+```powershell
+.\native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls `
+    -ExecuteNoChangePreset `
+    -GuiExecutable .\artifacts\native-build\gui-runtime\amd-mobile-power-gui.exe
+```
+
+Without `-ExecuteNoChangePreset`, this only checks that the controls exist.
+
 ## Current Native Slice
 
 The native slice verifies the process boundary and the existing v1 JSON-lines

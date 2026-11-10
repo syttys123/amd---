@@ -1,12 +1,19 @@
 param(
     [switch]$NoBuild,
     [switch]$VerifyWorker,
+    [switch]$VerifyWriteControls,
+    [switch]$ExecuteNoChangePreset,
     [string]$GuiExecutable,
     [string]$WorkerExecutable,
-    [string]$PipeName
+    [string]$PipeName,
+    [string]$EvidencePath
 )
 
 $ErrorActionPreference = "Stop"
+if ($ExecuteNoChangePreset) {
+    $VerifyWriteControls = $true
+    $VerifyWorker = $true
+}
 
 $root = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $root
@@ -147,7 +154,8 @@ function Get-GuiStatusText {
             $text,
             $text.Capacity) | Out-Null
         $value = $text.ToString()
-        if (-not [string]::IsNullOrWhiteSpace($value)) {
+        if (-not [string]::IsNullOrWhiteSpace($value) -and
+            $value.Length -gt $script:statusText.Length) {
             $script:statusText = $value
         }
         return $true
@@ -157,6 +165,32 @@ function Get-GuiStatusText {
         $callback,
         [IntPtr]::Zero) | Out-Null
     return $script:statusText
+}
+
+function Get-GuiChildTexts {
+    param(
+        [IntPtr]$Window
+    )
+
+    $script:childTexts = [System.Collections.Generic.List[string]]::new()
+    $callback = [AmdMobilePowerRustGuiNative+EnumChildProc]{
+        param($child, $lparam)
+        $text = New-Object System.Text.StringBuilder 8192
+        [AmdMobilePowerRustGuiNative]::GetWindowText(
+            $child,
+            $text,
+            $text.Capacity) | Out-Null
+        $value = $text.ToString()
+        if (-not [string]::IsNullOrWhiteSpace($value)) {
+            $script:childTexts.Add($value)
+        }
+        return $true
+    }
+    [AmdMobilePowerRustGuiNative]::EnumChildWindows(
+        $Window,
+        $callback,
+        [IntPtr]::Zero) | Out-Null
+    return @($script:childTexts)
 }
 
 $firstProcess = $null
@@ -193,6 +227,9 @@ try {
     if ($WorkerExecutable) {
         $startArguments += @("--worker-executable", $WorkerExecutable)
     }
+    if ($VerifyWriteControls) {
+        $startArguments += "--enable-write-controls"
+    }
 
     $firstProcess = Start-Process `
         -FilePath $executable `
@@ -223,6 +260,52 @@ try {
         if ($workerStatus -notmatch "Power source:" -or
             $workerStatus -notmatch "Fast limit:") {
             throw "Rust GUI worker status is incomplete: $workerStatus"
+        }
+    }
+
+    $writePresetResult = "Not requested"
+    if ($VerifyWriteControls) {
+        $childTexts = @(Get-GuiChildTexts -Window $window)
+        foreach ($required in @("12 W", "25 W", "45 W", "Apply")) {
+            if ($childTexts -notcontains $required) {
+                throw "Rust GUI write controls are missing '$required': $childTexts"
+            }
+        }
+
+        if ($ExecuteNoChangePreset) {
+            if ($workerStatus -notmatch "Power source: ac" -or
+                $workerStatus -notmatch "STAPM like target: 45\.00 W" -or
+                $workerStatus -notmatch "Fast limit: 45\.00 W" -or
+                $workerStatus -notmatch "Slow limit: 45\.00 W") {
+                throw "No-change preset requires an AC 45/45/45 W starting state."
+            }
+
+            Post-GuiMessage `
+                -Window $window `
+                -Message $wmCommand `
+                -WParam 103
+            Post-GuiMessage `
+                -Window $window `
+                -Message $wmCommand `
+                -WParam 104
+
+            $deadline = [DateTime]::UtcNow.AddSeconds(10)
+            $applied = $false
+            while ([DateTime]::UtcNow -lt $deadline) {
+                $childTexts = @(Get-GuiChildTexts -Window $window)
+                if ($childTexts -contains "Applied 45 W / 45 W / 45 W.`nReadback verified.") {
+                    $applied = $true
+                    break
+                }
+                if ($childTexts -match "Apply failed") {
+                    throw "Rust GUI preset apply failed: $childTexts"
+                }
+                Start-Sleep -Milliseconds 50
+            }
+            if (-not $applied) {
+                throw "Rust GUI did not report a verified 45 W no-change preset."
+            }
+            $writePresetResult = "PASS"
         }
     }
 
@@ -302,6 +385,31 @@ try {
         throw "Rust GUI exited with code $($firstProcess.ExitCode)."
     }
 
+    if ($EvidencePath -and $ExecuteNoChangePreset) {
+        $evidenceDirectory = Split-Path -Parent $EvidencePath
+        if ($evidenceDirectory) {
+            New-Item -ItemType Directory -Path $evidenceDirectory -Force | Out-Null
+        }
+        [pscustomobject]@{
+            SourceCommit = (git -C $repositoryRoot rev-parse HEAD).Trim()
+            Verification = "PASS"
+            Path = "Rust GUI -> C++ worker -> RyzenAdj"
+            Processor = if ($workerStatus -match "CPU: ([^\r\n]+)") {
+                $Matches[1].Trim()
+            }
+            else {
+                $null
+            }
+            WorkerStatus = $workerStatus
+            TargetWatts = "45/45/45"
+            WriteControls = "PASS"
+            WritePreset = $writePresetResult
+            RecordedAt = (Get-Date).ToString("o")
+        } |
+            ConvertTo-Json -Depth 8 |
+            Set-Content -LiteralPath $EvidencePath -Encoding UTF8
+    }
+
     [pscustomobject]@{
         Verification = "PASS"
         Executable = $executable
@@ -311,6 +419,9 @@ try {
         SingleInstanceWake = "PASS"
         WorkerReadOnly = if ($VerifyWorker) { "PASS" } else { "Not requested" }
         WorkerStatus = if ($VerifyWorker) { $workerStatus } else { $null }
+        WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
+        WritePreset = $writePresetResult
+        Evidence = if ($EvidencePath) { $EvidencePath } else { $null }
         ExplicitExit = "PASS"
         ExitCode = $firstProcess.ExitCode
     } | Format-List
