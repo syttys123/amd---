@@ -7,7 +7,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(amdmobilepower_native_worker
     src/main.cpp
+    src/power_limit_policy.cpp
     src/ryzen_hardware.cpp
+)
+
+add_executable(amdmobilepower_power_limit_policy_tests
+    tests/power_limit_policy_tests.cpp
+    src/power_limit_policy.cpp
 )
 
 target_compile_definitions(amdmobilepower_native_worker PRIVATE
@@ -16,6 +22,12 @@ target_compile_definitions(amdmobilepower_native_worker PRIVATE
 )
 
 target_compile_options(amdmobilepower_native_worker PRIVATE
+    /W4
+    /permissive-
+    /utf-8
+)
+
+target_compile_options(amdmobilepower_power_limit_policy_tests PRIVATE
     /W4
     /permissive-
     /utf-8

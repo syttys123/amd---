@@ -1,8 +1,11 @@
 #pragma once
 
+#include "power_limit_policy.hpp"
+
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace amd_mobile_power {
 
@@ -57,6 +60,9 @@ public:
     bool IsInitialized() const;
     PlatformCapability Probe();
     TelemetrySnapshot Refresh(std::string& error);
+    PowerLimitApplicationResult ApplyTarget(
+        const PowerLimitTarget& target,
+        const LimitCapability& capability);
 
 private:
     std::wstring runtime_directory_;
@@ -77,6 +83,7 @@ private:
     using InitTableFn = int(__stdcall*)(void*);
     using RefreshTableFn = int(__stdcall*)(void*);
     using GetTableVersionFn = std::uint32_t(__stdcall*)(void*);
+    using SetLimitFn = int(__stdcall*)(void*, std::uint32_t);
     using GetValueFn = float(__stdcall*)(void*);
 
     GetDllStatusFn get_dll_status_ = nullptr;
@@ -89,6 +96,9 @@ private:
     InitTableFn init_table_ = nullptr;
     RefreshTableFn refresh_table_ = nullptr;
     GetTableVersionFn get_table_version_ = nullptr;
+    SetLimitFn set_stapm_limit_ = nullptr;
+    SetLimitFn set_fast_limit_ = nullptr;
+    SetLimitFn set_slow_limit_ = nullptr;
     GetValueFn get_stapm_limit_ = nullptr;
     GetValueFn get_stapm_value_ = nullptr;
     GetValueFn get_fast_limit_ = nullptr;

@@ -52,6 +52,13 @@ The first migration slice adds:
   starts the C++ worker from the executable directory when present, displays
   CPU/family/PM table/power source/STAPM/Fast/Slow/temperature, and never
   exposes a hardware write command.
+- `native/cpp-worker`: the worker now has a pure `power_limit_policy` layer
+  that validates 5-60 W targets, requires Fast/Slow support, performs
+  read-back verification, tolerates independently rejected STAPM, and restores
+  the previous limits when a required write or read-back fails. The policy tests
+  use a fake backend and cover eight success, clamp, partial-write, read-back,
+  restore-failure, invalid-target, unsupported-platform, and invalid-previous
+  state cases.
 - `native/rust-probe`: a dependency-light Rust named-pipe client that sends
   `getHealth` and parses the v1 response.
 - `native/cpp-worker`: a Windows named-pipe worker skeleton that implements
@@ -77,3 +84,8 @@ window from the pipe callback thread.
 Rust GUI, C++ worker, RyzenAdj DLL, WinRing0 DLL/SYS, and InpOut DLL. The
 `-VerifyWorker` gate starts the staged pair and verifies the GUI displays a live
 read-only snapshot.
+
+The native worker's `applyTarget` command is implemented but disabled unless
+`--enable-write-controls` is passed in addition to `--enable-hardware`.
+Out-of-range targets are rejected before any DLL write call. A real hardware
+write/read-back gate is still separate from the read-only migration gate.

@@ -23,7 +23,7 @@ Run the native interoperability gate:
 Run the read-only hardware gate after building the RyzenAdj runtime:
 
 ```powershell
-.\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui -VerifyRustWorker
+.\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui -VerifyRustWorker -VerifyWriteGuard
 ```
 
 Run the Rust GUI lifecycle gate:
@@ -40,17 +40,36 @@ The script builds:
 - `native\rust-gui` with Cargo and runs its lifecycle state-machine tests.
 - `native\rust-probe` with Cargo.
 - `native\cpp-worker` with the Visual Studio CMake toolchain.
+- `native\cpp-worker`'s fake-backend power-limit policy tests.
 
 When the RyzenAdj runtime is staged, `native\build.ps1` also creates
 `artifacts\native-build\gui-runtime` with the Rust GUI, C++ worker, and required
 hardware DLL/Driver files beside each other.
 
-## First Vertical Slice
+The native worker has no write capability unless both `--enable-hardware` and
+`--enable-write-controls` are supplied. The default verification gate checks
+that `applyTarget` is rejected without the write flag.
 
-The first slice verifies the process boundary and the existing v1 JSON-lines
-protocol. The Rust probe reads health from a named pipe. The C++ worker
-implements only `getHealth`, `shutdown`, and structured errors; hardware access
-is deliberately not connected yet.
+Check the write-enabled worker without changing power state:
+
+```powershell
+.\native\verify-write-controls.ps1 -NoBuild
+```
+
+The dry run verifies that an out-of-range target is rejected. To perform the
+supervised no-change write and generate hardware evidence, explicitly pass:
+
+```powershell
+.\native\verify-write-controls.ps1 -NoBuild -ExecuteNoChangeWrite
+```
+
+## Current Native Slice
+
+The native slice verifies the process boundary and the existing v1 JSON-lines
+protocol. The Rust probe reads health, capability, snapshot, and gated target
+responses from a named pipe. The C++ worker implements read-only hardware
+snapshots and a validated, read-back-verified `applyTarget` path that remains
+disabled unless write controls are explicitly enabled.
 
 When `C:\RyzenAdj\worker\AmdMobilePower.Worker.exe` exists, the verification
 also runs the Rust probe against the stable C# worker. This proves that the new

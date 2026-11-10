@@ -3,6 +3,7 @@ param(
     [switch]$VerifyHardware,
     [switch]$VerifyRustGui,
     [switch]$VerifyRustWorker,
+    [switch]$VerifyWriteGuard,
     [string]$ExistingWorkerDirectory = "C:\RyzenAdj\worker"
 )
 
@@ -10,9 +11,19 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $root
+$cppBuild = Join-Path $repositoryRoot "artifacts\native-build\cpp-worker"
+$powerLimitTests = Join-Path `
+    $cppBuild `
+    "Release\amdmobilepower_power_limit_policy_tests.exe"
 
 if (-not $NoBuild) {
     & (Join-Path $root "build.ps1")
+}
+if (Test-Path -LiteralPath $powerLimitTests) {
+    & $powerLimitTests
+    if ($LASTEXITCODE -ne 0) {
+        throw "C++ power-limit policy tests failed."
+    }
 }
 
 $cppWorker = Join-Path `
@@ -159,6 +170,17 @@ if ($VerifyHardware) {
             throw "Native hardware snapshot probe failed: $snapshotText"
         }
 
+        $writeDisabled = & $rustProbe `
+            --pipe-name $pipePath `
+            --command applyTarget `
+            --payload-json '{"target":{"stapmWatts":12,"fastWatts":12,"slowWatts":12}}' 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            throw "Native hardware worker allowed applyTarget without --enable-write-controls."
+        }
+        if (($writeDisabled | Out-String) -notmatch "hardware_writes_disabled") {
+            throw "Native hardware write gate returned an unexpected error: $writeDisabled"
+        }
+
         $capabilities = ($capabilitiesText | Out-String).Trim() | ConvertFrom-Json
         $snapshot = ($snapshotText | Out-String).Trim() | ConvertFrom-Json
         if ($capabilities.platform.isSupported -ne $true) {
@@ -193,6 +215,7 @@ if ($VerifyHardware) {
             StapmLimitWatts = $snapshot.telemetry.stapmLimitWatts
             FastLimitWatts = $snapshot.telemetry.fastLimitWatts
             SlowLimitWatts = $snapshot.telemetry.slowLimitWatts
+            WriteGate = ($writeDisabled | Out-String).Trim()
             Shutdown = ($shutdown | Out-String).Trim()
         }
     }
@@ -219,6 +242,12 @@ if ($VerifyRustGui) {
         $rustGuiArguments.VerifyWorker = $true
     }
     $rustGuiResult = (& (Join-Path $root "verify-rust-gui.ps1") @rustGuiArguments |
+        Out-String).Trim()
+}
+
+$writeGuardResult = $null
+if ($VerifyWriteGuard) {
+    $writeGuardResult = (& (Join-Path $root "verify-write-controls.ps1") -NoBuild |
         Out-String).Trim()
 }
 
@@ -269,6 +298,12 @@ if ($VerifyRustGui) {
     else {
         $null
     }
+    HardwareWriteGate = if ($hardwareResult) {
+        $hardwareResult.WriteGate
+    }
+    else {
+        $null
+    }
     HardwareShutdown = if ($hardwareResult) {
         $hardwareResult.Shutdown
     }
@@ -278,4 +313,6 @@ if ($VerifyRustGui) {
     RustGuiLifecycle = if ($rustGuiResult) { "PASS" } else { "Not requested" }
     RustGuiWorker = if ($VerifyRustWorker) { "PASS" } else { "Not requested" }
     RustGuiDetails = if ($rustGuiResult) { $rustGuiResult } else { $null }
+    NativeWriteGuard = if ($writeGuardResult) { "PASS" } else { "Not requested" }
+    NativeWriteGuardDetails = if ($writeGuardResult) { $writeGuardResult } else { $null }
 } | Format-List

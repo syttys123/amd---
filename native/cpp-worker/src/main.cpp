@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cctype>
+#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <iterator>
@@ -14,17 +15,22 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <vector>
 
 namespace {
 
 constexpr wchar_t kDefaultPipeName[] =
     L"\\\\.\\pipe\\AmdMobilePower.NativeWorker.v1";
-constexpr std::string_view kWorkerVersion = "0.2.0-native";
+constexpr std::string_view kWorkerVersion = "0.3.0-native";
 constexpr auto kShutdownDelay = std::chrono::milliseconds(150);
 
 struct Request {
     std::string request_id;
     std::string command;
+};
+
+struct ApplyTargetPayload {
+    amd_mobile_power::PowerLimitTarget target;
 };
 
 struct PipeHandle {
@@ -100,6 +106,55 @@ std::string SanitizeJsonString(std::string value) {
         }
     }
     return value.empty() ? "unknown" : value;
+}
+
+std::optional<int> ExtractJsonInt(std::string_view json, std::string_view key) {
+    const std::string needle = "\"" + std::string(key) + "\"";
+    const std::size_t key_position = json.find(needle);
+    if (key_position == std::string_view::npos) {
+        return std::nullopt;
+    }
+    const std::size_t colon_position = json.find(':', key_position + needle.size());
+    if (colon_position == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    std::size_t position = colon_position + 1;
+    while (position < json.size() &&
+        std::isspace(static_cast<unsigned char>(json[position]))) {
+        ++position;
+    }
+    if (position >= json.size()) {
+        return std::nullopt;
+    }
+
+    const bool negative = json[position] == '-';
+    if (negative) {
+        ++position;
+    }
+    if (position >= json.size() ||
+        !std::isdigit(static_cast<unsigned char>(json[position]))) {
+        return std::nullopt;
+    }
+
+    int value = 0;
+    while (position < json.size() &&
+        std::isdigit(static_cast<unsigned char>(json[position]))) {
+        value = value * 10 + (json[position] - '0');
+        ++position;
+    }
+    return negative ? -value : value;
+}
+
+std::optional<ApplyTargetPayload> ParseApplyTargetPayload(std::string_view json) {
+    const auto stapm = ExtractJsonInt(json, "stapmWatts");
+    const auto fast = ExtractJsonInt(json, "fastWatts");
+    const auto slow = ExtractJsonInt(json, "slowWatts");
+    if (!stapm || !fast || !slow) {
+        return std::nullopt;
+    }
+    return ApplyTargetPayload{
+        amd_mobile_power::PowerLimitTarget{*stapm, *fast, *slow}};
 }
 
 std::string EscapeJsonString(std::string_view value) {
@@ -282,6 +337,96 @@ std::string SnapshotPayload(
     return output.str();
 }
 
+std::string PowerLimitTargetPayload(
+    const amd_mobile_power::PowerLimitTarget& target) {
+    std::ostringstream output;
+    output
+        << "{\"stapmWatts\":" << target.stapm_watts
+        << ",\"fastWatts\":" << target.fast_watts
+        << ",\"slowWatts\":" << target.slow_watts << "}";
+    return output.str();
+}
+
+std::string PowerLimitReadbackPayload(
+    const amd_mobile_power::PowerLimitReadback& readback) {
+    std::ostringstream output;
+    output
+        << "{\"kind\":" << static_cast<int>(readback.kind)
+        << ",\"requestedWatts\":" << readback.requested_watts
+        << ",\"effectiveWatts\":";
+    AppendOptionalDouble(output, readback.effective_watts);
+    output
+        << ",\"driverResultCode\":" << readback.driver_result << "}";
+    return output.str();
+}
+
+void AppendReadbackArray(
+    std::ostringstream& output,
+    const std::vector<amd_mobile_power::PowerLimitReadback>& readbacks) {
+    output << '[';
+    for (std::size_t index = 0; index < readbacks.size(); ++index) {
+        if (index != 0) {
+            output << ',';
+        }
+        output << PowerLimitReadbackPayload(readbacks[index]);
+    }
+    output << ']';
+}
+
+bool HasFirmwareClamp(
+    const std::vector<amd_mobile_power::PowerLimitReadback>& readbacks) {
+    for (const auto& readback : readbacks) {
+        if (readback.effective_watts &&
+            std::abs(*readback.effective_watts - readback.requested_watts) > 0.5) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool HasStapmWarning(
+    const std::vector<amd_mobile_power::PowerLimitReadback>& readbacks) {
+    for (const auto& readback : readbacks) {
+        if (readback.kind != amd_mobile_power::PowerLimitKind::Stapm) {
+            continue;
+        }
+        if (readback.driver_result != 0 ||
+            !readback.effective_watts ||
+            std::abs(*readback.effective_watts - readback.requested_watts) > 0.5) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::string ApplyTargetResultPayload(
+    const amd_mobile_power::PowerLimitApplicationResult& result) {
+    std::ostringstream output;
+    output
+        << "{\"target\":" << PowerLimitTargetPayload(result.target)
+        << ",\"readbacks\":";
+    AppendReadbackArray(output, result.readbacks);
+    output
+        << ",\"previousTarget\":" << PowerLimitTargetPayload(result.previous)
+        << ",\"restoreAttempted\":"
+        << (result.restore_attempted ? "true" : "false")
+        << ",\"restoredPreviousLimits\":"
+        << (result.restored_previous_limits ? "true" : "false")
+        << ",\"restoreReadbacks\":";
+    AppendReadbackArray(output, result.restore_readbacks);
+    output << ",\"error\":";
+    AppendOptionalString(output, result.error);
+    output
+        << ",\"isSuccessful\":"
+        << (result.IsSuccessful() ? "true" : "false")
+        << ",\"hasFirmwareClamp\":"
+        << (HasFirmwareClamp(result.readbacks) ? "true" : "false")
+        << ",\"hasStapmWarning\":"
+        << (HasStapmWarning(result.readbacks) ? "true" : "false")
+        << "}";
+    return output.str();
+}
+
 bool WriteAll(HANDLE pipe, std::string_view value) {
     std::size_t offset = 0;
     while (offset < value.size()) {
@@ -326,6 +471,7 @@ int wmain(int argc, wchar_t* argv[]) {
     std::wstring pipe_name = kDefaultPipeName;
     std::wstring ryzenadj_directory;
     bool enable_hardware = false;
+    bool enable_write_controls = false;
     for (int index = 1; index < argc; ++index) {
         const std::wstring_view argument = argv[index];
         if (argument == L"--pipe-name") {
@@ -342,10 +488,13 @@ int wmain(int argc, wchar_t* argv[]) {
             ryzenadj_directory = argv[++index];
         } else if (argument == L"--enable-hardware") {
             enable_hardware = true;
+        } else if (argument == L"--enable-write-controls") {
+            enable_write_controls = true;
         } else if (argument == L"--help" || argument == L"-h") {
             std::wcout
                 << L"usage: amdmobilepower_native_worker [--pipe-name NAME] "
-                   L"[--ryzenadj-dir DIRECTORY] [--enable-hardware]\n";
+                   L"[--ryzenadj-dir DIRECTORY] [--enable-hardware] "
+                   L"[--enable-write-controls]\n";
             return 0;
         } else {
             std::wcerr << L"unknown argument\n";
@@ -354,6 +503,10 @@ int wmain(int argc, wchar_t* argv[]) {
     }
 
     pipe_name = NormalizePipeName(std::move(pipe_name));
+    if (enable_write_controls && !enable_hardware) {
+        std::wcerr << L"--enable-write-controls requires --enable-hardware\n";
+        return 2;
+    }
 
     std::unique_ptr<amd_mobile_power::RyzenHardware> hardware;
     if (enable_hardware) {
@@ -470,6 +623,65 @@ int wmain(int argc, wchar_t* argv[]) {
                                   refresh_error);
                     }
                 }
+            } else if (request.command == "applyTarget") {
+                if (!enable_write_controls) {
+                    response = ErrorResponse(
+                        request.request_id,
+                        "hardware_writes_disabled",
+                        "Hardware power-limit writes are disabled for this worker.");
+                } else if (!hardware || !hardware->IsInitialized()) {
+                    response = ErrorResponse(
+                        request.request_id,
+                        "hardware_unavailable",
+                        "The native worker was started without --enable-hardware.");
+                } else {
+                    const auto payload = ParseApplyTargetPayload(request_line);
+                    if (!payload) {
+                        response = ErrorResponse(
+                            request.request_id,
+                            "invalid_request",
+                            "applyTarget requires stapmWatts, fastWatts, and slowWatts integers.");
+                    } else {
+                        const auto capability = hardware->Probe();
+                        if (!capability.is_supported) {
+                            response = ErrorResponse(
+                                request.request_id,
+                                "unsupported_platform",
+                                capability.unsupported_reason.value_or(
+                                    "The platform does not support power-limit writes."));
+                        } else {
+                            const auto validation =
+                                amd_mobile_power::ValidatePowerLimitTarget(
+                                    payload->target,
+                                    capability.limits.supports_fast,
+                                    capability.limits.supports_slow);
+                            if (validation) {
+                                response = ErrorResponse(
+                                    request.request_id,
+                                    "invalid_target",
+                                    *validation);
+                            } else {
+                                const auto result = hardware->ApplyTarget(
+                                    payload->target,
+                                    capability.limits);
+                                if (result.IsSuccessful()) {
+                                    response = SuccessResponse(
+                                        request.request_id,
+                                        ApplyTargetResultPayload(result));
+                                } else {
+                                    response = ErrorResponse(
+                                        request.request_id,
+                                        result.restore_attempted &&
+                                                !result.restored_previous_limits
+                                            ? "hardware_restore_failed"
+                                            : "hardware_write_failed",
+                                        result.error.value_or(
+                                            "The power-limit write did not complete successfully."));
+                                }
+                            }
+                        }
+                    }
+                }
             } else if (request.command == "shutdown") {
                 response = SuccessResponse(
                     request.request_id,
@@ -479,7 +691,7 @@ int wmain(int argc, wchar_t* argv[]) {
                 response = ErrorResponse(
                     request.request_id,
                     "unsupported_command",
-                    "Native worker implements getHealth, getCapabilities, getSnapshot, and shutdown.");
+                    "Native worker implements getHealth, getCapabilities, getSnapshot, applyTarget, and shutdown.");
             }
             if (!WriteAll(pipe.value, response)) {
                 std::wcerr << L"WriteFile failed: " << GetLastError() << L"\n";

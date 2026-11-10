@@ -742,6 +742,16 @@ third_party/
   `artifacts\native-build\gui-runtime` with the GUI, native worker, and required
   RyzenAdj/WinRing0/InpOut runtime files. The staged pair passed the full
   lifecycle gate plus `WorkerReadOnly = PASS` on the 8845HS.
+- Ported the validated power-limit policy into the C++ worker without enabling
+  writes by default. The new policy layer validates 5-60 W targets, requires
+  Fast/Slow capability, performs mandatory read-back verification, tolerates
+  independently rejected or clamped STAPM, and restores previous limits after
+  required Fast/Slow write or read-back failures. Eight fake-backend policy
+  tests pass. The worker accepts `applyTarget` only with both
+  `--enable-hardware --enable-write-controls`; the default gate returns
+  `hardware_writes_disabled`, and a 4 W target on the write-enabled worker
+  returned `invalid_target` before any DLL write. No real power-limit write was
+  performed in this migration step.
 
 Development screenshot:
 
@@ -760,18 +770,17 @@ Development screenshot:
 - Obtain read-only capability evidence from a second physical AMD laptop.
 - Resolve GitHub Actions account billing/visibility and complete final public
   release review.
-- Continue the Rust GUI + C++ worker migration by connecting the Rust GUI to
-  the C++ worker's validated `applyTarget` path, including range checks,
-  read-back verification, and restore-on-failure; keep `1.0.4` as the stable
-  fallback.
+- Connect the native worker's now-present validated `applyTarget` path to a
+  supervised no-change hardware test, then connect the Rust GUI write controls;
+  keep `1.0.4` as the stable fallback.
 
 ## Next Concrete Task
 
-Port the validated hardware write path to the C++ worker while `C:\RyzenAdj`
-stays on the verified `1.0.4` rollback point. Keep the existing named-pipe
-protocol and hardware-safety boundaries as the migration contract, and require
-the same lifecycle, tray, diagnostics, and no-change hardware gates before
-replacing the stable deployment.
+Run the native worker's validated write path through a supervised no-change
+hardware test while `C:\RyzenAdj` stays on the verified `1.0.4` rollback point.
+Keep the existing named-pipe protocol and hardware-safety boundaries as the
+migration contract, and require the same lifecycle, tray, diagnostics, and
+no-change hardware gates before replacing the stable deployment.
 
 ## Known Risks
 

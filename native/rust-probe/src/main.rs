@@ -33,6 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut arguments = std::env::args().skip(1);
     let mut pipe_name = r"\\.\pipe\AmdMobilePower.Worker.v1".to_owned();
     let mut command = "getHealth".to_owned();
+    let mut payload = serde_json::Value::Null;
     while let Some(argument) = arguments.next() {
         match argument.as_str() {
             "--pipe-name" => {
@@ -41,8 +42,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--command" => {
                 command = arguments.next().ok_or("--command requires a value")?;
             }
+            "--payload-json" => {
+                let value = arguments.next().ok_or("--payload-json requires a value")?;
+                payload = serde_json::from_str(&value)
+                    .map_err(|error| format!("invalid --payload-json: {error}"))?;
+            }
             "--help" | "-h" => {
-                println!("usage: amd-mobile-power-probe [--pipe-name NAME] [--command COMMAND]");
+                println!(
+                    "usage: amd-mobile-power-probe [--pipe-name NAME] [--command COMMAND] \
+                     [--payload-json JSON]"
+                );
                 return Ok(());
             }
             value => return Err(format!("unknown argument: {value}").into()),
@@ -61,7 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "protocolVersion": 1,
         "requestId": request_id,
         "command": command,
-        "payload": null
+        "payload": payload
     });
 
     let stream = OpenOptions::new()

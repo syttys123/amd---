@@ -86,6 +86,17 @@ try {
         throw "C++ worker build failed."
     }
 
+    $powerLimitTests = Join-Path `
+        $cppBuild `
+        "$Configuration\amdmobilepower_power_limit_policy_tests.exe"
+    if (-not (Test-Path -LiteralPath $powerLimitTests)) {
+        throw "C++ power-limit policy tests were not built."
+    }
+    & $powerLimitTests
+    if ($LASTEXITCODE -ne 0) {
+        throw "C++ power-limit policy tests failed."
+    }
+
     & cargo test `
         --manifest-path $rustGuiManifest `
         --locked `

@@ -90,3 +90,8 @@ dotnet run --project src/AmdMobilePower.Worker -- --pipe-name AmdMobilePower.Dev
 The integration tests start an isolated pipe and verify health and structured
 error responses without touching hardware.
 
+The native migration worker implements the same `applyTarget` command but keeps
+hardware writes disabled unless it is started with both `--enable-hardware` and
+`--enable-write-controls`. Its policy layer validates the target and performs
+read-back/restore handling before it reaches the RyzenAdj DLL.
+

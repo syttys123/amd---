@@ -4,6 +4,7 @@
 
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <ctime>
 #include <iomanip>
@@ -74,6 +75,82 @@ std::optional<std::string> ReadBiosVersion(void* ryzen_access, int (*get_bios_if
     }
     return std::to_string(get_bios_if_version(ryzen_access));
 }
+
+struct NativePowerLimitBackend final : IPowerLimitBackend {
+    NativePowerLimitBackend(
+        void* access,
+        int(__stdcall* set_stapm)(void*, std::uint32_t),
+        int(__stdcall* set_fast)(void*, std::uint32_t),
+        int(__stdcall* set_slow)(void*, std::uint32_t),
+        int(__stdcall* refresh)(void*),
+        float(__stdcall* get_stapm)(void*),
+        float(__stdcall* get_fast)(void*),
+        float(__stdcall* get_slow)(void*))
+        : ryzen_access(access),
+          set_stapm_limit(set_stapm),
+          set_fast_limit(set_fast),
+          set_slow_limit(set_slow),
+          refresh_table(refresh),
+          get_stapm_limit(get_stapm),
+          get_fast_limit(get_fast),
+          get_slow_limit(get_slow) {
+    }
+
+    void* ryzen_access = nullptr;
+    int(__stdcall* set_stapm_limit)(void*, std::uint32_t) = nullptr;
+    int(__stdcall* set_fast_limit)(void*, std::uint32_t) = nullptr;
+    int(__stdcall* set_slow_limit)(void*, std::uint32_t) = nullptr;
+    int(__stdcall* refresh_table)(void*) = nullptr;
+    float(__stdcall* get_stapm_limit)(void*) = nullptr;
+    float(__stdcall* get_fast_limit)(void*) = nullptr;
+    float(__stdcall* get_slow_limit)(void*) = nullptr;
+
+    int SetStapmLimit(std::uint32_t milliwatts) override {
+        return set_stapm_limit == nullptr
+            ? -1
+            : set_stapm_limit(ryzen_access, milliwatts);
+    }
+
+    int SetFastLimit(std::uint32_t milliwatts) override {
+        return set_fast_limit == nullptr
+            ? -1
+            : set_fast_limit(ryzen_access, milliwatts);
+    }
+
+    int SetSlowLimit(std::uint32_t milliwatts) override {
+        return set_slow_limit == nullptr
+            ? -1
+            : set_slow_limit(ryzen_access, milliwatts);
+    }
+
+    int RefreshTable() override {
+        return refresh_table == nullptr ? -1 : refresh_table(ryzen_access);
+    }
+
+    static std::optional<double> ReadValue(
+        float(__stdcall* function)(void*),
+        void* ryzen_access) {
+        if (function == nullptr || ryzen_access == nullptr) {
+            return std::nullopt;
+        }
+        const double value = static_cast<double>(function(ryzen_access));
+        return std::isfinite(value)
+            ? std::optional<double>(value)
+            : std::nullopt;
+    }
+
+    std::optional<double> GetStapmLimit() override {
+        return ReadValue(get_stapm_limit, ryzen_access);
+    }
+
+    std::optional<double> GetFastLimit() override {
+        return ReadValue(get_fast_limit, ryzen_access);
+    }
+
+    std::optional<double> GetSlowLimit() override {
+        return ReadValue(get_slow_limit, ryzen_access);
+    }
+};
 
 }  // namespace
 
@@ -169,6 +246,12 @@ bool RyzenHardware::Initialize(std::string& error) {
             reinterpret_cast<void**>(&refresh_table_), error) ||
         !LoadFunction(ryzenadj_handle_, "get_table_ver",
             reinterpret_cast<void**>(&get_table_version_), error) ||
+        !LoadFunction(ryzenadj_handle_, "set_stapm_limit",
+            reinterpret_cast<void**>(&set_stapm_limit_), error) ||
+        !LoadFunction(ryzenadj_handle_, "set_fast_limit",
+            reinterpret_cast<void**>(&set_fast_limit_), error) ||
+        !LoadFunction(ryzenadj_handle_, "set_slow_limit",
+            reinterpret_cast<void**>(&set_slow_limit_), error) ||
         !LoadFunction(ryzenadj_handle_, "get_stapm_limit",
             reinterpret_cast<void**>(&get_stapm_limit_), error) ||
         !LoadFunction(ryzenadj_handle_, "get_stapm_value",
@@ -280,6 +363,38 @@ TelemetrySnapshot RyzenHardware::Refresh(std::string& error) {
     telemetry.power_line = ReadPowerLine();
     telemetry.updated_at = UtcTimestamp();
     return telemetry;
+}
+
+PowerLimitApplicationResult RyzenHardware::ApplyTarget(
+    const PowerLimitTarget& target,
+    const LimitCapability& capability) {
+    PowerLimitApplicationResult result;
+    result.target = target;
+    if (!initialized_ || ryzen_access_ == nullptr) {
+        result.error = "RyzenAdj hardware backend is not initialized";
+        return result;
+    }
+    if (set_stapm_limit_ == nullptr ||
+        set_fast_limit_ == nullptr ||
+        set_slow_limit_ == nullptr) {
+        result.error = "RyzenAdj write functions are unavailable";
+        return result;
+    }
+
+    NativePowerLimitBackend backend(
+        ryzen_access_,
+        set_stapm_limit_,
+        set_fast_limit_,
+        set_slow_limit_,
+        refresh_table_,
+        get_stapm_limit_,
+        get_fast_limit_,
+        get_slow_limit_);
+    return ApplyPowerLimitTarget(
+        backend,
+        target,
+        capability.supports_fast,
+        capability.supports_slow);
 }
 
 std::string RyzenHardware::ReadProcessorName() const {
