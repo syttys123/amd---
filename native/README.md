@@ -114,9 +114,9 @@ and verifies that the real Startup-folder and current-user uninstall registry
 integration does not change. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
 
-The current internal release candidate is `0.6.0-native-rc.2`; its hash and
+The current internal release candidate is `0.6.0-native-rc.3`; its hash and
 evidence are recorded in `docs/PACKAGING.md` and
-`docs/evidence/packaging/v0.6.0-native-rc.2-release-gate-2026-11-10.json`.
+`docs/evidence/packaging/v0.6.0-native-rc.3-release-gate-2026-11-10.json`.
 
 Exercise the real Start menu, Startup shortcut, and current-user uninstall
 entry without launching the GUI:
@@ -128,7 +128,7 @@ entry without launching the GUI:
 The verifier refuses to overwrite an existing native-preview entry, records
 the result under `docs\evidence\packaging`, and removes every created artifact
 in a `finally` path. The recorded clean run is
-`docs/evidence/packaging/v0.6.0-native-rc.2-shell-integration-2026-11-10.json`.
+`docs/evidence/packaging/v0.6.0-native-rc.3-shell-integration-2026-11-10.json`.
 
 ## Current Native Slice
 

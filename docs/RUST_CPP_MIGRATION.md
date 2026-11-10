@@ -132,8 +132,8 @@ isolated install/uninstall, and shell-integration-fingerprint gates before
 reporting success. The ZIP also contains
 `collect-native-diagnostics.ps1`, a read-only, sanitized compatibility
 collector that starts the bundled worker without write controls and writes a
-local JSON report. The current `0.6.0-native-rc.2` package is recorded in
-`docs/evidence/packaging/v0.6.0-native-rc.2-release-gate-2026-11-10.json`;
+local JSON report. The current `0.6.0-native-rc.3` package is recorded in
+`docs/evidence/packaging/v0.6.0-native-rc.3-release-gate-2026-11-10.json`;
 the real current-user Start menu, Startup, and uninstall-entry lifecycle is
 recorded in
-`docs/evidence/packaging/v0.6.0-native-rc.2-shell-integration-2026-11-10.json`.
+`docs/evidence/packaging/v0.6.0-native-rc.3-shell-integration-2026-11-10.json`.
