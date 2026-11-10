@@ -265,16 +265,16 @@ try {
         $deadline = [DateTime]::UtcNow.AddSeconds(15)
         while ([DateTime]::UtcNow -lt $deadline) {
             $workerStatus = Get-GuiStatusText -Window $window
-            if ($workerStatus -match "Worker: connected") {
+            if ($workerStatus -match "已连接 worker") {
                 break
             }
             Start-Sleep -Milliseconds 200
         }
-        if ($workerStatus -notmatch "Worker: connected") {
+        if ($workerStatus -notmatch "已连接 worker") {
             throw "Rust GUI did not connect to the read-only worker: $workerStatus"
         }
-        if ($workerStatus -notmatch "Power source:" -or
-            $workerStatus -notmatch "Fast limit:") {
+        if ($workerStatus -notmatch "供电：" -or
+            $workerStatus -notmatch "Fast 上限：") {
             throw "Rust GUI worker status is incomplete: $workerStatus"
         }
     }
@@ -286,11 +286,11 @@ try {
             "12 W",
             "25 W",
             "45 W",
-            "Apply",
-            "Battery target",
-            "AC target",
-            "Enabled",
-            "Save policy"
+            "应用",
+            "电池目标",
+            "交流目标",
+            "启用",
+            "保存策略"
         )) {
             if ($childTexts -notcontains $required) {
                 throw "Rust GUI write controls are missing '$required': $childTexts"
@@ -305,7 +305,7 @@ try {
             $policySaved = $false
             $deadline = [DateTime]::UtcNow.AddSeconds(5)
             while ([DateTime]::UtcNow -lt $deadline) {
-                if ((Get-GuiStatusText -Window $window) -match "Auto policy saved\.") {
+                if ((Get-GuiStatusText -Window $window) -match "自动策略已保存。") {
                     $policySaved = $true
                     break
                 }
@@ -317,10 +317,10 @@ try {
         }
 
         if ($ExecuteNoChangePreset) {
-            if ($workerStatus -notmatch "Power source: ac" -or
-                $workerStatus -notmatch "STAPM like target: 45\.00 W" -or
-                $workerStatus -notmatch "Fast limit: 45\.00 W" -or
-                $workerStatus -notmatch "Slow limit: 45\.00 W") {
+            if ($workerStatus -notmatch "供电：交流电" -or
+                $workerStatus -notmatch "STAPM 上限：45\.00 W" -or
+                $workerStatus -notmatch "Fast 上限：45\.00 W" -or
+                $workerStatus -notmatch "Slow 上限：45\.00 W") {
                 throw "No-change preset requires an AC 45/45/45 W starting state."
             }
 
@@ -337,11 +337,11 @@ try {
             $applied = $false
             while ([DateTime]::UtcNow -lt $deadline) {
                 $childTexts = @(Get-GuiChildTexts -Window $window)
-                if ($childTexts -contains "Applied 45 W / 45 W / 45 W.`nReadback verified.") {
+                if ($childTexts -contains "已应用 45 W / 45 W / 45 W。`n回读校验通过。") {
                     $applied = $true
                     break
                 }
-                if ($childTexts -match "Apply failed") {
+                if ($childTexts -match "应用失败") {
                     throw "Rust GUI preset apply failed: $childTexts"
                 }
                 Start-Sleep -Milliseconds 50
