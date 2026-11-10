@@ -74,6 +74,33 @@ if ($ExecuteNoChangePolicy) {
 }
 
 $package = Get-Content -LiteralPath $packageEvidence -Raw | ConvertFrom-Json
+$headCommit = (& git -C $repositoryRoot rev-parse HEAD).Trim()
+if ($package.Version -ne $Version) {
+    throw "Package evidence version mismatch: $($package.Version) != $Version"
+}
+if ($package.SourceCommit -ne $headCommit) {
+    throw "Package evidence source commit mismatch: $($package.SourceCommit) != $headCommit"
+}
+if ($package.WorkingTree -ne "Clean") {
+    throw "Package evidence was not produced from a clean worktree."
+}
+if ($VerifyShellIntegration) {
+    $shell = Get-Content -LiteralPath $shellEvidence -Raw | ConvertFrom-Json
+    if ($shell.Version -ne $Version -or
+        $shell.SourcePackageCommit -ne $headCommit -or
+        $shell.Cleanup -ne "PASS") {
+        throw "Shell-integration evidence does not match the release candidate."
+    }
+}
+if ($ExecuteNoChangePolicy) {
+    $policy = Get-Content -LiteralPath $policyEvidence -Raw | ConvertFrom-Json
+    if ($policy.SourceCommit -ne $headCommit -or
+        $policy.WorkingTree -ne "Clean" -or
+        $policy.PolicyDisabled -ne "PASS" -or
+        $policy.Shutdown -ne "PASS") {
+        throw "Power-policy evidence does not match the release candidate."
+    }
+}
 $result = [ordered]@{
     Version = $Version
     Verification = "PASS"
