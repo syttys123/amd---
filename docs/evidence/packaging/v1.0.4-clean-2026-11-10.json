@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-10T19:10:00+08:00",
+  "version": "1.0.4",
+  "package": {
+    "path": "artifacts/packages/amd-mobile-power-v1.0.4-win-x64-lite.zip",
+    "sizeBytes": 594763,
+    "sha256": "f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433",
+    "frameworkDependent": true
+  },
+  "source": {
+    "commit": "b2ac5f42fefec199cc5e8267ed91219c6d5ebb5c",
+    "workingTree": "Clean",
+    "sdk": "10.0.400"
+  },
+  "contents": {
+    "files": 40,
+    "checksums": 39,
+    "profiles": 9,
+    "licenses": 4
+  },
+  "verification": {
+    "releaseGate": "PASS",
+    "buildWarnings": 0,
+    "buildErrors": 0,
+    "testsPassed": 71,
+    "testsFailed": 0,
+    "format": "PASS",
+    "dependencyAudit": {
+      "result": "PASS",
+      "projects": 6,
+      "vulnerablePackages": 0,
+      "deprecatedPackages": 0
+    },
+    "isolatedInstallOverwriteUninstall": "PASS",
+    "shellIntegration": {
+      "result": "PASS",
+      "startMenuShortcut": "Created and removed",
+      "uninstallEntry": "Created and removed",
+      "logonBehavior": "Startup shortcut fallback created and removed"
+    },
+    "trayMenu": {
+      "result": "PASS",
+      "direction": "up",
+      "horizontalTrayGapPixels": 0,
+      "menuItems": 11,
+      "gracefulExit": "PASS",
+      "screenshot": "artifacts/verify/tray-menu-89f45ccd2dd94c1b9d10b9b80b46a55a.png",
+      "screenshotSha256": "4c17dd652c405384038997384a0b0700cbfe6da4deabf000ca2686556a652f0a"
+    },
+    "trayRecovery": {
+      "result": "PASS"
+    },
+    "trayParentExit": {
+      "result": "PASS",
+      "orphanWorkerAfterGuiExit": false
+    },
+    "uiLifecycle": {
+      "result": "PASS",
+      "minimizeRestoreCycles": 3,
+      "closeToTray": "PASS",
+      "secondInstanceWakeUp": "PASS",
+      "applicationCrashEvents": 0
+    },
+    "diagnostics": {
+      "result": "PASS",
+      "writeControlsEnabled": false,
+      "platformSupported": true,
+      "hardwareAdapterConfigured": true,
+      "shutdownProtocol": "PASS",
+      "report": "artifacts/verify/diagnostics-424862d312db4ae89b200dfaddea4301.json",
+      "reportSha256": "c5fb5a46ecaf39600b744e62b56760def1b587364bd79dcab391e45b574f4f04"
+    },
+    "dashboard": {
+      "result": "PASS",
+      "headerTitleText": "AMD Mobile Power",
+      "headerRightGapPixels": 245,
+      "statusStateWidthPixels": 78,
+      "statusStateWidthRatio": 0.1086,
+      "powerLineText": "动态上限 45.0 W · 电源",
+      "targetLeftArtifactPixels": 0,
+      "statusBarDetailsButton": "Absent",
+      "statusBarOverlap": "PASS",
+      "screenshot": "artifacts/verify/dashboard-e625aae41f49470d8559e39165c7a086.png",
+      "screenshotSha256": "050c78d3b17edce3195434da508a20b81833473a7dd8833c6453e4906f0e1228"
+    },
+    "noChangeHardwareWrite": {
+      "result": "PASS",
+      "powerLine": "ac",
+      "targetWatts": {
+        "stapm": 45,
+        "fast": 45,
+        "slow": 45
+      },
+      "evidence": "artifacts/verify/no-change-c74592b01bd84c90b9b8bf5bdb65aa82.json",
+      "evidenceSha256": "9d4ec38b1a63dd76de6b7cdef7ad45b951172c5d1d218a1821755349aee44aa9"
+    }
+  },
+  "limitations": [
+    "This is a locally verified stable package for one physical AMD laptop.",
+    "The current host denied scheduled-task registration, so the Startup-folder fallback was exercised instead of task creation.",
+    "GitHub Actions remains blocked by repository billing state and did not execute the workflow.",
+    "Do not treat this package as universal AMD laptop support or a public release."
+  ]
+}

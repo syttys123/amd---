@@ -209,32 +209,31 @@ artifacts/packages/amd-mobile-power-v1.0.2-win-x64-lite.zip
   `docs/evidence/packaging/v1.0.2-clean-2026-11-10.json` and
   `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.2-2026-11-10.json`.
 
-Current `1.0.3` local stable package:
+Current `1.0.4` local stable package:
 
 ```text
-artifacts/packages/amd-mobile-power-v1.0.3-win-x64-lite.zip
+artifacts/packages/amd-mobile-power-v1.0.4-win-x64-lite.zip
 ```
 
-- Size: `594,475` bytes.
+- Size: `594,763` bytes.
 - SHA256:
-  `795be664e991915a38457feb8d47c41879b2baaa2db03af559032736a7595a1c`.
-- Source commit: `335b42031876826567870fa7aebcdb659de578d3`.
+  `f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433`.
+- Source commit: `b2ac5f42fefec199cc5e8267ed91219c6d5ebb5c`.
 - Build SDK: .NET `10.0.400`; product assemblies still target .NET 8 APIs.
 - Working tree at build time: clean.
 - Contents: 40 files, 39 checksum entries, nine profiles, four license files.
-- Simple mode now shows the complete `AMD Mobile Power` header, sizes the title
-  at runtime for the active DPI, and narrows the write-state status cell from
-  92 px to 78 px.
+- The `1.0.4` lifecycle fix removes the minimize-to-tray `Resize` re-entry
+  path, keeps minimization in the taskbar, and routes every show/hide request
+  through one queued, idempotent path.
 - Full local gate: zero warnings, 71/71 tests, dependency audit, format,
   isolated install/overwrite/uninstall, shell integration, tray menu, graceful
-  exit, single-click restore with ghost-icon retry protection, worker
-  parent-exit cleanup, read-only diagnostics, and packaged dashboard checks
-  passed.
-- Packaged battery no-change write: `12/12/12 W` requested and read back; worker
-  shutdown was graceful.
+  exit, UI lifecycle, worker parent-exit cleanup, read-only diagnostics, and
+  packaged dashboard checks passed.
+- Packaged and deployed no-change write: `45/45/45 W` requested and read back on
+  AC; worker shutdown was graceful.
 - Evidence:
-  `docs/evidence/packaging/v1.0.3-clean-2026-11-10.json` and
-  `docs/evidence/hardware/mechrevo-wujie15-8845hs-no-change-1.0.3-2026-11-10.json`.
+  `docs/evidence/packaging/v1.0.4-clean-2026-11-10.json` and
+  `docs/evidence/packaging/v1.0.4-deployment-2026-11-10.json`.
 
 ## Embedded Version Metadata
 
@@ -393,10 +392,10 @@ and refuses to run while another GUI instance is active.
 The current verified local stable package uses SHA256:
 
 ```text
-795be664e991915a38457feb8d47c41879b2baaa2db03af559032736a7595a1c
+f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433
 ```
 
-It was built from clean commit `335b420` with .NET SDK `10.0.400`.
+It was built from clean commit `b2ac5f4` with .NET SDK `10.0.400`.
 
 Rebuilds may produce a different hash because embedded timestamps can change.
 Always use the hash generated with the current build.
@@ -426,8 +425,8 @@ dirty worktree, a mismatched ZIP sidecar, a package commit outside the current
 branch, runtime-sensitive changes after the package commit, or a failed media
 gate. It never logs in or uploads.
 
-The `v0.1.0`, `v0.1.3-dev`, `v1.0.0`, `v1.0.1`, and `v1.0.2` packages are
-retained as historical development/stable artifacts. The current `v1.0.3`
+The `v0.1.0`, `v0.1.3-dev`, `v1.0.0`, `v1.0.1`, `v1.0.2`, and `v1.0.3` packages are
+retained as historical development/stable artifacts. The current `v1.0.4`
 package is a locally verified stable deployment for one physical AMD laptop,
 not a public release. Public hardware support still needs a second AMD platform
 and the remaining human gates.

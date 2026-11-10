@@ -8,23 +8,24 @@
 ## Source And Package
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
-- Current runtime source commit reviewed: `335b420`
-- Package source commit: `335b420`
-- Package: `artifacts/packages/amd-mobile-power-v1.0.3-win-x64-lite.zip`
-- Size: `594,475` bytes
-- SHA256: `795be664e991915a38457feb8d47c41879b2baaa2db03af559032736a7595a1c`
+- Current runtime source commit reviewed: `b2ac5f4`
+- Package source commit: `b2ac5f4`
+- Package: `artifacts/packages/amd-mobile-power-v1.0.4-win-x64-lite.zip`
+- Size: `594,763` bytes
+- SHA256: `f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433`
 - Files / checksums / profiles / licenses: `40 / 39 / 9 / 4`
 - Runtime: Microsoft .NET 8 Desktop Runtime x64
 
-The ZIP was rebuilt from a clean `335b420` worktree with .NET SDK `10.0.400`,
-matching the pinned CI toolchain. The package includes the tray-restore and
-worker cleanup fixes plus the compact-mode title/status layout correction.
+The ZIP was rebuilt from a clean `b2ac5f4` worktree with .NET SDK `10.0.400`,
+matching the pinned CI toolchain. The package includes the complete
+taskbar/notification-area lifecycle fix, queued single-instance restore, and
+worker cleanup.
 Later documentation-only commits do not change the packaged runtime files.
 
 ## Local Verification
 
 Evidence:
-`docs/evidence/packaging/v1.0.3-clean-2026-11-10.json`
+`docs/evidence/packaging/v1.0.4-clean-2026-11-10.json`
 
 - Build warnings / errors: `0 / 0`
 - SDK: `10.0.400`
@@ -39,6 +40,8 @@ Evidence:
 - Tray ghost-icon retry protection: PASS
 - GUI parent exit leaves no orphaned worker: PASS
 - Graceful tray exit: PASS
+- Win32 minimize/restore, close-to-tray, and second-instance wake-up: PASS
+- Windows Application crash events during lifecycle verification: `0`
 - Packaged simple dashboard gray-dot and power-line check: PASS
 - Bottom `详情` button absent and write-state/status bounds overlap check: PASS
 - Complete `AMD Mobile Power` header and 78 px status-cell check: PASS
@@ -65,10 +68,9 @@ launch copy, safety documents, manifest, and SHA256 list under
   laptop.
 - Earlier `25/25/25 W` and a 45 W request were recorded; firmware may clamp
   STAPM while Fast/Slow remain the enforceable limit.
-- Packaged no-change write gate: `12/12/12 W -> 12/12/12 W`.
-- `1.0.3` packaged battery no-change write:
-  `12/12/12 W -> 12/12/12 W`, actual power below the ceiling, graceful
-  shutdown.
+- Packaged no-change write gate: `45/45/45 W -> 45/45/45 W` on AC.
+- `1.0.4` packaged and deployed no-change write:
+  `45/45/45 W -> 45/45/45 W`, with graceful shutdown.
 
 ### Real battery read-only baseline
 
@@ -95,11 +97,11 @@ launch copy, safety documents, manifest, and SHA256 list under
 Dashboard capture:
 
 ```text
-artifacts/verify/deployed-dashboard-v1.0.3-20261110.png
+artifacts/verify/deployed-dashboard-v1.0.4-20261110-190306.png
 ```
 
 - Dimensions: `574x438`
-- SHA256: `7d287065207e4b1fb16e56c02478a5012011c34ab89ab36d5469cb73fab1a065`
+- SHA256: `095afa9c7aafa5b71c730a7c881f9fb5f9dc967111dd3178f1a1f0e14c121e21`
 - Header: complete `AMD Mobile Power`
 - Header-to-mode-control gap: `245 px`
 - Write-state cell width: `78 px`
@@ -151,7 +153,7 @@ docs/assets/bilibili-cover-2026-11-10.png
 - GitHub Actions cannot be used as release evidence until the repository
   account billing/spending-limit issue is resolved.
 - At least one second AMD laptop still needs read-only compatibility evidence.
-- Any runtime or packaging change after `335b420` requires a new clean package,
+- Any runtime or packaging change after `b2ac5f4` requires a new clean package,
   SHA256, and release evidence.
 - Project owner must review final video voice, pacing, claims, and cover.
 - GitHub tag/release, Bilibili login/upload, and public publication require
@@ -161,11 +163,12 @@ docs/assets/bilibili-cover-2026-11-10.png
 
 ```powershell
 .\verify-release.ps1 `
-  -Version 1.0.3 `
+  -Version 1.0.4 `
   -FrameworkDependent `
   -VerifyShellIntegration `
   -VerifyTrayMenu `
   -VerifyTrayExit `
+  -VerifyUiLifecycle `
   -VerifyDashboard `
   -VerifyDiagnostics
 ```

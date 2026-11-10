@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "local-stable-deployment",
+  "capturedAt": "2026-11-10T19:10:00+08:00",
+  "target": "C:\\RyzenAdj",
+  "package": {
+    "name": "amd-mobile-power-v1.0.4-win-x64-lite.zip",
+    "sha256": "f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433",
+    "sourceCommit": "b2ac5f42fefec199cc5e8267ed91219c6d5ebb5c",
+    "workingTree": "Clean",
+    "sdk": "10.0.400"
+  },
+  "backup": {
+    "previousStableDirectory": "C:\\RyzenAdj.before-v1.0.4-20261110-190202",
+    "recoverableBackup": "D:\\amd-mobile-power\\artifacts\\deployment-backups\\C-RyzenAdj-before-v1.0.4-20261110-190202",
+    "files": 42,
+    "verification": "PASS"
+  },
+  "deployment": {
+    "version": "1.0.4",
+    "files": 40,
+    "packageFileHashVerification": "PASS",
+    "writeLauncher": "C:\\RyzenAdj\\启动 AMD Mobile Power（稳定写入）.lnk",
+    "desktopShortcut": "<USER_HOME>\\Desktop\\功耗设置 5-60W.lnk",
+    "writeLauncherArguments": "--enable-write-controls --simple-mode"
+  },
+  "verification": {
+    "dashboard": {
+      "result": "PASS",
+      "headerTitleText": "AMD Mobile Power",
+      "headerRightGapPixels": 245,
+      "statusStateWidthPixels": 78,
+      "statusStateWidthRatio": 0.1359,
+      "powerLineText": "动态上限 45.0 W · 电源",
+      "targetLeftArtifactPixels": 0,
+      "statusBarDetailsButton": "Absent",
+      "statusBarOverlap": "PASS",
+      "screenshot": "artifacts/verify/deployed-dashboard-v1.0.4-20261110-190306.png",
+      "screenshotSha256": "095afa9c7aafa5b71c730a7c881f9fb5f9dc967111dd3178f1a1f0e14c121e21"
+    },
+    "diagnostics": {
+      "result": "PASS",
+      "collectionStatus": "PASS",
+      "workerVersion": "1.0.4",
+      "hardwareAdapterConfigured": true,
+      "writeControlsEnabled": false,
+      "shutdownProtocol": "PASS",
+      "report": "artifacts/verify/deployed-diagnostics-v1.0.4-20261110-190319.json",
+      "reportSha256": "08be42d4dbac5acc4ea5c95cc8cede5b695118c6926a9eb033c9316b2ab0ca2f"
+    },
+    "trayMenu": {
+      "result": "PASS",
+      "menuItems": 11,
+      "direction": "up",
+      "horizontalGapPixels": 0,
+      "gracefulExit": "PASS",
+      "screenshot": "artifacts/verify/deployed-tray-menu-v1.0.4-final.png",
+      "screenshotSha256": "276663e2fe995659952e31bc5d864e62eb48e3483d1bec7ca9416f3b5ef8d107"
+    },
+    "uiLifecycle": {
+      "result": "PASS",
+      "minimizeRestoreCycles": 3,
+      "closeToTray": "PASS",
+      "secondInstanceWakeUp": "PASS",
+      "applicationCrashEvents": 0
+    },
+    "noChangeHardwareWrite": {
+      "result": "PASS",
+      "powerLine": "ac",
+      "targetWatts": {
+        "stapm": 45,
+        "fast": 45,
+        "slow": 45
+      },
+      "evidence": "artifacts/verify/no-change-9816ac8cb354415b88448c4390527356.json",
+      "evidenceSha256": "777ee3839679905ab9a7e76b6ed72d5505dc613b00e1e510d50d1d3b9a19a61d"
+    },
+    "writeModeLaunch": {
+      "guiPath": "C:\\RyzenAdj\\AmdMobilePower.exe",
+      "workerPath": "C:\\RyzenAdj\\worker\\AmdMobilePower.Worker.exe",
+      "guiLogWritesEnabled": true,
+      "workerLogWritesEnabled": true,
+      "processesRemaining": 0
+    }
+  },
+  "result": "PASS",
+  "limitations": [
+    "This is a local stable deployment for one physical AMD laptop.",
+    "Public hardware support still requires a second AMD platform.",
+    "The launcher enables the reviewed local write controls explicitly; the executable itself remains read-only by default."
+  ]
+}

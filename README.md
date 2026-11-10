@@ -4,12 +4,13 @@ AMD Mobile Power is an early-development Windows utility for monitoring and,
 after supervised validation, controlling firmware power limits on supported AMD
 thin-and-light laptops.
 
-> Status: no public release yet. A local `1.0.3` stable deployment is validated on
+> Status: no public release yet. A local `1.0.4` stable deployment is validated on
 > one AMD laptop. The normal GUI and packaged build are read-only unless launched
 > with the reviewed local write-control flag. Controlled 10 W and 12 W writes,
 > a packaged no-change write gate, and a supervised AC-to-battery-to-AC policy
-> transition passed on 2026-11-10. The `1.0.3` build keeps the tray restore and
-> orphan-worker fixes and removes the compact-mode title/status truncation.
+> transition passed on 2026-11-10. The `1.0.4` build fixes the remaining
+> taskbar/tray lifecycle crash, keeps orphan-worker cleanup, and preserves the
+> compact-mode title/status layout.
 > Public support still requires a second physical
 > AMD laptop and the remaining publication gates.
 
@@ -55,13 +56,13 @@ second hardware owner.
 The current local stable package is located at:
 
 ```text
-artifacts/packages/amd-mobile-power-v1.0.3-win-x64-lite.zip
+artifacts/packages/amd-mobile-power-v1.0.4-win-x64-lite.zip
 ```
 
 Extract the ZIP and run `AmdMobilePower.exe`. This starts in read-only mode by
 default. The locally validated write-control deployment is documented in
 `docs/DEPLOYMENT.md`; the current laptop deployment is `C:\RyzenAdj` version
-`1.0.3`.
+`1.0.4`.
 See `docs/INSTALLATION.md` before using `install.ps1`.
 
 The earlier self-contained development package remains available:
@@ -70,7 +71,7 @@ The earlier self-contained development package remains available:
 artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip
 ```
 
-The lite package is roughly 579 KB without the .NET runtime and requires the
+The lite package is roughly 581 KB without the .NET runtime and requires the
 Microsoft .NET 8 Desktop Runtime x64. See `docs/PACKAGING.md` for build and
 runtime details.
 

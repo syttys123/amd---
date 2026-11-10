@@ -27,7 +27,7 @@ if (-not $ConfirmHardwareWrite) {
 
 $root = Split-Path -Parent $PSCommandPath
 if ([string]::IsNullOrWhiteSpace($PackageDirectory)) {
-    $PackageDirectory = Join-Path $root "artifacts\packages\amd-mobile-power-v1.0.3-win-x64-lite"
+    $PackageDirectory = Join-Path $root "artifacts\packages\amd-mobile-power-v1.0.4-win-x64-lite"
 }
 $PackageDirectory = [IO.Path]::GetFullPath($PackageDirectory)
 

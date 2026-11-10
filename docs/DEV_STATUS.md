@@ -42,13 +42,13 @@ not authoritative.
 - The current development package was rebuilt from clean commit `71be9c8`:
   593,944 bytes, SHA256
   `020d2b8d5f28955b894612020292285f821d556b22ebacd905154c933601e87b`.
-- The current local stable package is `1.0.3`: 594,475 bytes, SHA256
-  `795be664e991915a38457feb8d47c41879b2baaa2db03af559032736a7595a1c`,
-  built from clean commit `335b420` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` now contains the verified `1.0.3` package. The previous `1.0.2`
-  deployment is preserved as `C:\RyzenAdj.before-v1.0.3-20261110-163339` and
+- The current local stable package is `1.0.4`: 594,763 bytes, SHA256
+  `f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433`,
+  built from clean commit `b2ac5f4` with .NET SDK `10.0.400`.
+- `C:\RyzenAdj` now contains the verified `1.0.4` package. The previous `1.0.3`
+  deployment is preserved as `C:\RyzenAdj.before-v1.0.4-20261110-190202` and
   under
-  `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.3-20261110-163339`.
+  `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.4-20261110-190202`.
 
 ## Development Workflow
 
@@ -706,6 +706,19 @@ third_party/
   checks three Win32 minimize/restore cycles, close-to-tray, second-instance
   wake-up, and new Windows Application crash events. The development Release
   build passed in PowerShell 7 with `ApplicationCrashEvents = 0`.
+- Built and passed the clean `1.0.4` Lite release gate from commit `b2ac5f4`:
+  zero warnings/errors, 71/71 tests, dependency audit, format, package checks,
+  isolated install/overwrite/uninstall, shell integration, tray menu and
+  graceful exit, tray recovery, parent-exit cleanup, UI lifecycle, dashboard,
+  and read-only diagnostics all passed. Evidence:
+  `docs/evidence/packaging/v1.0.4-clean-2026-11-10.json`.
+- Passed the final `1.0.4` no-change hardware gate on AC: `45/45/45 W` was
+  written back and read back exactly, with graceful worker shutdown.
+- Promoted `1.0.4` to `C:\RyzenAdj` after hash-verifying both 42-file backups.
+  The deployed path passed file-hash verification, UI lifecycle, tray menu and
+  exit, dashboard, read-only diagnostics, a write-mode GUI/worker launch, and a
+  deployed no-change hardware test. Evidence:
+  `docs/evidence/packaging/v1.0.4-deployment-2026-11-10.json`.
 
 Development screenshot:
 
@@ -727,11 +740,11 @@ Development screenshot:
 
 ## Next Concrete Task
 
-Build `1.0.4` from the lifecycle fix, run the complete release gate, pass the
-controlled no-change hardware write, and promote it to `C:\RyzenAdj` only after
-the current `1.0.3` deployment has a recoverable backup. Then start the Rust GUI
-and C++ privileged-worker migration in a separate branch while `1.0.4` remains
-the stable rollback point.
+Start the Rust GUI and C++ privileged-worker migration in a separate branch
+while `C:\RyzenAdj` stays on the verified `1.0.4` rollback point. Keep the
+existing named-pipe protocol and hardware-safety boundaries as the migration
+contract, and require the same lifecycle, tray, diagnostics, and no-change
+hardware gates before replacing the stable deployment.
 
 ## Known Risks
 
@@ -760,7 +773,7 @@ Do not publish a stable release or promotional video until:
 - A release checklist and installation documentation exist.
 
 The controlled no-change write gate and supervised AC/battery policy transition
-are complete for the development 8845HS. The `1.0.3` release and deployment
+are complete for the development 8845HS. The `1.0.4` release and deployment
 gates pass on this laptop. Broad public hardware support still requires a second
 verified AMD platform or generation.
 
