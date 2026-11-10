@@ -23,7 +23,13 @@ Run the native interoperability gate:
 Run the read-only hardware gate after building the RyzenAdj runtime:
 
 ```powershell
-.\native\verify-native.ps1 -NoBuild -VerifyHardware
+.\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui
+```
+
+Run the Rust GUI lifecycle gate:
+
+```powershell
+.\native\verify-rust-gui.ps1
 ```
 
 The hardware gate launches only the C++ worker, reads capability and snapshot

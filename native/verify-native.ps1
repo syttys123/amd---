@@ -1,6 +1,7 @@
 param(
     [switch]$NoBuild,
     [switch]$VerifyHardware,
+    [switch]$VerifyRustGui,
     [string]$ExistingWorkerDirectory = "C:\RyzenAdj\worker"
 )
 
@@ -208,6 +209,15 @@ if ($VerifyHardware) {
     }
 }
 
+$rustGuiResult = $null
+if ($VerifyRustGui) {
+    $rustGuiArguments = @{
+        NoBuild = $true
+    }
+    $rustGuiResult = (& (Join-Path $root "verify-rust-gui.ps1") @rustGuiArguments |
+        Out-String).Trim()
+}
+
 [pscustomobject]@{
     Verification = "PASS"
     CppWorker = $cppResult.Health
@@ -261,4 +271,6 @@ if ($VerifyHardware) {
     else {
         "Not run"
     }
+    RustGuiLifecycle = if ($rustGuiResult) { "PASS" } else { "Not requested" }
+    RustGuiDetails = if ($rustGuiResult) { $rustGuiResult } else { $null }
 } | Format-List

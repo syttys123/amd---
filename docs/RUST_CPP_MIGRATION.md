@@ -44,7 +44,9 @@ The first migration slice adds:
 
 - `native/rust-gui`: a dependency-free lifecycle state machine for window
   visibility, taskbar/tray behavior, queued single-instance wake-up, and
-  explicit exit. It is covered by unit tests before any Win32 calls are added.
+  explicit exit. The Win32 shell now uses that state machine for a real window,
+  notification-area icon, tray menu, and second-instance wake-up. Unit tests
+  cover the state machine and `verify-rust-gui.ps1` covers the live lifecycle.
 - `native/rust-probe`: a dependency-light Rust named-pipe client that sends
   `getHealth` and parses the v1 response.
 - `native/cpp-worker`: a Windows named-pipe worker skeleton that implements

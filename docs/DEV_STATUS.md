@@ -724,6 +724,15 @@ third_party/
   successfully reads health from both the C++ skeleton and the deployed C#
   worker `1.0.4`, and both shutdown paths pass. Evidence:
   `docs/RUST_CPP_MIGRATION.md` and `native/verify-native.ps1`.
+- Added the Rust GUI migration shell on `main`: a
+  dependency-free lifecycle state machine, a Win32 window and notification-area
+  icon, close-to-tray behavior, a tray Show/Exit menu, and queued
+  second-instance wake-up. The state machine has 10 passing unit tests and the
+  live `native/verify-rust-gui.ps1` gate passes three Win32
+  minimize/restore cycles, close-to-tray, tray restore, second-instance wake,
+  and explicit exit with code 0. The combined native gate also passed read-only
+  C++ hardware capability/snapshot reads on the 8845HS. C:\RyzenAdj remains
+  unchanged at `1.0.4`.
 
 Development screenshot:
 
@@ -742,16 +751,17 @@ Development screenshot:
 - Obtain read-only capability evidence from a second physical AMD laptop.
 - Resolve GitHub Actions account billing/visibility and complete final public
   release review.
-- Continue the Rust GUI + C++ worker migration with capability and snapshot
-  reads, then validated hardware writes; keep `1.0.4` as the stable fallback.
+- Continue the Rust GUI + C++ worker migration by connecting the Rust GUI to
+  the C++ worker's `getHealth`, `getCapabilities`, and `getSnapshot` commands,
+  then port validated hardware writes; keep `1.0.4` as the stable fallback.
 
 ## Next Concrete Task
 
-Start the Rust GUI and C++ privileged-worker migration in a separate branch
-while `C:\RyzenAdj` stays on the verified `1.0.4` rollback point. Keep the
-existing named-pipe protocol and hardware-safety boundaries as the migration
-contract, and require the same lifecycle, tray, diagnostics, and no-change
-hardware gates before replacing the stable deployment.
+Connect the Rust GUI to the C++ worker's read-only named-pipe commands while
+`C:\RyzenAdj` stays on the verified `1.0.4` rollback point. Keep the existing
+named-pipe protocol and hardware-safety boundaries as the migration contract,
+and require the same lifecycle, tray, diagnostics, and no-change hardware gates
+before replacing the stable deployment.
 
 ## Known Risks
 
