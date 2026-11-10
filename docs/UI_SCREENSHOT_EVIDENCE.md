@@ -59,3 +59,25 @@ Runtime layout checks also passed for compact and advanced mode:
 
 No required dashboard capture remains. The release checklist still requires the
 supervised AC/battery policy transition and a second physical AMD device.
+
+## Native Rust Redesign Evidence (2026-11-11)
+
+The clean-room native Rust layout was captured at 125% Windows scaling with the
+real hardware worker connected:
+
+| State | Asset | Physical size | Evidence |
+| --- | --- | ---: | --- |
+| Native simple redesign | `assets/native-gui-redesign-simple-2026-11-11.png` | `820x596` | Live STAPM, external-power badge, stable target input, three direct presets plus edit, four-column telemetry, semantic connected status, and diagnostics action all remain inside their surfaces |
+| Native advanced redesign | `assets/native-gui-redesign-advanced-2026-11-11.png` | `970x899` | Shared hero, editable presets, battery/external policy, detected CPU/family/SMU/PM, compact profile, capability state, worker health, and diagnostics action render without structural overlap |
+
+The native window now uses the embedded application icon in both the title bar
+and tray, a dark native title bar where Windows supports it, and
+`WS_CLIPCHILDREN` to keep child inputs/buttons stable during one-second custom
+canvas repaints.
+
+Runtime verification:
+
+- Native Rust tests: 26/26 passed.
+- `native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls`:
+  PASS.
+- No power write was requested during screenshot capture.

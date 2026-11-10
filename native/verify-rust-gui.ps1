@@ -241,6 +241,26 @@ function Get-GuiChildTexts {
     return @($script:childTexts)
 }
 
+function Get-ControlText {
+    param(
+        [IntPtr]$Window,
+        [int]$ControlId
+    )
+
+    $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+        $Window,
+        $ControlId)
+    if ($control -eq [IntPtr]::Zero) {
+        return ""
+    }
+    $text = New-Object System.Text.StringBuilder 1024
+    [AmdMobilePowerRustGuiNative]::GetWindowText(
+        $control,
+        $text,
+        $text.Capacity) | Out-Null
+    return $text.ToString()
+}
+
 $firstProcess = $null
 $secondProcess = $null
 $existingWorkerIds = @(
@@ -421,7 +441,8 @@ try {
                 312,
                 313,
                 314,
-                315
+                315,
+                370
             )) {
                 $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
                     $window,
@@ -433,18 +454,27 @@ try {
         }
         if ($VerifyWorker) {
             $deadline = [DateTime]::UtcNow.AddSeconds(4)
-            $simpleStatus = ""
+            $metricTitles = @()
             while ([DateTime]::UtcNow -lt $deadline) {
-                $simpleStatus = Get-GuiStatusText -Window $window
-                if ($simpleStatus -match "STAPM / Fast / Slow 上限" -and
-                    $simpleStatus -notmatch "PM 表") {
+                $metricTitles = @(
+                    Get-ControlText -Window $window -ControlId 330
+                    Get-ControlText -Window $window -ControlId 331
+                    Get-ControlText -Window $window -ControlId 332
+                    Get-ControlText -Window $window -ControlId 333
+                )
+                if (($metricTitles -join "|") -eq "STAPM|PPT Fast|PPT Slow|CPU 温度") {
                     break
                 }
                 Start-Sleep -Milliseconds 50
             }
-            if ($simpleStatus -notmatch "STAPM / Fast / Slow 上限" -or
-                $simpleStatus -match "PM 表") {
-                throw "Simple mode dashboard was not compact: $simpleStatus"
+            if (($metricTitles -join "|") -ne "STAPM|PPT Fast|PPT Slow|CPU 温度") {
+                throw "Simple mode telemetry matrix is incomplete: $($metricTitles -join '|')"
+            }
+            $deviceLabel = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+                $window,
+                370)
+            if ([AmdMobilePowerRustGuiNative]::IsWindowVisible($deviceLabel)) {
+                throw "Simple mode left advanced device details visible."
             }
         }
 
@@ -476,7 +506,6 @@ try {
             }
         if ($VerifyWriteControls) {
             foreach ($advancedControl in @(
-                104,
                 105,
                 106,
                 301,
@@ -487,7 +516,8 @@ try {
                 312,
                 313,
                 314,
-                315
+                315,
+                370
             )) {
                 $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
                     $window,
@@ -522,7 +552,7 @@ try {
             "快捷预设",
             "保存预设",
             "电池目标",
-            "交流目标",
+            "外接目标",
             "启用",
             "保存策略"
         )) {

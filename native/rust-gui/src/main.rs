@@ -16,33 +16,56 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+
+#[link(name = "dwmapi")]
+extern "system" {
+    fn DwmSetWindowAttribute(
+        hwnd: HWND,
+        attribute: u32,
+        value: *const std::ffi::c_void,
+        value_size: u32,
+    ) -> i32;
+}
 use windows_sys::Win32::Foundation::{
     CloseHandle, GetLastError, ERROR_ALREADY_EXISTS, HANDLE, HINSTANCE, HWND, LPARAM, LRESULT,
-    WPARAM,
+    RECT, WPARAM,
 };
-use windows_sys::Win32::Graphics::Gdi::{InvalidateRect, UpdateWindow, COLOR_WINDOW, HBRUSH};
+use windows_sys::Win32::Graphics::Gdi::{
+    BeginPaint, BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, CreateFontW, CreatePen,
+    CreateSolidBrush, DeleteDC, DeleteObject, DrawTextW, EndPaint, FillRect, GetStockObject,
+    InvalidateRect, RoundRect, SelectObject, SetBkColor, SetBkMode, SetTextColor, UpdateWindow,
+    COLOR_WINDOW, DT_CENTER, DT_END_ELLIPSIS, DT_LEFT, DT_NOPREFIX, DT_RIGHT, DT_SINGLELINE,
+    DT_VCENTER, FW_BOLD, FW_NORMAL, HBRUSH, HGDIOBJ, NULL_BRUSH, PAINTSTRUCT, PS_SOLID, SRCCOPY,
+    TRANSPARENT, WHITE_BRUSH,
+};
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::SystemServices::SS_LEFT;
 use windows_sys::Win32::System::Threading::CreateMutexW;
+use windows_sys::Win32::UI::Controls::{DRAWITEMSTRUCT, ODS_DISABLED, ODS_SELECTED, ODT_BUTTON};
+use windows_sys::Win32::UI::Input::KeyboardAndMouse::{EnableWindow, SetFocus};
 use windows_sys::Win32::UI::Shell::{
     Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE, NOTIFYICONDATAW,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    AppendMenuW, CheckMenuItem, CreatePopupMenu, CreateWindowExW, DefWindowProcW, DestroyMenu,
-    DestroyWindow, DispatchMessageW, FindWindowW, GetCursorPos, GetDlgItem, GetMessageW,
-    GetWindowLongPtrW, LoadCursorW, LoadIconW, PostMessageW, PostQuitMessage, RegisterClassExW,
-    SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, SetWindowTextW, ShowWindow,
-    TrackPopupMenu, TranslateMessage, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, HMENU,
-    HWND_NOTOPMOST, HWND_TOPMOST, IDC_ARROW, IDI_APPLICATION, MF_CHECKED, MF_SEPARATOR, MF_STRING,
-    MF_UNCHECKED, MSG, SIZE_MINIMIZED, SIZE_RESTORED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
-    SWP_NOZORDER, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP,
-    WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION, WM_LBUTTONUP,
-    WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOMMAND, WNDCLASSEXW,
-    WS_BORDER, WS_CHILD, WS_EX_APPWINDOW, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
+    AdjustWindowRectEx, AppendMenuW, CheckMenuItem, CreateIconFromResourceEx, CreatePopupMenu,
+    CreateWindowExW, DefWindowProcW, DestroyIcon, DestroyMenu, DestroyWindow, DispatchMessageW,
+    FindWindowW, GetClientRect, GetCursorPos, GetDlgCtrlID, GetDlgItem, GetMessageW,
+    GetWindowLongPtrW, IsDialogMessageW, LoadCursorW, LoadIconW, PostMessageW, PostQuitMessage,
+    RegisterClassExW, SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, SetWindowTextW,
+    ShowWindow, TrackPopupMenu, TranslateMessage, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT,
+    GWLP_USERDATA, HICON, HMENU, HWND_NOTOPMOST, HWND_TOPMOST, ICON_BIG, ICON_SMALL, IDC_ARROW,
+    IDI_APPLICATION, LR_DEFAULTCOLOR, MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED, MSG,
+    SIZE_MINIMIZED, SIZE_RESTORED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER, SW_HIDE,
+    SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND,
+    WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION, WM_GETICON, WM_LBUTTONUP, WM_QUERYENDSESSION,
+    WM_RBUTTONUP, WM_SETICON, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOMMAND, WNDCLASSEXW, WS_CAPTION,
+    WS_CHILD, WS_CLIPCHILDREN, WS_EX_APPWINDOW, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_SYSMENU,
+    WS_VISIBLE,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_GETCHECK, BM_SETCHECK, BS_AUTOCHECKBOX,
-    BS_AUTORADIOBUTTON, ES_NUMBER, ES_RIGHT, SC_MINIMIZE, WS_TABSTOP,
+    GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_GETCHECK, BM_SETCHECK, BS_OWNERDRAW,
+    ES_CENTER, ES_NUMBER, SC_MINIMIZE, WM_CTLCOLOREDIT, WM_CTLCOLORSTATIC, WM_DRAWITEM, WM_PAINT,
+    WS_TABSTOP,
 };
 
 const APP_TITLE: &str = "AMD Mobile Power（原生预览）";
@@ -77,7 +100,44 @@ const POLICY_BATTERY_EDIT: usize = 312;
 const POLICY_AC_LABEL: usize = 313;
 const POLICY_AC_EDIT: usize = 314;
 const POLICY_ENABLED: usize = 315;
+const SIMPLE_TARGET_EDIT: usize = 316;
+const SIMPLE_APPLY: usize = 317;
+const POWER_VALUE_LABEL: usize = 320;
+const POWER_SOURCE_LABEL: usize = 321;
+const TARGET_LABEL: usize = 322;
+const SIMPLE_STATUS_LABEL: usize = 323;
+const PRESET_EDIT_OPEN: usize = 324;
+const METRIC_TITLE_START: usize = 330;
+const METRIC_VALUE_START: usize = 340;
+const METRIC_LIMIT_START: usize = 350;
+const TITLE_LABEL: usize = 360;
+const ADVANCED_DEVICE_LABEL: usize = 370;
 const STATUS_HOLD: Duration = Duration::from_secs(5);
+
+const COLOR_CANVAS: u32 = rgb(238, 242, 241);
+const COLOR_SURFACE: u32 = rgb(255, 255, 255);
+const COLOR_SURFACE_MUTED: u32 = rgb(246, 248, 247);
+const COLOR_HEADER: u32 = rgb(23, 29, 30);
+const COLOR_BORDER: u32 = rgb(212, 221, 218);
+const COLOR_ACCENT: u32 = rgb(10, 127, 115);
+const COLOR_ACCENT_SOFT: u32 = rgb(223, 244, 239);
+const COLOR_TEXT: u32 = rgb(24, 34, 32);
+const COLOR_TEXT_MUTED: u32 = rgb(95, 109, 105);
+const COLOR_WHITE: u32 = rgb(255, 255, 255);
+const COLOR_ACCENT_PRESSED: u32 = rgb(8, 103, 94);
+const COLOR_EXTERNAL: u32 = rgb(47, 111, 179);
+const COLOR_EXTERNAL_SOFT: u32 = rgb(234, 241, 250);
+const COLOR_WARNING: u32 = rgb(168, 88, 11);
+const COLOR_WARNING_SOFT: u32 = rgb(255, 244, 230);
+const COLOR_ERROR: u32 = rgb(180, 35, 24);
+const COLOR_ERROR_SOFT: u32 = rgb(253, 236, 234);
+const COLOR_SUCCESS_SOFT: u32 = rgb(232, 248, 242);
+const APP_WINDOW_STYLE: u32 =
+    WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN;
+
+const fn rgb(red: u8, green: u8, blue: u8) -> u32 {
+    red as u32 | ((green as u32) << 8) | ((blue as u32) << 16)
+}
 
 #[derive(Clone, Copy)]
 struct PolicyControls {
@@ -91,6 +151,50 @@ struct HeaderControls {
     simple: HWND,
     advanced: HWND,
     topmost: HWND,
+}
+
+#[derive(Clone, Copy)]
+struct SimpleViewControls {
+    power_value: HWND,
+    power_source: HWND,
+    target_label: HWND,
+    target_edit: HWND,
+    apply: HWND,
+    metric_titles: [HWND; 4],
+    metric_values: [HWND; 4],
+    metric_limits: [HWND; 4],
+    status: HWND,
+    advanced_device: HWND,
+}
+
+struct UiFonts {
+    display: HGDIOBJ,
+    number_display: HGDIOBJ,
+    metric: HGDIOBJ,
+    number_metric: HGDIOBJ,
+    body: HGDIOBJ,
+    caption: HGDIOBJ,
+    title: HGDIOBJ,
+}
+
+impl Drop for UiFonts {
+    fn drop(&mut self) {
+        for font in [
+            self.display,
+            self.number_display,
+            self.metric,
+            self.number_metric,
+            self.body,
+            self.caption,
+            self.title,
+        ] {
+            if !font.is_null() {
+                unsafe {
+                    DeleteObject(font);
+                }
+            }
+        }
+    }
 }
 
 struct GuiApp {
@@ -119,7 +223,12 @@ struct GuiApp {
     status_hold_until: Instant,
     view_mode: state::UiMode,
     top_most: bool,
+    focused_control: Option<usize>,
+    icon_large: HICON,
+    icon_small: HICON,
     header_controls: Option<HeaderControls>,
+    simple_controls: Option<SimpleViewControls>,
+    fonts: Option<UiFonts>,
 }
 
 impl GuiApp {
@@ -152,7 +261,12 @@ impl GuiApp {
             status_hold_until: Instant::now(),
             view_mode: window_preferences.mode,
             top_most: window_preferences.top_most,
+            focused_control: None,
+            icon_large: std::ptr::null_mut(),
+            icon_small: std::ptr::null_mut(),
             header_controls: None,
+            simple_controls: None,
+            fonts: None,
         }
     }
 }
@@ -178,6 +292,16 @@ impl Drop for GuiApp {
             let _ = child.try_wait();
             let _ = child.kill();
             let _ = child.wait();
+        }
+        if !self.icon_large.is_null() {
+            unsafe {
+                DestroyIcon(self.icon_large);
+            }
+        }
+        if !self.icon_small.is_null() && self.icon_small != self.icon_large {
+            unsafe {
+                DestroyIcon(self.icon_small);
+            }
         }
     }
 }
@@ -211,9 +335,1341 @@ fn write_wide(buffer: &mut [u16], value: &str) {
     buffer[encoded.len()] = 0;
 }
 
+const APP_ICON_BYTES: &[u8] = include_bytes!("../../../assets/amd-mobile-power.ico");
+
+unsafe fn create_icon_for_size(desired_size: i32) -> HICON {
+    if APP_ICON_BYTES.len() < 6 {
+        return std::ptr::null_mut();
+    }
+    let image_count = u16::from_le_bytes([APP_ICON_BYTES[4], APP_ICON_BYTES[5]]) as usize;
+    let mut best: Option<(i32, usize, usize)> = None;
+    for index in 0..image_count {
+        let entry_offset = 6 + index * 16;
+        if entry_offset + 16 > APP_ICON_BYTES.len() {
+            break;
+        }
+        let width = if APP_ICON_BYTES[entry_offset] == 0 {
+            256
+        } else {
+            i32::from(APP_ICON_BYTES[entry_offset])
+        };
+        let height = if APP_ICON_BYTES[entry_offset + 1] == 0 {
+            256
+        } else {
+            i32::from(APP_ICON_BYTES[entry_offset + 1])
+        };
+        let byte_count = u32::from_le_bytes(
+            APP_ICON_BYTES[entry_offset + 8..entry_offset + 12]
+                .try_into()
+                .unwrap_or([0; 4]),
+        ) as usize;
+        let image_offset = u32::from_le_bytes(
+            APP_ICON_BYTES[entry_offset + 12..entry_offset + 16]
+                .try_into()
+                .unwrap_or([0; 4]),
+        ) as usize;
+        if byte_count == 0 || image_offset + byte_count > APP_ICON_BYTES.len() {
+            continue;
+        }
+        let score = (width - desired_size).abs() + (height - desired_size).abs();
+        if best
+            .map(|(best_score, _, _)| score < best_score)
+            .unwrap_or(true)
+        {
+            best = Some((score, image_offset, byte_count));
+        }
+    }
+
+    let Some((_, image_offset, byte_count)) = best else {
+        return std::ptr::null_mut();
+    };
+    CreateIconFromResourceEx(
+        APP_ICON_BYTES[image_offset..].as_ptr(),
+        byte_count as u32,
+        1,
+        0x0003_0000,
+        desired_size,
+        desired_size,
+        LR_DEFAULTCOLOR,
+    )
+}
+
+unsafe fn create_ui_font(face_name: &str, pixel_height: i32, weight: i32) -> HGDIOBJ {
+    let face = wide(face_name);
+    CreateFontW(
+        -pixel_height,
+        0,
+        0,
+        0,
+        weight,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        5,
+        0,
+        face.as_ptr(),
+    )
+}
+
+unsafe fn create_ui_fonts() -> UiFonts {
+    UiFonts {
+        display: create_ui_font("Microsoft YaHei UI", 34, FW_BOLD as i32),
+        number_display: create_ui_font("Consolas", 36, FW_BOLD as i32),
+        metric: create_ui_font("Microsoft YaHei UI", 17, FW_BOLD as i32),
+        number_metric: create_ui_font("Consolas", 17, FW_BOLD as i32),
+        body: create_ui_font("Microsoft YaHei UI", 14, FW_NORMAL as i32),
+        caption: create_ui_font("Microsoft YaHei UI", 12, FW_NORMAL as i32),
+        title: create_ui_font("Microsoft YaHei UI", 18, FW_BOLD as i32),
+    }
+}
+
+unsafe fn fill_rect_color(hdc: windows_sys::Win32::Graphics::Gdi::HDC, rect: &RECT, color: u32) {
+    let brush = CreateSolidBrush(color);
+    if !brush.is_null() {
+        FillRect(hdc, rect, brush);
+        DeleteObject(brush);
+    }
+}
+
+unsafe fn paint_surface(
+    hdc: windows_sys::Win32::Graphics::Gdi::HDC,
+    rect: RECT,
+    radius: i32,
+    fill: u32,
+    border: u32,
+) {
+    let brush = CreateSolidBrush(fill);
+    let pen = CreatePen(PS_SOLID, 1, border);
+    if brush.is_null() || pen.is_null() {
+        if !brush.is_null() {
+            DeleteObject(brush);
+        }
+        if !pen.is_null() {
+            DeleteObject(pen);
+        }
+        return;
+    }
+    let old_brush = SelectObject(hdc, brush);
+    let old_pen = SelectObject(hdc, pen);
+    RoundRect(
+        hdc,
+        rect.left,
+        rect.top,
+        rect.right,
+        rect.bottom,
+        radius * 2,
+        radius * 2,
+    );
+    SelectObject(hdc, old_brush);
+    SelectObject(hdc, old_pen);
+    DeleteObject(brush);
+    DeleteObject(pen);
+}
+
+unsafe fn draw_text_in(
+    hdc: windows_sys::Win32::Graphics::Gdi::HDC,
+    text: &str,
+    font: HGDIOBJ,
+    color: u32,
+    rect: RECT,
+    align: u32,
+) {
+    if text.is_empty() {
+        return;
+    }
+    let value = wide(text);
+    let old_font = if !font.is_null() {
+        SelectObject(hdc, font)
+    } else {
+        std::ptr::null_mut()
+    };
+    SetBkMode(hdc, TRANSPARENT as i32);
+    SetTextColor(hdc, color);
+    let mut draw_rect = rect;
+    DrawTextW(
+        hdc,
+        value.as_ptr(),
+        -1,
+        &mut draw_rect,
+        align | DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS,
+    );
+    if !old_font.is_null() {
+        SelectObject(hdc, old_font);
+    }
+}
+
+unsafe fn draw_rule(
+    hdc: windows_sys::Win32::Graphics::Gdi::HDC,
+    left: i32,
+    top: i32,
+    right: i32,
+    bottom: i32,
+) {
+    fill_rect_color(
+        hdc,
+        &RECT {
+            left,
+            top,
+            right,
+            bottom,
+        },
+        COLOR_BORDER,
+    );
+}
+
+fn short_processor_name(snapshot: Option<&SnapshotPayload>) -> String {
+    snapshot
+        .map(|snapshot| {
+            snapshot
+                .platform
+                .cpu
+                .processor_name
+                .trim_start_matches("AMD ")
+                .split(" w/")
+                .next()
+                .unwrap_or(&snapshot.platform.cpu.processor_name)
+                .to_owned()
+        })
+        .unwrap_or_else(|| "正在检测处理器".to_owned())
+}
+
+fn platform_subtitle(app: &GuiApp) -> String {
+    let Some(snapshot) = app.latest_snapshot.as_ref() else {
+        return "正在连接硬件 worker".to_owned();
+    };
+    let family = snapshot
+        .platform
+        .cpu
+        .ryzen_adj_family_name
+        .as_deref()
+        .unwrap_or("AMD 移动平台");
+    format!(
+        "{} · {} · {}",
+        short_processor_name(Some(snapshot)),
+        family,
+        format_power_line_raw(&snapshot.telemetry.power_line)
+    )
+}
+
+fn current_power(app: &GuiApp) -> String {
+    app.latest_snapshot
+        .as_ref()
+        .map(|snapshot| {
+            format_watts(
+                snapshot
+                    .telemetry
+                    .stapm_value_watts
+                    .or(snapshot.telemetry.stapm_limit_watts),
+            )
+        })
+        .unwrap_or_else(|| "等待数据".to_owned())
+}
+
+fn current_power_limit(app: &GuiApp) -> String {
+    app.latest_snapshot
+        .as_ref()
+        .map(|snapshot| format_watts(snapshot.telemetry.stapm_limit_watts))
+        .unwrap_or_else(|| "--".to_owned())
+}
+
+fn current_power_label(app: &GuiApp) -> &'static str {
+    match app
+        .latest_snapshot
+        .as_ref()
+        .map(|snapshot| snapshot.telemetry.power_line.as_str())
+    {
+        Some("battery") => "电池",
+        Some("ac") => "外接电源",
+        _ => "电源",
+    }
+}
+
+unsafe fn visible_status(app: &GuiApp) -> (String, String, u32, u32) {
+    if Instant::now() < app.status_hold_until && !app.status_label.is_null() {
+        let message = get_control_text(app.status_label);
+        if let Some(first_line) = message.lines().find(|line| !line.trim().is_empty()) {
+            let is_error = first_line.contains("失败")
+                || first_line.contains("异常")
+                || first_line.contains("错误");
+            return if is_error {
+                (
+                    "需要处理".to_owned(),
+                    first_line.to_owned(),
+                    COLOR_ERROR_SOFT,
+                    COLOR_ERROR,
+                )
+            } else {
+                (
+                    "状态更新".to_owned(),
+                    first_line.to_owned(),
+                    COLOR_SUCCESS_SOFT,
+                    COLOR_ACCENT,
+                )
+            };
+        }
+    }
+    if app.apply_in_flight {
+        return (
+            "应用中".to_owned(),
+            "正在写入并等待功耗回读".to_owned(),
+            COLOR_WARNING_SOFT,
+            COLOR_WARNING,
+        );
+    }
+    if let Some(error) = app.worker_error.as_ref() {
+        return (
+            "连接异常".to_owned(),
+            error.lines().next().unwrap_or("worker 连接中断").to_owned(),
+            COLOR_ERROR_SOFT,
+            COLOR_ERROR,
+        );
+    }
+    if app.latest_snapshot.is_none() {
+        return (
+            "连接中".to_owned(),
+            "正在连接硬件 worker".to_owned(),
+            COLOR_EXTERNAL_SOFT,
+            COLOR_EXTERNAL,
+        );
+    }
+    if !app.write_enabled {
+        return (
+            "只读".to_owned(),
+            "可监测实时功耗，写入控制未解锁".to_owned(),
+            COLOR_SURFACE_MUTED,
+            COLOR_TEXT_MUTED,
+        );
+    }
+    let clamp = app
+        .latest_snapshot
+        .as_ref()
+        .map(|snapshot| snapshot.telemetry.has_firmware_clamp)
+        .unwrap_or(false);
+    if clamp {
+        return (
+            "固件限制".to_owned(),
+            "目标已写入，但固件回读低于请求值".to_owned(),
+            COLOR_WARNING_SOFT,
+            COLOR_WARNING,
+        );
+    }
+    let target = app
+        .latest_snapshot
+        .as_ref()
+        .and_then(|snapshot| snapshot.telemetry.target_watts)
+        .unwrap_or(f64::from(app.selected_target.stapm_watts));
+    (
+        "已连接".to_owned(),
+        format!("当前目标 {:.0} W · APP 回读 {}", target, current_power(app)),
+        COLOR_SUCCESS_SOFT,
+        COLOR_ACCENT,
+    )
+}
+
+unsafe fn paint_status_banner(
+    hdc: windows_sys::Win32::Graphics::Gdi::HDC,
+    app: &GuiApp,
+    fonts: &UiFonts,
+    rect: RECT,
+) {
+    paint_surface(hdc, rect, 8, COLOR_SURFACE_MUTED, COLOR_BORDER);
+    let (label, message, chip_fill, chip_text) = visible_status(app);
+    let chip = RECT {
+        left: rect.left + 12,
+        top: rect.top + 10,
+        right: rect.left + 104,
+        bottom: rect.bottom - 10,
+    };
+    paint_surface(hdc, chip, 6, chip_fill, chip_fill);
+    draw_text_in(
+        hdc,
+        &label,
+        fonts.caption,
+        chip_text,
+        RECT {
+            left: chip.left + 8,
+            top: chip.top,
+            right: chip.right - 8,
+            bottom: chip.bottom,
+        },
+        DT_CENTER,
+    );
+    draw_text_in(
+        hdc,
+        &message,
+        fonts.body,
+        COLOR_TEXT,
+        RECT {
+            left: chip.right + 16,
+            top: rect.top + 8,
+            right: rect.right - 118,
+            bottom: rect.bottom - 8,
+        },
+        DT_LEFT,
+    );
+}
+
+unsafe fn paint_header(
+    hdc: windows_sys::Win32::Graphics::Gdi::HDC,
+    app: &GuiApp,
+    fonts: &UiFonts,
+    width: i32,
+) {
+    fill_rect_color(
+        hdc,
+        &RECT {
+            left: 0,
+            top: 0,
+            right: width,
+            bottom: 60,
+        },
+        COLOR_HEADER,
+    );
+    draw_text_in(
+        hdc,
+        "AMD Mobile Power",
+        fonts.title,
+        COLOR_WHITE,
+        RECT {
+            left: 20,
+            top: 8,
+            right: 390,
+            bottom: 34,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        &platform_subtitle(app),
+        fonts.caption,
+        rgb(181, 196, 191),
+        RECT {
+            left: 20,
+            top: 33,
+            right: width - 250,
+            bottom: 54,
+        },
+        DT_LEFT,
+    );
+}
+
+unsafe fn paint_target_region(
+    hdc: windows_sys::Win32::Graphics::Gdi::HDC,
+    app: &GuiApp,
+    fonts: &UiFonts,
+    label_left: i32,
+    label_width: i32,
+    edit_left: i32,
+    edit_width: i32,
+) {
+    let (minimum, maximum) = app
+        .profile
+        .as_ref()
+        .map(|profile| (profile.minimum_watts, profile.maximum_watts))
+        .unwrap_or((5, 60));
+    draw_text_in(
+        hdc,
+        "目标功耗",
+        fonts.body,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: label_left,
+            top: 86,
+            right: label_left + 100,
+            bottom: 108,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        &format!("{minimum}-{maximum} W"),
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: label_left + label_width - 96,
+            top: 87,
+            right: label_left + label_width,
+            bottom: 108,
+        },
+        DT_RIGHT,
+    );
+    paint_surface(
+        hdc,
+        RECT {
+            left: edit_left,
+            top: 110,
+            right: edit_left + edit_width,
+            bottom: 146,
+        },
+        6,
+        COLOR_SURFACE,
+        if app.focused_control == Some(SIMPLE_TARGET_EDIT) {
+            COLOR_ACCENT
+        } else {
+            COLOR_BORDER
+        },
+    );
+    draw_text_in(
+        hdc,
+        "W",
+        fonts.body,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: edit_left + edit_width + 7,
+            top: 112,
+            right: edit_left + edit_width + 23,
+            bottom: 144,
+        },
+        DT_CENTER,
+    );
+}
+
+unsafe fn paint_live_region(
+    hdc: windows_sys::Win32::Graphics::Gdi::HDC,
+    app: &GuiApp,
+    fonts: &UiFonts,
+    left: i32,
+    top: i32,
+) {
+    draw_text_in(
+        hdc,
+        "实时功耗",
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left,
+            top,
+            right: left + 130,
+            bottom: top + 20,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        &current_power(app),
+        fonts.number_display,
+        COLOR_ACCENT,
+        RECT {
+            left,
+            top: top + 16,
+            right: left + 220,
+            bottom: top + 66,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        &format!("动态上限 {}", current_power_limit(app)),
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left,
+            top: top + 70,
+            right: left + 190,
+            bottom: top + 90,
+        },
+        DT_LEFT,
+    );
+
+    let is_battery = app
+        .latest_snapshot
+        .as_ref()
+        .map(|snapshot| snapshot.telemetry.power_line == "battery")
+        .unwrap_or(false);
+    let chip_fill = if is_battery {
+        COLOR_WARNING_SOFT
+    } else {
+        COLOR_EXTERNAL_SOFT
+    };
+    let chip_text = if is_battery {
+        COLOR_WARNING
+    } else {
+        COLOR_EXTERNAL
+    };
+    let chip = RECT {
+        left: left + 222,
+        top: top + 18,
+        right: left + 312,
+        bottom: top + 46,
+    };
+    paint_surface(hdc, chip, 6, chip_fill, chip_fill);
+    draw_text_in(
+        hdc,
+        current_power_label(app),
+        fonts.caption,
+        chip_text,
+        RECT {
+            left: chip.left + 6,
+            top: chip.top,
+            right: chip.right - 6,
+            bottom: chip.bottom,
+        },
+        DT_CENTER,
+    );
+}
+
+unsafe fn paint_metric(
+    hdc: windows_sys::Win32::Graphics::Gdi::HDC,
+    fonts: &UiFonts,
+    left: i32,
+    title: &str,
+    value: &str,
+    limit: &str,
+) {
+    draw_text_in(
+        hdc,
+        title,
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left,
+            top: 256,
+            right: left + 140,
+            bottom: 276,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        value,
+        fonts.number_metric,
+        COLOR_TEXT,
+        RECT {
+            left,
+            top: 280,
+            right: left + 140,
+            bottom: 308,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        limit,
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left,
+            top: 314,
+            right: left + 140,
+            bottom: 334,
+        },
+        DT_LEFT,
+    );
+}
+
+unsafe fn paint_simple_window(
+    hdc: windows_sys::Win32::Graphics::Gdi::HDC,
+    app: &GuiApp,
+    fonts: &UiFonts,
+    width: i32,
+) {
+    paint_surface(
+        hdc,
+        RECT {
+            left: 16,
+            top: 72,
+            right: width - 16,
+            bottom: 176,
+        },
+        10,
+        COLOR_SURFACE,
+        COLOR_BORDER,
+    );
+    paint_surface(
+        hdc,
+        RECT {
+            left: 16,
+            top: 186,
+            right: width - 16,
+            bottom: 238,
+        },
+        8,
+        COLOR_SURFACE,
+        COLOR_BORDER,
+    );
+    paint_surface(
+        hdc,
+        RECT {
+            left: 16,
+            top: 248,
+            right: width - 16,
+            bottom: 364,
+        },
+        10,
+        COLOR_SURFACE,
+        COLOR_BORDER,
+    );
+
+    paint_live_region(hdc, app, fonts, 36, 84);
+    draw_rule(hdc, 330, 88, 331, 160);
+    paint_target_region(hdc, app, fonts, 350, 260, 430, 70);
+
+    draw_text_in(
+        hdc,
+        "快捷功耗",
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 36,
+            top: 197,
+            right: 112,
+            bottom: 228,
+        },
+        DT_LEFT,
+    );
+
+    let (titles, values, limits) = snapshot_metric_text(app);
+    let column_width = (width - 64) / 4;
+    for index in 0..4 {
+        let left = 32 + index as i32 * column_width;
+        if index > 0 {
+            draw_rule(hdc, left - 8, 260, left - 7, 350);
+        }
+        paint_metric(
+            hdc,
+            fonts,
+            left,
+            titles[index],
+            &values[index],
+            &limits[index],
+        );
+    }
+
+    paint_status_banner(
+        hdc,
+        app,
+        fonts,
+        RECT {
+            left: 16,
+            top: 374,
+            right: width - 16,
+            bottom: 426,
+        },
+    );
+}
+
+fn snapshot_metric_text(app: &GuiApp) -> ([&'static str; 4], [String; 4], [String; 4]) {
+    let titles = ["STAPM", "PPT Fast", "PPT Slow", "CPU 温度"];
+    let Some(snapshot) = app.latest_snapshot.as_ref() else {
+        return (
+            titles,
+            [
+                "--".to_owned(),
+                "--".to_owned(),
+                "--".to_owned(),
+                "--".to_owned(),
+            ],
+            [
+                "上限 --".to_owned(),
+                "上限 --".to_owned(),
+                "上限 --".to_owned(),
+                "上限 --".to_owned(),
+            ],
+        );
+    };
+    let telemetry = &snapshot.telemetry;
+    (
+        titles,
+        [
+            format_watts(telemetry.stapm_value_watts),
+            format_watts(telemetry.fast_value_watts),
+            format_watts(telemetry.slow_value_watts),
+            format_celsius(telemetry.tctl_value_celsius),
+        ],
+        [
+            format!("上限 {}", format_watts(telemetry.stapm_limit_watts)),
+            format!("上限 {}", format_watts(telemetry.fast_limit_watts)),
+            format!("上限 {}", format_watts(telemetry.slow_limit_watts)),
+            format!("上限 {}", format_celsius(telemetry.tctl_limit_celsius)),
+        ],
+    )
+}
+
+unsafe fn paint_advanced_window(
+    hdc: windows_sys::Win32::Graphics::Gdi::HDC,
+    app: &GuiApp,
+    fonts: &UiFonts,
+    width: i32,
+) {
+    paint_surface(
+        hdc,
+        RECT {
+            left: 20,
+            top: 74,
+            right: width - 20,
+            bottom: 170,
+        },
+        10,
+        COLOR_SURFACE,
+        COLOR_BORDER,
+    );
+    paint_surface(
+        hdc,
+        RECT {
+            left: 20,
+            top: 182,
+            right: 370,
+            bottom: 464,
+        },
+        10,
+        COLOR_SURFACE,
+        COLOR_BORDER,
+    );
+    paint_surface(
+        hdc,
+        RECT {
+            left: 382,
+            top: 182,
+            right: width - 20,
+            bottom: 464,
+        },
+        10,
+        COLOR_SURFACE,
+        COLOR_BORDER,
+    );
+    paint_surface(
+        hdc,
+        RECT {
+            left: 20,
+            top: 476,
+            right: width - 20,
+            bottom: 664,
+        },
+        10,
+        COLOR_SURFACE,
+        COLOR_BORDER,
+    );
+
+    paint_live_region(hdc, app, fonts, 40, 86);
+    draw_rule(hdc, 404, 90, 405, 158);
+    paint_target_region(hdc, app, fonts, 430, 310, 570, 70);
+
+    draw_text_in(
+        hdc,
+        "功耗与快捷预设",
+        fonts.title,
+        COLOR_TEXT,
+        RECT {
+            left: 40,
+            top: 194,
+            right: 350,
+            bottom: 220,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        "快捷挡位",
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 40,
+            top: 222,
+            right: 112,
+            bottom: 248,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        "编辑数值",
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 40,
+            top: 265,
+            right: 108,
+            bottom: 290,
+        },
+        DT_LEFT,
+    );
+    for (index, left) in [110, 178, 246].into_iter().enumerate() {
+        paint_surface(
+            hdc,
+            RECT {
+                left,
+                top: 266,
+                right: left + 58,
+                bottom: 294,
+            },
+            6,
+            COLOR_SURFACE,
+            if app.focused_control == Some(PRESET_EDIT_START + index) {
+                COLOR_ACCENT
+            } else {
+                COLOR_BORDER
+            },
+        );
+        draw_text_in(
+            hdc,
+            "W",
+            fonts.caption,
+            COLOR_TEXT_MUTED,
+            RECT {
+                left: left + 60,
+                top: 267,
+                right: left + 74,
+                bottom: 293,
+            },
+            DT_LEFT,
+        );
+    }
+    draw_rule(hdc, 40, 338, 350, 339);
+    draw_text_in(
+        hdc,
+        "自动电源策略",
+        fonts.body,
+        COLOR_TEXT,
+        RECT {
+            left: 40,
+            top: 348,
+            right: 220,
+            bottom: 370,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        "电池",
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 40,
+            top: 378,
+            right: 82,
+            bottom: 404,
+        },
+        DT_LEFT,
+    );
+    paint_surface(
+        hdc,
+        RECT {
+            left: 84,
+            top: 376,
+            right: 142,
+            bottom: 404,
+        },
+        6,
+        COLOR_SURFACE,
+        if app.focused_control == Some(POLICY_BATTERY_EDIT) {
+            COLOR_ACCENT
+        } else {
+            COLOR_BORDER
+        },
+    );
+    draw_text_in(
+        hdc,
+        "外接",
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 154,
+            top: 378,
+            right: 196,
+            bottom: 404,
+        },
+        DT_LEFT,
+    );
+    paint_surface(
+        hdc,
+        RECT {
+            left: 198,
+            top: 376,
+            right: 256,
+            bottom: 404,
+        },
+        6,
+        COLOR_SURFACE,
+        if app.focused_control == Some(POLICY_AC_EDIT) {
+            COLOR_ACCENT
+        } else {
+            COLOR_BORDER
+        },
+    );
+
+    draw_text_in(
+        hdc,
+        "设备与能力",
+        fonts.title,
+        COLOR_TEXT,
+        RECT {
+            left: 402,
+            top: 194,
+            right: width - 40,
+            bottom: 220,
+        },
+        DT_LEFT,
+    );
+    let cpu = short_processor_name(app.latest_snapshot.as_ref());
+    let family = app
+        .latest_snapshot
+        .as_ref()
+        .and_then(|snapshot| snapshot.platform.cpu.ryzen_adj_family_name.as_deref())
+        .unwrap_or("--");
+    let smu = app
+        .latest_snapshot
+        .as_ref()
+        .and_then(|snapshot| snapshot.platform.cpu.smu_bios_version.as_deref())
+        .unwrap_or("--");
+    let pm = app
+        .latest_snapshot
+        .as_ref()
+        .and_then(|snapshot| snapshot.platform.cpu.pm_table_version.as_deref())
+        .unwrap_or("--");
+    let profile = app
+        .latest_snapshot
+        .as_ref()
+        .and_then(|snapshot| snapshot.platform.matched_profile.as_ref())
+        .map(|profile| {
+            profile
+                .display_name
+                .replace(" development profile", "")
+                .replace(" profile", "")
+        })
+        .unwrap_or_else(|| "未匹配".to_owned());
+    let smu_pm = format!("{smu} / {pm}");
+    for (top, label, value) in [
+        (232, "处理器", cpu.as_str()),
+        (260, "平台家族", family),
+        (288, "SMU / PM", smu_pm.as_str()),
+        (316, "匹配配置", profile.as_str()),
+    ] {
+        draw_text_in(
+            hdc,
+            label,
+            fonts.caption,
+            COLOR_TEXT_MUTED,
+            RECT {
+                left: 402,
+                top,
+                right: 478,
+                bottom: top + 22,
+            },
+            DT_LEFT,
+        );
+        draw_text_in(
+            hdc,
+            value,
+            fonts.body,
+            COLOR_TEXT,
+            RECT {
+                left: 482,
+                top: top - 2,
+                right: width - 40,
+                bottom: top + 24,
+            },
+            DT_LEFT,
+        );
+    }
+
+    let supported = app
+        .latest_snapshot
+        .as_ref()
+        .map(|snapshot| snapshot.platform.is_supported)
+        .unwrap_or(false);
+    let chip_fill = if supported {
+        COLOR_SUCCESS_SOFT
+    } else {
+        COLOR_ERROR_SOFT
+    };
+    let chip_color = if supported { COLOR_ACCENT } else { COLOR_ERROR };
+    let chip = RECT {
+        left: 402,
+        top: 368,
+        right: 512,
+        bottom: 398,
+    };
+    paint_surface(hdc, chip, 6, chip_fill, chip_fill);
+    draw_text_in(
+        hdc,
+        if supported {
+            "平台可写"
+        } else {
+            "平台不可写"
+        },
+        fonts.caption,
+        chip_color,
+        RECT {
+            left: chip.left + 8,
+            top: chip.top,
+            right: chip.right - 8,
+            bottom: chip.bottom,
+        },
+        DT_CENTER,
+    );
+    draw_text_in(
+        hdc,
+        &format!(
+            "STAPM {} · Fast {} · Slow {}",
+            format_flag(
+                app.latest_snapshot
+                    .as_ref()
+                    .map(|snapshot| snapshot.platform.limits.supports_stapm)
+                    .unwrap_or(false)
+            ),
+            format_flag(
+                app.latest_snapshot
+                    .as_ref()
+                    .map(|snapshot| snapshot.platform.limits.supports_fast)
+                    .unwrap_or(false)
+            ),
+            format_flag(
+                app.latest_snapshot
+                    .as_ref()
+                    .map(|snapshot| snapshot.platform.limits.supports_slow)
+                    .unwrap_or(false)
+            )
+        ),
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 522,
+            top: 370,
+            right: width - 40,
+            bottom: 398,
+        },
+        DT_LEFT,
+    );
+
+    draw_text_in(
+        hdc,
+        "运行与诊断",
+        fonts.title,
+        COLOR_TEXT,
+        RECT {
+            left: 40,
+            top: 490,
+            right: 220,
+            bottom: 516,
+        },
+        DT_LEFT,
+    );
+    let worker_line = match app.worker_error.as_ref() {
+        Some(error) => format!(
+            "worker 异常 · {}",
+            error.lines().next().unwrap_or("连接中断")
+        ),
+        None if app.latest_snapshot.is_some() => "worker 已连接 · 遥测每秒刷新".to_owned(),
+        None => "worker 连接中".to_owned(),
+    };
+    draw_text_in(
+        hdc,
+        &worker_line,
+        fonts.body,
+        COLOR_TEXT,
+        RECT {
+            left: 40,
+            top: 526,
+            right: width - 40,
+            bottom: 550,
+        },
+        DT_LEFT,
+    );
+    let policy = match app.saved_policy {
+        Some(settings) => format!(
+            "自动策略 · {} · 电池 {} W / 外接 {} W",
+            if settings.enabled {
+                "已启用"
+            } else {
+                "已停用"
+            },
+            settings.battery_target.stapm_watts,
+            settings.ac_target.stapm_watts
+        ),
+        None => "自动策略 · 尚未配置".to_owned(),
+    };
+    draw_text_in(
+        hdc,
+        &policy,
+        fonts.body,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 40,
+            top: 554,
+            right: width - 40,
+            bottom: 578,
+        },
+        DT_LEFT,
+    );
+    draw_text_in(
+        hdc,
+        "导出内容仅包含脱敏平台、遥测与策略状态。",
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 40,
+            top: 596,
+            right: 520,
+            bottom: 620,
+        },
+        DT_LEFT,
+    );
+}
+
+unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
+    let mut paint = PAINTSTRUCT::default();
+    let hdc = BeginPaint(hwnd, &mut paint);
+    if hdc.is_null() {
+        return;
+    }
+    let mut client = RECT::default();
+    GetClientRect(hwnd, &mut client);
+    let width = client.right.max(1);
+    let height = client.bottom.max(1);
+    let memory_dc = CreateCompatibleDC(hdc);
+    let bitmap = CreateCompatibleBitmap(hdc, width, height);
+    let old_bitmap = if !memory_dc.is_null() && !bitmap.is_null() {
+        SelectObject(memory_dc, bitmap)
+    } else {
+        std::ptr::null_mut()
+    };
+    let target_dc = if memory_dc.is_null() { hdc } else { memory_dc };
+
+    fill_rect_color(
+        target_dc,
+        &RECT {
+            left: 0,
+            top: 0,
+            right: width,
+            bottom: height,
+        },
+        COLOR_CANVAS,
+    );
+    if let Some(fonts) = app.fonts.as_ref() {
+        paint_header(target_dc, app, fonts, width);
+        match app.view_mode {
+            state::UiMode::Simple => paint_simple_window(target_dc, app, fonts, width),
+            state::UiMode::Advanced => paint_advanced_window(target_dc, app, fonts, width),
+        }
+    }
+
+    if !memory_dc.is_null() && !bitmap.is_null() {
+        BitBlt(hdc, 0, 0, width, height, memory_dc, 0, 0, SRCCOPY);
+        SelectObject(memory_dc, old_bitmap);
+        DeleteObject(bitmap);
+        DeleteDC(memory_dc);
+    }
+    EndPaint(hwnd, &paint);
+}
+
+unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
+    if draw.CtlType != ODT_BUTTON {
+        return;
+    }
+    let id = draw.CtlID as usize;
+    let disabled = draw.itemState & ODS_DISABLED != 0;
+    let pressed = draw.itemState & ODS_SELECTED != 0;
+    let selected = match id {
+        SIMPLE_MODE => app.view_mode == state::UiMode::Simple,
+        ADVANCED_MODE => app.view_mode == state::UiMode::Advanced,
+        TOPMOST_TOGGLE => app.top_most,
+        PRESET_12 => app.selected_preset == Some(0),
+        PRESET_25 => app.selected_preset == Some(1),
+        PRESET_45 => app.selected_preset == Some(2),
+        POLICY_ENABLED => app
+            .policy_controls
+            .map(|controls| SendMessageW(controls.enabled, BM_GETCHECK, 0, 0) != 0)
+            .unwrap_or_else(|| {
+                app.saved_policy
+                    .map(|settings| settings.enabled)
+                    .unwrap_or(false)
+            }),
+        _ => false,
+    };
+    let primary = matches!(id, SIMPLE_APPLY | APPLY_TARGET);
+    let header_button = matches!(id, SIMPLE_MODE | ADVANCED_MODE | TOPMOST_TOGGLE);
+    let (fill, text_color, border) = if disabled {
+        (COLOR_SURFACE_MUTED, rgb(145, 157, 153), COLOR_BORDER)
+    } else if header_button {
+        if selected {
+            (rgb(47, 59, 57), COLOR_WHITE, rgb(96, 111, 106))
+        } else {
+            (COLOR_HEADER, rgb(188, 201, 197), COLOR_HEADER)
+        }
+    } else if primary {
+        (
+            if pressed {
+                COLOR_ACCENT_PRESSED
+            } else {
+                COLOR_ACCENT
+            },
+            COLOR_WHITE,
+            COLOR_ACCENT,
+        )
+    } else if selected {
+        (COLOR_ACCENT_SOFT, COLOR_ACCENT, COLOR_ACCENT)
+    } else {
+        (COLOR_SURFACE, COLOR_TEXT, COLOR_BORDER)
+    };
+    paint_surface(draw.hDC, draw.rcItem, 6, fill, border);
+    if draw.itemState & windows_sys::Win32::UI::Controls::ODS_FOCUS != 0 {
+        paint_surface(
+            draw.hDC,
+            RECT {
+                left: draw.rcItem.left + 2,
+                top: draw.rcItem.top + 2,
+                right: draw.rcItem.right - 2,
+                bottom: draw.rcItem.bottom - 2,
+            },
+            5,
+            fill,
+            if header_button {
+                COLOR_WHITE
+            } else {
+                COLOR_ACCENT
+            },
+        );
+    }
+
+    let text = get_control_text(draw.hwndItem);
+    let value = wide(&text);
+    let font = app
+        .fonts
+        .as_ref()
+        .map(|fonts| fonts.body)
+        .unwrap_or(std::ptr::null_mut());
+    let old_font = if !font.is_null() {
+        SelectObject(draw.hDC, font)
+    } else {
+        std::ptr::null_mut()
+    };
+    SetBkMode(draw.hDC, TRANSPARENT as i32);
+    SetTextColor(draw.hDC, text_color);
+    let mut rect = draw.rcItem;
+    DrawTextW(
+        draw.hDC,
+        value.as_ptr(),
+        -1,
+        &mut rect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX,
+    );
+    if !old_font.is_null() {
+        SelectObject(draw.hDC, old_font);
+    }
+}
+
+fn static_text_color(control_id: i32) -> u32 {
+    let control_id = control_id as usize;
+    match control_id {
+        TITLE_LABEL => COLOR_WHITE,
+        POWER_VALUE_LABEL => COLOR_ACCENT,
+        POWER_SOURCE_LABEL | TARGET_LABEL | SIMPLE_STATUS_LABEL => COLOR_TEXT_MUTED,
+        id if (METRIC_VALUE_START..METRIC_VALUE_START + 4).contains(&id) => COLOR_TEXT,
+        id if (METRIC_TITLE_START..METRIC_TITLE_START + 4).contains(&id)
+            || (METRIC_LIMIT_START..METRIC_LIMIT_START + 4).contains(&id) =>
+        {
+            COLOR_TEXT_MUTED
+        }
+        _ => COLOR_TEXT,
+    }
+}
+
 fn format_power_line_raw(value: &str) -> &'static str {
     match value {
-        "ac" => "交流电",
+        "ac" => "外接电源",
         "battery" => "电池",
         _ => "未知",
     }
@@ -243,7 +1699,7 @@ fn format_celsius(value: Option<f64>) -> String {
 
 fn format_power_line(value: Option<PowerLineState>) -> &'static str {
     match value {
-        Some(PowerLineState::Ac) => "交流电",
+        Some(PowerLineState::Ac) => "外接电源",
         Some(PowerLineState::Battery) => "电池",
         Some(PowerLineState::Unknown) | None => "未知",
     }
@@ -274,7 +1730,7 @@ fn format_policy_state(state: Option<&PowerPolicyState>) -> String {
         .map(|error| format!("\n策略错误：{error}"))
         .unwrap_or_default();
     format!(
-        "自动策略：{}（电池 {} W / 交流 {} W）\n{}{}",
+        "自动策略：{}（电池 {} W / 外接 {} W）\n{}{}",
         status, settings.battery_target.stapm_watts, settings.ac_target.stapm_watts, last, error
     )
 }
@@ -569,9 +2025,9 @@ unsafe fn create_status_label(
         0,
         class_name.as_ptr(),
         text.as_ptr(),
-        WS_CHILD | WS_VISIBLE | SS_LEFT,
-        18,
-        40,
+        WS_CHILD | SS_LEFT,
+        -10000,
+        -10000,
         580,
         290,
         hwnd,
@@ -591,13 +2047,13 @@ unsafe fn create_title_label(
         0,
         class_name.as_ptr(),
         text.as_ptr(),
-        WS_CHILD | WS_VISIBLE | SS_LEFT,
-        18,
-        12,
+        WS_CHILD | SS_LEFT,
+        -10000,
+        -10000,
         300,
         22,
         hwnd,
-        std::ptr::null_mut(),
+        TITLE_LABEL as HMENU,
         instance,
         std::ptr::null(),
     )
@@ -611,9 +2067,9 @@ unsafe fn create_header_controls(
 ) -> HeaderControls {
     let button_class = wide("BUTTON");
     let labels = [
-        (SIMPLE_MODE, "简洁", 340),
-        (ADVANCED_MODE, "高级", 402),
-        (TOPMOST_TOGGLE, "置顶", 464),
+        (SIMPLE_MODE, "简洁", 422),
+        (ADVANCED_MODE, "高级", 486),
+        (TOPMOST_TOGGLE, "置顶", 550),
     ];
     let mut controls = HeaderControls {
         simple: std::ptr::null_mut(),
@@ -622,23 +2078,16 @@ unsafe fn create_header_controls(
     };
     for (id, label, x) in labels {
         let text = wide(label);
-        let style = WS_CHILD
-            | WS_VISIBLE
-            | WS_TABSTOP
-            | if id == TOPMOST_TOGGLE {
-                BS_AUTOCHECKBOX as u32
-            } else {
-                BS_AUTORADIOBUTTON as u32
-            };
+        let style = WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW as u32;
         let button = CreateWindowExW(
             0,
             button_class.as_ptr(),
             text.as_ptr(),
             style,
             x,
-            8,
+            14,
             56,
-            28,
+            32,
             hwnd,
             id as HMENU,
             instance,
@@ -673,6 +2122,140 @@ unsafe fn create_header_controls(
     controls
 }
 
+unsafe fn set_control_font(control: HWND, font: HGDIOBJ) {
+    if !control.is_null() && !font.is_null() {
+        SendMessageW(control, 0x0030, font as usize, 1);
+    }
+}
+
+unsafe fn create_simple_controls(
+    hwnd: HWND,
+    instance: HINSTANCE,
+    fonts: &UiFonts,
+    write_enabled: bool,
+) -> SimpleViewControls {
+    let static_class = wide("STATIC");
+    let edit_class = wide("EDIT");
+    let button_class = wide("BUTTON");
+    let static_style = WS_CHILD | SS_LEFT;
+    let create_label = |text: &str, x: i32, y: i32, width: i32, height: i32, id: usize| {
+        let value = wide(text);
+        CreateWindowExW(
+            0,
+            static_class.as_ptr(),
+            value.as_ptr(),
+            static_style,
+            x,
+            y,
+            width,
+            height,
+            hwnd,
+            id as HMENU,
+            instance,
+            std::ptr::null(),
+        )
+    };
+
+    let power_value = create_label("--", -10000, -10000, 190, 52, POWER_VALUE_LABEL);
+    let power_source = create_label("等待数据", -10000, -10000, 120, 24, POWER_SOURCE_LABEL);
+    let target_label = create_label("目标功耗", -10000, -10000, 190, 22, TARGET_LABEL);
+    let status = create_label(
+        "正在连接 worker",
+        -10000,
+        -10000,
+        458,
+        30,
+        SIMPLE_STATUS_LABEL,
+    );
+    let advanced_device = create_label(
+        "设备信息\n等待 worker",
+        -10000,
+        -10000,
+        560,
+        72,
+        ADVANCED_DEVICE_LABEL,
+    );
+
+    let target_edit = CreateWindowExW(
+        0,
+        edit_class.as_ptr(),
+        wide("12").as_ptr(),
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_NUMBER as u32 | ES_CENTER as u32,
+        434,
+        114,
+        70,
+        28,
+        hwnd,
+        SIMPLE_TARGET_EDIT as HMENU,
+        instance,
+        std::ptr::null(),
+    );
+    let apply = CreateWindowExW(
+        0,
+        button_class.as_ptr(),
+        wide("应用").as_ptr(),
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW as u32,
+        522,
+        110,
+        88,
+        36,
+        hwnd,
+        SIMPLE_APPLY as HMENU,
+        instance,
+        std::ptr::null(),
+    );
+
+    let metric_names = ["STAPM", "PPT Fast", "PPT Slow", "CPU 温度"];
+    let mut metric_titles = [std::ptr::null_mut(); 4];
+    let mut metric_values = [std::ptr::null_mut(); 4];
+    let mut metric_limits = [std::ptr::null_mut(); 4];
+    for index in 0..4 {
+        let x = -10000;
+        metric_titles[index] = create_label(
+            metric_names[index],
+            x,
+            -10000,
+            132,
+            20,
+            METRIC_TITLE_START + index,
+        );
+        metric_values[index] = create_label("--", x, -10000, 132, 28, METRIC_VALUE_START + index);
+        metric_limits[index] =
+            create_label("上限 --", x, -10000, 132, 20, METRIC_LIMIT_START + index);
+    }
+
+    set_control_font(power_value, fonts.display);
+    set_control_font(power_source, fonts.caption);
+    set_control_font(target_label, fonts.body);
+    set_control_font(status, fonts.body);
+    set_control_font(advanced_device, fonts.body);
+    set_control_font(target_edit, fonts.metric);
+    set_control_font(apply, fonts.body);
+    for index in 0..4 {
+        set_control_font(metric_titles[index], fonts.caption);
+        set_control_font(metric_values[index], fonts.metric);
+        set_control_font(metric_limits[index], fonts.caption);
+    }
+
+    if !write_enabled {
+        ShowWindow(target_edit, SW_HIDE);
+        ShowWindow(apply, SW_HIDE);
+    }
+
+    SimpleViewControls {
+        power_value,
+        power_source,
+        target_label,
+        target_edit,
+        apply,
+        metric_titles,
+        metric_values,
+        metric_limits,
+        status,
+        advanced_device,
+    }
+}
+
 unsafe fn create_action_buttons(
     hwnd: HWND,
     instance: HINSTANCE,
@@ -680,24 +2263,16 @@ unsafe fn create_action_buttons(
 ) -> [HWND; 3] {
     let button_class = wide("BUTTON");
     let controls = [
-        (PRESET_12, format!("{} W", preset_watts[0]), 18, 348, 90),
-        (PRESET_25, format!("{} W", preset_watts[1]), 116, 348, 90),
-        (PRESET_45, format!("{} W", preset_watts[2]), 214, 348, 90),
+        (PRESET_12, format!("{} W", preset_watts[0]), 110, 196, 92),
+        (PRESET_25, format!("{} W", preset_watts[1]), 210, 196, 92),
+        (PRESET_45, format!("{} W", preset_watts[2]), 310, 196, 92),
         (APPLY_TARGET, "应用".to_owned(), 360, 348, 120),
+        (PRESET_EDIT_OPEN, "编辑".to_owned(), 410, 196, 60),
     ];
     let mut presets = [std::ptr::null_mut(); 3];
-    let mut first_preset = true;
     for (index, (id, label, x, y, width)) in controls.into_iter().enumerate() {
         let text = wide(&label);
-        let is_apply = id == APPLY_TARGET;
-        let style = WS_CHILD
-            | WS_VISIBLE
-            | WS_TABSTOP
-            | if is_apply {
-                0
-            } else {
-                BS_AUTORADIOBUTTON as u32
-            };
+        let style = WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW as u32;
         let button = CreateWindowExW(
             0,
             button_class.as_ptr(),
@@ -712,10 +2287,6 @@ unsafe fn create_action_buttons(
             instance,
             std::ptr::null(),
         );
-        if first_preset && !button.is_null() {
-            SendMessageW(button, BM_SETCHECK, 1, 0);
-            first_preset = false;
-        }
         if index < presets.len() {
             presets[index] = button;
         }
@@ -733,16 +2304,15 @@ unsafe fn create_preset_controls(
     let button_class = wide("BUTTON");
     let label_text = wide("快捷预设");
     let save_text = wide("保存预设");
-    let edit_style =
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_NUMBER as u32 | ES_RIGHT as u32;
+    let edit_style = WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_NUMBER as u32 | ES_CENTER as u32;
 
     CreateWindowExW(
         0,
         static_class.as_ptr(),
         label_text.as_ptr(),
-        WS_CHILD | WS_VISIBLE,
-        18,
-        396,
+        WS_CHILD,
+        -10000,
+        -10000,
         76,
         22,
         hwnd,
@@ -759,10 +2329,10 @@ unsafe fn create_preset_controls(
             edit_class.as_ptr(),
             value.as_ptr(),
             edit_style,
-            98 + index as i32 * 72,
-            392,
+            110 + index as i32 * 68,
+            266,
             58,
-            26,
+            28,
             hwnd,
             (PRESET_EDIT_START + index) as HMENU,
             instance,
@@ -774,11 +2344,11 @@ unsafe fn create_preset_controls(
         0,
         button_class.as_ptr(),
         save_text.as_ptr(),
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-        320,
-        390,
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW as u32,
+        112,
+        304,
         100,
-        30,
+        32,
         hwnd,
         PRESET_SAVE as HMENU,
         instance,
@@ -801,7 +2371,7 @@ unsafe fn create_export_button(
         0,
         button_class.as_ptr(),
         text.as_ptr(),
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW as u32,
         x,
         y,
         width,
@@ -872,19 +2442,18 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
     let edit_class = wide("EDIT");
     let button_class = wide("BUTTON");
     let battery_label = wide("电池目标");
-    let ac_label = wide("交流目标");
+    let ac_label = wide("外接目标");
     let enabled_label = wide("启用");
     let save_label = wide("保存策略");
-    let edit_style =
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_NUMBER as u32 | ES_RIGHT as u32;
+    let edit_style = WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_NUMBER as u32 | ES_CENTER as u32;
 
     CreateWindowExW(
         0,
         static_class.as_ptr(),
         battery_label.as_ptr(),
-        WS_CHILD | WS_VISIBLE,
-        18,
-        440,
+        WS_CHILD,
+        -10000,
+        -10000,
         108,
         22,
         hwnd,
@@ -897,10 +2466,10 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         edit_class.as_ptr(),
         wide("12").as_ptr(),
         edit_style,
-        132,
-        436,
+        84,
+        376,
         54,
-        26,
+        28,
         hwnd,
         POLICY_BATTERY_EDIT as HMENU,
         instance,
@@ -910,9 +2479,9 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         0,
         static_class.as_ptr(),
         ac_label.as_ptr(),
-        WS_CHILD | WS_VISIBLE,
-        200,
-        440,
+        WS_CHILD,
+        -10000,
+        -10000,
         62,
         22,
         hwnd,
@@ -925,10 +2494,10 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         edit_class.as_ptr(),
         wide("45").as_ptr(),
         edit_style,
-        266,
-        436,
+        198,
+        376,
         54,
-        26,
+        28,
         hwnd,
         POLICY_AC_EDIT as HMENU,
         instance,
@@ -938,11 +2507,11 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         0,
         button_class.as_ptr(),
         enabled_label.as_ptr(),
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX as u32,
-        336,
-        436,
-        82,
-        26,
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW as u32,
+        274,
+        374,
+        74,
+        32,
         hwnd,
         POLICY_ENABLED as HMENU,
         instance,
@@ -952,11 +2521,11 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         0,
         button_class.as_ptr(),
         save_label.as_ptr(),
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-        428,
-        434,
-        120,
-        30,
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW as u32,
+        40,
+        416,
+        112,
+        32,
         hwnd,
         POLICY_SAVE as HMENU,
         instance,
@@ -973,7 +2542,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
 fn format_policy_result(settings: PowerPolicySettings, result: Result<(), String>) -> String {
     match result {
         Ok(()) => format!(
-            "自动策略已保存。\n电池 {} W / 交流 {} W。\n{}",
+            "自动策略已保存。\n电池 {} W / 外接 {} W。\n{}",
             settings.battery_target.stapm_watts,
             settings.ac_target.stapm_watts,
             if settings.enabled {
@@ -997,19 +2566,113 @@ unsafe fn set_control_visible(hwnd: HWND, id: usize, visible: bool) {
     }
 }
 
-unsafe fn refresh_status_for_mode(app: &GuiApp) {
-    if app.status_label.is_null() {
+unsafe fn update_simple_view(app: &GuiApp) {
+    let Some(controls) = app.simple_controls else {
         return;
-    }
+    };
+    let (range_minimum, range_maximum) = app
+        .profile
+        .as_ref()
+        .map(|profile| (profile.minimum_watts, profile.maximum_watts))
+        .unwrap_or((5, 60));
+    let target_label = wide(&format!(
+        "目标功耗 · 范围 {range_minimum}-{range_maximum} W"
+    ));
+    SetWindowTextW(controls.target_label, target_label.as_ptr());
+
     let Some(snapshot) = app.latest_snapshot.as_ref() else {
+        let waiting = wide("等待 worker");
+        SetWindowTextW(controls.power_value, waiting.as_ptr());
+        let status = if app.write_enabled {
+            "写入已解锁 · 正在连接 worker"
+        } else {
+            "只读模式 · 写入未解锁"
+        };
+        let status = wide(status);
+        SetWindowTextW(controls.status, status.as_ptr());
+        let device = wide("设备信息\n等待 worker");
+        SetWindowTextW(controls.advanced_device, device.as_ptr());
         return;
     };
-    let text = match app.view_mode {
-        state::UiMode::Simple => format_snapshot_simple(snapshot, app.latest_policy.as_ref()),
-        state::UiMode::Advanced => format_snapshot(snapshot, app.latest_policy.as_ref()),
+    let telemetry = &snapshot.telemetry;
+    let live_value = format_watts(telemetry.stapm_value_watts.or(telemetry.stapm_limit_watts));
+    let live_value = wide(&live_value);
+    SetWindowTextW(controls.power_value, live_value.as_ptr());
+    let source = wide(&format!(
+        "{} · {}",
+        format_power_line_raw(&telemetry.power_line),
+        format_watts(telemetry.stapm_limit_watts)
+    ));
+    SetWindowTextW(controls.power_source, source.as_ptr());
+
+    let actual_values = [
+        format_watts(telemetry.stapm_value_watts),
+        format_watts(telemetry.fast_value_watts),
+        format_watts(telemetry.slow_value_watts),
+        format_celsius(telemetry.tctl_value_celsius),
+    ];
+    let limits = [
+        format!("上限 {}", format_watts(telemetry.stapm_limit_watts)),
+        format!("上限 {}", format_watts(telemetry.fast_limit_watts)),
+        format!("上限 {}", format_watts(telemetry.slow_limit_watts)),
+        format!("上限 {}", format_celsius(telemetry.tctl_limit_celsius)),
+    ];
+    for index in 0..4 {
+        let value = wide(&actual_values[index]);
+        SetWindowTextW(controls.metric_values[index], value.as_ptr());
+        let limit = wide(&limits[index]);
+        SetWindowTextW(controls.metric_limits[index], limit.as_ptr());
+    }
+
+    let status = if !app.write_enabled {
+        "只读模式 · 写入未解锁".to_owned()
+    } else if app.worker_error.is_some() {
+        "连接异常 · 查看高级诊断".to_owned()
+    } else if telemetry.has_firmware_clamp {
+        "固件钳制生效 · 查看实际回读".to_owned()
+    } else if let Some(target) = telemetry.target_watts {
+        format!("写入已解锁 · 当前目标 {}", format_watts(Some(target)))
+    } else {
+        "写入已解锁 · 等待目标".to_owned()
     };
-    let text = wide(&text);
-    SetWindowTextW(app.status_label, text.as_ptr());
+    let status = wide(&status);
+    SetWindowTextW(controls.status, status.as_ptr());
+    let profile = snapshot
+        .platform
+        .matched_profile
+        .as_ref()
+        .map(|profile| {
+            format!(
+                "{} [{}-{} W]",
+                profile.display_name, profile.minimum_watts, profile.maximum_watts
+            )
+        })
+        .unwrap_or_else(|| "无匹配配置".to_owned());
+    let device = wide(&format!(
+        "处理器：{}\n平台：{} · PM {}\n供电：{} · 可写 STAPM={} Fast={} Slow={}",
+        snapshot.platform.cpu.processor_name,
+        profile,
+        snapshot
+            .platform
+            .cpu
+            .pm_table_version
+            .as_deref()
+            .unwrap_or("未知"),
+        format_power_line_raw(&telemetry.power_line),
+        format_flag(snapshot.platform.limits.supports_stapm),
+        format_flag(snapshot.platform.limits.supports_fast),
+        format_flag(snapshot.platform.limits.supports_slow)
+    ));
+    SetWindowTextW(controls.advanced_device, device.as_ptr());
+
+    if GetWindowTextLengthW(controls.target_edit) == 0 {
+        set_edit_watts(
+            controls.target_edit,
+            app.selected_target
+                .stapm_watts
+                .clamp(range_minimum, range_maximum),
+        );
+    }
 }
 
 unsafe fn apply_topmost_style(hwnd: HWND, enabled: bool) {
@@ -1028,101 +2691,225 @@ unsafe fn apply_topmost_style(hwnd: HWND, enabled: bool) {
     );
 }
 
+unsafe fn outer_window_size(client_width: i32, client_height: i32) -> (i32, i32) {
+    let mut rect = RECT {
+        left: 0,
+        top: 0,
+        right: client_width,
+        bottom: client_height,
+    };
+    AdjustWindowRectEx(&mut rect, APP_WINDOW_STYLE, 0, WS_EX_APPWINDOW);
+    (rect.right - rect.left, rect.bottom - rect.top)
+}
+
+unsafe fn move_control(hwnd: HWND, id: usize, x: i32, y: i32, width: i32, height: i32) {
+    let control = GetDlgItem(hwnd, id as i32);
+    if !control.is_null() {
+        SetWindowPos(
+            control,
+            std::ptr::null_mut(),
+            x,
+            y,
+            width,
+            height,
+            SWP_NOZORDER | SWP_NOACTIVATE,
+        );
+    }
+}
+
 unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
-    let advanced_controls = [
-        APPLY_TARGET,
-        POLICY_SAVE,
-        PRESET_SAVE,
-        PRESET_EDIT_START,
-        PRESET_EDIT_START + 1,
-        PRESET_EDIT_START + 2,
-        PRESET_LABEL,
-        POLICY_BATTERY_LABEL,
-        POLICY_BATTERY_EDIT,
-        POLICY_AC_LABEL,
-        POLICY_AC_EDIT,
-        POLICY_ENABLED,
-    ];
     app.view_mode = mode;
     let advanced = mode == state::UiMode::Advanced;
-    for id in advanced_controls {
-        set_control_visible(hwnd, id, advanced);
-    }
-    for id in [PRESET_12, PRESET_25, PRESET_45] {
-        set_control_visible(hwnd, id, true);
-    }
-    set_control_visible(hwnd, EXPORT_DIAGNOSTICS, true);
-
-    if let Some(controls) = app.header_controls {
-        SendMessageW(
-            controls.simple,
-            BM_SETCHECK,
-            usize::from(mode == state::UiMode::Simple),
-            0,
-        );
-        SendMessageW(
-            controls.advanced,
-            BM_SETCHECK,
-            usize::from(mode == state::UiMode::Advanced),
-            0,
-        );
-    }
-
-    let height = match (mode, app.write_enabled) {
-        (state::UiMode::Simple, _) => 360,
-        (state::UiMode::Advanced, true) => 580,
-        (state::UiMode::Advanced, false) => 420,
+    let (width, height) = match mode {
+        state::UiMode::Simple => (640, 438),
+        state::UiMode::Advanced => (760, 680),
     };
+    let (outer_width, outer_height) = outer_window_size(width, height);
     SetWindowPos(
         hwnd,
         std::ptr::null_mut(),
         0,
         0,
-        620,
-        height,
+        outer_width,
+        outer_height,
         SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE,
     );
-    if !app.status_label.is_null() {
-        SetWindowPos(
-            app.status_label,
-            std::ptr::null_mut(),
-            0,
-            0,
-            580,
-            if advanced { 290 } else { 220 },
-            SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE,
-        );
-    }
-    for (index, id) in [PRESET_12, PRESET_25, PRESET_45].into_iter().enumerate() {
-        let button = GetDlgItem(hwnd, id as i32);
-        if !button.is_null() {
+
+    if let Some(controls) = app.header_controls {
+        let topmost_left = width - 74;
+        let advanced_left = topmost_left - 62;
+        let simple_left = advanced_left - 62;
+        for (control, left, checked) in [
+            (controls.simple, simple_left, mode == state::UiMode::Simple),
+            (controls.advanced, advanced_left, advanced),
+            (controls.topmost, topmost_left, app.top_most),
+        ] {
             SetWindowPos(
-                button,
+                control,
                 std::ptr::null_mut(),
-                18 + index as i32 * 98,
-                if advanced { 348 } else { 270 },
-                90,
+                left,
+                14,
+                56,
                 32,
                 SWP_NOZORDER | SWP_NOACTIVATE,
             );
+            SendMessageW(control, BM_SETCHECK, usize::from(checked), 0);
+            InvalidateRect(control, std::ptr::null(), 1);
         }
     }
-    let export_button = GetDlgItem(hwnd, EXPORT_DIAGNOSTICS as i32);
-    if !export_button.is_null() {
-        let (x, y) = if advanced { (428, 390) } else { (360, 270) };
-        SetWindowPos(
-            export_button,
-            std::ptr::null_mut(),
-            x,
-            y,
-            120,
-            30,
-            SWP_NOZORDER | SWP_NOACTIVATE,
+
+    for id in [PRESET_12, PRESET_25, PRESET_45] {
+        set_control_visible(hwnd, id, true);
+    }
+    set_control_visible(hwnd, PRESET_EDIT_OPEN, !advanced);
+    set_control_visible(hwnd, APPLY_TARGET, false);
+    set_control_visible(hwnd, EXPORT_DIAGNOSTICS, true);
+
+    for id in [
+        PRESET_SAVE,
+        PRESET_EDIT_START,
+        PRESET_EDIT_START + 1,
+        PRESET_EDIT_START + 2,
+        POLICY_BATTERY_EDIT,
+        POLICY_AC_EDIT,
+        POLICY_ENABLED,
+        POLICY_SAVE,
+    ] {
+        set_control_visible(hwnd, id, advanced);
+    }
+    for id in [PRESET_LABEL, POLICY_BATTERY_LABEL, POLICY_AC_LABEL] {
+        set_control_visible(hwnd, id, advanced);
+    }
+
+    if let Some(controls) = app.simple_controls {
+        for control in [
+            controls.power_value,
+            controls.power_source,
+            controls.target_label,
+            controls.status,
+        ]
+        .into_iter()
+        .chain(controls.metric_titles)
+        .chain(controls.metric_values)
+        .chain(controls.metric_limits)
+        {
+            if !control.is_null() {
+                ShowWindow(control, SW_HIDE);
+            }
+        }
+        ShowWindow(
+            controls.advanced_device,
+            if advanced { SW_SHOWNORMAL } else { SW_HIDE },
+        );
+        ShowWindow(controls.target_edit, SW_SHOWNORMAL);
+        ShowWindow(controls.apply, SW_SHOWNORMAL);
+    }
+    if !app.status_label.is_null() {
+        ShowWindow(app.status_label, SW_HIDE);
+    }
+    set_control_visible(hwnd, TITLE_LABEL, false);
+
+    if advanced {
+        move_control(hwnd, SIMPLE_TARGET_EDIT, 574, 114, 62, 28);
+        move_control(hwnd, SIMPLE_APPLY, 666, 110, 74, 36);
+        for (id, x) in [(PRESET_12, 126), (PRESET_25, 194), (PRESET_45, 262)] {
+            move_control(hwnd, id, x, 218, 62, 32);
+        }
+        for (index, id) in [
+            PRESET_EDIT_START,
+            PRESET_EDIT_START + 1,
+            PRESET_EDIT_START + 2,
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            move_control(hwnd, id, 112 + index as i32 * 68, 268, 52, 24);
+        }
+        move_control(hwnd, PRESET_SAVE, 112, 304, 100, 32);
+        move_control(hwnd, POLICY_BATTERY_EDIT, 88, 378, 50, 26);
+        move_control(hwnd, POLICY_AC_EDIT, 202, 378, 50, 26);
+        move_control(hwnd, POLICY_ENABLED, 274, 374, 74, 32);
+        move_control(hwnd, POLICY_SAVE, 40, 416, 112, 32);
+        move_control(hwnd, EXPORT_DIAGNOSTICS, 626, 612, 92, 32);
+        for id in [
+            PRESET_LABEL,
+            POLICY_BATTERY_LABEL,
+            POLICY_AC_LABEL,
+            ADVANCED_DEVICE_LABEL,
+        ] {
+            move_control(hwnd, id, -10000, -10000, 220, 24);
+        }
+    } else {
+        move_control(hwnd, SIMPLE_TARGET_EDIT, 434, 114, 62, 28);
+        move_control(hwnd, SIMPLE_APPLY, 522, 110, 88, 36);
+        for (id, x) in [(PRESET_12, 110), (PRESET_25, 210), (PRESET_45, 310)] {
+            move_control(hwnd, id, x, 196, 92, 32);
+        }
+        move_control(hwnd, PRESET_EDIT_OPEN, 410, 196, 60, 32);
+        move_control(hwnd, EXPORT_DIAGNOSTICS, 528, 384, 88, 28);
+    }
+
+    if let Some(controls) = app.simple_controls {
+        EnableWindow(
+            controls.target_edit,
+            i32::from(app.write_enabled && !app.apply_in_flight),
+        );
+        EnableWindow(
+            controls.apply,
+            i32::from(app.write_enabled && !app.apply_in_flight),
         );
     }
+    if let Some(buttons) = app.preset_buttons {
+        for button in buttons {
+            EnableWindow(button, i32::from(app.write_enabled));
+        }
+    }
+    if let Some(edits) = app.preset_edits {
+        for edit in edits {
+            EnableWindow(edit, i32::from(app.write_enabled));
+        }
+    }
+    if let Some(controls) = app.policy_controls {
+        for control in [
+            controls.battery_target,
+            controls.ac_target,
+            controls.enabled,
+        ] {
+            EnableWindow(control, i32::from(app.write_enabled));
+        }
+    }
+    let policy_save = GetDlgItem(hwnd, POLICY_SAVE as i32);
+    if !policy_save.is_null() {
+        EnableWindow(policy_save, i32::from(app.write_enabled));
+    }
+    let preset_save = GetDlgItem(hwnd, PRESET_SAVE as i32);
+    if !preset_save.is_null() {
+        EnableWindow(preset_save, i32::from(app.write_enabled));
+    }
+
+    for id in [
+        SIMPLE_MODE,
+        ADVANCED_MODE,
+        TOPMOST_TOGGLE,
+        PRESET_12,
+        PRESET_25,
+        PRESET_45,
+        PRESET_EDIT_OPEN,
+        PRESET_SAVE,
+        POLICY_ENABLED,
+        POLICY_SAVE,
+        SIMPLE_APPLY,
+        EXPORT_DIAGNOSTICS,
+    ] {
+        let control = GetDlgItem(hwnd, id as i32);
+        if !control.is_null() {
+            InvalidateRect(control, std::ptr::null(), 1);
+        }
+    }
+
     InvalidateRect(hwnd, std::ptr::null(), 1);
     UpdateWindow(hwnd);
-    refresh_status_for_mode(app);
+    update_simple_view(app);
 
     let preferences = state::WindowPreferences {
         mode,
@@ -1142,6 +2929,7 @@ unsafe fn toggle_topmost(app: &mut GuiApp, hwnd: HWND) {
     apply_topmost_style(hwnd, app.top_most);
     if let Some(controls) = app.header_controls {
         SendMessageW(controls.topmost, BM_SETCHECK, usize::from(app.top_most), 0);
+        InvalidateRect(controls.topmost, std::ptr::null(), 1);
     }
     let preferences = state::WindowPreferences {
         mode: app.view_mode,
@@ -1248,10 +3036,14 @@ unsafe fn select_preset(app: &mut GuiApp, index: usize) {
     }
     app.selected_preset = Some(index);
     app.selected_target = PowerLimitTarget::uniform(app.preset_watts[index]);
+    if let Some(controls) = app.simple_controls {
+        set_edit_watts(controls.target_edit, app.preset_watts[index]);
+    }
     if let Some(buttons) = app.preset_buttons {
         for (button_index, button) in buttons.into_iter().enumerate() {
             if !button.is_null() {
                 SendMessageW(button, BM_SETCHECK, usize::from(button_index == index), 0);
+                InvalidateRect(button, std::ptr::null(), 1);
             }
         }
     }
@@ -1263,6 +3055,14 @@ unsafe fn start_preset_apply(app: &mut GuiApp, hwnd: HWND, index: usize) {
     }
     select_preset(app, index);
     app.apply_in_flight = true;
+    if let Some(controls) = app.simple_controls {
+        let text = wide(&format!(
+            "正在应用预设 {} · {} W",
+            index + 1,
+            app.preset_watts[index]
+        ));
+        SetWindowTextW(controls.status, text.as_ptr());
+    }
     if !app.status_label.is_null() {
         let text = wide(&format!(
             "正在应用预设 {}：{} W / {} W / {} W…",
@@ -1357,13 +3157,17 @@ unsafe fn dispatch(app: &mut GuiApp, hwnd: HWND, event: LifecycleEvent) -> Trans
 }
 
 unsafe fn add_tray_icon(hwnd: HWND) {
+    let mut icon = SendMessageW(hwnd, WM_GETICON, ICON_SMALL as usize, 0) as HICON;
+    if icon.is_null() {
+        icon = LoadIconW(std::ptr::null_mut(), IDI_APPLICATION);
+    }
     let mut data = NOTIFYICONDATAW {
         cbSize: size_of::<NOTIFYICONDATAW>() as u32,
         hWnd: hwnd,
         uID: TRAY_ICON_ID,
         uFlags: NIF_MESSAGE | NIF_ICON | NIF_TIP,
         uCallbackMessage: WM_APP_TRAY,
-        hIcon: LoadIconW(std::ptr::null_mut(), IDI_APPLICATION),
+        hIcon: icon,
         ..Default::default()
     };
     write_wide(&mut data.szTip, APP_TITLE);
@@ -1462,6 +3266,31 @@ unsafe extern "system" fn window_proc(
     let app = &mut *app;
 
     match message {
+        WM_PAINT => {
+            paint_window(app, hwnd);
+            0
+        }
+        WM_DRAWITEM => {
+            let draw = lparam as *const DRAWITEMSTRUCT;
+            if !draw.is_null() {
+                draw_owner_button(app, &*draw);
+            }
+            1
+        }
+        WM_CTLCOLORSTATIC => {
+            let hdc = wparam as windows_sys::Win32::Graphics::Gdi::HDC;
+            let control_id = GetDlgCtrlID(lparam as HWND);
+            SetBkMode(hdc, TRANSPARENT as i32);
+            SetTextColor(hdc, static_text_color(control_id));
+            GetStockObject(NULL_BRUSH) as LRESULT
+        }
+        WM_CTLCOLOREDIT => {
+            let hdc = wparam as windows_sys::Win32::Graphics::Gdi::HDC;
+            SetBkMode(hdc, TRANSPARENT as i32);
+            SetBkColor(hdc, COLOR_SURFACE);
+            SetTextColor(hdc, COLOR_TEXT);
+            GetStockObject(WHITE_BRUSH) as LRESULT
+        }
         WM_CLOSE => {
             dispatch(app, hwnd, LifecycleEvent::CloseRequested);
             0
@@ -1524,6 +3353,8 @@ unsafe extern "system" fn window_proc(
                 app.latest_snapshot = update.snapshot;
                 app.latest_policy = update.policy;
                 app.worker_error = update.worker_error;
+                update_simple_view(app);
+                InvalidateRect(hwnd, std::ptr::null(), 0);
             }
             0
         }
@@ -1532,11 +3363,18 @@ unsafe extern "system" fn window_proc(
             let pointer = lparam as *mut String;
             if !pointer.is_null() {
                 let text = Box::from_raw(pointer);
-                if !app.status_label.is_null() {
-                    hold_status(app);
-                    let text = wide(&text);
-                    SetWindowTextW(app.status_label, text.as_ptr());
+                hold_status(app);
+                if let Some(controls) = app.simple_controls {
+                    let message = text.lines().next().unwrap_or(text.as_str());
+                    let message = wide(message);
+                    SetWindowTextW(controls.status, message.as_ptr());
                 }
+                if !app.status_label.is_null() {
+                    let wide_text = wide(&text);
+                    SetWindowTextW(app.status_label, wide_text.as_ptr());
+                }
+                update_simple_view(app);
+                InvalidateRect(hwnd, std::ptr::null(), 1);
             }
             0
         }
@@ -1545,16 +3383,30 @@ unsafe extern "system" fn window_proc(
             let pointer = lparam as *mut String;
             if !pointer.is_null() {
                 let text = Box::from_raw(pointer);
-                if !app.status_label.is_null() {
-                    hold_status(app);
-                    let text = wide(&text);
-                    SetWindowTextW(app.status_label, text.as_ptr());
+                hold_status(app);
+                if let Some(controls) = app.simple_controls {
+                    let message = text.lines().next().unwrap_or(text.as_str());
+                    let message = wide(message);
+                    SetWindowTextW(controls.status, message.as_ptr());
                 }
+                if !app.status_label.is_null() {
+                    let wide_text = wide(&text);
+                    SetWindowTextW(app.status_label, wide_text.as_ptr());
+                }
+                InvalidateRect(hwnd, std::ptr::null(), 1);
             }
             0
         }
         WM_COMMAND => {
             let command = wparam & 0xFFFF;
+            let notification = (wparam >> 16) & 0xFFFF;
+            if notification == 0x0100 {
+                app.focused_control = Some(command);
+                InvalidateRect(hwnd, std::ptr::null(), 0);
+            } else if notification == 0x0200 && app.focused_control == Some(command) {
+                app.focused_control = None;
+                InvalidateRect(hwnd, std::ptr::null(), 0);
+            }
             match command {
                 MENU_SHOW => {
                     dispatch(app, hwnd, LifecycleEvent::TrayShowRequested);
@@ -1568,8 +3420,49 @@ unsafe extern "system" fn window_proc(
                 MENU_ADVANCED_MODE | ADVANCED_MODE => {
                     apply_view_mode(app, hwnd, state::UiMode::Advanced);
                 }
+                PRESET_EDIT_OPEN => {
+                    apply_view_mode(app, hwnd, state::UiMode::Advanced);
+                    let edit = GetDlgItem(hwnd, PRESET_EDIT_START as i32);
+                    if !edit.is_null() {
+                        SetFocus(edit);
+                        SendMessageW(edit, 0x00B1, 0, -1);
+                    }
+                }
                 MENU_TOPMOST | TOPMOST_TOGGLE => {
                     toggle_topmost(app, hwnd);
+                }
+                POLICY_ENABLED if app.write_enabled => {
+                    if let Some(controls) = app.policy_controls {
+                        let next =
+                            i32::from(SendMessageW(controls.enabled, BM_GETCHECK, 0, 0) == 0);
+                        SendMessageW(controls.enabled, BM_SETCHECK, next as usize, 0);
+                        InvalidateRect(controls.enabled, std::ptr::null(), 1);
+                    }
+                }
+                SIMPLE_APPLY if app.write_enabled && !app.apply_in_flight => {
+                    if let Some(controls) = app.simple_controls {
+                        let (minimum, maximum) = app
+                            .profile
+                            .as_ref()
+                            .map(|profile| (profile.minimum_watts, profile.maximum_watts))
+                            .unwrap_or((5, 60));
+                        let target = read_edit_watts(
+                            controls.target_edit,
+                            app.selected_target.stapm_watts,
+                            minimum,
+                            maximum,
+                        );
+                        set_edit_watts(controls.target_edit, target);
+                        app.selected_target = PowerLimitTarget::uniform(target);
+                        app.apply_in_flight = true;
+                        let status = wide(&format!("正在应用 {target} W"));
+                        SetWindowTextW(controls.status, status.as_ptr());
+                        if !app.status_label.is_null() {
+                            let text = wide(&format!("正在应用 {target} W…"));
+                            SetWindowTextW(app.status_label, text.as_ptr());
+                        }
+                        start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target);
+                    }
                 }
                 PRESET_12 | PRESET_25 | PRESET_45 if app.write_enabled => {
                     let preset_index = match command {
@@ -1593,6 +3486,11 @@ unsafe extern "system" fn window_proc(
                         ),
                         Err(error) => format!("快捷预设保存失败。\n{error}"),
                     };
+                    if let Some(controls) = app.simple_controls {
+                        let first_line = message.lines().next().unwrap_or("快捷预设");
+                        let text = wide(first_line);
+                        SetWindowTextW(controls.status, text.as_ptr());
+                    }
                     if !app.status_label.is_null() {
                         hold_status(app);
                         let text = wide(&message);
@@ -1604,6 +3502,11 @@ unsafe extern "system" fn window_proc(
                         Ok(path) => format!("诊断已导出：\n{}", path.display()),
                         Err(error) => format!("诊断导出失败。\n{error}"),
                     };
+                    if let Some(controls) = app.simple_controls {
+                        let first_line = message.lines().next().unwrap_or("诊断导出");
+                        let text = wide(first_line);
+                        SetWindowTextW(controls.status, text.as_ptr());
+                    }
                     if !app.status_label.is_null() {
                         hold_status(app);
                         let text = wide(&message);
@@ -1723,21 +3626,21 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let initial_mode = state::load_window_preferences().mode;
-    let window_height = match (initial_mode, options.enable_write_controls) {
-        (state::UiMode::Simple, _) => 360,
-        (state::UiMode::Advanced, true) => 580,
-        (state::UiMode::Advanced, false) => 420,
+    let client_size = match initial_mode {
+        state::UiMode::Simple => (640, 438),
+        state::UiMode::Advanced => (760, 680),
     };
+    let (outer_width, outer_height) = unsafe { outer_window_size(client_size.0, client_size.1) };
     let hwnd = unsafe {
         CreateWindowExW(
             WS_EX_APPWINDOW,
             class_name.as_ptr(),
             window_title.as_ptr(),
-            WS_OVERLAPPEDWINDOW,
+            APP_WINDOW_STYLE,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
-            620,
-            window_height,
+            outer_width,
+            outer_height,
             std::ptr::null_mut(),
             std::ptr::null_mut(),
             instance,
@@ -1750,12 +3653,47 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
         return Err("CreateWindowExW failed".into());
     }
+    unsafe {
+        let dark_titlebar = 1i32;
+        DwmSetWindowAttribute(
+            hwnd,
+            20,
+            &dark_titlebar as *const i32 as *const std::ffi::c_void,
+            size_of::<i32>() as u32,
+        );
+    }
 
     let app = Box::into_raw(Box::new(GuiApp::new(mutex)));
     unsafe {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, app as isize);
         (*app).write_enabled = options.enable_write_controls;
-        let _ = create_title_label(hwnd, instance);
+        let icon_large = create_icon_for_size(32);
+        let icon_small = create_icon_for_size(16);
+        (*app).icon_large = if icon_large.is_null() {
+            LoadIconW(std::ptr::null_mut(), IDI_APPLICATION)
+        } else {
+            icon_large
+        };
+        (*app).icon_small = if icon_small.is_null() {
+            (*app).icon_large
+        } else {
+            icon_small
+        };
+        SendMessageW(
+            hwnd,
+            WM_SETICON,
+            ICON_BIG as usize,
+            (*app).icon_large as isize,
+        );
+        SendMessageW(
+            hwnd,
+            WM_SETICON,
+            ICON_SMALL as usize,
+            (*app).icon_small as isize,
+        );
+        let fonts = create_ui_fonts();
+        let title = create_title_label(hwnd, instance);
+        set_control_font(title, fonts.title);
         (*app).header_controls = Some(create_header_controls(
             hwnd,
             instance,
@@ -1763,28 +3701,40 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             (*app).top_most,
         ));
         (*app).status_label = create_status_label(hwnd, instance);
-        if options.enable_write_controls {
-            (*app).preset_buttons =
-                Some(create_action_buttons(hwnd, instance, (*app).preset_watts));
-            (*app).preset_edits = Some(create_preset_controls(hwnd, instance, (*app).preset_watts));
-            let _ = create_export_button(hwnd, instance, 428, 390, 120);
-            (*app).policy_controls = Some(create_policy_controls(hwnd, instance));
-            (*app).saved_policy = state::load_power_policy();
-            if let Some(saved) = (*app).saved_policy {
-                if let Some(controls) = (*app).policy_controls {
-                    set_edit_watts(controls.battery_target, saved.battery_target.stapm_watts);
-                    set_edit_watts(controls.ac_target, saved.ac_target.stapm_watts);
-                    SendMessageW(
-                        controls.enabled,
-                        BM_SETCHECK,
-                        if saved.enabled { 1 } else { 0 },
-                        0,
-                    );
-                }
+        set_control_font((*app).status_label, fonts.body);
+        (*app).simple_controls = Some(create_simple_controls(
+            hwnd,
+            instance,
+            &fonts,
+            options.enable_write_controls,
+        ));
+        (*app).preset_buttons = Some(create_action_buttons(hwnd, instance, (*app).preset_watts));
+        (*app).preset_edits = Some(create_preset_controls(hwnd, instance, (*app).preset_watts));
+        let _ = create_export_button(hwnd, instance, 528, 384, 88);
+        (*app).policy_controls = Some(create_policy_controls(hwnd, instance));
+        if let Some(edits) = (*app).preset_edits {
+            for edit in edits {
+                set_control_font(edit, fonts.metric);
             }
-        } else {
-            let _ = create_export_button(hwnd, instance, 18, 348, 120);
         }
+        if let Some(controls) = (*app).policy_controls {
+            set_control_font(controls.battery_target, fonts.metric);
+            set_control_font(controls.ac_target, fonts.metric);
+        }
+        (*app).saved_policy = state::load_power_policy();
+        if let Some(saved) = (*app).saved_policy {
+            if let Some(controls) = (*app).policy_controls {
+                set_edit_watts(controls.battery_target, saved.battery_target.stapm_watts);
+                set_edit_watts(controls.ac_target, saved.ac_target.stapm_watts);
+                SendMessageW(
+                    controls.enabled,
+                    BM_SETCHECK,
+                    if saved.enabled { 1 } else { 0 },
+                    0,
+                );
+            }
+        }
+        (*app).fonts = Some(fonts);
         apply_topmost_style(hwnd, (*app).top_most);
         apply_view_mode(&mut *app, hwnd, (*app).view_mode);
     }
@@ -1825,6 +3775,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         let result = unsafe { GetMessageW(&mut message, std::ptr::null_mut(), 0, 0) };
         if result <= 0 {
             break;
+        }
+        if unsafe { IsDialogMessageW(hwnd, &message) } != 0 {
+            continue;
         }
         unsafe {
             TranslateMessage(&message);
@@ -1951,7 +3904,7 @@ mod tests {
         let text = format_policy_state(Some(&state));
 
         assert!(
-            text.contains("自动策略：已启用（电池 10 W / 交流 12 W）"),
+            text.contains("自动策略：已启用（电池 10 W / 外接 12 W）"),
             "{text}"
         );
         assert!(text.contains("上次应用：电池 · 成功"), "{text}");

@@ -49,6 +49,18 @@ not authoritative.
   deployment is preserved as `C:\RyzenAdj.before-v1.0.4-20261110-190202` and
   under
   `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.4-20261110-190202`.
+- Active native-development branch: `main`.
+- The Rust GUI has been structurally rebuilt around a double-buffered custom
+  canvas, four simple-mode regions, three advanced-mode panels, shared
+  owner-drawn controls, dialog keyboard navigation, focus rings, and the
+  embedded AMD Mobile Power taskbar/tray icon.
+- The native Rust GUI test suite now passes 26/26 tests. The runtime verifier
+  passes worker connection, diagnostics export, mode switching, topmost,
+  minimize/restore, close-to-tray, tray restore, single-instance wake, and
+  preset editing.
+- Current redesign evidence is recorded in `docs/NATIVE_UI_REWRITE.md` with
+  simple/advanced screenshots at 125% scaling. The native rewrite is not yet a
+  stable deployment and has not replaced `C:\RyzenAdj`.
 
 ## Development Workflow
 

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-11T02:08:36+08:00",
+  "platform": {
+    "windowsScalePercent": 125,
+    "processor": "AMD Ryzen 7 8845HS",
+    "family": "Hawk Point",
+    "smuBiosVersion": "15",
+    "pmTableVersion": "4c0009",
+    "powerLine": "ac"
+  },
+  "screenshots": [
+    {
+      "mode": "simple",
+      "path": "assets/native-gui-redesign-simple-2026-11-11.png",
+      "physicalWidth": 820,
+      "physicalHeight": 596,
+      "checks": {
+        "structuralOverlap": false,
+        "statusActionVisible": true,
+        "presetEditVisible": true,
+        "fourTelemetryColumnsVisible": true,
+        "applicationIconVisible": true
+      }
+    },
+    {
+      "mode": "advanced",
+      "path": "assets/native-gui-redesign-advanced-2026-11-11.png",
+      "physicalWidth": 970,
+      "physicalHeight": 899,
+      "checks": {
+        "structuralOverlap": false,
+        "editablePresetsVisible": true,
+        "policyControlsVisible": true,
+        "detectedPlatformVisible": true,
+        "diagnosticsActionVisible": true,
+        "applicationIconVisible": true
+      }
+    }
+  ],
+  "verification": {
+    "rustTestsPassed": 26,
+    "rustTestsFailed": 0,
+    "runtimeVerifier": "PASS",
+    "workerReadOnly": "PASS",
+    "diagnosticsExport": "PASS",
+    "viewModes": "PASS",
+    "topMost": "PASS",
+    "writeControls": "PASS",
+    "presetEditing": "PASS",
+    "minimizeRestore": "PASS",
+    "closeToTray": "PASS",
+    "trayRestore": "PASS",
+    "singleInstanceWake": "PASS"
+  },
+  "safety": {
+    "powerWriteRequested": false,
+    "driverChanged": false,
+    "stableDeploymentChanged": false
+  }
+}
