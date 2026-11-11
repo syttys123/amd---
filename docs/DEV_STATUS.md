@@ -55,7 +55,7 @@ not authoritative.
   bands, a split advanced workspace, native text fields, owner-drawn controls,
   dialog keyboard navigation, focus rings, and the embedded AMD Mobile Power
   taskbar/tray icon. The default for a fresh UI state is simple mode.
-- The native Rust GUI test suite now passes 26/26 tests. The runtime verifier
+- The native Rust GUI test suite now passes 27/27 tests. The runtime verifier
   passes worker connection, diagnostics export, mode switching, topmost,
   minimize/restore, close-to-tray, tray restore, single-instance wake, and
   preset editing.
@@ -1048,7 +1048,7 @@ third_party/
   system background after resizing, eliminating stale advanced-row pixels.
   Runtime verification checked both window sizes, every advanced control's
   visibility, immediate compact text, `WS_EX_TOPMOST`, and persisted
-  `mode=advanced` / `topMost=true` state. Rust tests are now 26 in total
+  `mode=advanced` / `topMost=true` state. Rust tests were 26 at that milestone
   (`18` library + `8` GUI), and Clippy remains clean with `-D warnings`.
   Screenshots: `assets/native-gui-simple-mode-2026-11-11.png` and
   `assets/native-gui-advanced-mode-2026-11-11.png`.
@@ -1060,7 +1060,8 @@ third_party/
   presets, battery/external policy, device capability, runtime state, and a
   live STAPM/Fast/Slow read-back ledger. Dark-shell button corners now paint
   their parent backdrop, and button focus rings are driven by the actual focused
-  control rather than `ODS_FOCUS`. Rust tests remain 26/26, Clippy is clean, and
+  control rather than `ODS_FOCUS`. Rust tests were 26/26 at that milestone,
+  Clippy is clean, and
   the runtime verifier passes mode switching, topmost, diagnostics, preset
   editing, minimize/restore, tray restore, close-to-tray, and single-instance
   wake. Current screenshots are
@@ -1079,6 +1080,15 @@ third_party/
   `NoChangePolicy=Not requested`. The `rc.10` to `rc.11` upgrade passed payload
   matching, upgraded read-only runtime, and uninstall cleanup. Review bundle:
   `artifacts/native-release-review/v0.6.0-native-rc.11`.
+- Added an explicit, test-only `--ui-fixture` path and captured four failure
+  states without starting a hardware worker: worker offline, firmware clamp,
+  unsupported platform, and long error. State priority now surfaces worker or
+  platform failure before the generic read-only explanation. Write controls are
+  disabled unless a supported snapshot exists, applying has finished, and write
+  controls are enabled. Diagnostics stays available. Fixture screenshots and
+  control-state assertions are recorded in
+  `docs/evidence/ui/native-ui-failure-states-2026-11-11.json`. Native Rust tests
+  are now 27/27 and Clippy remains clean with `-D warnings`.
 
 Development screenshot:
 

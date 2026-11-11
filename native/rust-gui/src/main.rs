@@ -5,8 +5,9 @@ use amd_mobile_power_gui::lifecycle::{
 };
 use amd_mobile_power_gui::state;
 use amd_mobile_power_gui::worker::{
-    ApplyTargetResult, PowerLimitTarget, PowerLineState, PowerPolicySettings, PowerPolicyState,
-    ProfilePayload, SnapshotPayload, WorkerClient, DEFAULT_PIPE_NAME,
+    ApplyTargetResult, CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget,
+    PowerLineState, PowerPolicySettings, PowerPolicyState, ProfilePayload, SnapshotPayload,
+    TelemetryPayload, WorkerClient, DEFAULT_PIPE_NAME,
 };
 use std::mem::size_of;
 use std::os::windows::process::CommandExt;
@@ -49,7 +50,7 @@ use windows_sys::Win32::UI::Shell::{
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     AdjustWindowRectEx, AppendMenuW, CheckMenuItem, CreateIconFromResourceEx, CreatePopupMenu,
     CreateWindowExW, DefWindowProcW, DestroyIcon, DestroyMenu, DestroyWindow, DispatchMessageW,
-    FindWindowW, GetClientRect, GetCursorPos, GetDlgCtrlID, GetDlgItem, GetMessageW,
+    FindWindowW, GetClientRect, GetCursorPos, GetDlgCtrlID, GetDlgItem, GetMessageW, GetParent,
     GetWindowLongPtrW, IsDialogMessageW, LoadCursorW, LoadIconW, PostMessageW, PostQuitMessage,
     RegisterClassExW, SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, SetWindowTextW,
     ShowWindow, TrackPopupMenu, TranslateMessage, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT,
@@ -229,6 +230,7 @@ struct GuiApp {
     status_hold_until: Instant,
     view_mode: state::UiMode,
     top_most: bool,
+    ui_fixture: Option<UiFixture>,
     focused_control: Option<usize>,
     icon_large: HICON,
     icon_small: HICON,
@@ -267,6 +269,7 @@ impl GuiApp {
             status_hold_until: Instant::now(),
             view_mode: window_preferences.mode,
             top_most: window_preferences.top_most,
+            ui_fixture: None,
             focused_control: None,
             icon_large: std::ptr::null_mut(),
             icon_small: std::ptr::null_mut(),
@@ -318,6 +321,7 @@ struct Options {
     pipe_name: String,
     worker_executable: Option<PathBuf>,
     enable_write_controls: bool,
+    ui_fixture: Option<UiFixture>,
 }
 
 impl Default for Options {
@@ -327,8 +331,17 @@ impl Default for Options {
             pipe_name: DEFAULT_PIPE_NAME.to_owned(),
             worker_executable: None,
             enable_write_controls: false,
+            ui_fixture: None,
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum UiFixture {
+    WorkerOffline,
+    FirmwareClamp,
+    UnsupportedPlatform,
+    LongError,
 }
 
 fn wide(value: &str) -> Vec<u16> {
@@ -544,6 +557,9 @@ fn short_processor_name(snapshot: Option<&SnapshotPayload>) -> String {
 
 fn platform_subtitle(app: &GuiApp) -> String {
     let Some(snapshot) = app.latest_snapshot.as_ref() else {
+        if app.worker_error.is_some() {
+            return "worker 状态异常 · 写入控制不可用".to_owned();
+        }
         return "正在连接硬件 worker".to_owned();
     };
     let family = snapshot
@@ -641,13 +657,19 @@ unsafe fn visible_status(app: &GuiApp) -> (String, String, u32, u32) {
             COLOR_EXTERNAL,
         );
     }
-    if !app.write_enabled {
-        return (
-            "只读".to_owned(),
-            "可监测实时功耗，写入控制未解锁".to_owned(),
-            COLOR_SURFACE_MUTED,
-            COLOR_TEXT_MUTED,
-        );
+    if let Some(snapshot) = app.latest_snapshot.as_ref() {
+        if !snapshot.platform.is_supported {
+            return (
+                "平台不支持".to_owned(),
+                snapshot
+                    .platform
+                    .unsupported_reason
+                    .clone()
+                    .unwrap_or_else(|| "当前平台只允许只读监测".to_owned()),
+                COLOR_ERROR_SOFT,
+                COLOR_ERROR,
+            );
+        }
     }
     let clamp = app
         .latest_snapshot
@@ -660,6 +682,14 @@ unsafe fn visible_status(app: &GuiApp) -> (String, String, u32, u32) {
             "目标已写入，但固件回读低于请求值".to_owned(),
             COLOR_WARNING_SOFT,
             COLOR_WARNING,
+        );
+    }
+    if !app.write_enabled {
+        return (
+            "只读".to_owned(),
+            "可监测实时功耗，写入控制未解锁".to_owned(),
+            COLOR_SURFACE_MUTED,
+            COLOR_TEXT_MUTED,
         );
     }
     let target = app
@@ -1462,13 +1492,11 @@ unsafe fn paint_advanced_window(
         },
         DT_LEFT,
     );
-    let worker_line = match app.worker_error.as_ref() {
-        Some(error) => format!(
-            "worker 异常 · {}",
-            error.lines().next().unwrap_or("查看诊断")
-        ),
-        None if app.latest_snapshot.is_some() => "worker 已连接 · 1 秒刷新".to_owned(),
-        None => "worker 连接中".to_owned(),
+    let worker_line = match (app.ui_fixture, app.worker_error.as_ref()) {
+        (Some(_), _) => "测试状态 · 未连接硬件".to_owned(),
+        (None, Some(_)) => "worker 异常 · 查看诊断详情".to_owned(),
+        (None, None) if app.latest_snapshot.is_some() => "worker 已连接 · 1 秒刷新".to_owned(),
+        (None, None) => "worker 连接中".to_owned(),
     };
     draw_text_in(
         hdc,
@@ -1509,6 +1537,11 @@ unsafe fn paint_advanced_window(
         },
         DT_LEFT,
     );
+    let supported = app
+        .latest_snapshot
+        .as_ref()
+        .map(|snapshot| snapshot.platform.is_supported)
+        .unwrap_or(false);
     let clamp = app
         .latest_snapshot
         .as_ref()
@@ -1516,8 +1549,12 @@ unsafe fn paint_advanced_window(
         .unwrap_or(false);
     draw_text_in(
         hdc,
-        if clamp {
-            "限流：固件钳制 STAPM，Fast / Slow 看回读"
+        if app.latest_snapshot.is_none() {
+            "无实时回读；查看底部状态"
+        } else if !supported {
+            "只读监测；平台未通过写入门禁"
+        } else if clamp {
+            "限流：STAPM 被固件压低"
         } else {
             "回读正常，每秒刷新一次"
         },
@@ -2010,10 +2047,146 @@ fn parse_options() -> Result<Options, String> {
                     })?));
             }
             "--enable-write-controls" => options.enable_write_controls = true,
+            "--ui-fixture" => {
+                let value = arguments
+                    .next()
+                    .ok_or_else(|| "--ui-fixture requires a value".to_owned())?;
+                options.ui_fixture = Some(parse_ui_fixture(&value)?);
+            }
             value => return Err(format!("unknown argument: {value}")),
         }
     }
     Ok(options)
+}
+
+fn parse_ui_fixture(value: &str) -> Result<UiFixture, String> {
+    match value {
+        "worker-offline" => Ok(UiFixture::WorkerOffline),
+        "firmware-clamp" => Ok(UiFixture::FirmwareClamp),
+        "unsupported-platform" => Ok(UiFixture::UnsupportedPlatform),
+        "long-error" => Ok(UiFixture::LongError),
+        _ => Err(format!(
+            "unknown UI fixture: {value}; expected worker-offline, firmware-clamp, unsupported-platform, or long-error"
+        )),
+    }
+}
+
+fn fixture_worker_error(fixture: UiFixture) -> Option<String> {
+    match fixture {
+        UiFixture::WorkerOffline => Some(
+            "worker 离线：请重启应用或检查 worker。\n\
+             无法打开命名管道。\n\
+             错误：系统找不到指定的文件。"
+                .to_owned(),
+        ),
+        UiFixture::LongError => Some(
+            "应用失败：关闭其他 RyzenAdj 后重启 Windows。\n\
+             RyzenAdj 返回 MP1 SMU 对象不可用。\n\
+             STAPM、PPT Fast、PPT Slow 均未确认写入。\n\
+             恢复路径已经停止，因为硬件所有权仍可能被旧版后台任务占用。\n\
+             这不是固件钳制，也不是目标值超出范围。"
+                .to_owned(),
+        ),
+        UiFixture::FirmwareClamp | UiFixture::UnsupportedPlatform => None,
+    }
+}
+
+fn fixture_snapshot(fixture: UiFixture) -> Option<SnapshotPayload> {
+    match fixture {
+        UiFixture::FirmwareClamp => Some(SnapshotPayload {
+            platform: fixture_platform(
+                "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+                Some(10),
+                Some("Hawk Point"),
+                Some("hawk-point-8845hs"),
+                true,
+                None,
+                LimitsPayload {
+                    supports_stapm: true,
+                    supports_fast: true,
+                    supports_slow: true,
+                    supports_any: true,
+                },
+            ),
+            telemetry: TelemetryPayload {
+                target_watts: Some(12.0),
+                stapm_value_watts: Some(10.02),
+                fast_value_watts: Some(12.0),
+                slow_value_watts: Some(12.0),
+                stapm_limit_watts: Some(10.0),
+                fast_limit_watts: Some(12.0),
+                slow_limit_watts: Some(12.0),
+                tctl_value_celsius: Some(61.4),
+                tctl_limit_celsius: Some(95.0),
+                power_line: "battery".to_owned(),
+                updated_at: Some("2026-11-11T07:45:00Z".to_owned()),
+                has_firmware_clamp: true,
+            },
+        }),
+        UiFixture::UnsupportedPlatform => Some(SnapshotPayload {
+            platform: fixture_platform(
+                "AMD Ryzen 7 7840U w/ Radeon 780M Graphics",
+                Some(10),
+                Some("Phoenix"),
+                None,
+                false,
+                Some("未验证平台：仅允许只读监测。"),
+                LimitsPayload {
+                    supports_stapm: true,
+                    supports_fast: false,
+                    supports_slow: false,
+                    supports_any: true,
+                },
+            ),
+            telemetry: TelemetryPayload {
+                target_watts: None,
+                stapm_value_watts: Some(8.3),
+                fast_value_watts: None,
+                slow_value_watts: None,
+                stapm_limit_watts: Some(15.0),
+                fast_limit_watts: None,
+                slow_limit_watts: None,
+                tctl_value_celsius: Some(57.2),
+                tctl_limit_celsius: Some(95.0),
+                power_line: "battery".to_owned(),
+                updated_at: Some("2026-11-11T07:45:00Z".to_owned()),
+                has_firmware_clamp: false,
+            },
+        }),
+        UiFixture::WorkerOffline | UiFixture::LongError => None,
+    }
+}
+
+fn fixture_platform(
+    processor_name: &str,
+    family: Option<i32>,
+    family_name: Option<&str>,
+    profile_id: Option<&str>,
+    is_supported: bool,
+    unsupported_reason: Option<&str>,
+    limits: LimitsPayload,
+) -> PlatformPayload {
+    PlatformPayload {
+        cpu: CpuPayload {
+            processor_name: processor_name.to_owned(),
+            vendor: "AuthenticAMD".to_owned(),
+            ryzen_adj_family: family,
+            ryzen_adj_family_name: family_name.map(str::to_owned),
+            smu_bios_version: Some("15".to_owned()),
+            pm_table_version: Some("4c0009".to_owned()),
+        },
+        limits,
+        matched_profile: profile_id.map(|id| ProfilePayload {
+            id: id.to_owned(),
+            display_name: format!("{id} profile"),
+            minimum_watts: 5,
+            maximum_watts: 60,
+            default_watts: 25,
+            is_verified: is_supported,
+        }),
+        is_supported,
+        unsupported_reason: unsupported_reason.map(str::to_owned),
+    }
 }
 
 fn worker_executable_path(options: &Options) -> Option<PathBuf> {
@@ -2101,6 +2274,30 @@ fn start_worker_monitor(
             thread::sleep(Duration::from_secs(1));
         }
     })
+}
+
+unsafe fn apply_ui_fixture(app: &mut GuiApp, hwnd: HWND, fixture: UiFixture) {
+    app.ui_fixture = Some(fixture);
+    app.worker_error = fixture_worker_error(fixture);
+    if let Some(snapshot) = fixture_snapshot(fixture) {
+        if let Some(profile) = snapshot.platform.matched_profile.clone() {
+            apply_profile_to_presets(app, hwnd, &profile);
+        }
+        app.latest_snapshot = Some(snapshot);
+        app.latest_policy = None;
+    }
+    if let Some(error) = app.worker_error.as_ref() {
+        if !app.status_label.is_null() {
+            let text = wide(error);
+            SetWindowTextW(app.status_label, text.as_ptr());
+        }
+        if fixture == UiFixture::LongError {
+            hold_status(app);
+        }
+    }
+    update_simple_view(app);
+    InvalidateRect(hwnd, std::ptr::null(), 1);
+    UpdateWindow(hwnd);
 }
 
 unsafe fn create_status_label(
@@ -2654,10 +2851,51 @@ unsafe fn set_control_visible(hwnd: HWND, id: usize, visible: bool) {
     }
 }
 
+unsafe fn update_write_availability(app: &GuiApp, hwnd: HWND) {
+    let supported = app
+        .latest_snapshot
+        .as_ref()
+        .map(|snapshot| snapshot.platform.is_supported)
+        .unwrap_or(false);
+    let available =
+        app.write_enabled && !app.apply_in_flight && app.worker_error.is_none() && supported;
+
+    if let Some(controls) = app.simple_controls {
+        EnableWindow(controls.target_edit, i32::from(available));
+        EnableWindow(controls.apply, i32::from(available));
+    }
+    if let Some(buttons) = app.preset_buttons {
+        for button in buttons {
+            EnableWindow(button, i32::from(available));
+        }
+    }
+    if let Some(edits) = app.preset_edits {
+        for edit in edits {
+            EnableWindow(edit, i32::from(available));
+        }
+    }
+    if let Some(controls) = app.policy_controls {
+        for control in [
+            controls.battery_target,
+            controls.ac_target,
+            controls.enabled,
+        ] {
+            EnableWindow(control, i32::from(available));
+        }
+    }
+    for id in [POLICY_SAVE, PRESET_SAVE] {
+        let control = GetDlgItem(hwnd, id as i32);
+        if !control.is_null() {
+            EnableWindow(control, i32::from(available));
+        }
+    }
+}
+
 unsafe fn update_simple_view(app: &GuiApp) {
     let Some(controls) = app.simple_controls else {
         return;
     };
+    update_write_availability(app, GetParent(controls.target_edit));
     let (range_minimum, range_maximum) = app
         .profile
         .as_ref()
@@ -2671,12 +2909,17 @@ unsafe fn update_simple_view(app: &GuiApp) {
     let Some(snapshot) = app.latest_snapshot.as_ref() else {
         let waiting = wide("等待 worker");
         SetWindowTextW(controls.power_value, waiting.as_ptr());
-        let status = if app.write_enabled {
-            "写入已解锁 · 正在连接 worker"
+        let status = if let Some(error) = app.worker_error.as_ref() {
+            format!(
+                "连接异常 · {}",
+                error.lines().next().unwrap_or("worker 不可用")
+            )
+        } else if app.write_enabled {
+            "写入已解锁 · 正在连接 worker".to_owned()
         } else {
-            "只读模式 · 写入未解锁"
+            "只读模式 · 写入未解锁".to_owned()
         };
-        let status = wide(status);
+        let status = wide(&status);
         SetWindowTextW(controls.status, status.as_ptr());
         let device = wide("设备信息\n等待 worker");
         SetWindowTextW(controls.advanced_device, device.as_ptr());
@@ -2712,12 +2955,24 @@ unsafe fn update_simple_view(app: &GuiApp) {
         SetWindowTextW(controls.metric_limits[index], limit.as_ptr());
     }
 
-    let status = if !app.write_enabled {
-        "只读模式 · 写入未解锁".to_owned()
-    } else if app.worker_error.is_some() {
-        "连接异常 · 查看高级诊断".to_owned()
+    let status = if let Some(error) = app.worker_error.as_ref() {
+        format!(
+            "连接异常 · {}",
+            error.lines().next().unwrap_or("worker 不可用")
+        )
+    } else if !snapshot.platform.is_supported {
+        format!(
+            "平台不支持 · {}",
+            snapshot
+                .platform
+                .unsupported_reason
+                .as_deref()
+                .unwrap_or("仅允许只读监测")
+        )
     } else if telemetry.has_firmware_clamp {
         "固件钳制生效 · 查看实际回读".to_owned()
+    } else if !app.write_enabled {
+        "只读模式 · 写入未解锁".to_owned()
     } else if let Some(target) = telemetry.target_watts {
         format!("写入已解锁 · 当前目标 {}", format_watts(Some(target)))
     } else {
@@ -2937,43 +3192,7 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
         move_control(hwnd, EXPORT_DIAGNOSTICS, 520, 337, 96, 28);
     }
 
-    if let Some(controls) = app.simple_controls {
-        EnableWindow(
-            controls.target_edit,
-            i32::from(app.write_enabled && !app.apply_in_flight),
-        );
-        EnableWindow(
-            controls.apply,
-            i32::from(app.write_enabled && !app.apply_in_flight),
-        );
-    }
-    if let Some(buttons) = app.preset_buttons {
-        for button in buttons {
-            EnableWindow(button, i32::from(app.write_enabled));
-        }
-    }
-    if let Some(edits) = app.preset_edits {
-        for edit in edits {
-            EnableWindow(edit, i32::from(app.write_enabled));
-        }
-    }
-    if let Some(controls) = app.policy_controls {
-        for control in [
-            controls.battery_target,
-            controls.ac_target,
-            controls.enabled,
-        ] {
-            EnableWindow(control, i32::from(app.write_enabled));
-        }
-    }
-    let policy_save = GetDlgItem(hwnd, POLICY_SAVE as i32);
-    if !policy_save.is_null() {
-        EnableWindow(policy_save, i32::from(app.write_enabled));
-    }
-    let preset_save = GetDlgItem(hwnd, PRESET_SAVE as i32);
-    if !preset_save.is_null() {
-        EnableWindow(preset_save, i32::from(app.write_enabled));
-    }
+    update_write_availability(app, hwnd);
 
     for id in [
         SIMPLE_MODE,
@@ -3161,6 +3380,7 @@ unsafe fn start_preset_apply(app: &mut GuiApp, hwnd: HWND, index: usize) {
         ));
         SetWindowTextW(app.status_label, text.as_ptr());
     }
+    update_write_availability(app, hwnd);
     start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target);
 }
 
@@ -3551,6 +3771,7 @@ unsafe extern "system" fn window_proc(
                             let text = wide(&format!("正在应用 {target} W…"));
                             SetWindowTextW(app.status_label, text.as_ptr());
                         }
+                        update_write_availability(app, hwnd);
                         start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target);
                     }
                 }
@@ -3615,6 +3836,7 @@ unsafe extern "system" fn window_proc(
                         ));
                         SetWindowTextW(app.status_label, text.as_ptr());
                     }
+                    update_write_availability(app, hwnd);
                     start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target);
                 }
                 POLICY_SAVE if app.write_enabled && !app.policy_in_flight => {
@@ -3829,21 +4051,27 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         apply_view_mode(&mut *app, hwnd, (*app).view_mode);
     }
 
-    match start_worker(&options) {
-        Ok(child) => unsafe {
-            (*app).worker_child = child;
-            (*app).worker_pipe = options.pipe_name.clone();
-        },
-        Err(error) => unsafe {
-            let text = wide(&format!("Worker start failed\n{error}"));
-            SetWindowTextW((*app).status_label, text.as_ptr());
-        },
-    }
-    let monitor = start_worker_monitor(hwnd as usize, options.pipe_name.clone(), unsafe {
-        (*app).stop_monitor.clone()
-    });
-    unsafe {
-        (*app).monitor_thread = Some(monitor);
+    if let Some(fixture) = options.ui_fixture {
+        unsafe {
+            apply_ui_fixture(&mut *app, hwnd, fixture);
+        }
+    } else {
+        match start_worker(&options) {
+            Ok(child) => unsafe {
+                (*app).worker_child = child;
+                (*app).worker_pipe = options.pipe_name.clone();
+            },
+            Err(error) => unsafe {
+                let text = wide(&format!("Worker start failed\n{error}"));
+                SetWindowTextW((*app).status_label, text.as_ptr());
+            },
+        }
+        let monitor = start_worker_monitor(hwnd as usize, options.pipe_name.clone(), unsafe {
+            (*app).stop_monitor.clone()
+        });
+        unsafe {
+            (*app).monitor_thread = Some(monitor);
+        }
     }
 
     unsafe {
@@ -3886,8 +4114,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::{
-        clamp_preset_values, diagnostics_document, format_policy_state, format_snapshot,
-        format_snapshot_simple, preset_menu_label,
+        clamp_preset_values, diagnostics_document, fixture_snapshot, fixture_worker_error,
+        format_policy_state, format_snapshot, format_snapshot_simple, parse_ui_fixture,
+        preset_menu_label, UiFixture,
     };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
@@ -4054,6 +4283,35 @@ mod tests {
         assert_eq!(document["privacy"]["uploaded"], false);
         assert!(!text.contains(r"\\.\pipe\"));
         assert!(!text.contains(r"C:\"));
+    }
+
+    #[test]
+    fn ui_fixtures_cover_failure_states_without_hardware() {
+        assert_eq!(
+            parse_ui_fixture("firmware-clamp"),
+            Ok(UiFixture::FirmwareClamp)
+        );
+        assert_eq!(
+            parse_ui_fixture("unsupported-platform"),
+            Ok(UiFixture::UnsupportedPlatform)
+        );
+        assert!(parse_ui_fixture("unknown").is_err());
+
+        let clamp = fixture_snapshot(UiFixture::FirmwareClamp).unwrap();
+        assert!(clamp.platform.is_supported);
+        assert!(clamp.telemetry.has_firmware_clamp);
+        assert_eq!(clamp.telemetry.stapm_limit_watts, Some(10.0));
+        assert_eq!(clamp.telemetry.fast_limit_watts, Some(12.0));
+
+        let unsupported = fixture_snapshot(UiFixture::UnsupportedPlatform).unwrap();
+        assert!(!unsupported.platform.is_supported);
+        assert!(unsupported.platform.matched_profile.is_none());
+        assert!(unsupported.platform.unsupported_reason.is_some());
+
+        let offline = fixture_worker_error(UiFixture::WorkerOffline).unwrap();
+        assert!(offline.starts_with("worker 离线："));
+        let long_error = fixture_worker_error(UiFixture::LongError).unwrap();
+        assert!(long_error.lines().next().unwrap().contains("重启 Windows"));
     }
 
     #[test]

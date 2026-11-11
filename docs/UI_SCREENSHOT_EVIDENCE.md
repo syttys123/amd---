@@ -71,6 +71,10 @@ previous stack of independent white cards:
 | Native simple redesign | `assets/native-gui-redesign-simple-2026-11-11.png` | `802x530` | One continuous dark command deck contains identity, modes, live STAPM, target input, apply, and three presets; the flat telemetry ledger and status band sit below without detached card stacking |
 | Native advanced redesign | `assets/native-gui-redesign-advanced-2026-11-11.png` | `977x890` | Shared command deck, editable presets, battery/external policy, device capability, worker health, and a live STAPM/Fast/Slow read-back ledger render without visible text clipping or structural overlap |
 | Native read-only states | `assets/native-gui-redesign-readonly-simple-2026-11-11.png`, `assets/native-gui-redesign-readonly-advanced-2026-11-11.png` | `802x530`, `977x890` | Write controls retain their geometry while disabled; the simple status explains `只读`, and diagnostics remains available in both modes |
+| Worker offline | `assets/native-ui-worker-offline-simple-2026-11-11.png`, `assets/native-ui-worker-offline-advanced-2026-11-11.png` | `802x530`, `977x890` | `连接异常`, a restart/check-worker action, disabled target/preset controls, and enabled diagnostics export |
+| Firmware clamp | `assets/native-ui-firmware-clamp-simple-2026-11-11.png`, `assets/native-ui-firmware-clamp-advanced-2026-11-11.png` | `802x530`, `977x890` | Requested 12 W with STAPM clamped to 10 W while Fast/Slow read back 12 W; the amber status remains distinct from transport failure |
+| Unsupported platform | `assets/native-ui-unsupported-platform-simple-2026-11-11.png`, `assets/native-ui-unsupported-platform-advanced-2026-11-11.png` | `802x530`, `977x890` | Read-only monitoring remains visible while target, presets, and policy controls are disabled with a visible platform reason |
+| Long error | `assets/native-ui-long-error-simple-2026-11-11.png`, `assets/native-ui-long-error-advanced-2026-11-11.png` | `802x530`, `977x890` | First line states the action (`关闭其他 RyzenAdj 后重启 Windows`) and later details remain in the accessibility text without breaking the layout |
 
 The native window now uses the embedded application icon in both the title bar
 and tray, a dark native title bar where Windows supports it, and
@@ -85,7 +89,7 @@ record unrelated desktop content when foreground activation failed.
 
 Runtime verification:
 
-- Native Rust tests: 26/26 passed.
+- Native Rust tests: 27/27 passed.
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls`:
   PASS for simple/advanced switching, topmost, preset editing, diagnostics,
   minimize/restore, tray restore, close-to-tray, and single-instance wake.
@@ -93,7 +97,9 @@ Runtime verification:
 
 Machine-readable evidence:
 `docs/evidence/ui/native-redesign-2026-11-11.json`.
+Failure-state evidence:
+`docs/evidence/ui/native-ui-failure-states-2026-11-11.json`.
 
-Remaining gates: 100%/150% DPI sessions, focused/long-error/firmware-clamp/
-worker-offline screenshots, packaged tray/taskbar verification, and a supervised
-packaged write/read-back smoke test.
+Remaining gates: 100%/150% DPI sessions, focused-input and high-contrast
+screenshots, packaged tray/taskbar verification, and a supervised packaged
+write/read-back smoke test.

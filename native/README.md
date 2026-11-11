@@ -109,6 +109,20 @@ state without launching the worker with write controls. The capture script
 attaches to the GUI thread, verifies the target is foreground, and then copies
 the DWM frame; it fails instead of recording an unrelated desktop window.
 
+Failure-state screenshots can be reproduced without hardware access:
+
+```powershell
+.\native\capture-rust-gui-redesign.ps1 `
+  -Fixture firmware-clamp `
+  -FilePrefix native-ui-firmware-clamp
+```
+
+Supported fixtures are `worker-offline`, `firmware-clamp`,
+`unsupported-platform`, and `long-error`. They use the explicit test-only
+`--ui-fixture` GUI flag, do not start a hardware worker, and do not request a
+power write. The capture gate also asserts whether target/preset controls are
+enabled and that diagnostics remains available.
+
 `导出诊断` is available in both read-only and write-enabled launches. It writes
 a schema-1 JSON document under
 `%LocalAppData%\AmdMobilePower\diagnostics\` containing the current sanitized

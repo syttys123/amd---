@@ -4,6 +4,8 @@ param(
     [string]$OutputDirectory,
     [string]$EvidencePath,
     [string]$FilePrefix = "native-redesign",
+    [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error")]
+    [string]$Fixture,
     [switch]$ReadOnly
 )
 
@@ -57,6 +59,9 @@ public static class AmdMobilePowerUiCapture {
 
     [DllImport("user32.dll")]
     public static extern bool IsWindowVisible(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowEnabled(IntPtr hwnd);
 
     [DllImport("user32.dll")]
     public static extern bool PrintWindow(IntPtr hwnd, IntPtr hdc, uint flags);
@@ -117,16 +122,80 @@ function Save-WindowImage {
     $height = $rect.Bottom - $rect.Top
     $bitmap = New-Object System.Drawing.Bitmap $width, $height
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    $captureMethod = $null
     try {
-        if ([AmdMobilePowerUiCapture]::GetForegroundWindow() -ne $Window) {
-            throw "The target window is not foreground; refusing to capture unrelated desktop content."
+        if ([AmdMobilePowerUiCapture]::GetForegroundWindow() -eq $Window) {
+            $graphics.CopyFromScreen(
+                $rect.Left,
+                $rect.Top,
+                0,
+                0,
+                $bitmap.Size)
+            $captureMethod = "CopyFromScreen(foreground-verified)"
         }
-        $graphics.CopyFromScreen(
-            $rect.Left,
-            $rect.Top,
-            0,
-            0,
-            $bitmap.Size)
+        else {
+            $graphics.Clear([System.Drawing.Color]::White)
+            $graphicsHdc = $graphics.GetHdc()
+            try {
+                $rendered = [AmdMobilePowerUiCapture]::PrintWindow(
+                    $Window,
+                    $graphicsHdc,
+                    2)
+            }
+            finally {
+                $graphics.ReleaseHdc($graphicsHdc)
+            }
+            if (-not $rendered) {
+                throw "Neither foreground capture nor PrintWindow fallback succeeded."
+            }
+
+            $minX = $width
+            $minY = $height
+            $maxX = -1
+            $maxY = -1
+            for ($y = 0; $y -lt $height; $y += 2) {
+                for ($x = 0; $x -lt $width; $x += 2) {
+                    $pixel = $bitmap.GetPixel($x, $y)
+                    if ($pixel.R -lt 246 -or $pixel.G -lt 246 -or $pixel.B -lt 246) {
+                        $minX = [Math]::Min($minX, $x)
+                        $minY = [Math]::Min($minY, $y)
+                        $maxX = [Math]::Max($maxX, $x)
+                        $maxY = [Math]::Max($maxY, $y)
+                    }
+                }
+            }
+            if ($maxX -le $minX -or $maxY -le $minY) {
+                throw "PrintWindow fallback produced a blank capture."
+            }
+
+            $sourceWidth = $maxX - $minX + 1
+            $sourceHeight = $maxY - $minY + 1
+            $normalized = New-Object System.Drawing.Bitmap $width, $height
+            $normalizedGraphics = [System.Drawing.Graphics]::FromImage($normalized)
+            try {
+                $normalizedGraphics.InterpolationMode =
+                    [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+                $normalizedGraphics.PixelOffsetMode =
+                    [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+                $destination = New-Object System.Drawing.Rectangle 0, 0, $width, $height
+                $source = New-Object System.Drawing.Rectangle `
+                    $minX, `
+                    $minY, `
+                    $sourceWidth, `
+                    $sourceHeight
+                $normalizedGraphics.DrawImage(
+                    $bitmap,
+                    $destination,
+                    $source,
+                    [System.Drawing.GraphicsUnit]::Pixel)
+            }
+            finally {
+                $normalizedGraphics.Dispose()
+            }
+            $bitmap.Dispose()
+            $bitmap = $normalized
+            $captureMethod = "PrintWindow(normalized-fallback)"
+        }
         $bitmap.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png)
     }
     finally {
@@ -137,7 +206,7 @@ function Save-WindowImage {
         Path = $Path
         Width = $width
         Height = $height
-        CaptureMethod = "CopyFromScreen(foreground-verified)"
+        CaptureMethod = $captureMethod
         SHA256 = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
     }
 }
@@ -158,10 +227,18 @@ function Focus-CaptureWindow {
                 $targetThread,
                 $true)
         }
-        [AmdMobilePowerUiCapture]::ShowWindowAsync($Window, 9) | Out-Null
-        [AmdMobilePowerUiCapture]::BringWindowToTop($Window) | Out-Null
-        [AmdMobilePowerUiCapture]::SetForegroundWindow($Window) | Out-Null
-        [AmdMobilePowerUiCapture]::SetFocus($Window) | Out-Null
+        $deadline = [DateTime]::UtcNow.AddSeconds(2)
+        while ([DateTime]::UtcNow -lt $deadline) {
+            [AmdMobilePowerUiCapture]::ShowWindowAsync($Window, 9) | Out-Null
+            [AmdMobilePowerUiCapture]::BringWindowToTop($Window) | Out-Null
+            [AmdMobilePowerUiCapture]::SetForegroundWindow($Window) | Out-Null
+            [AmdMobilePowerUiCapture]::SetFocus($Window) | Out-Null
+            if ([AmdMobilePowerUiCapture]::GetForegroundWindow() -eq $Window) {
+                return
+            }
+            Start-Sleep -Milliseconds 50
+        }
+        return $false
     }
     finally {
         if ($attached) {
@@ -248,6 +325,9 @@ try {
     if (-not $ReadOnly) {
         $guiArguments += "--enable-write-controls"
     }
+    if ($Fixture) {
+        $guiArguments += @("--ui-fixture", $Fixture)
+    }
     $process = Start-Process `
         -FilePath $GuiExecutable `
         -WorkingDirectory (Split-Path -Parent $GuiExecutable) `
@@ -269,7 +349,7 @@ try {
         throw "Rust GUI did not create the redesign window in time."
     }
 
-    Focus-CaptureWindow -Window $window
+    [void](Focus-CaptureWindow -Window $window)
     [AmdMobilePowerUiCapture]::SetWindowPos(
         $window,
         [IntPtr](-1),
@@ -279,7 +359,7 @@ try {
         0,
         0x0001) | Out-Null
     Start-Sleep -Seconds 1
-    Focus-CaptureWindow -Window $window
+    [void](Focus-CaptureWindow -Window $window)
     Start-Sleep -Milliseconds 500
     $advancedButton = [AmdMobilePowerUiCapture]::GetDlgItem($window, 109)
     if ($advancedButton -eq [IntPtr]::Zero) {
@@ -296,7 +376,7 @@ try {
         -Description "advanced layout" `
         -Condition { param($height) $height -gt $simpleSize.Height }
     Start-Sleep -Milliseconds 400
-    Focus-CaptureWindow -Window $window
+    [void](Focus-CaptureWindow -Window $window)
     $advancedCapture = Save-WindowImage `
         -Window $window `
         -Path (Join-Path $OutputDirectory "$FilePrefix-advanced-2026-11-11.png")
@@ -315,10 +395,45 @@ try {
         -Description "simple layout" `
         -Condition { param($height) $height -lt $advancedHeight }
     Start-Sleep -Milliseconds 400
-    Focus-CaptureWindow -Window $window
+    [void](Focus-CaptureWindow -Window $window)
     $simpleCapture = Save-WindowImage `
         -Window $window `
         -Path (Join-Path $OutputDirectory "$FilePrefix-simple-2026-11-11.png")
+
+    $controlChecks = $null
+    if ($ReadOnly -or $Fixture) {
+        $applyButton = [AmdMobilePowerUiCapture]::GetDlgItem($window, 317)
+        $presetButton = [AmdMobilePowerUiCapture]::GetDlgItem($window, 101)
+        $diagnosticsButton = [AmdMobilePowerUiCapture]::GetDlgItem($window, 107)
+        if ($applyButton -eq [IntPtr]::Zero -or
+            $presetButton -eq [IntPtr]::Zero -or
+            $diagnosticsButton -eq [IntPtr]::Zero) {
+            throw "Expected fixture controls were not found."
+        }
+        $expectedWritesEnabled = (
+            -not $ReadOnly -and
+            $Fixture -eq "firmware-clamp"
+        )
+        $actualWritesEnabled = (
+            [AmdMobilePowerUiCapture]::IsWindowEnabled($applyButton) -and
+            [AmdMobilePowerUiCapture]::IsWindowEnabled($presetButton)
+        )
+        if ($actualWritesEnabled -ne $expectedWritesEnabled) {
+            throw (
+                "Unexpected write-control state for fixture '$Fixture' " +
+                "and ReadOnly=$ReadOnly."
+            )
+        }
+        $diagnosticsEnabled =
+            [AmdMobilePowerUiCapture]::IsWindowEnabled($diagnosticsButton)
+        if (-not $diagnosticsEnabled) {
+            throw "Diagnostics must remain enabled in this UI state."
+        }
+        $controlChecks = [ordered]@{
+            TargetAndPresetEnabled = $actualWritesEnabled
+            DiagnosticsEnabled = $diagnosticsEnabled
+        }
+    }
 
     if ($EvidencePath) {
         $evidenceDirectory = Split-Path -Parent $EvidencePath
@@ -333,6 +448,8 @@ try {
             else {
                 "write-controls-visible-no-write-requested"
             }
+            Fixture = if ($Fixture) { $Fixture } else { $null }
+            ControlChecks = $controlChecks
             Simple = $simpleCapture
             Advanced = $advancedCapture
             RecordedAt = (Get-Date).ToString("o")
@@ -367,4 +484,6 @@ finally {
     Advanced = $advancedCapture.Path
     AdvancedSize = "$($advancedCapture.Width)x$($advancedCapture.Height)"
     CaptureMethod = "CopyFromScreen(foreground-verified)"
+    Fixture = if ($Fixture) { $Fixture } else { "none" }
+    ControlChecks = if ($controlChecks) { $controlChecks | ConvertTo-Json -Compress } else { "not requested" }
 } | Format-List

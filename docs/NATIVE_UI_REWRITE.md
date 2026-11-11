@@ -120,6 +120,9 @@ semantic.
 - Missing numeric data renders `--`.
 - Long operation results are held for five seconds so telemetry ticks do not
   erase the user's confirmation.
+- Worker-offline, unsupported-platform, firmware-clamp, and long-error states can
+  be rendered through the test-only `--ui-fixture` flag without starting a
+  hardware worker or requesting a power write.
 - Switching modes preserves worker connection, presets, policy, target,
   topmost state, and diagnostics availability.
 
@@ -139,7 +142,7 @@ semantic.
 At 125% Windows scaling:
 
 - `cargo test --manifest-path native\rust-gui\Cargo.toml --locked --offline`:
-  26/26 passed.
+  27/27 passed.
 - `cargo clippy --manifest-path native\rust-gui\Cargo.toml --locked --offline
   -- -D warnings`: PASS.
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls`:
@@ -151,10 +154,15 @@ At 125% Windows scaling:
 Evidence and screenshots:
 
 - `docs/evidence/ui/native-redesign-2026-11-11.json`
+- `docs/evidence/ui/native-ui-failure-states-2026-11-11.json`
 - `assets/native-gui-redesign-simple-2026-11-11.png` (`802x530` physical)
 - `assets/native-gui-redesign-advanced-2026-11-11.png` (`977x890` physical)
 - `assets/native-gui-redesign-readonly-simple-2026-11-11.png`
 - `assets/native-gui-redesign-readonly-advanced-2026-11-11.png`
+- `assets/native-ui-worker-offline-simple-2026-11-11.png`
+- `assets/native-ui-firmware-clamp-simple-2026-11-11.png`
+- `assets/native-ui-unsupported-platform-simple-2026-11-11.png`
+- `assets/native-ui-long-error-simple-2026-11-11.png`
 
 Reproduction:
 
@@ -168,8 +176,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass `
 
 - Repeat the redesigned shell at 100% and 150% Windows scaling on machines or
   sessions configured for those scales.
-- Capture focused inputs/buttons, firmware clamp, worker offline,
-  unsupported-platform, and long-error states.
+- Capture focused inputs/buttons at the system focus and high-contrast states.
 - Verify the packaged build's tray/taskbar icon and mode synchronization.
 - Run one supervised packaged write/read-back smoke test before promotion.
 

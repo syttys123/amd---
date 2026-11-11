@@ -23,7 +23,7 @@
       "path": "assets/native-gui-redesign-simple-2026-11-11.png",
       "physicalWidth": 802,
       "physicalHeight": 530,
-      "sha256": "406abbd562d4318b9988597c4332aa15765e5ca5f5d4d7d4d92c91bf9d3b80ed",
+      "sha256": "2183258728612efd6b7709f454d0f0610f23336859f7d66eaf3053a3316c36ad",
       "checks": {
         "continuousCommandDeck": true,
         "targetAndApplyVisible": true,
@@ -39,7 +39,7 @@
       "path": "assets/native-gui-redesign-advanced-2026-11-11.png",
       "physicalWidth": 977,
       "physicalHeight": 890,
-      "sha256": "de55cbed9b94cb777e8b192710ec664e1a369c69cc80ba7a714bf028b1352fef",
+      "sha256": "4eaedfd9752d93f3501545ce139139dd86e85fd563f05f5f8df1485cb7af81b1",
       "checks": {
         "sharedCommandDeckVisible": true,
         "editablePresetsVisible": true,
@@ -57,7 +57,7 @@
       "path": "assets/native-gui-redesign-readonly-simple-2026-11-11.png",
       "physicalWidth": 802,
       "physicalHeight": 530,
-      "sha256": "c462741c4f36ef53d29cf9333cb0a5127c53dea59c4deaefb75fb6b72462d484",
+      "sha256": "0fedd44938c8ea062a4728bd05ada33710b8c192978d5fb5f92b56ef8354eb12",
       "checks": {
         "readOnlyReasonVisible": true,
         "controlsRetainGeometry": true,
@@ -70,7 +70,7 @@
       "path": "assets/native-gui-redesign-readonly-advanced-2026-11-11.png",
       "physicalWidth": 977,
       "physicalHeight": 890,
-      "sha256": "4718ef74bb47480ccc2e2200c6337ec64e1448a2e91735b750ecb6472bd3ec25",
+      "sha256": "b8e1bfe626b11126ef24908c0070ee03413bc3157a7271b9e35e9dd4bde61ce9",
       "checks": {
         "presetEditingDisabled": true,
         "policyEditingDisabled": true,
@@ -80,7 +80,7 @@
     }
   ],
   "verification": {
-    "rustTestsPassed": 26,
+    "rustTestsPassed": 27,
     "rustTestsFailed": 0,
     "clippyWarnings": 0,
     "runtimeVerifier": "PASS",

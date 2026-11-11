@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-11T08:02:00+08:00",
+  "captureScript": "native/capture-rust-gui-redesign.ps1",
+  "fixtureFlag": "--ui-fixture",
+  "hardwareConnected": false,
+  "powerWriteRequested": false,
+  "windowsScalePercent": 125,
+  "states": [
+    {
+      "fixture": "worker-offline",
+      "simple": {
+        "path": "assets/native-ui-worker-offline-simple-2026-11-11.png",
+        "physicalWidth": 802,
+        "physicalHeight": 530,
+        "sha256": "5e80cfedf2ec26a0b413fe14021a2b842bc18a82d47285b246a263792686e7fb"
+      },
+      "advanced": {
+        "path": "assets/native-ui-worker-offline-advanced-2026-11-11.png",
+        "physicalWidth": 977,
+        "physicalHeight": 890,
+        "sha256": "6a84e06cb9ca8f2d899e79aaa0773ff5cc510d629bec26b2020dd4f1254b9787"
+      },
+      "checks": {
+        "statusLabel": "连接异常",
+        "firstLineActionVisible": true,
+        "targetAndPresetEnabled": false,
+        "diagnosticsEnabled": true
+      }
+    },
+    {
+      "fixture": "firmware-clamp",
+      "simple": {
+        "path": "assets/native-ui-firmware-clamp-simple-2026-11-11.png",
+        "physicalWidth": 802,
+        "physicalHeight": 530,
+        "sha256": "5da7b7d9a26bb7375acd00cbc510ac56fca13b4c98bad1f260e6484d2b1b25dd"
+      },
+      "advanced": {
+        "path": "assets/native-ui-firmware-clamp-advanced-2026-11-11.png",
+        "physicalWidth": 977,
+        "physicalHeight": 890,
+        "sha256": "9cea9620e8da16ac2120c7cc5b7bc8c583fe931442b6f9977fd7f85ead427413"
+      },
+      "checks": {
+        "statusLabel": "固件限制",
+        "requestedWatts": 12,
+        "effectiveStapmWatts": 10,
+        "effectiveFastWatts": 12,
+        "effectiveSlowWatts": 12,
+        "targetAndPresetEnabled": true,
+        "diagnosticsEnabled": true
+      }
+    },
+    {
+      "fixture": "unsupported-platform",
+      "simple": {
+        "path": "assets/native-ui-unsupported-platform-simple-2026-11-11.png",
+        "physicalWidth": 802,
+        "physicalHeight": 530,
+        "sha256": "b132e6f5d5e6dd99eacf07b40d6faf3976a35d0495fb61cbc832161ff2d1e6fd"
+      },
+      "advanced": {
+        "path": "assets/native-ui-unsupported-platform-advanced-2026-11-11.png",
+        "physicalWidth": 977,
+        "physicalHeight": 890,
+        "sha256": "49eabb989caed98e6742c678ba7de49b1a49df5afe17e419e3db9723fe254c0f"
+      },
+      "checks": {
+        "statusLabel": "平台不支持",
+        "statusMessage": "未验证平台：仅允许只读监测。",
+        "targetAndPresetEnabled": false,
+        "diagnosticsEnabled": true
+      }
+    },
+    {
+      "fixture": "long-error",
+      "simple": {
+        "path": "assets/native-ui-long-error-simple-2026-11-11.png",
+        "physicalWidth": 802,
+        "physicalHeight": 530,
+        "sha256": "30b8938ce715c1350215a5f384fa80aff8d32eab83e1abec171e87bc4f1d657e"
+      },
+      "advanced": {
+        "path": "assets/native-ui-long-error-advanced-2026-11-11.png",
+        "physicalWidth": 977,
+        "physicalHeight": 890,
+        "sha256": "6a84e06cb9ca8f2d899e79aaa0773ff5cc510d629bec26b2020dd4f1254b9787"
+      },
+      "checks": {
+        "statusLabel": "需要处理",
+        "firstLineActionVisible": true,
+        "targetAndPresetEnabled": false,
+        "diagnosticsEnabled": true
+      }
+    }
+  ],
+  "verification": {
+    "rustTestsPassed": 27,
+    "rustTestsFailed": 0,
+    "clippyWarnings": 0,
+    "controlStateAssertions": "PASS"
+  }
+}
