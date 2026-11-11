@@ -112,8 +112,12 @@ controlled current-value write-back/read-back policy gate on the development
 - `docs/HARDWARE_TEST_PROCEDURE.md` defines the supervised write-test gate.
 - `docs/LAUNCH_COPY_ZH.md` contains the review-only GitHub and Bilibili launch
   copy. It is not approval to publish.
+- `docs/NATIVE_LAUNCH_COPY_ZH.md` contains the native rc.17 review-only launch
+  copy. It is not approval to publish.
 - `docs/RELEASE_CANDIDATE_ZH.md` consolidates the current package, evidence,
   media, launch copy, and remaining publication gates.
+- `docs/NATIVE_RELEASE_CANDIDATE_ZH.md` consolidates the native rc.17 package,
+  hardware gate, UI evidence, and remaining publication gates.
 
 ## Development
 

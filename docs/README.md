@@ -59,10 +59,12 @@ Markdown document records the decisions that apply to AMD Mobile Power.
 | `ROADMAP.md` | Milestones and release gates |
 | `RELEASE_CHECKLIST.md` | Final publication checklist |
 | `RELEASE_CANDIDATE_ZH.md` | Consolidated package, evidence, media, and open-gate review |
+| `NATIVE_RELEASE_CANDIDATE_ZH.md` | Native rc.17 package, evidence, and open-gate review |
 | `INTRODUCTION_ZH.md` | Chinese project introduction draft |
 | `MEDIA_PLAN.md` | Screenshot, video, and Bilibili preparation plan |
 | `PROMO_VIDEO.md` | Current video draft, render command, hashes, and media verification |
 | `LAUNCH_COPY_ZH.md` | Review-only GitHub release and Bilibili publication copy |
+| `NATIVE_LAUNCH_COPY_ZH.md` | Review-only native rc.17 GitHub and Bilibili copy |
 
 ## Status Rules
 
