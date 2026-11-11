@@ -85,14 +85,14 @@ not authoritative.
   real icon. `1.0.1-native` (534,763 bytes,
   `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`) remains
   the historical shortcut-argument fix.
-- The clean native candidate is now `1.0.3-native`: 563,217 bytes, SHA256
-  `f3a563c73c49a39b05f14a9f14ebf0031bf77da3d181fc11962db5fe3d4d2eee`,
-  built from clean commit `b5af0e61233a376d360ee8474fa3821e2e5bb4c3`.
+- The clean native candidate is now `1.0.3-native`: 563,216 bytes, SHA256
+  `2935779907f89d38c0ca7d1a46a9661de6a18b32b6bf8bb7083bedff74807b8e`,
+  built from clean commit `e26ede44aab40bea8b2470edf9203f9c94b70054`.
   It was promoted to `C:\RyzenAdj` after the full release gate, packaged GUI
   verification, shell integration, isolated install/uninstall, and a
   no-change hardware policy probe passed. The previous `1.0.2-native`
-  deployment is recoverable at `C:\RyzenAdj.before-20261112-003929` and under
-  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.3-native-20261112-003929`.
+  deployment is recoverable at `C:\RyzenAdj.before-20261112-005635` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.3-native-e26ede4-20261112-005635`.
 - The `1.0.3-native` shortcut and live worker state now enforce a 10 W uniform
   policy. The shortcut arguments are
   `--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10`;

@@ -1,13 +1,13 @@
 {
   "Version": "1.0.3-native",
-  "SourceCommit": "b5af0e61233a376d360ee8474fa3821e2e5bb4c3",
+  "SourceCommit": "e26ede44aab40bea8b2470edf9203f9c94b70054",
   "Target": "C:\\RyzenAdj",
-  "TargetBackup": "C:\\RyzenAdj.before-20261112-003929",
-  "RepositoryBackup": "artifacts/deployment-backups/C-RyzenAdj-before-1.0.3-native-20261112-003929",
+  "TargetBackup": "C:\\RyzenAdj.before-20261112-005635",
+  "RepositoryBackup": "artifacts/deployment-backups/C-RyzenAdj-before-1.0.3-native-e26ede4-20261112-005635",
   "Package": "artifacts/native-packages/amd-mobile-power-v1.0.3-native-win-x64-native-preview.zip",
-  "PackageSHA256": "f3a563c73c49a39b05f14a9f14ebf0031bf77da3d181fc11962db5fe3d4d2eee",
+  "PackageSHA256": "2935779907f89d38c0ca7d1a46a9661de6a18b32b6bf8bb7083bedff74807b8e",
   "PackageVersion": "1.0.3-native",
-  "PackageSize": 563217,
+  "PackageSize": 563216,
   "LegacyDesktopShortcut": "<USER_HOME>\\Desktop\\功耗设置 5-60W.lnk",
   "ShortcutTarget": "C:\\RyzenAdj\\amd-mobile-power-gui.exe",
   "ShortcutArguments": "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10",
@@ -46,5 +46,5 @@
   "ReleaseGateEvidence": "docs/evidence/packaging/v1.0.3-native-release-gate-2026-11-12.json",
   "NoChangePolicyEvidence": "docs/evidence/hardware/v1.0.3-native-power-policy-no-change-2026-11-12.json",
   "Note": "The verified 1.0.3-native package replaced 1.0.2-native with a hash-verified repository backup. The shortcut now starts the GUI with both a 10 W hard ceiling and a persistent uniform 10 W battery/AC policy. Live worker policy state reports enabled=true, both power lines enabled at 10/10/10 W, and the AC read-back is 10/10/10 W.",
-  "RecordedAt": "2026-11-12T00:45:01.0445226+08:00"
+  "RecordedAt": "2026-11-12T00:58:40.8734241+08:00"
 }

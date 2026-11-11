@@ -19,10 +19,10 @@ AMD 笔记本都受支持。
 - Candidate: `1.0.3-native`
 - Package:
   `artifacts/native-packages/amd-mobile-power-v1.0.3-native-win-x64-native-preview.zip`
-- Size: `563,217` bytes
+- Size: `563,216` bytes
 - SHA256:
-  `f3a563c73c49a39b05f14a9f14ebf0031bf77da3d181fc11962db5fe3d4d2eee`
-- Package source commit: `b5af0e61233a376d360ee8474fa3821e2e5bb4c3`
+  `2935779907f89d38c0ca7d1a46a9661de6a18b32b6bf8bb7083bedff74807b8e`
+- Package source commit: `e26ede44aab40bea8b2470edf9203f9c94b70054`
 - Working tree at build time: clean
 - Review bundle: `artifacts/native-release-review/v1.0.3-native`
 
@@ -80,9 +80,9 @@ Evidence:
 
 - 目标目录：`C:\RyzenAdj`
 - 版本：`1.0.3-native`
-- 旧版备份：`C:\RyzenAdj.before-20261112-003929`
+- 旧版备份：`C:\RyzenAdj.before-20261112-005635`
 - 仓库备份：
-  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.3-native-20261112-003929`
+  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.3-native-e26ede4-20261112-005635`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 10
   --uniform-target-watts 10`

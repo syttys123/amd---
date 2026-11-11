@@ -4,8 +4,9 @@ Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
 stable-local deployment. `C:\RyzenAdj` currently holds `1.0.3-native`. The
-previous native `1.0.2-native` deployment is preserved as
-`C:\RyzenAdj.before-20261112-003929`, `1.0.1-native` as
+previous native `1.0.3-native` build is preserved as
+`C:\RyzenAdj.before-20261112-005635`, `1.0.2-native` as
+`C:\RyzenAdj.before-20261112-003929`, and `1.0.1-native` as
 `C:\RyzenAdj.before-20261111-233609`, `1.0.0-native` as
 `C:\RyzenAdj.before-20261111-232010`, and the .NET `1.0.4` package as
 `C:\RyzenAdj.before-20261111-223017`.
@@ -45,10 +46,10 @@ accessibility settings.
 artifacts/native-packages/amd-mobile-power-v1.0.3-native-win-x64-native-preview.zip
 ```
 
-- Size: `563,217` bytes.
+- Size: `563,216` bytes.
 - SHA256:
-  `f3a563c73c49a39b05f14a9f14ebf0031bf77da3d181fc11962db5fe3d4d2eee`.
-- Source commit: `b5af0e61233a376d360ee8474fa3821e2e5bb4c3`.
+  `2935779907f89d38c0ca7d1a46a9661de6a18b32b6bf8bb7083bedff74807b8e`.
+- Source commit: `e26ede44aab40bea8b2470edf9203f9c94b70054`.
 - Working tree at build time: clean.
 - Policy write verification: intentionally skipped in the clean package gate.
 
@@ -123,8 +124,9 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   differences. `build.ps1`, `build-package.ps1`, and the readiness gate all fail
   on a missing icon.
 - The verified package is deployed at `C:\RyzenAdj` with the prior
-  `1.0.2-native` directory preserved at
-  `C:\RyzenAdj.before-20261112-003929`, `1.0.1-native` at
+  previous `1.0.3-native` build at
+  `C:\RyzenAdj.before-20261112-005635`, `1.0.2-native` at
+  `C:\RyzenAdj.before-20261112-003929`, and `1.0.1-native` at
   `C:\RyzenAdj.before-20261111-233609`, `1.0.0-native` at
   `C:\RyzenAdj.before-20261111-232010`, and the .NET `1.0.4` directory at
   `C:\RyzenAdj.before-20261111-223017`. The deployed GUI/worker passed

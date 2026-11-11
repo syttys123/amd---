@@ -4,8 +4,9 @@
 
 - `D:\amd-mobile-power`: development repository and source of truth.
 - `C:\RyzenAdj`: current stable-local native deployment (`1.0.3-native`) on the
-  development laptop. The previous native `1.0.2-native` deployment remains at
-  `C:\RyzenAdj.before-20261112-003929`, `1.0.1-native` at
+  development laptop. The previous `1.0.3-native` build remains at
+  `C:\RyzenAdj.before-20261112-005635`, `1.0.2-native` at
+  `C:\RyzenAdj.before-20261112-003929`, and `1.0.1-native` at
   `C:\RyzenAdj.before-20261111-233609`, `1.0.0-native` at
   `C:\RyzenAdj.before-20261111-232010`, and the .NET `1.0.4` deployment at
   `C:\RyzenAdj.before-20261111-223017`.
@@ -72,12 +73,12 @@ Per-Monitor V2 DPI awareness, a resizable window, hand cursors, corrected
 metric-band layout, and a persistent 10 W uniform battery/AC policy.
 
 - Package SHA256:
-  `f3a563c73c49a39b05f14a9f14ebf0031bf77da3d181fc11962db5fe3d4d2eee`
-- Package size: `563,217` bytes
-- Package source commit: `b5af0e61233a376d360ee8474fa3821e2e5bb4c3`
-- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-003929`
+  `2935779907f89d38c0ca7d1a46a9661de6a18b32b6bf8bb7083bedff74807b8e`
+- Package size: `563,216` bytes
+- Package source commit: `e26ede44aab40bea8b2470edf9203f9c94b70054`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-005635`
 - Recoverable D: backup:
-  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.3-native-20261112-003929`
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.3-native-e26ede4-20261112-005635`
 - Desktop shortcut:
   `<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - Shortcut target and arguments:
