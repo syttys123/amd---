@@ -75,6 +75,33 @@ rolls back on failure.
 
 ## Current Deployment Evidence
 
+On 2026-11-12, `1.0.11-native` replaced `1.0.10-native` at `C:\RyzenAdj`. The
+only payload change is the new `amd-mobile-power-probe.exe`, which can produce
+a read-only compatibility report without the GUI or PowerShell.
+
+- Package SHA256:
+  `5e544f46daf22619b9fa9f0fe162b847ffde61ee42a900c2742fc5a990734295`
+- Package size: `745,376` bytes, 19 checksum entries
+- Package source commit: `aa290aec79a89a0dd69ce1d739b0d182b4fd484d`
+- Working tree at build time: clean
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-052733`
+- Desktop shortcut target and arguments:
+  `C:\RyzenAdj\amd-mobile-power-gui.exe --enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10`
+- Release gate:
+  `docs\evidence\packaging\v1.0.11-native-release-gate-2026-11-12.json`
+  (C++ tests, native hardware read-only probe at `10/10/10 W`, GUI lifecycle,
+  packaged headless probe, compatibility collector, install flow, shell
+  integration, DPI fixtures, and a controlled no-change 10 W policy write)
+- Clean package evidence:
+  `docs\evidence\packaging\v1.0.11-native-clean-2026-11-12.json`
+  (`HeadlessProbe=PASS`)
+- Deployment evidence:
+  `docs\evidence\packaging\v1.0.11-native-deployment-2026-11-12.json`
+- Headless probe live report:
+  `docs\evidence\diagnostics\headless-probe-8845hs-live-2026-11-12.json`
+- Live state after restart: policy enabled, battery and AC both `10/10/10 W`,
+  worker read-back `10/10/10 W` on AC.
+
 On 2026-11-12, `1.0.10-native` replaced `1.0.9-native` at `C:\RyzenAdj`.
 It fixes the target editor so the initial and background policy refresh both
 leave the visible target aligned with the active 10 W preset.

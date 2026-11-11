@@ -5,6 +5,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if (MSVC)
+    # Deterministic PE images: two builds of identical sources must hash equal,
+    # otherwise the release evidence cannot pin a reproducible artifact.
+    add_link_options(/Brepro)
+endif()
+
 add_executable(amdmobilepower_native_worker
     src/main.cpp
     src/power_limit_policy.cpp

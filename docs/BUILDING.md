@@ -22,12 +22,27 @@ The current release line is the Rust GUI + C++ worker package:
 ```powershell
 .\native\build.ps1 -Offline
 .\native\verify-release.ps1 `
-  -Version 1.0.8-native `
+  -Version 1.0.12-native `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```
 
 See `PACKAGING.md` and `DEPLOYMENT.md` for package promotion and rollback.
+
+## Reproducible Builds
+
+All three native binaries link with MSVC `/Brepro`
+(`native/rust-gui/build.rs`, `native/rust-probe/build.rs`, and
+`native/cpp-worker/CMakeLists.txt`). Without it the linker stamps the PE header
+with the current time, so identical sources hashed differently on every build.
+
+Verify at any time; the script rebuilds each binary twice, including a clean
+C++ rebuild, and compares SHA-256:
+
+```powershell
+.\native\verify-reproducibility.ps1 `
+  -EvidencePath .\artifacts\native-build\reproducibility.json
+```
 
 ## Legacy .NET Application
 

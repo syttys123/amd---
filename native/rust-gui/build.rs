@@ -74,6 +74,10 @@ fn main() {
     }
 
     println!("cargo:rustc-link-arg-bins={}", res_file.display());
+    // Without /Brepro the linker stamps the image with the current time, so two
+    // builds of identical sources produce different PE hashes and the release
+    // evidence cannot prove a byte-identical artifact.
+    println!("cargo:rustc-link-arg-bins=/Brepro");
 }
 
 fn find_rc() -> Option<PathBuf> {

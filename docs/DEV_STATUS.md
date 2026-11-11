@@ -142,6 +142,31 @@ not authoritative.
   packaged screenshot rather than cross-process window text: target input
   `10`, one visible `10 W` preset, and live `10/10/10 W` are recorded in
   `docs\evidence\ui\native-deployed-1.0.10-capture-2026-11-12.json`.
+- `C:\RyzenAdj` now contains the promoted `1.0.11-native` package, which adds
+  the headless `amd-mobile-power-probe.exe` to the stable folder. The previous
+  `1.0.10-native` deployment is recoverable at
+  `C:\RyzenAdj.before-20261112-052733`. Package SHA256 is
+  `5e544f46daf22619b9fa9f0fe162b847ffde61ee42a900c2742fc5a990734295`
+  (745,376 bytes, 19 checksum entries), built from clean commit `aa290ae`. The
+  release gate passed C++ policy tests, native read-only hardware, GUI
+  lifecycle, packaged headless probe, compatibility collector, isolated
+  install/uninstall, shell integration, DPI fixtures, and a controlled
+  no-change 10 W policy write. All 19 deployed files match the package; the GUI
+  was restarted with the original arguments and reports `enabled=true`, battery
+  and AC `10/10/10 W`, and live AC `10/10/10 W`. Evidence:
+  `docs/evidence/packaging/v1.0.11-native-release-gate-2026-11-12.json`,
+  `docs/evidence/packaging/v1.0.11-native-clean-2026-11-12.json`,
+  `docs/evidence/packaging/v1.0.11-native-deployment-2026-11-12.json`.
+- Native builds are now byte-reproducible. Rebuilding identical sources used to
+  change only the PE `TimeDateStamp` and debug directory (24 bytes), because
+  `link.exe` stamped the image with the wall clock. `native/rust-gui/build.rs`,
+  `native/rust-probe/build.rs`, and `native/cpp-worker/CMakeLists.txt` now pass
+  `/Brepro`. `native/verify-reproducibility.ps1` rebuilds the GUI and probe
+  (after deleting the exe) and the worker (`--clean-first`) and compares
+  hashes; the first run reported `PASS` with GUI `ff2dcd48`, probe `6a050588`,
+  and worker `67af1d41` identical across both builds. The `1.0.11-native`
+  deployment predates this change; `1.0.12-native` is the first package whose
+  artifacts can be reproduced from the commit.
 - Every native package now also ships `amd-mobile-power-probe.exe`, a
   dependency-free diagnostic entry point. `--diagnose` starts a private
   read-only worker, collects health/capabilities/telemetry/profiles/policy,

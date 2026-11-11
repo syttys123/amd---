@@ -1,0 +1,25 @@
+{
+  "Verification": "PASS",
+  "RecordedAt": "2026-11-12T05:46:58.9312330+08:00",
+  "Results": {
+    "Gui": {
+      "First": "ff2dcd48b8c0d67dcba4d41dc17bff0a079d02c0d3546b5f99a3142826690449",
+      "Second": "ff2dcd48b8c0d67dcba4d41dc17bff0a079d02c0d3546b5f99a3142826690449",
+      "Reproducible": true,
+      "Size": 812032
+    },
+    "Probe": {
+      "First": "6a050588c9f8ddc64d79847e3b9e173e315f54528eb02c4a920962ac96730074",
+      "Second": "6a050588c9f8ddc64d79847e3b9e173e315f54528eb02c4a920962ac96730074",
+      "Reproducible": true,
+      "Size": 334336
+    },
+    "Worker": {
+      "First": "67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1",
+      "Second": "67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1",
+      "Reproducible": true,
+      "Size": 140800
+    }
+  },
+  "Failures": []
+}
