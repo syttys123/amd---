@@ -1167,6 +1167,12 @@ third_party/
   `simple` to `advanced` mode transition. The dedicated rc.16 packaged run
   passed all fields without requesting a power write:
   `docs/evidence/ui/native-packaged-rc16-ui-2026-11-11.json`.
+- Separated the release no-change policy gate from extracted package
+  verification on 2026-11-11. `verify-release.ps1` now always runs the packaged
+  GUI/worker gate read-only; `-ExecuteNoChangePolicy` is handled only by the
+  separate current-value read-back/write-back probe. A failed `rc.17` attempt
+  exposed that the old path could request 12/45 W during package verification;
+  the live limits remained `25.08/45/25 W` and the policy stayed disabled.
 - Added native Windows high-contrast support without changing user settings.
   The custom canvas, owner-drawn buttons, native edit backgrounds, focus rings,
   semantic badges, and status bands now switch palette on system setting

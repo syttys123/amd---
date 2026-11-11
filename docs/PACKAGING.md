@@ -70,7 +70,10 @@ worktree:
 
 The wrapper requires a unique version, produces the package and evidence
 files, and rejects a dirty worktree unless `-AllowDirty` is explicitly passed
-for diagnostics.
+for diagnostics. The extracted package gate is always read-only. When
+`-ExecuteNoChangePolicy` is selected, the separate power-policy probe writes
+the current power-line limits back unchanged and then disables the policy; it
+never substitutes a preset such as 12/45 W during package verification.
 
 After the release gate passes and the evidence is committed, create a local
 review-only bundle:

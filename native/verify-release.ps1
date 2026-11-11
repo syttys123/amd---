@@ -62,9 +62,7 @@ $packageArguments = @{
     NoBuild = $true
     Version = $Version
     EvidencePath = $packageEvidence
-}
-if (-not $ExecuteNoChangePolicy) {
-    $packageArguments.ReadOnlyRuntimeVerification = $true
+    ReadOnlyRuntimeVerification = $true
 }
 $null = & (Join-Path $root "build-package.ps1") @packageArguments
 
