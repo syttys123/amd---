@@ -6,43 +6,45 @@ process and performs no hardware write.
 
 ## Current Draft
 
-The current draft is 74.2 seconds at 1920x1080, 25 fps, with H.264 video, AAC
-stereo audio, Chinese narration, and simplified-Chinese captions. It is marked
+The current draft is 78.2 seconds at 1920x1080, 25 fps, with H.264 video, AAC
+stereo audio, Chinese narration, and simplified-Chinese captions. It uses the
+verified `1.0.8-native` 10 W local policy screenshots, including the corrected
+target editor and the `5-10 W` effective range. It is marked
 `DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
 
-![Promo draft cover](assets/native-promo-draft-cover-2026-11-11.png)
+![Promo draft cover](assets/native-promo-10w-cover-2026-11-12.png)
 
-![Seven-scene review contact sheet](assets/native-promo-draft-contact-sheet-2026-11-11.png)
+![Seven-scene review contact sheet](assets/native-promo-10w-contact-sheet-2026-11-12.png)
 
 Bilibili 1146x717 cover:
 
-![Bilibili launch cover](assets/bilibili-cover-native-2026-11-11.png)
+![Bilibili launch cover](assets/bilibili-cover-native-10w-2026-11-12.png)
 
 Local render:
 
 ```text
-artifacts/media/amd-mobile-power-native-promo-draft-2026-11-11/
-  amd-mobile-power-native-intro-draft-2026-11-11.mp4
+artifacts/media/amd-mobile-power-native-promo-10w-2026-11-12/
+  amd-mobile-power-native-intro-10w-2026-11-12.mp4
 ```
 
-- Size: 20,542,287 bytes.
+- Size: 22,129,812 bytes.
 - SHA256:
-  `0c2045722273783038c65b2f586e8590fadf09f5a6612b5613cae62b7affb276`.
+  `af70c9e7bd837c04346dde7110fa7cd0a9c9221edad5f3e5826a28c92ed7d575`.
 - Full-file FFmpeg decode: PASS.
-- Audio level: mean `-21.3 dB`, peak `-1.1 dB`.
+- Audio level: mean `-21.2 dB`, peak `-1.1 dB`.
 - Title, caption, and bullet safe-width checks: PASS.
 - Scene count: 7.
 
 Machine-readable evidence:
-`docs/evidence/media/native-promo-draft-2026-11-11.json`.
+`docs/evidence/media/native-promo-10w-draft-2026-11-12.json`.
 
 Verify the local MP4 and every committed review/source hash without rerendering:
 
 ```powershell
 .\verify-media.ps1 `
-  -VideoPath .\artifacts\media\amd-mobile-power-native-promo-draft-2026-11-11\amd-mobile-power-native-intro-draft-2026-11-11.mp4 `
-  -ManifestPath .\artifacts\media\amd-mobile-power-native-promo-draft-2026-11-11\promo-manifest.json `
-  -EvidencePath .\docs\evidence\media\native-promo-draft-2026-11-11.json
+  -VideoPath .\artifacts\media\amd-mobile-power-native-promo-10w-2026-11-12\amd-mobile-power-native-intro-10w-2026-11-12.mp4 `
+  -ManifestPath .\artifacts\media\amd-mobile-power-native-promo-10w-2026-11-12\promo-manifest.json `
+  -EvidencePath .\docs\evidence\media\native-promo-10w-draft-2026-11-12.json
 ```
 
 The verifier checks the manifest, evidence, SHA256, codecs, dimensions, frame
@@ -53,11 +55,11 @@ Regenerate the Bilibili cover:
 
 ```powershell
 .\render-launch-cover.ps1 `
-  -OutputPath .\docs\assets\bilibili-cover-native-2026-11-11.png `
-  -ScreenshotPath .\assets\native-gui-redesign-simple-2026-11-11.png `
+  -OutputPath .\docs\assets\bilibili-cover-native-10w-2026-11-12.png `
+  -ScreenshotPath .\assets\native-gui-10w-simple-2026-11-12.png `
   -Eyebrow "AMD NATIVE / OPEN SOURCE" `
-  -PreviewLabel "1.0.0 / LOCAL STABLE" `
-  -Subtitle "实时功耗 · 预设 · 回读校验" `
+  -PreviewLabel "1.0.8 / LOCAL 10 W" `
+  -Subtitle "电池与插电统一 · 实时回读" `
   -PillText "原生 GUI|只读默认|兼容诊断" `
   -FooterRight "READ-ONLY BY DEFAULT"
 ```
@@ -70,15 +72,15 @@ reviewed launch copy. Rendering fails if the main text exceeds its safe width.
 ```powershell
 .\render-promo.ps1 `
   -Storyboard .\media\promo-native\storyboard.json `
-  -OutputDirectory .\artifacts\media\amd-mobile-power-native-promo-draft-2026-11-11 `
-  -OutputName amd-mobile-power-native-intro-draft-2026-11-11.mp4
+  -OutputDirectory .\artifacts\media\amd-mobile-power-native-promo-10w-2026-11-12 `
+  -OutputName amd-mobile-power-native-intro-10w-2026-11-12.mp4
 ```
 
 The default output is written under the ignored `artifacts/media` directory:
 
 ```text
-artifacts/media/amd-mobile-power-native-promo-draft-2026-11-11/
-  amd-mobile-power-native-intro-draft-2026-11-11.mp4
+artifacts/media/amd-mobile-power-native-promo-10w-2026-11-12/
+  amd-mobile-power-native-intro-10w-2026-11-12.mp4
   captions-zh.srt
   cover-draft.png
   promo-manifest.json

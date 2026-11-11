@@ -3982,6 +3982,9 @@ unsafe fn apply_profile_to_presets(app: &mut GuiApp, hwnd: HWND, profile: &Profi
         app.selected_target = PowerLimitTarget::uniform(app.preset_watts[0]);
         app.selected_preset = Some(0);
     }
+    if let Some(controls) = app.simple_controls {
+        set_edit_watts(controls.target_edit, app.selected_target.stapm_watts);
+    }
     refresh_preset_controls(app);
 
     if !app.policy_profile_applied {
@@ -4708,6 +4711,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 set_edit_watts(controls.battery_target, saved.battery_target.stapm_watts);
                 set_edit_watts(controls.ac_target, saved.ac_target.stapm_watts);
             }
+        }
+        if let Some(controls) = (*app).simple_controls {
+            set_edit_watts(controls.target_edit, (*app).selected_target.stapm_watts);
         }
         (*app).fonts = Some(fonts);
         apply_topmost_style(hwnd, (*app).top_most);

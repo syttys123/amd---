@@ -213,6 +213,8 @@ Evidence and screenshots:
 - `docs/evidence/ui/native-ui-failure-states-2026-11-11.json`
 - `assets/native-gui-redesign-simple-2026-11-11.png` (`802x530` physical)
 - `assets/native-gui-redesign-advanced-2026-11-11.png` (`977x890` physical)
+- `assets/native-gui-10w-simple-2026-11-12.png` (`802x529` physical)
+- `assets/native-gui-10w-advanced-2026-11-12.png` (`977x889` physical)
 - `assets/native-gui-redesign-readonly-simple-2026-11-11.png`
 - `assets/native-gui-redesign-readonly-advanced-2026-11-11.png`
 - `assets/native-ui-worker-offline-simple-2026-11-11.png`
@@ -231,6 +233,7 @@ Evidence and screenshots:
 - `assets/native-high-contrast-advanced-2026-11-11.png`
 - `docs/evidence/ui/native-packaged-1.0.0-ui-2026-11-11.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
+- `docs/evidence/ui/native-10w-capture-2026-11-12.json`
 
 Reproduction:
 
@@ -247,5 +250,8 @@ pwsh -NoProfile -ExecutionPolicy Bypass `
   monitor transitions and shell metrics are covered by physical session
   evidence rather than the test-only scale override.
 
-Public GitHub Release, Bilibili upload, and promotion to `C:\RyzenAdj` remain
-unapproved until the release gates and hardware evidence are complete.
+The 10 W local policy captures also verify that the target editor follows the
+selected preset instead of retaining the old default value. Stable-local
+promotion to `C:\RyzenAdj` is accepted for the verified 8845HS platform. Public
+GitHub Release and Bilibili upload remain unapproved until human review and the
+remaining external gates complete.

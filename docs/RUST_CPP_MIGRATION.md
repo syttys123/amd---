@@ -1,11 +1,14 @@
 # Rust GUI + C++ Worker Migration
 
-Status: `IN_PROGRESS`
+Status: `NATIVE_MIGRATION_COMPLETE; BROAD_COMPATIBILITY_IN_PROGRESS`
 
 This document records the migration away from the current C# WinForms GUI and
-C# worker. The current verified deployment remains `C:\RyzenAdj` version
-`1.0.4`; migration work must not modify that directory or replace it until the
-native build passes the same release and hardware gates.
+C# worker. The native Rust GUI + C++ worker line is now deployed as
+`1.0.8-native` at `C:\RyzenAdj` after the package, lifecycle, read-back, and
+hardware-policy gates passed on the verified 8845HS platform. The .NET
+implementation remains available as a fallback and historical reference.
+Broad multi-generation compatibility is still in progress and requires
+independent hardware evidence.
 
 ## Target Split
 

@@ -4,10 +4,13 @@ param(
     [string]$OutputDirectory,
     [string]$EvidencePath,
     [string]$FilePrefix = "native-redesign",
+    [string]$FileDate = "2026-11-11",
     [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error", "high-contrast")]
     [string]$Fixture,
     [ValidateSet("100", "125", "150", "200")]
     [string]$DpiFixture,
+    [ValidateRange(5, 60)]
+    [int]$UniformTargetWatts,
     [switch]$BatteryOnly,
     [int]$FocusControlId,
     [switch]$ReadOnly
@@ -399,28 +402,45 @@ New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $stateDirectory = [System.IO.Path]::GetFullPath(
     (Join-Path $artifactsRoot "native-build\capture-state-$([Guid]::NewGuid().ToString('N'))"))
 New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
-if ($BatteryOnly) {
+if ($BatteryOnly -and $UniformTargetWatts -gt 0) {
+    throw "BatteryOnly and UniformTargetWatts cannot be combined."
+}
+if ($BatteryOnly -or $UniformTargetWatts -gt 0) {
     $stateFileDirectory = Join-Path $stateDirectory "AmdMobilePower"
     New-Item -ItemType Directory -Path $stateFileDirectory -Force | Out-Null
+    $batteryWatts = if ($UniformTargetWatts -gt 0) { $UniformTargetWatts } else { 10 }
+    $acWatts = if ($UniformTargetWatts -gt 0) { $UniformTargetWatts } else { 45 }
+    $presets = if ($UniformTargetWatts -gt 0) {
+        @($UniformTargetWatts, $UniformTargetWatts, $UniformTargetWatts)
+    }
+    else {
+        @(12, 25, 45)
+    }
     [ordered]@{
         powerPolicy = [ordered]@{
             enabled = $true
             batteryEnabled = $true
-            acEnabled = $false
+            acEnabled = -not $BatteryOnly
             batteryTarget = [ordered]@{
-                stapmWatts = 10
-                fastWatts = 10
-                slowWatts = 10
+                stapmWatts = $batteryWatts
+                fastWatts = $batteryWatts
+                slowWatts = $batteryWatts
             }
             acTarget = [ordered]@{
-                stapmWatts = 45
-                fastWatts = 45
-                slowWatts = 45
+                stapmWatts = $acWatts
+                fastWatts = $acWatts
+                slowWatts = $acWatts
             }
         }
-        presets = @(12, 25, 45)
+        presets = $presets
         mode = "simple"
         topMost = $false
+        maxTargetWatts = if ($UniformTargetWatts -gt 0) {
+            $UniformTargetWatts
+        }
+        else {
+            $null
+        }
     } |
         ConvertTo-Json -Depth 8 |
         Set-Content -LiteralPath (Join-Path $stateFileDirectory "rust-ui-state.json") -Encoding UTF8
@@ -506,7 +526,7 @@ try {
     [void](Focus-CaptureWindow -Window $window -FocusControlId $FocusControlId)
     $advancedCapture = Save-WindowImage `
         -Window $window `
-        -Path (Join-Path $OutputDirectory "$FilePrefix-advanced-2026-11-11.png")
+        -Path (Join-Path $OutputDirectory "$FilePrefix-advanced-$FileDate.png")
     $advancedHeight = (Get-WindowSize -Window $window).Height
     $simpleButton = [AmdMobilePowerUiCapture]::GetDlgItem($window, 108)
     if ($simpleButton -eq [IntPtr]::Zero) {
@@ -531,7 +551,7 @@ try {
     [void](Focus-CaptureWindow -Window $window -FocusControlId $FocusControlId)
     $simpleCapture = Save-WindowImage `
         -Window $window `
-        -Path (Join-Path $OutputDirectory "$FilePrefix-simple-2026-11-11.png")
+        -Path (Join-Path $OutputDirectory "$FilePrefix-simple-$FileDate.png")
 
     $controlChecks = $null
     if ($ReadOnly -or $Fixture) {
@@ -583,7 +603,10 @@ try {
         }
         [ordered]@{
             SchemaVersion = 1
-            CaptureMode = if ($ReadOnly) {
+            CaptureMode = if ($UniformTargetWatts -gt 0 -or $BatteryOnly) {
+                "write-controls-visible-policy-seeded"
+            }
+            elseif ($ReadOnly) {
                 "read-only-no-write-controls"
             }
             else {
@@ -591,6 +614,13 @@ try {
             }
             Fixture = if ($Fixture) { $Fixture } else { $null }
             DpiFixture = if ($DpiFixture) { [int]$DpiFixture } else { $null }
+            UniformTargetWatts = if ($UniformTargetWatts -gt 0) {
+                $UniformTargetWatts
+            }
+            else {
+                $null
+            }
+            PolicySeeded = [bool]($UniformTargetWatts -gt 0 -or $BatteryOnly)
             BatteryOnly = [bool]$BatteryOnly
             FocusControlId = if ($FocusControlId -gt 0) { $FocusControlId } else { $null }
             ControlChecks = $controlChecks
@@ -645,6 +675,12 @@ finally {
     ) -join ", "
     Fixture = if ($Fixture) { $Fixture } else { "none" }
     DpiFixture = if ($DpiFixture) { $DpiFixture } else { "native" }
+    UniformTargetWatts = if ($UniformTargetWatts -gt 0) {
+        $UniformTargetWatts
+    }
+    else {
+        "none"
+    }
     BatteryOnly = [bool]$BatteryOnly
     FocusControlId = if ($FocusControlId -gt 0) { $FocusControlId } else { "none" }
     ControlChecks = if ($controlChecks) { $controlChecks | ConvertTo-Json -Compress } else { "not requested" }

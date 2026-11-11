@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "development-preview-video-draft",
+  "capturedAt": "2026-11-12T03:22:22.2966847+08:00",
+  "status": "DRAFT_FOR_HUMAN_REVIEW",
+  "video": {
+    "path": "artifacts/media/amd-mobile-power-native-promo-10w-2026-11-12/amd-mobile-power-native-intro-10w-2026-11-12.mp4",
+    "sha256": "af70c9e7bd837c04346dde7110fa7cd0a9c9221edad5f3e5826a28c92ed7d575",
+    "sizeBytes": 22129812,
+    "durationSeconds": 78.2,
+    "width": 1920,
+    "height": 1080,
+    "frameRate": "25/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "sampleRate": "96000",
+    "channels": 2
+  },
+  "narration": {
+    "voice": "Microsoft Huihui Desktop",
+    "rate": 3,
+    "captions": "artifacts/media/amd-mobile-power-native-promo-10w-2026-11-12/captions-zh.srt",
+    "captionsSha256": "b28b28f8c524f3f721228e8874271834caebb8f81aee0a07c575cad4ff861d0a"
+  },
+  "source": {
+    "storyboard": "media/promo-native/storyboard.json",
+    "storyboardSha256": "04a40c67b28ed2a0166b9e6d822f76c4047218bab035288155701fd8c2b23439",
+    "renderer": "render-promo.ps1",
+    "rendererSha256": "a6166b6892f60ca0d499ef7bdbdd7d68d2a19b5addb0de65803576122969c47c"
+  },
+  "reviewAssets": {
+    "cover": "docs/assets/native-promo-10w-cover-2026-11-12.png",
+    "coverSha256": "2d329a01ce7ae74ff56abcedd59d7571594ef540b3acb75481cdd56b6df865d0",
+    "coverWidth": 1920,
+    "coverHeight": 1080,
+    "contactSheet": "docs/assets/native-promo-10w-contact-sheet-2026-11-12.png",
+    "contactSheetSha256": "28baca780ce02668e8327a699267c7c4957e9f93f24a4707d868b75520ddcd1a",
+    "contactSheetWidth": 1920,
+    "contactSheetHeight": 640
+  },
+  "bilibiliCover": {
+    "path": "docs/assets/bilibili-cover-native-10w-2026-11-12.png",
+    "sha256": "54b4993d0f5f7f6080fe46356f845fb77e1825b439263ee11f06a77e3afd4c93",
+    "sizeBytes": 146824,
+    "width": 1146,
+    "height": 717,
+    "renderer": "render-launch-cover.ps1",
+    "rendererSha256": "f349a8403ecfc16fc65f4d439b9596cad5a8d9900fad837eb7476bbd43fad760",
+    "textSafeWidth": "PASS"
+  },
+  "verification": {
+    "ffmpegFullDecode": "PASS",
+    "textSafeWidth": "PASS",
+    "sceneCount": 7,
+    "meanVolumeDb": -21.2,
+    "maxVolumeDb": -1.1,
+    "noApplicationProcess": true,
+    "noHardwareWrite": true,
+    "noLoginOrUpload": true
+  },
+  "limitations": [
+    "This is a development-preview draft, not a public release video.",
+    "The project owner has not reviewed final pacing, voice, claims, or cover.",
+    "The video uses verified native screenshots rather than a live screen recording.",
+    "No authenticated GitHub or Bilibili upload was performed."
+  ]
+}

@@ -70,6 +70,7 @@ previous stack of independent white cards:
 | --- | --- | ---: | --- |
 | Native simple redesign | `assets/native-gui-redesign-simple-2026-11-11.png` | `802x530` | One continuous dark command deck contains identity, modes, live STAPM, target input, apply, and three presets; the flat telemetry ledger and status band sit below without detached card stacking |
 | Native advanced redesign | `assets/native-gui-redesign-advanced-2026-11-11.png` | `977x890` | Shared command deck, editable presets, battery/external policy, device capability, worker health, and a live STAPM/Fast/Slow read-back ledger render without visible text clipping or structural overlap |
+| Native 10 W policy | `assets/native-gui-10w-simple-2026-11-12.png`, `assets/native-gui-10w-advanced-2026-11-12.png` | `802x529`, `977x889` | Real worker state shows `10.00 W` live, `5-10 W` effective target range, target input `10`, one visible `10 W` preset, and `10/10/10 W` STAPM/Fast/Slow read-back; captures were foreground-verified and policy-seeded at the already-applied safe value |
 | Native read-only states | `assets/native-gui-redesign-readonly-simple-2026-11-11.png`, `assets/native-gui-redesign-readonly-advanced-2026-11-11.png` | `802x530`, `977x890` | Write controls retain their geometry while disabled; the simple status explains `只读`, and diagnostics remains available in both modes |
 | Worker offline | `assets/native-ui-worker-offline-simple-2026-11-11.png`, `assets/native-ui-worker-offline-advanced-2026-11-11.png` | `802x530`, `977x890` | `连接异常`, a restart/check-worker action, disabled target/preset controls, and enabled diagnostics export |
 | Firmware clamp | `assets/native-ui-firmware-clamp-simple-2026-11-11.png`, `assets/native-ui-firmware-clamp-advanced-2026-11-11.png` | `802x530`, `977x890` | Requested 12 W with STAPM clamped to 10 W while Fast/Slow read back 12 W; the amber status remains distinct from transport failure |
@@ -92,7 +93,7 @@ record unrelated desktop content when foreground activation failed.
 
 Runtime verification:
 
-- Native Rust tests: 30/30 passed.
+- Native Rust tests: 38/38 passed.
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls`:
   PASS for simple/advanced switching, topmost, preset editing, diagnostics,
   minimize/restore, tray restore, close-to-tray, and single-instance wake.
@@ -101,9 +102,13 @@ Runtime verification:
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWriteControls -UiFixture
   high-contrast`: PASS for the high-contrast palette and diagnostics flag.
 - No power write was requested during screenshot capture.
+- The 10 W policy capture seeded the already-applied safe value and verified the
+  target editor now matches the selected 10 W preset.
 
 Machine-readable evidence:
 `docs/evidence/ui/native-redesign-2026-11-11.json`.
+10 W policy evidence:
+`docs/evidence/ui/native-10w-capture-2026-11-12.json`.
 Failure-state evidence:
 `docs/evidence/ui/native-ui-failure-states-2026-11-11.json`.
 Battery-only fixture evidence:

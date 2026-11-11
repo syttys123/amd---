@@ -1,0 +1,28 @@
+{
+  "SchemaVersion": 1,
+  "CaptureMode": "write-controls-visible-policy-seeded",
+  "Fixture": null,
+  "DpiFixture": null,
+  "UniformTargetWatts": 10,
+  "PolicySeeded": true,
+  "BatteryOnly": false,
+  "FocusControlId": null,
+  "ControlChecks": null,
+  "Simple": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\native-10w-capture-2026-11-12\\native-gui-10w-simple-2026-11-12.png",
+    "Width": 802,
+    "Height": 529,
+    "CaptureMethod": "CopyFromScreen(foreground-verified)",
+    "SHA256": "59e2c6d660b00f24ecfb7ce87409e0957922d45ed0737718aa9d3f42b7101f35"
+  },
+  "Advanced": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\native-10w-capture-2026-11-12\\native-gui-10w-advanced-2026-11-12.png",
+    "Width": 977,
+    "Height": 889,
+    "CaptureMethod": "CopyFromScreen(foreground-verified)",
+    "SHA256": "71710f86026211ffe1125b12897079e11dd8fa9c885dd0c6f06f77f93683bd0e"
+  },
+  "SimpleClientSize": null,
+  "AdvancedClientSize": null,
+  "RecordedAt": "2026-11-12T03:20:51.4415303+08:00"
+}

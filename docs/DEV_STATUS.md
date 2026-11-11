@@ -121,6 +121,15 @@ not authoritative.
   Rust GUI tests pass 38/38 and Clippy is clean. A fixture launch with isolated
   `%LocalAppData%` produced `enabled=true`, both power lines at 10 W, presets
   `[10,10,10]`, and `maxTargetWatts=10`.
+- The native target editor now synchronizes with the selected preset and the
+  effective cap on startup and after profile clamping. Regenerated 10 W
+  captures show target input `10`, effective range `5-10 W`, one visible
+  preset, and live `10/10/10 W` read-back; evidence is recorded in
+  `docs\evidence\ui\native-10w-capture-2026-11-12.json`.
+- The 10 W review media now uses those corrected real screenshots. The updated
+  78.2-second draft is verified at 1920x1080 with full decode, hashes, audio
+  level, safe-width, cover, contact-sheet, and Bilibili-cover checks in
+  `docs\evidence\media\native-promo-10w-draft-2026-11-12.json`.
 - The `1.0.8-native` release gate reports `Verification=PASS`, including 18
   checksum entries, isolated install/uninstall, packaged GUI lifecycle,
   shell integration, DPI fixtures, read-only hardware, and a controlled

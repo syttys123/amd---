@@ -13,7 +13,7 @@
       "eyebrow": "OPEN SOURCE / NATIVE GUI",
       "title": "AMD 轻薄本\n功耗别只靠猜",
       "caption": "实时看见 STAPM / PPT / 温度",
-      "image": "assets/native-gui-redesign-simple-2026-11-11.png",
+      "image": "assets/native-gui-10w-simple-2026-11-12.png",
       "badges": [
         "实时功耗",
         "简洁 / 高级",
@@ -31,21 +31,21 @@
         "目标值与固件上限分开",
         "供电、温度和匹配配置"
       ],
-      "image": "assets/native-gui-redesign-advanced-2026-11-11.png",
+      "image": "assets/native-gui-10w-advanced-2026-11-12.png",
       "narration": "每秒刷新实时功耗、功耗上限和温度。目标值与固件上限分开显示，避免把调用成功当成实际生效。"
     },
     {
       "id": "presets",
       "layout": "screenshot-right",
       "eyebrow": "EDITABLE PRESETS",
-      "title": "12 / 25 / 45 W\n快捷，也能编辑",
+      "title": "10 W 统一\n也能按需编辑",
       "bullets": [
-        "默认只读",
-        "校验平台与范围",
-        "GUI / worker 双门控"
+        "电池 / 插电同目标",
+        "有效范围 5-10 W",
+        "目标输入实时同步"
       ],
-      "image": "assets/native-gui-redesign-advanced-2026-11-11.png",
-      "narration": "三个常用功耗可以编辑并持久保存。开发版默认只读，写入需要显式解锁并校验平台与范围。"
+      "image": "assets/native-gui-10w-advanced-2026-11-12.png",
+      "narration": "本地稳定版把电池和插电都统一为十瓦。目标输入、快捷预设和自动策略保持一致，有效范围直接显示为五到十瓦；需要时仍可在界面里重新编辑。"
     },
     {
       "id": "safety",
@@ -83,7 +83,7 @@
         "多世代保守配置",
         "脱敏只读诊断"
       ],
-      "image": "assets/native-battery-only-advanced-2026-11-11.png",
+      "image": "assets/native-gui-10w-simple-2026-11-12.png",
       "narration": "目前完整实机证据来自 Ryzen 七 八八四五 H S。项目为多个 AMD 世代准备了保守配置，并提供无需打开图形界面的脱敏只读诊断；不同机型仍需独立验证。"
     },
     {
