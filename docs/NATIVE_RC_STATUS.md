@@ -3,8 +3,9 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.3-native`. The
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.4-native`. The
 previous native `1.0.3-native` build is preserved as
+`C:\RyzenAdj.before-20261112-011649`, the earlier `1.0.3-native` build as
 `C:\RyzenAdj.before-20261112-005635`, `1.0.2-native` as
 `C:\RyzenAdj.before-20261112-003929`, and `1.0.1-native` as
 `C:\RyzenAdj.before-20261111-233609`, `1.0.0-native` as
@@ -13,14 +14,19 @@ previous native `1.0.3-native` build is preserved as
 
 Decision (2026-11-12): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.3-native` package. Broader AMD generation support remains experimental.
+`1.0.4-native` package. Broader AMD generation support remains experimental.
 
-Note (2026-11-12): `1.0.3-native` supersedes `1.0.2-native` with per-monitor
-DPI awareness, a resizable native window, hand cursors on controls, a protected
-metric band, and a uniform power policy. The shortcut now launches with
+Note (2026-11-12): `1.0.4-native` supersedes `1.0.3-native` with a
+family-indexed multi-generation profile catalog, read-only `getProfiles`,
+complete-catalog compatibility reports, and report-import validation. Every
+RyzenAdj family `0-15` maps to exactly one conservative fallback while
+`8845HS + 4c0009` remains the sole verified device profile. Worker version is
+`0.6.0-native`. The shortcut still launches with
 `--max-target-watts 10 --uniform-target-watts 10`, which persists and enables
 10/10/10 W for both battery and AC while preventing every UI target, preset, or
-policy from exceeding 10 W. `1.0.2-native` added the embedded
+policy from exceeding 10 W. `1.0.3-native` added per-monitor DPI awareness, a
+resizable native window, hand cursors, a protected metric band, and the
+uniform policy. `1.0.2-native` added the embedded
 PE icon (`RT_ICON` + `RT_GROUP_ICON` 1). `1.0.1-native` fixed the desktop
 shortcut exiting immediately with `unknown argument: --simple-mode`. The native
 parser accepts `--simple-mode` / `--advanced-mode`,
@@ -43,23 +49,27 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.3-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.4-native-win-x64-native-preview.zip
 ```
 
-- Size: `563,216` bytes.
+- Size: `565,651` bytes.
 - SHA256:
-  `2935779907f89d38c0ca7d1a46a9661de6a18b32b6bf8bb7083bedff74807b8e`.
-- Source commit: `e26ede44aab40bea8b2470edf9203f9c94b70054`.
+  `0f6889803372c70436d3e61b16b544a53ec7b9b87de75d563fd11a117ddcc70e`.
+- Source commit: `6e9e10c3207660fd5f878b389187ceaa91c9f396`.
 - Working tree at build time: clean.
 - Policy write verification: intentionally skipped in the clean package gate.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.3-native
+artifacts/native-release-review/v1.0.4-native
 ```
 
 The bundle is `REVIEW_ONLY` and is not a public release.
+
+Historical candidate `1.0.3-native` remains recorded with package SHA256
+`2935779907f89d38c0ca7d1a46a9661de6a18b32b6bf8bb7083bedff74807b8e`
+and source commit `e26ede44aab40bea8b2470edf9203f9c94b70054`.
 
 Historical candidate `1.0.2-native` remains recorded with package SHA256
 `614743257e66c002b5873e3bc5f36f57a874bf763e6a3cb728a28225eec16d9c`
@@ -91,7 +101,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Native read-only write guard: invalid target rejected, no write requested.
 - Battery-authorized dry-run write guard: PASS with
   `ExecuteNoChangeWrite=Not requested`.
-- `1.0.3-native` clean package verification with 16 checksum entries,
+- `1.0.4-native` clean package verification with 16 checksum entries,
   isolated install/overwrite/uninstall, extracted GUI/worker read-only
   verification, compatibility JSON/Markdown collection, and
   `PolicyWriteVerification=Skipped`.
@@ -111,7 +121,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - High-contrast simple and advanced captures with `ui.highContrast=true`, no
   hardware worker startup, and the same target/preset/diagnostics availability
   checks as the other write-controls fixtures.
-- Extracted `1.0.3-native` packaged GUI/worker verification with GUI and worker
+- Extracted `1.0.4-native` packaged GUI/worker verification with GUI and worker
   hashes, three minimize/restore cycles, close-to-tray, tray restore,
   single-instance wake, `taskbarIconAvailable=true`, `trayIconId=1`, and the
   persisted `simple` to `advanced` mode transition.
@@ -124,7 +134,8 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   differences. `build.ps1`, `build-package.ps1`, and the readiness gate all fail
   on a missing icon.
 - The verified package is deployed at `C:\RyzenAdj` with the prior
-  previous `1.0.3-native` build at
+  `1.0.3-native` build at
+  `C:\RyzenAdj.before-20261112-011649`, earlier `1.0.3-native` builds at
   `C:\RyzenAdj.before-20261112-005635`, `1.0.2-native` at
   `C:\RyzenAdj.before-20261112-003929`, and `1.0.1-native` at
   `C:\RyzenAdj.before-20261111-233609`, `1.0.0-native` at
@@ -134,6 +145,12 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   battery-only, and diagnostics checks; the desktop shortcut keeps
   `--enable-write-controls --simple-mode --max-target-watts 10
   --uniform-target-watts 10`.
+- Profile-catalog gate: the worker reports 10 entries, exactly one verified
+  profile, and exactly one family fallback for every RyzenAdj family `0-15`.
+  The packaged read-only collector returned `PASS` with worker
+  `0.6.0-native`, matched `hawk-point-8845hs`, and live `10/10/10 W` limits;
+  the importer accepted the report and rejected a synthetic catalog missing
+  family `8`.
 - Desktop-shortcut launch gate: the promotion helper launched the promoted GUI
   with the real shortcut arguments under an isolated `%LocalAppData%` and a
   unique worker pipe, and reported `LaunchVerification=PASS` with window title
@@ -149,13 +166,14 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
-- `docs/evidence/packaging/v1.0.3-native-clean-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.3-native-release-gate-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.3-native-shell-integration-2026-11-12.json`
-- `docs/evidence/hardware/v1.0.3-native-power-policy-no-change-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.3-native-deployment-2026-11-12.json`
-- `docs/evidence/ui/native-packaged-1.0.3-native-ui-2026-11-12.json`
-- `docs/evidence/ui/native-deployed-1.0.3-native-ui-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.4-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.4-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.4-native-shell-integration-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.4-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.4-native-deployment-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.4-native-ui-2026-11-12.json`
+- `docs/evidence/ui/native-deployed-1.0.4-native-ui-2026-11-12.json`
+- `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
 - `docs/evidence/release/native-publication-readiness-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
 - `native/rust-gui/build.rs`

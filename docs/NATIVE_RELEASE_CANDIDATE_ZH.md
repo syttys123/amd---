@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `1.0.3-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.4-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,23 +16,23 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `1.0.3-native`
+- Candidate: `1.0.4-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v1.0.3-native-win-x64-native-preview.zip`
-- Size: `563,216` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.4-native-win-x64-native-preview.zip`
+- Size: `565,651` bytes
 - SHA256:
-  `2935779907f89d38c0ca7d1a46a9661de6a18b32b6bf8bb7083bedff74807b8e`
-- Package source commit: `e26ede44aab40bea8b2470edf9203f9c94b70054`
+  `0f6889803372c70436d3e61b16b544a53ec7b9b87de75d563fd11a117ddcc70e`
+- Package source commit: `6e9e10c3207660fd5f878b389187ceaa91c9f396`
 - Working tree at build time: clean
-- Review bundle: `artifacts/native-release-review/v1.0.3-native`
+- Review bundle: `artifacts/native-release-review/v1.0.4-native`
 
-本版把电池与插电策略统一到 `10/10/10 W`，快捷方式同时带
-`--max-target-watts 10 --uniform-target-watts 10`：前者是任何 UI 目标、预设和
-策略都不能越过的硬上限，后者会持久化并启用两端统一策略。GUI 新增 Per-Monitor
-V2 DPI 感知、可拉伸窗口、全按钮手型光标和修正后的指标带布局。上一版
-`1.0.2-native` 把应用图标嵌入 exe 的 PE 资源（`RT_ICON` +
-`RT_GROUP_ICON` 1），避免资源管理器、任务栏、Alt+Tab 和快捷方式退回通用
-占位图标。
+本版新增 family 索引的多代 AMD profile 目录，worker 通过只读 `getProfiles`
+暴露全部 10 条匹配规则；RyzenAdj family `0-15` 每条必须且只能映射到一个保守
+fallback，`8845HS + 4c0009` 保持唯一 verified 设备 profile。兼容性采集现在
+收录完整目录，导入器会拒绝重复 ID、缺失 family 覆盖或 verified 数量异常。
+电池与插电策略仍统一为 `10/10/10 W`，快捷方式继续带
+`--max-target-watts 10 --uniform-target-watts 10`。Worker 版本为
+`0.6.0-native`。
 
 ## 本机验证
 
@@ -43,8 +43,10 @@ V2 DPI 感知、可拉伸窗口、全按钮手型光标和修正后的指标带�
 - 提取后 GUI/worker 只读验证、诊断导出、兼容性 JSON/Markdown：PASS。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
-- `1.0.2-native -> 1.0.3-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
+- `1.0.3-native -> 1.0.4-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
   参数契约、真实参数启动：PASS。
+- 多代 profile 目录：10 条 profile、family `0-15` 全覆盖且各一次、一个
+  verified profile；真机只读采集和导入 PASS，故意删除 family `8` 的报告被拒绝。
 - 嵌入图标门禁：构建、暂存、部署三处的 exe 均含 `RT_GROUP_ICON` 1 与 9 个
   `RT_ICON`，取出的 32x32 与源 ICO 逐像素 0 差异。
 - 打包版托盘/任务栏与模式同步证据：`CloseToTray`、`TrayRestore`、
@@ -53,10 +55,10 @@ V2 DPI 感知、可拉伸窗口、全按钮手型光标和修正后的指标带�
 
 Evidence:
 
-- `docs/evidence/packaging/v1.0.3-native-clean-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.3-native-release-gate-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.3-native-shell-integration-2026-11-12.json`
-- `docs/evidence/ui/native-packaged-1.0.3-native-ui-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.4-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.4-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.4-native-shell-integration-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.4-native-ui-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
 - `native/gui-cli-contract.json`
 
@@ -72,17 +74,18 @@ Evidence:
 
 Evidence:
 
-- `docs/evidence/hardware/v1.0.3-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.4-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
 
 ## 本地部署
 
 - 目标目录：`C:\RyzenAdj`
-- 版本：`1.0.3-native`
-- 旧版备份：`C:\RyzenAdj.before-20261112-005635`
+- 版本：`1.0.4-native`
+- 旧版备份：`C:\RyzenAdj.before-20261112-011649`
 - 仓库备份：
-  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.3-native-e26ede4-20261112-005635`
+  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.4-native-6e9e10c-20261112-011649`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 10
   --uniform-target-watts 10`
@@ -90,7 +93,7 @@ Evidence:
   快捷方式真实参数启动验证 PASS；实时策略 `enabled=true`、电池和插电均为
   `10/10/10 W`，AC 回读 `10/10/10 W`
 - Evidence:
-  `docs/evidence/packaging/v1.0.3-native-deployment-2026-11-12.json`
+  `docs/evidence/packaging/v1.0.4-native-deployment-2026-11-12.json`
 
 ## 发布就绪检查
 
