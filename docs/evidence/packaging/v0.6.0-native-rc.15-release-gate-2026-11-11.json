@@ -1,0 +1,14 @@
+{
+  "Version": "0.6.0-native-rc.15",
+  "Verification": "PASS",
+  "Package": "amd-mobile-power-v0.6.0-native-rc.15-win-x64-native-preview.zip",
+  "SHA256": "e2940853e82d5aa459b6f5e3f99d680bb29a485fcb3071374ddee395f28948fd",
+  "Size": 535408,
+  "SourceCommit": "c85a0c951f5a36311ebfb176a6e2ea60c2cf29d1",
+  "PackageEvidence": "D:\\amd-mobile-power\\docs\\evidence\\packaging\\v0.6.0-native-rc.15-clean-2026-11-11.json",
+  "ShellIntegration": "PASS",
+  "ShellEvidence": "D:\\amd-mobile-power\\docs\\evidence\\packaging\\v0.6.0-native-rc.15-shell-integration-2026-11-11.json",
+  "NoChangePolicy": "Not requested",
+  "PolicyEvidence": null,
+  "RecordedAt": "2026-11-11T19:01:44.3156012+08:00"
+}

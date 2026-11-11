@@ -40,7 +40,7 @@ the policy-save write, use the read-only runtime gate:
 .\native\build-package.ps1 `
   -NoBuild `
   -ReadOnlyRuntimeVerification `
-  -Version 0.6.0-native-rc.14
+  -Version 0.6.0-native-rc.15
 ```
 
 This runs the extracted GUI/worker, write-control UI, diagnostics export,
@@ -63,7 +63,7 @@ worktree:
 
 ```powershell
 .\native\verify-release.ps1 `
-  -Version 0.6.0-native-rc.1 `
+  -Version 0.6.0-native-rc.15 `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```
@@ -76,7 +76,7 @@ After the release gate passes and the evidence is committed, create a local
 review-only bundle:
 
 ```powershell
-.\native\prepare-release-review.ps1 -Version 0.6.0-native-rc.4
+.\native\prepare-release-review.ps1 -Version 0.6.0-native-rc.15
 ```
 
 The command writes the ZIP, release gate, policy/shell evidence, notices,
@@ -112,20 +112,22 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 Current internal native release candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.14-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.15-win-x64-native-preview.zip
 ```
 
-- Size: `533,597` bytes.
+- Size: `535,408` bytes.
 - SHA256:
-  `069ed024ab30ff7cc7bf53bdd251fbbcd88080c83302f6190812d0866a770cbb`.
-- Source commit: `0ca6bf256bb7aa9217a62ad84c2d05e47863bbc6`.
+  `e2940853e82d5aa459b6f5e3f99d680bb29a485fcb3071374ddee395f28948fd`.
+- Source commit: `c85a0c951f5a36311ebfb176a6e2ea60c2cf29d1`.
 - Working tree at build time: clean.
 - Runtime verification: hardware read-only/write-guard, clean-room native GUI
   lifecycle with three Win32 minimize/restore cycles, extracted read-only
   worker, compatibility collector, staged install/overwrite/uninstall, and
   real shell integration passed. `PolicyWriteVerification=Skipped`.
 - The clean-room native UI was verified in simple and advanced modes at 125%
-  scaling with no structural overlap.
+  scaling with no structural overlap. The test-only high-contrast fixture
+  verifies a complete black/white/yellow palette without changing Windows
+  accessibility settings.
 - `导出诊断` works in read-only and write-enabled modes, writing schema-1 JSON
   with an explicit privacy block and no paths, process IDs, logs, pipe names,
   or upload path.
@@ -133,16 +135,16 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.14-win-x64-native-pr
   staged rollback switching, uninstall, and refusal to overwrite an unmarked
   non-empty directory.
 - Aggregate evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.14-release-gate-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.15-release-gate-2026-11-11.json`.
 - Package evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.14-clean-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.15-clean-2026-11-11.json`.
 - Shell evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.14-shell-integration-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.15-shell-integration-2026-11-11.json`.
 - Install upgrade evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.14-cross-version-upgrade-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.15-cross-version-upgrade-2026-11-11.json`.
 
 This RC is not yet the public stable release. The `.NET` GUI remains the
-deployed product, and the native preview still needs a supervised rc.14
+deployed product, and the native preview still needs a supervised rc.15
 no-change write plus read-only compatibility evidence from a second physical
 AMD laptop before any promotion
 discussion.

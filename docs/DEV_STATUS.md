@@ -71,14 +71,15 @@ not authoritative.
   the full simple and advanced shells in black, white, and yellow without
   modifying system accessibility settings; diagnostics expose the active state
   as `ui.highContrast`.
-- The clean native candidate is now `0.6.0-native-rc.14`: 533,597 bytes,
+- The clean native candidate is now `0.6.0-native-rc.15`: 535,408 bytes,
   SHA256
-  `069ed024ab30ff7cc7bf53bdd251fbbcd88080c83302f6190812d0866a770cbb`,
-  built from clean commit `0ca6bf256bb7aa9217a62ad84c2d05e47863bbc6`.
-- The rc.14 package passed 16-entry checksum verification, extracted GUI/worker
+  `e2940853e82d5aa459b6f5e3f99d680bb29a485fcb3071374ddee395f28948fd`,
+  built from clean commit `c85a0c951f5a36311ebfb176a6e2ea60c2cf29d1`.
+- The rc.15 package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user
-  Start menu/Startup/uninstall-entry create-cleanup. Policy-write verification
+  Start menu/Startup/uninstall-entry create-cleanup. It also carries the
+  Windows high-contrast palette and fixture gates. Policy-write verification
   was intentionally skipped in the clean read-only gate and remains the next
   supervised hardware gate.
 - The native preview installer now stages the complete payload before switching
@@ -97,6 +98,8 @@ not authoritative.
 - A real `rc.13` to `rc.14` upgrade passed with the same payload-hash,
   read-only runtime, and uninstall checks after the focus/icon verification
   tooling update.
+- A real `rc.14` to `rc.15` upgrade passed with the same payload-hash,
+  read-only runtime, and uninstall checks after the high-contrast work.
 - Native simple/advanced screenshots are now reproducible through
   `native\capture-rust-gui-redesign.ps1`, which uses an isolated
   `%LocalAppData%` and unique worker pipe and does not request a power write.
@@ -1162,6 +1165,16 @@ third_party/
   changes. The fixture and capture gates verify `ui.highContrast`, diagnostic
   state, readable simple/advanced layouts, and no hardware worker startup.
   Native Rust tests are now 30/30 and Clippy remains clean with `-D warnings`.
+- Built and fully gated `0.6.0-native-rc.15` from clean commit
+  `c85a0c951f5a36311ebfb176a6e2ea60c2cf29d1`. The package is 535,408 bytes
+  with SHA256
+  `e2940853e82d5aa459b6f5e3f99d680bb29a485fcb3071374ddee395f28948fd`.
+  The aggregate read-only gate passed C++ tests, 30 Rust tests, Clippy,
+  hardware capability/telemetry, the native write rejection gate, the dry-run
+  write guard, GUI lifecycle, compatibility collection, checksums, isolated
+  install/uninstall, real shell integration, and the `rc.14` to `rc.15`
+  upgrade. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.15-release-gate-2026-11-11.json`.
 
 Development screenshot:
 
@@ -1203,14 +1216,14 @@ Historical development screenshots:
 - Broaden the packaged native worker's hardware matrix beyond the 8845HS and
   collect a second-device write/read-back smoke test; keep `1.0.4` as the
   stable fallback.
-- Run the supervised `rc.14` write-enabled no-change policy gate on the
+- Run the supervised `rc.15` write-enabled no-change policy gate on the
   8845HS before promotion. The clean package currently proves the complete
   read-only runtime and install flow with `PolicyWriteVerification=Skipped`.
 
 ## Next Concrete Task
 
 Repeat the native redesign at 100% and 150% Windows scaling, then run the
-supervised `rc.14` no-change policy gate on the development 8845HS. Keep
+supervised `rc.15` no-change policy gate on the development 8845HS. Keep
 `C:\RyzenAdj` on the verified `1.0.4` rollback point and do not promote a dirty
 or write-unverified native package.
 
