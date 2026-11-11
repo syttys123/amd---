@@ -39,9 +39,9 @@
     "contactSheetHeight": 640
   },
   "bilibiliCover": {
-    "path": "docs/assets/bilibili-cover-native-1.0.10-2026-11-12.png",
-    "sha256": "589a3da8fba105229fe43ec1bb887141707a5f7a0bacf6118bf3c4d410644f9f",
-    "sizeBytes": 146616,
+    "path": "docs/assets/bilibili-cover-native-1.0.17-2026-11-12.png",
+    "sha256": "22cc2f0368d77442a213d695246ab5a291074365afe2a938e9450b8fd8cbf5db",
+    "sizeBytes": 145233,
     "width": 1146,
     "height": 717,
     "renderer": "render-launch-cover.ps1",

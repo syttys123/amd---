@@ -138,7 +138,7 @@ Evidence:
 - 时长：`78.2 s`，`1920x1080`，H.264 + AAC
 - SHA256：
   `af70c9e7bd837c04346dde7110fa7cd0a9c9221edad5f3e5826a28c92ed7d575`
-- B 站封面：`docs/assets/bilibili-cover-native-10w-2026-11-12.png`
+- B 站封面：`docs/assets/bilibili-cover-native-1.0.17-2026-11-12.png`
 - 审片帧：`docs/assets/native-promo-10w-contact-sheet-2026-11-12.png`
 - 机器证据：`docs/evidence/media/native-promo-draft-2026-11-12.json`
 
