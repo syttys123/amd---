@@ -217,6 +217,12 @@ not authoritative.
   `docs/evidence/packaging/v1.0.17-native-watchdog-hang-2026-11-12.json`,
   `docs/evidence/packaging/v1.0.17-native-release-gate-2026-11-12.json`,
   `docs/evidence/packaging/v1.0.17-native-deployment-2026-11-12.json`.
+  Publication readiness is `LocalReadiness=PASS` with all 13 checks true,
+  `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, and no local blockers.
+  Open gates remain the second AMD device, real 100%/150% Windows sessions,
+  hosted CI, the clean WinRing0 baseline, and human media/release approval.
+  Evidence:
+  `docs/evidence/release/native-publication-readiness-1.0.17-2026-11-12.json`.
 - `C:\RyzenAdj` previously contained the promoted `1.0.16-native` package, which adds
   worker supervision with automatic policy restore and a probe that retries
   `ERROR_PIPE_BUSY`. Package SHA256 is
