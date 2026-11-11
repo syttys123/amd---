@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `1.0.10-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.13-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,33 +16,38 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `1.0.10-native`
+- Candidate: `1.0.13-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v1.0.10-native-win-x64-native-preview.zip`
-- Size: `571,464` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.13-native-win-x64-native-preview.zip`
+- Size: `745,536` bytes
 - SHA256:
-  `d28f499195db2a9c51f9fc07816ee70ed8ebcb9110637489ba3fc43b94a64437`
-- Package source commit: `b93dd5d53d596dba75f9ca004e0b31947b65c1d6`
+  `eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7`
+- Package source commit: `6a986923df03a228c520be3132f11b61ff1b79b7`
 - Working tree at build time: clean
-- Review bundle: `artifacts/native-release-review/v1.0.10-native`
+- Review bundle: `artifacts/native-release-review/v1.0.13-native`
 
-本版修复目标输入框在启动和策略刷新后仍显示旧默认值的问题。目标框现在与
-当前预设和有效上限同步，部署截图、策略状态和硬件回读均显示统一
-`10/10/10 W`。安全驱动卸载、多代 profile 目录、DPI 门禁和电池/插电统一
-策略均保留。
+本版新增随包发布的 `amd-mobile-power-probe.exe`：无需 GUI、无需
+PowerShell，即可启动私有只读 worker 并导出一份脱敏兼容性报告，格式与现有
+导入脚本一致；它绝不打开写控制。同时，GUI、探针、C++ worker 和整个便携 ZIP
+都已做到同提交逐字节可复现。此前的目标框同步、安全驱动卸载、多代 profile
+目录、DPI 门禁和电池/插电统一策略全部保留。
 
 ## 本机验证
 
 - Rust GUI 测试：`38/38`。
 - Rust formatting / Clippy `-D warnings`：PASS。
 - C++ power-limit / power-policy 测试：PASS。
-- 18 项包内 SHA256 校验：PASS。
+- 19 项包内 SHA256 校验：PASS。
 - 提取后 GUI/worker 只读验证、诊断导出、兼容性 JSON/Markdown：PASS。
+- 无头探针：6/6 单元测试、`--self-test`、包内真实 `--diagnose`
+  （`collectionStatus=PASS`，AC `10/10/10 W`）：PASS。
+- 可复现构建：GUI `ff2dcd48`、worker `67af1d41`、探针 `6a050588`、
+  ZIP `eac6fc73`，两次构建逐字节一致。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
 - `1.0.9-native -> 1.0.10-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
   参数契约、真实参数启动：PASS。
-- 驱动安装/卸载脚本：均进入 ZIP 和 `C:\RyzenAdj`，部署后 18 个载荷文件
+- 驱动安装/卸载脚本：均进入 ZIP 和 `C:\RyzenAdj`，部署后 19 个载荷文件
   与暂存包逐字节匹配。
 - 驱动更新顺序：运行中服务先停止并等待 `Stopped`，再替换 `.sys`；UI 控件
   就绪等待后的策略控件门禁连续 3 次 PASS。
@@ -58,10 +63,12 @@ AMD 笔记本都受支持。
 
 Evidence:
 
-- `docs/evidence/packaging/v1.0.10-native-clean-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.10-native-release-gate-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.10-native-shell-integration-2026-11-12.json`
-- `docs/evidence/ui/native-deployed-1.0.10-capture-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.13-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.13-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.13-native-shell-integration-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.13-native-ui-2026-11-12.json`
+- `docs/evidence/build/reproducibility-2026-11-12.json`
+- `docs/evidence/diagnostics/headless-probe-8845hs-live-2026-11-12.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
 - `native/gui-cli-contract.json`
@@ -78,7 +85,7 @@ Evidence:
 
 Evidence:
 
-- `docs/evidence/hardware/v1.0.10-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.13-native-power-policy-no-change-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
@@ -86,10 +93,10 @@ Evidence:
 ## 本地部署
 
 - 目标目录：`C:\RyzenAdj`
-- 版本：`1.0.10-native`
-- 旧版备份：`C:\RyzenAdj.before-20261112-041014`
+- 版本：`1.0.13-native`
+- 旧版备份：`C:\RyzenAdj.before-20261112-055844`
 - 仓库备份：
-  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.10-native-b93dd5d-20261112-041014`
+  `artifacts/deployment-backups/promote-amd-mobile-power-v1.0.13-native-win-x64-native-preview-20261112-055844.json`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 10
   --uniform-target-watts 10`
@@ -97,32 +104,33 @@ Evidence:
   快捷方式真实参数启动验证 PASS；实时策略 `enabled=true`、电池和插电均为
   `10/10/10 W`，AC 回读 `10/10/10 W`
 - Evidence:
-  `docs/evidence/packaging/v1.0.10-native-release-gate-2026-11-12.json`
+  `docs/evidence/packaging/v1.0.13-native-deployment-2026-11-12.json`
 
 ## 发布就绪检查
 
 - Local readiness：`PASS`
 - Public release readiness：`READY_FOR_HUMAN_REVIEW`
 - 已核对：包 hash、clean gate、当前值策略回写、打包 UI/托盘、C 盘部署文件、
-  桌面快捷方式、兼容性索引、媒体草稿、review bundle 校验和。
+  部署探针 hash 与 `--self-test`、桌面快捷方式、兼容性索引、媒体草稿、
+  review bundle 校验和；13 项检查全部为 true，本地阻塞项为空。
 - 桌面快捷方式实际拉起：`WindowReady=true`，拒绝参数为空；带值参数
   `--max-target-watts 10` 与 `--uniform-target-watts 10` 均按契约正确识别。
 - 100%/125%/150% 逻辑布局夹具已通过；仍需人工/外部完成：第二台 AMD 设备、
   真实 100%/150% Windows 会话缩放、托管 CI、
   WinRing0 干净安全基线、视频/封面/文案审阅、公开发布批准、B 站上传。
 - Evidence:
-  `docs/evidence/release/native-publication-readiness-2026-11-12.json`
+  `docs/evidence/release/native-publication-readiness-1.0.13-2026-11-12.json`
 
 ## 发布媒体
 
 - 视频草稿：
-  `artifacts/media/amd-mobile-power-native-promo-draft-2026-11-11/amd-mobile-power-native-intro-draft-2026-11-11.mp4`
-- 时长：`74.2 s`，`1920x1080`，25 fps，H.264 + AAC
+  `artifacts/media/amd-mobile-power-native-promo-10w-2026-11-12/amd-mobile-power-native-intro-10w-2026-11-12.mp4`
+- 时长：`78.2 s`，`1920x1080`，H.264 + AAC
 - SHA256：
-  `0c2045722273783038c65b2f586e8590fadf09f5a6612b5613cae62b7affb276`
-- B 站封面：`docs/assets/bilibili-cover-native-2026-11-11.png`
-- 审片帧：`docs/assets/native-promo-draft-contact-sheet-2026-11-11.png`
-- 机器证据：`docs/evidence/media/native-promo-draft-2026-11-11.json`
+  `af70c9e7bd837c04346dde7110fa7cd0a9c9221edad5f3e5826a28c92ed7d575`
+- B 站封面：`docs/assets/bilibili-cover-native-10w-2026-11-12.png`
+- 审片帧：`docs/assets/native-promo-10w-contact-sheet-2026-11-12.png`
+- 机器证据：`docs/evidence/media/native-promo-draft-2026-11-12.json`
 
 ## 界面证据
 

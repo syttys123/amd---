@@ -3,8 +3,11 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.10-native`. The
-previous native `1.0.9-native` build is preserved as
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.13-native`. The
+previous native `1.0.12-native` build is preserved as
+`C:\RyzenAdj.before-20261112-055844`, `1.0.11-native` as
+`C:\RyzenAdj.before-20261112-055115`, `1.0.10-native` as
+`C:\RyzenAdj.before-20261112-052733`, `1.0.9-native` as
 `C:\RyzenAdj.before-20261112-041014`, `1.0.8-native` as
 `C:\RyzenAdj.before-20261112-033749`, and `1.0.7-native` as
 `C:\RyzenAdj.before-20261112-025316`, `1.0.6-native` as
@@ -20,12 +23,16 @@ previous native `1.0.9-native` build is preserved as
 
 Decision (2026-11-12): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.10-native` package. Broader AMD generation support remains experimental.
-The current local publication readiness gate is `PASS`, with
+`1.0.13-native` package. Broader AMD generation support remains experimental.
+The current local publication readiness gate is `PASS` with all 13 checks true,
+with
 `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW` and no local blockers. Evidence:
-`docs/evidence/release/native-publication-readiness-2026-11-12.json`.
+`docs/evidence/release/native-publication-readiness-1.0.13-2026-11-12.json`.
 
-Note (2026-11-12): `1.0.10-native` supersedes `1.0.9-native` by keeping the
+Note (2026-11-12): `1.0.13-native` adds the packaged headless
+`amd-mobile-power-probe.exe` and makes the GUI, probe, worker, and portable ZIP
+byte-reproducible from the same commit. `1.0.12-native` was the first release
+whose deployed binaries matched a verified rebuild. `1.0.10-native` supersedes `1.0.9-native` by keeping the
 target editor synchronized with the active preset at startup and during policy
 refresh. `1.0.9-native` itself superseded `1.0.8-native` by correcting the
 target input after profile clamping. `1.0.8-native` supersedes `1.0.7-native`
@@ -70,20 +77,22 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.10-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.13-native-win-x64-native-preview.zip
 ```
 
-- Size: `571,464` bytes.
+- Size: `745,536` bytes.
 - SHA256:
-  `d28f499195db2a9c51f9fc07816ee70ed8ebcb9110637489ba3fc43b94a64437`.
-- Source commit: `b93dd5d53d596dba75f9ca004e0b31947b65c1d6`.
+  `eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7`.
+- Source commit: `6a986923df03a228c520be3132f11b61ff1b79b7`.
 - Working tree at build time: clean.
+- Reproducibility: GUI `ff2dcd48`, probe `6a050588`, worker `67af1d41`, and the
+  ZIP itself are byte-identical across two builds.
 - Policy write verification: intentionally skipped in the clean package gate.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.10-native
+artifacts/native-release-review/v1.0.13-native
 ```
 
 The bundle is `REVIEW_ONLY` and is not a public release.
@@ -135,10 +144,16 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Read-only hardware capability and telemetry probe on Ryzen 7 8845HS on AC:
   Hawk Point family `10`, PM table `4c0009`, profile
   `hawk-point-8845hs`, limits `10/10/10 W`.
-- `1.0.10-native` clean package verification, isolated install/uninstall,
-  shell integration, DPI fixtures, and controlled current-value policy probe
-  pass. The deployed foreground capture shows target editor `10`, effective
-  range `5-10 W`, one visible `10 W` preset, and live `10/10/10 W` read-back.
+- `1.0.13-native` clean package verification (19 checksum entries), isolated
+  install/uninstall, shell integration, DPI fixtures, packaged headless probe,
+  and a controlled current-value policy probe pass. The deployed UI shows
+  target editor `10`, effective range `5-10 W`, one visible `10 W` preset, and
+  live `10/10/10 W` read-back.
+- The headless probe runs from the expanded ZIP with the GUI closed:
+  `collectionStatus=PASS`, `hardwareInitialized=true`, write controls disabled,
+  matched `hawk-point-8845hs`, live AC `10/10/10 W`.
+- Reproducibility gate: GUI, probe, C++ worker, and the portable ZIP are
+  byte-identical across two builds of the same commit.
 - Native read-only write guard: invalid target rejected, no write requested.
 - Battery-authorized dry-run write guard: PASS with
   `ExecuteNoChangeWrite=Not requested`.
@@ -147,7 +162,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   verification, compatibility JSON/Markdown collection, and
   `PolicyWriteVerification=Skipped`.
 - The package includes safe WinRing0 install and uninstall helpers; package
-  verification requires both, and all 18 deployed payload files match.
+  verification requires both, and all 19 deployed payload files match.
 - The driver bootstrap waits for an app-owned service to stop before replacing
   its `.sys` file and attempts a restart if replacement/configuration fails.
 - The UI verifier passed three consecutive policy-control runs after adding
@@ -222,6 +237,13 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
+- `docs/evidence/packaging/v1.0.13-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.13-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.13-native-shell-integration-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.13-native-deployment-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.13-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/build/reproducibility-2026-11-12.json`
+- `docs/evidence/diagnostics/headless-probe-8845hs-live-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.10-native-clean-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.10-native-release-gate-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.10-native-shell-integration-2026-11-12.json`
@@ -236,7 +258,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - `docs/evidence/ui/native-deployed-1.0.8-native-ui-2026-11-12.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
-- `docs/evidence/release/native-publication-readiness-2026-11-12.json`
+- `docs/evidence/release/native-publication-readiness-1.0.13-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
 - `native/rust-gui/build.rs`
 - `native/check-exe-icon.ps1`
