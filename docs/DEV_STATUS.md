@@ -235,7 +235,11 @@ not authoritative.
   `docs/evidence/packaging/v1.0.18-native-deployment-2026-11-12.json`,
   `docs/evidence/hardware/v1.0.18-native-worker-hang-clean-2026-11-12.json`.
   A separate clean-tree run after deployment replaced the worker in `35.6 s`
-  with `27/27` responsive samples and zero failures.
+  with `27/27` responsive samples and zero failures. Publication readiness is
+  `LocalReadiness=PASS` with all 13 checks true,
+  `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, and no local blockers.
+  Evidence:
+  `docs/evidence/release/native-publication-readiness-1.0.18-2026-11-12.json`.
 - `C:\RyzenAdj` previously contained the promoted `1.0.17-native` package, which adds
   hung-worker replacement on top of the 1.0.16 supervision path. Package
   SHA256 is
