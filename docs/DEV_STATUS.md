@@ -1135,6 +1135,10 @@ third_party/
   handle, and refuses to save the image when focus did not land. The target
   input focus ring is now recorded in both simple and advanced captures:
   `docs/evidence/ui/native-focus-2026-11-11.json`.
+- Extended the native verifier to assert the diagnostics UI block after mode,
+  topmost, and policy changes: active mode, topmost state,
+  `taskbarIconAvailable=true`, and `trayIconId=1`. The fixture and
+  hardware-worker paths both pass without requesting a power write.
 
 Development screenshot:
 

@@ -157,6 +157,9 @@ At 125% Windows scaling:
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWriteControls -UiFixture
   firmware-clamp`: PASS for the battery-only policy toggle through the exported
   diagnostics JSON without hardware access.
+- The same verifier checks the diagnostics `ui` block for the active
+  simple/advanced mode, topmost state, `taskbarIconAvailable=true`, and
+  `trayIconId=1`.
 - `native\capture-rust-gui-redesign.ps1 -Fixture firmware-clamp
   -FocusControlId 316`: PASS with the target input verified as the actual
   focused child and the focus ring visible in simple and advanced captures.

@@ -430,6 +430,11 @@ try {
             $diagnosticsText -match "\\\\\.\\pipe\\") {
             throw "Rust GUI diagnostics report leaked a local path or pipe name."
         }
+        if ($diagnostics.ui.taskbarIconAvailable -ne $true -or
+            $diagnostics.ui.trayIconId -ne 1 -or
+            $diagnostics.ui.mode -notin @("simple", "advanced")) {
+            throw "Rust GUI diagnostics report does not describe the window icon/mode."
+        }
         $diagnosticsExportResult = "PASS"
     }
 
@@ -657,9 +662,13 @@ try {
         $before = Export-GuiDiagnostics `
             -Window $window `
             -LocalAppDataRoot $isolatedLocalAppData
-        if ([bool]$before.Document.ui.batteryOnly -or
+        if ($before.Document.ui.mode -ne "advanced" -or
+            $before.Document.ui.topMost -ne $true -or
+            $before.Document.ui.taskbarIconAvailable -ne $true -or
+            $before.Document.ui.trayIconId -ne 1 -or
+            [bool]$before.Document.ui.batteryOnly -or
             [bool]$before.Document.ui.policyEnabled) {
-            throw "Unexpected initial native UI policy state."
+            throw "Unexpected native UI mode, icon, or policy state."
         }
 
         [AmdMobilePowerRustGuiNative]::SendMessage(
