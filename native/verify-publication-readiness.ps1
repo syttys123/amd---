@@ -416,9 +416,46 @@ if (-not $checks.ReviewBundle) {
     $blockers.Add("Native review bundle checksums are incomplete or invalid.")
 }
 
+$dpiEvidencePath = Join-Path `
+    $repositoryRoot `
+    "docs\evidence\ui\native-dpi-100-125-150-2026-11-12.json"
+$dpiGate = "PENDING"
+$dpiEvidence = $null
+if (Test-Path -LiteralPath $dpiEvidencePath -PathType Leaf) {
+    $dpiEvidence = Get-Content -LiteralPath $dpiEvidencePath -Raw | ConvertFrom-Json
+    $expectedDpiSizes = [ordered]@{
+        "100" = "640x392|780x680"
+        "125" = "800x490|975x850"
+        "150" = "960x588|1170x1020"
+    }
+    $dpiResultsValid = $dpiEvidence.Verification -eq "PASS"
+    foreach ($scale in $expectedDpiSizes.Keys) {
+        $entry = @($dpiEvidence.Scales) |
+            Where-Object { [int]$_.Scale -eq [int]$scale } |
+            Select-Object -First 1
+        $actual = if ($null -ne $entry) {
+            "$($entry.SimpleClientSize)|$($entry.AdvancedClientSize)"
+        }
+        else {
+            ""
+        }
+        $imagesValid = $null -ne $entry -and
+            (Test-Path -LiteralPath $entry.SimpleImage -PathType Leaf) -and
+            (Test-Path -LiteralPath $entry.AdvancedImage -PathType Leaf)
+        if ($actual -ne $expectedDpiSizes[[string]$scale] -or -not $imagesValid) {
+            $dpiResultsValid = $false
+            break
+        }
+    }
+    if ($dpiResultsValid) {
+        $dpiGate = "PASS"
+    }
+}
+
 $openGates = [ordered]@{
     SecondAmdDevice = "PENDING"
-    Dpi100And150 = "PENDING"
+    DpiLayoutFixtures100And150 = $dpiGate
+    Dpi100And150SystemSessions = "PENDING"
     HostedWindowsCi = "PENDING"
     CleanWindowsWinRing0Baseline = "PENDING"
     HumanVideoAndClaimReview = "PENDING"
@@ -448,6 +485,13 @@ $result = [ordered]@{
         Launch = $launchAudit
     }
     OpenGates = $openGates
+    DpiFixtures = [ordered]@{
+        Evidence = [System.IO.Path]::GetRelativePath(
+            $repositoryRoot,
+            $dpiEvidencePath).Replace("\", "/")
+        Verification = $dpiGate
+        Scales = if ($null -ne $dpiEvidence) { $dpiEvidence.Scales } else { @() }
+    }
     BlockersFromLocalChecks = @($blockers)
     Note = "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check. The shortcut launch audit runs the deployed GUI with an isolated LOCALAPPDATA and a unique worker pipe, then stops it."
     RecordedAt = (Get-Date).ToString("o")

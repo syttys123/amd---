@@ -63,6 +63,10 @@ the publication-readiness gate. Current arguments:
 - `--uniform-target-watts <N>` enables automatic policy with both battery and
   AC targets set to the same wattage and persists that policy in the local UI
   state.
+- `--dpi-fixture <100|125|150|200>` is a test-only logical DPI override. It
+  renders and lays out the UI at the requested scale without changing Windows
+  display settings; it is used by the DPI screenshot gate and is not part of
+  the desktop shortcut.
 - `--pipe-name <name>`, `--worker-executable <path>`, and `--ui-fixture <name>`
   exist for verification and screenshot fixtures.
 

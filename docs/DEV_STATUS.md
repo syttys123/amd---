@@ -125,6 +125,15 @@ not authoritative.
   `PASS`, ten catalog entries, one verified profile, matched
   `hawk-point-8845hs`, and live `10/10/10 W` limits; the importer accepted the
   report and rejected a deliberately missing family mapping.
+- The Rust GUI now has a test-only `--dpi-fixture` override for deterministic
+  100/125/150/200 render scales. The new `verify-dpi-fixtures.ps1` gate passed
+  100%, 125%, and 150% with exact physical client sizes for both simple and
+  advanced modes: `640x392` / `780x680`, `800x490` / `975x850`, and
+  `960x588` / `1170x1020`. Header, target, preset, metric, and status regions
+  were inspected separately at 100% and 150% with no clipped or overlapping
+  text. Evidence:
+  `docs\evidence\ui\native-dpi-100-125-150-2026-11-12.json`. Real OS sessions
+  configured at 100% and 150% remain a separate open gate.
 - The 1.0.0-native package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user
@@ -1399,12 +1408,13 @@ Historical development screenshots:
 - Broaden the packaged native worker's hardware matrix beyond the 8845HS and
   collect a second-device write/read-back smoke test; keep the
   `C:\RyzenAdj.before-20261111-223017` backup as the .NET stable fallback.
-- Repeat the native UI matrix at 100% and 150% Windows scaling. The current
-  display session is 125%.
+- The native UI now has deterministic 100%/125%/150% logical layout fixtures;
+  final monitor-transition evidence in real 100% and 150% Windows sessions is
+  still pending. The current display session is 125%.
 ## Next Concrete Task
 
-Repeat the native redesign at 100% and 150% Windows scaling, resolve the hosted
-CI account blocker, and complete the final human review for public release.
+Complete real 100% and 150% Windows-session DPI checks, resolve the hosted CI
+account blocker, and complete the final human review for public release.
 Keep the pre-promotion `C:\RyzenAdj` backup until the public release gates are
 closed, and never promote a dirty or write-unverified native package.
 

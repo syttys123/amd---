@@ -1,0 +1,33 @@
+{
+  "SchemaVersion": 1,
+  "Verification": "PASS",
+  "Method": "test-only logical DPI override; system scaling was not changed",
+  "Fixture": "worker-offline",
+  "Scales": [
+    {
+      "Scale": 100,
+      "SimpleClientSize": "640x392",
+      "AdvancedClientSize": "780x680",
+      "SimpleImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-100\\native-dpi-100-simple-2026-11-11.png",
+      "AdvancedImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-100\\native-dpi-100-advanced-2026-11-11.png",
+      "Evidence": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-100\\capture-100.json"
+    },
+    {
+      "Scale": 125,
+      "SimpleClientSize": "800x490",
+      "AdvancedClientSize": "975x850",
+      "SimpleImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-125\\native-dpi-125-simple-2026-11-11.png",
+      "AdvancedImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-125\\native-dpi-125-advanced-2026-11-11.png",
+      "Evidence": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-125\\capture-125.json"
+    },
+    {
+      "Scale": 150,
+      "SimpleClientSize": "960x588",
+      "AdvancedClientSize": "1170x1020",
+      "SimpleImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-150\\native-dpi-150-simple-2026-11-11.png",
+      "AdvancedImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-150\\native-dpi-150-advanced-2026-11-11.png",
+      "Evidence": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-150\\capture-150.json"
+    }
+  ],
+  "RecordedAt": "2026-11-12T01:39:58.6084201+08:00"
+}

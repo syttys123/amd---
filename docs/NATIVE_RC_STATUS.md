@@ -219,7 +219,8 @@ Superseded candidates keep their exact historical package and evidence.
 - Obtain read-only compatibility evidence from a different AMD laptop or
   generation when a second device becomes available; no second machine is
   currently available.
-- Repeat the UI screenshot matrix at 100% and 150% Windows scaling, plus
+- Logical UI layout fixtures now pass at 100%, 125%, and 150% without changing
+  system settings; repeat the matrix in real 100%/150% Windows sessions, plus
   focused-input states.
 - Observe a successful hosted Windows CI run. The current external blocker is
   the repository account billing/spending limit.

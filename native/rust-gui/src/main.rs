@@ -306,6 +306,7 @@ struct UiDiagnostics {
     taskbar_icon_available: bool,
     tray_icon_id: u32,
     dpi_percent: i32,
+    dpi_fixture_percent: Option<i32>,
 }
 
 #[derive(Clone, Copy)]
@@ -493,6 +494,7 @@ struct Options {
     mode_override: Option<state::UiMode>,
     max_target_watts: Option<i32>,
     uniform_target_watts: Option<i32>,
+    dpi_fixture: Option<i32>,
 }
 
 impl Default for Options {
@@ -506,6 +508,7 @@ impl Default for Options {
             mode_override: None,
             max_target_watts: None,
             uniform_target_watts: None,
+            dpi_fixture: None,
         }
     }
 }
@@ -629,9 +632,19 @@ unsafe fn create_ui_fonts(percent: i32) -> UiFonts {
 /// them into device pixels at the window DPI, which keeps glyphs rendered by
 /// GDI at their real size instead of being stretched with the whole window.
 static PAINT_PERCENT: AtomicI32 = AtomicI32::new(100);
+static DPI_FIXTURE_PERCENT: AtomicI32 = AtomicI32::new(0);
 
 fn paint_percent() -> i32 {
     PAINT_PERCENT.load(Ordering::Relaxed).max(1)
+}
+
+fn effective_dpi_percent(hwnd: HWND) -> i32 {
+    let fixture = DPI_FIXTURE_PERCENT.load(Ordering::Relaxed);
+    if fixture > 0 {
+        fixture
+    } else {
+        unsafe { dpi_percent(window_dpi(hwnd)) }
+    }
 }
 
 fn scale_rect(rect: &RECT) -> RECT {
@@ -1855,8 +1868,7 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
     }
     let mut client = RECT::default();
     GetClientRect(hwnd, &mut client);
-    let dpi = window_dpi(hwnd) as i32;
-    let percent = dpi_percent(dpi as u32);
+    let percent = effective_dpi_percent(hwnd);
     PAINT_PERCENT.store(percent, Ordering::Relaxed);
     let physical_width = client.right.max(1);
     let physical_height = client.bottom.max(1);
@@ -1919,8 +1931,7 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
     let pressed = draw.itemState & ODS_SELECTED != 0;
     // Match paint_window: keep drawing in 96-DPI logical units and let the
     // drawing helpers scale to the real DPI.
-    let dpi = window_dpi(draw.hwndItem) as i32;
-    let percent = dpi_percent(dpi as u32);
+    let percent = effective_dpi_percent(draw.hwndItem);
     PAINT_PERCENT.store(percent, Ordering::Relaxed);
     let rc = RECT {
         left: unscaled(draw.rcItem.left, percent),
@@ -2276,7 +2287,8 @@ fn diagnostics_document(
             "highContrast": ui_state.high_contrast,
             "taskbarIconAvailable": ui_state.taskbar_icon_available,
             "trayIconId": ui_state.tray_icon_id,
-            "dpiPercent": ui_state.dpi_percent
+            "dpiPercent": ui_state.dpi_percent,
+            "dpiFixturePercent": ui_state.dpi_fixture_percent
         },
         "powerPolicy": policy,
         "snapshot": snapshot,
@@ -2308,6 +2320,8 @@ fn export_diagnostics(app: &GuiApp) -> Result<PathBuf, String> {
         .map_err(|error| format!("系统时间不可用：{error}"))?
         .as_millis();
     let package_version = package_version_from_build_info();
+    let dpi_fixture = DPI_FIXTURE_PERCENT.load(Ordering::Relaxed);
+    let dpi_fixture_percent = (dpi_fixture > 0).then_some(dpi_fixture);
     let document = diagnostics_document(
         snapshot,
         app.latest_policy.as_ref(),
@@ -2323,6 +2337,7 @@ fn export_diagnostics(app: &GuiApp) -> Result<PathBuf, String> {
             taskbar_icon_available: !app.icon_large.is_null(),
             tray_icon_id: TRAY_ICON_ID,
             dpi_percent: app.dpi_percent,
+            dpi_fixture_percent,
         },
     );
     let contents = serde_json::to_vec_pretty(&document)
@@ -2364,6 +2379,12 @@ where
                 options.uniform_target_watts =
                     Some(parse_watts_argument("--uniform-target-watts", &value)?);
             }
+            "--dpi-fixture" => {
+                let value = arguments
+                    .next()
+                    .ok_or_else(|| "--dpi-fixture requires a value".to_owned())?;
+                options.dpi_fixture = Some(parse_dpi_fixture(&value)?);
+            }
             "--pipe-name" => {
                 options.pipe_name = arguments
                     .next()
@@ -2404,6 +2425,15 @@ fn parse_watts_argument(name: &str, value: &str) -> Result<i32, String> {
         return Err(format!("{name} out of range: {watts}"));
     }
     Ok(watts)
+}
+
+fn parse_dpi_fixture(value: &str) -> Result<i32, String> {
+    match value.parse::<i32>() {
+        Ok(percent) if matches!(percent, 100 | 125 | 150 | 200) => Ok(percent),
+        _ => Err(format!(
+            "--dpi-fixture only supports 100, 125, 150, or 200, got {value}"
+        )),
+    }
 }
 
 fn uniform_power_policy(watts: i32) -> PowerPolicySettings {
@@ -4173,8 +4203,7 @@ unsafe extern "system" fn window_proc(
             0
         }
         WM_DPICHANGED => {
-            let new_dpi = (wparam & 0xFFFF) as u32;
-            app.dpi_percent = dpi_percent(new_dpi);
+            app.dpi_percent = effective_dpi_percent(hwnd);
             refresh_control_fonts(app);
             let mode = app.view_mode;
             apply_view_mode(app, hwnd, mode);
@@ -4475,6 +4504,7 @@ fn main() {
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let options = parse_options()?;
+    DPI_FIXTURE_PERCENT.store(options.dpi_fixture.unwrap_or(0), Ordering::Relaxed);
     // The manifest declares PerMonitorV2, but setting it explicitly also covers
     // launches whose manifest could not be applied and keeps DPI awareness on.
     unsafe {
@@ -4536,7 +4566,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             dpi
         }
     };
-    let system_percent = dpi_percent(system_dpi);
+    let system_percent = options
+        .dpi_fixture
+        .unwrap_or_else(|| dpi_percent(system_dpi));
     let (outer_width, outer_height) = unsafe {
         outer_window_size(
             scaled(client_size.0, system_percent),
@@ -4600,7 +4632,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             let _ = state::save_power_policy(settings);
             let _ = state::save_presets((*app).preset_watts);
         }
-        let window_percent = dpi_percent(window_dpi(hwnd));
+        let window_percent = effective_dpi_percent(hwnd);
         (*app).dpi_percent = window_percent;
         let icon_large = create_icon_for_size(scaled(32, window_percent));
         let icon_small = create_icon_for_size(scaled(16, window_percent));
@@ -4944,6 +4976,7 @@ mod tests {
                 taskbar_icon_available: true,
                 tray_icon_id: 1,
                 dpi_percent: 125,
+                dpi_fixture_percent: Some(150),
             },
         );
         let text = serde_json::to_string_pretty(&document).unwrap();
@@ -4958,6 +4991,7 @@ mod tests {
         assert_eq!(document["ui"]["taskbarIconAvailable"], true);
         assert_eq!(document["ui"]["trayIconId"], 1);
         assert_eq!(document["ui"]["dpiPercent"], 125);
+        assert_eq!(document["ui"]["dpiFixturePercent"], 150);
         assert_eq!(
             document["snapshot"]["platform"]["cpu"]["processorName"],
             "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics"
@@ -5084,6 +5118,17 @@ mod tests {
     }
 
     #[test]
+    fn dpi_fixture_only_accepts_supported_render_scales() {
+        for scale in ["100", "125", "150", "200"] {
+            let options = parse_arguments(to_arguments(&["--dpi-fixture", scale]))
+                .expect("支持的 DPI 夹具必须被接受");
+            assert_eq!(options.dpi_fixture, Some(scale.parse().unwrap()));
+        }
+        assert!(parse_arguments(to_arguments(&["--dpi-fixture", "120"])).is_err());
+        assert!(parse_arguments(to_arguments(&["--dpi-fixture"])).is_err());
+    }
+
+    #[test]
     fn ceiling_clamps_every_preset_without_raising_values() {
         assert_eq!(clamp_to_ceiling([10, 12, 45], Some(12)), [10, 12, 12]);
         assert_eq!(clamp_to_ceiling([5, 6, 7], Some(12)), [5, 6, 7]);
@@ -5115,6 +5160,7 @@ mod tests {
                     "--ui-fixture" => "high-contrast",
                     "--max-target-watts" => "12",
                     "--uniform-target-watts" => "12",
+                    "--dpi-fixture" => "150",
                     _ => "sample-value",
                 };
                 argv.push(sample.to_owned());

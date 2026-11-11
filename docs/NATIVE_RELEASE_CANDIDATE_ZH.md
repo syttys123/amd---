@@ -103,7 +103,8 @@ Evidence:
   桌面快捷方式、兼容性索引、媒体草稿、review bundle 校验和。
 - 桌面快捷方式实际拉起：`WindowReady=true`，拒绝参数为空；带值参数
   `--max-target-watts 10` 与 `--uniform-target-watts 10` 均按契约正确识别。
-- 仍需人工/外部完成：第二台 AMD 设备、100%/150% 缩放、托管 CI、
+- 100%/125%/150% 逻辑布局夹具已通过；仍需人工/外部完成：第二台 AMD 设备、
+  真实 100%/150% Windows 会话缩放、托管 CI、
   WinRing0 干净安全基线、视频/封面/文案审阅、公开发布批准、B 站上传。
 - Evidence:
   `docs/evidence/release/native-publication-readiness-2026-11-12.json`

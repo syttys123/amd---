@@ -66,6 +66,22 @@ $packageArguments = @{
 }
 $null = & (Join-Path $root "build-package.ps1") @packageArguments
 
+$packageDirectory = Join-Path `
+    (Join-Path $repositoryRoot "artifacts\native-packages") `
+    "amd-mobile-power-v$Version-win-x64-native-preview"
+$dpiEvidencePath = Join-Path `
+    $repositoryRoot `
+    "docs\evidence\ui\native-dpi-100-125-150-$(Get-Date -Format 'yyyy-MM-dd').json"
+$null = & (Join-Path $root "verify-dpi-fixtures.ps1") `
+    -GuiExecutable (Join-Path $packageDirectory "amd-mobile-power-gui.exe") `
+    -WorkerExecutable (Join-Path $packageDirectory "amdmobilepower_native_worker.exe") `
+    -EvidencePath $dpiEvidencePath
+if (-not (Test-Path -LiteralPath $dpiEvidencePath -PathType Leaf) -or
+    (Get-Content -LiteralPath $dpiEvidencePath -Raw |
+        ConvertFrom-Json).Verification -ne "PASS") {
+    throw "Native DPI layout fixtures failed."
+}
+
 $shellStatus = "Not requested"
 if ($VerifyShellIntegration) {
     $null = & (Join-Path $root "verify-preview-shell-integration.ps1") `
@@ -140,6 +156,8 @@ $result = [ordered]@{
     ShellEvidence = if ($VerifyShellIntegration) { $shellEvidence } else { $null }
     NoChangePolicy = $policyStatus
     PolicyEvidence = if ($ExecuteNoChangePolicy) { $policyEvidence } else { $null }
+    DpiFixtures = "PASS"
+    DpiEvidence = $dpiEvidencePath
     RecordedAt = (Get-Date).ToString("o")
 }
 

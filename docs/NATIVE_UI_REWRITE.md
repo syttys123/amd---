@@ -178,7 +178,7 @@ the user's Windows accessibility settings.
 At 125% Windows scaling:
 
 - `cargo test --manifest-path native\rust-gui\Cargo.toml --locked --offline`:
-  30/30 passed.
+  38/38 passed.
 - `cargo clippy --manifest-path native\rust-gui\Cargo.toml --locked --offline
   -- -D warnings`: PASS.
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls`:
@@ -199,6 +199,12 @@ At 125% Windows scaling:
   focused child and the focus ring visible in simple and advanced captures.
 - `native\capture-rust-gui-redesign.ps1 -Fixture high-contrast`: PASS for the
   complete black/white/yellow simple and advanced states.
+- `native\verify-dpi-fixtures.ps1` renders the complete simple and advanced
+  shells at test-only logical 100%, 125%, and 150% scaling. Client sizes match
+  the design contract exactly (`640x392` / `780x680` at 100%,
+  `800x490` / `975x850` at 125%, and `960x588` / `1170x1020` at 150%), and
+  region-by-region inspection found no clipped header, target, preset, metric,
+  or status text.
 - No power write was requested during UI verification.
 
 Evidence and screenshots:
@@ -224,6 +230,7 @@ Evidence and screenshots:
 - `assets/native-high-contrast-simple-2026-11-11.png`
 - `assets/native-high-contrast-advanced-2026-11-11.png`
 - `docs/evidence/ui/native-packaged-1.0.0-ui-2026-11-11.json`
+- `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 
 Reproduction:
 
@@ -235,8 +242,10 @@ pwsh -NoProfile -ExecutionPolicy Bypass `
 
 ## Remaining UI Gates
 
-- Repeat the redesigned shell at 100% and 150% Windows scaling on machines or
-  sessions configured for those scales.
+- The logical 100%/150% layout fixtures pass without changing system settings.
+  A final OS-level check in real 100% and 150% Windows sessions remains open so
+  monitor transitions and shell metrics are covered by physical session
+  evidence rather than the test-only scale override.
 
 Public GitHub Release, Bilibili upload, and promotion to `C:\RyzenAdj` remain
 unapproved until the release gates and hardware evidence are complete.

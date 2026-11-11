@@ -105,6 +105,32 @@ $copies = @(
     @{ Source = (Join-Path $repositoryRoot "docs\BUILDING.md"); Destination = "BUILDING.md" },
     @{ Source = (Join-Path $repositoryRoot "docs\NATIVE_RC_STATUS.md"); Destination = "NATIVE_RC_STATUS.md" }
 )
+$dpiEvidencePath = Join-Path `
+    $repositoryRoot `
+    "docs\evidence\ui\native-dpi-100-125-150-2026-11-12.json"
+$dpiGate = "PENDING"
+$dpiEvidence = $null
+if (Test-Path -LiteralPath $dpiEvidencePath -PathType Leaf) {
+    $dpiEvidence = Get-Content -LiteralPath $dpiEvidencePath -Raw | ConvertFrom-Json
+    if ($dpiEvidence.Verification -eq "PASS") {
+        $dpiGate = "PASS"
+        $copies += @{
+            Source = $dpiEvidencePath
+            Destination = "dpi-fixtures.json"
+        }
+        foreach ($entry in @($dpiEvidence.Scales)) {
+            foreach ($capture in @(
+                @{ Source = $entry.SimpleImage; Destination = "dpi-$($entry.Scale)-simple.png" },
+                @{ Source = $entry.AdvancedImage; Destination = "dpi-$($entry.Scale)-advanced.png" }
+            )) {
+                if (-not (Test-Path -LiteralPath $capture.Source -PathType Leaf)) {
+                    throw "DPI fixture image is missing: $($capture.Source)"
+                }
+                $copies += $capture
+            }
+        }
+    }
+}
 if ($includePolicyEvidence) {
     $copies += @{
         Source = $policyEvidencePath
@@ -163,6 +189,8 @@ $manifest = [ordered]@{
     PackageSHA256 = $packageHash
     PackageSize = (Get-Item -LiteralPath $packagePath).Length
     NoChangePolicy = $releaseGate.NoChangePolicy
+    DpiLayoutFixtures100And150 = $dpiGate
+    Dpi100And150SystemSessions = "PENDING"
     MediaIncluded = [bool]$IncludeMedia
     Files = $files
     RecordedAt = (Get-Date).ToString("o")

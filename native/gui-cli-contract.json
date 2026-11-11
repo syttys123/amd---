@@ -37,6 +37,10 @@
     "--uniform-target-watts": {
       "takesValue": true,
       "summary": "把电池与插电策略统一为同一瓦数，启用自动策略，并写入本机 UI 状态。"
+    },
+    "--dpi-fixture": {
+      "takesValue": true,
+      "summary": "测试夹具：按 100/125/150/200% 逻辑缩放渲染，不修改系统 DPI 设置。"
     }
   }
 }

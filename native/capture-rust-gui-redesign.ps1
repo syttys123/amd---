@@ -6,6 +6,8 @@ param(
     [string]$FilePrefix = "native-redesign",
     [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error", "high-contrast")]
     [string]$Fixture,
+    [ValidateSet("100", "125", "150", "200")]
+    [string]$DpiFixture,
     [switch]$BatteryOnly,
     [int]$FocusControlId,
     [switch]$ReadOnly
@@ -314,6 +316,43 @@ function Get-WindowSize {
     }
 }
 
+function Get-ClientSize {
+    param([IntPtr]$Window)
+
+    $rect = New-Object AmdMobilePowerUiCapture+RECT
+    [AmdMobilePowerUiCapture]::GetClientRect($Window, [ref]$rect) | Out-Null
+    return [pscustomobject]@{
+        Width = $rect.Right - $rect.Left
+        Height = $rect.Bottom - $rect.Top
+    }
+}
+
+function Assert-FixtureClientSize {
+    param(
+        [IntPtr]$Window,
+        [string]$Scale,
+        [int]$LogicalWidth,
+        [int]$LogicalHeight,
+        [string]$Description
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Scale)) {
+        return
+    }
+    $percent = [int]$Scale
+    $expectedWidth = [int][Math]::Floor(($LogicalWidth * $percent + 50) / 100.0)
+    $expectedHeight = [int][Math]::Floor(($LogicalHeight * $percent + 50) / 100.0)
+    $actual = Get-ClientSize -Window $Window
+    if ($actual.Width -ne $expectedWidth -or $actual.Height -ne $expectedHeight) {
+        throw (
+            "$Description client size mismatch at ${Scale}%: " +
+            "$($actual.Width)x$($actual.Height), expected " +
+            "${expectedWidth}x${expectedHeight}."
+        )
+    }
+    return $actual
+}
+
 function Wait-ForWindowHeight {
     param(
         [IntPtr]$Window,
@@ -407,6 +446,9 @@ try {
     if ($Fixture) {
         $guiArguments += @("--ui-fixture", $Fixture)
     }
+    if ($DpiFixture) {
+        $guiArguments += @("--dpi-fixture", $DpiFixture)
+    }
     $process = Start-Process `
         -FilePath $GuiExecutable `
         -WorkingDirectory (Split-Path -Parent $GuiExecutable) `
@@ -454,6 +496,12 @@ try {
         -Window $window `
         -Description "advanced layout" `
         -Condition { param($height) $height -gt $simpleSize.Height }
+    $advancedClientSize = Assert-FixtureClientSize `
+        -Window $window `
+        -Scale $DpiFixture `
+        -LogicalWidth 780 `
+        -LogicalHeight 680 `
+        -Description "advanced"
     Start-Sleep -Milliseconds 400
     [void](Focus-CaptureWindow -Window $window -FocusControlId $FocusControlId)
     $advancedCapture = Save-WindowImage `
@@ -473,6 +521,12 @@ try {
         -Window $window `
         -Description "simple layout" `
         -Condition { param($height) $height -lt $advancedHeight }
+    $simpleClientSize = Assert-FixtureClientSize `
+        -Window $window `
+        -Scale $DpiFixture `
+        -LogicalWidth 640 `
+        -LogicalHeight 392 `
+        -Description "simple"
     Start-Sleep -Milliseconds 400
     [void](Focus-CaptureWindow -Window $window -FocusControlId $FocusControlId)
     $simpleCapture = Save-WindowImage `
@@ -536,11 +590,24 @@ try {
                 "write-controls-visible-no-write-requested"
             }
             Fixture = if ($Fixture) { $Fixture } else { $null }
+            DpiFixture = if ($DpiFixture) { [int]$DpiFixture } else { $null }
             BatteryOnly = [bool]$BatteryOnly
             FocusControlId = if ($FocusControlId -gt 0) { $FocusControlId } else { $null }
             ControlChecks = $controlChecks
             Simple = $simpleCapture
             Advanced = $advancedCapture
+            SimpleClientSize = if ($simpleClientSize) {
+                "$($simpleClientSize.Width)x$($simpleClientSize.Height)"
+            }
+            else {
+                $null
+            }
+            AdvancedClientSize = if ($advancedClientSize) {
+                "$($advancedClientSize.Width)x$($advancedClientSize.Height)"
+            }
+            else {
+                $null
+            }
             RecordedAt = (Get-Date).ToString("o")
         } |
             ConvertTo-Json -Depth 6 |
@@ -577,6 +644,7 @@ finally {
         $advancedCapture.CaptureMethod
     ) -join ", "
     Fixture = if ($Fixture) { $Fixture } else { "none" }
+    DpiFixture = if ($DpiFixture) { $DpiFixture } else { "native" }
     BatteryOnly = [bool]$BatteryOnly
     FocusControlId = if ($FocusControlId -gt 0) { $FocusControlId } else { "none" }
     ControlChecks = if ($controlChecks) { $controlChecks | ConvertTo-Json -Compress } else { "not requested" }
