@@ -6,7 +6,8 @@ param(
     [string]$EvidencePath,
     [switch]$Apply,
     [switch]$NoLaunch,
-    [switch]$SkipShellIntegration
+    [switch]$SkipShellIntegration,
+    [string]$GuiArguments
 )
 
 $ErrorActionPreference = "Stop"
@@ -340,11 +341,28 @@ if (-not $SkipShellIntegration) {
 }
 
 $guiContract = $null
-if ($shortcutSnapshots.Count -gt 0) {
+$explicitArguments = $null
+if ($GuiArguments -or $shortcutSnapshots.Count -gt 0) {
     $guiContract = Get-GuiArgumentContract -Path $guiArgumentContractPath
+    if ($GuiArguments) {
+        $parsed = Resolve-SupportedGuiArguments `
+            -Arguments $GuiArguments `
+            -Contract $guiContract
+        if (@($parsed.Dropped).Count -gt 0) {
+            throw ("GuiArguments contains arguments the GUI rejects: " +
+                (@($parsed.Dropped) -join ", "))
+        }
+        $explicitArguments = $parsed.Arguments
+    }
+}
+if ($shortcutSnapshots.Count -gt 0) {
     foreach ($snapshot in $shortcutSnapshots) {
+        $sourceArguments = $snapshot.Arguments
+        if ($null -ne $explicitArguments) {
+            $sourceArguments = $explicitArguments
+        }
         $resolved = Resolve-SupportedGuiArguments `
-            -Arguments $snapshot.Arguments `
+            -Arguments $sourceArguments `
             -Contract $guiContract
         $snapshot | Add-Member `
             -NotePropertyName ResolvedArguments `
@@ -390,6 +408,7 @@ $plan = [ordered]@{
     Target = $resolvedTarget
     Backup = $resolvedBackup
     Evidence = $resolvedEvidence
+    GuiArguments = $GuiArguments
     LegacyShortcuts = @($shortcutSnapshots | ForEach-Object { $_.Path })
     ShortcutArguments = @($shortcutSnapshots | ForEach-Object {
         [pscustomobject]@{
@@ -477,6 +496,7 @@ try {
         PackageVersion = $packageVersion
         Target = $resolvedTarget
         Backup = $resolvedBackup
+        GuiArguments = $GuiArguments
         ShortcutsUpdated = @($shortcutSnapshots | ForEach-Object { $_.Path })
         ShortcutArguments = @($shortcutSnapshots | ForEach-Object {
             [pscustomobject]@{

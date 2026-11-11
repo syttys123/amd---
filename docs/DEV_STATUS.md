@@ -1,6 +1,6 @@
 # Development Status
 
-Last updated: 2026-11-11
+Last updated: 2026-11-12
 
 ## Objective
 
@@ -84,6 +84,15 @@ not authoritative.
   real icon. `1.0.1-native` (534,763 bytes,
   `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`) remains
   the historical shortcut-argument fix.
+- The next native candidate adds `1.0.3-native` work for a 10 W uniform policy.
+  `--uniform-target-watts 10` persists and enables the same 10/10/10 target for
+  both battery and AC, while `--max-target-watts 10` prevents every later UI
+  target, preset, or saved policy from exceeding 10 W. The promotion helper now
+  accepts and validates replacement `-GuiArguments`, so the desktop shortcut
+  can carry both flags without drifting from `native\gui-cli-contract.json`.
+  Rust GUI tests pass 37/37 and Clippy is clean. A fixture launch with isolated
+  `%LocalAppData%` produced `enabled=true`, both power lines at 10 W, presets
+  `[10,10,10]`, and `maxTargetWatts=10`.
 - The 1.0.0-native package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user

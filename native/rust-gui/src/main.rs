@@ -492,6 +492,7 @@ struct Options {
     ui_fixture: Option<UiFixture>,
     mode_override: Option<state::UiMode>,
     max_target_watts: Option<i32>,
+    uniform_target_watts: Option<i32>,
 }
 
 impl Default for Options {
@@ -504,6 +505,7 @@ impl Default for Options {
             ui_fixture: None,
             mode_override: None,
             max_target_watts: None,
+            uniform_target_watts: None,
         }
     }
 }
@@ -2352,13 +2354,15 @@ where
                 let value = arguments
                     .next()
                     .ok_or_else(|| "--max-target-watts requires a value".to_owned())?;
-                let watts = value
-                    .parse::<i32>()
-                    .map_err(|_| format!("--max-target-watts needs a number, got {value}"))?;
-                if !(1..=250).contains(&watts) {
-                    return Err(format!("--max-target-watts out of range: {watts}"));
-                }
-                options.max_target_watts = Some(watts);
+                options.max_target_watts =
+                    Some(parse_watts_argument("--max-target-watts", &value)?);
+            }
+            "--uniform-target-watts" => {
+                let value = arguments
+                    .next()
+                    .ok_or_else(|| "--uniform-target-watts requires a value".to_owned())?;
+                options.uniform_target_watts =
+                    Some(parse_watts_argument("--uniform-target-watts", &value)?);
             }
             "--pipe-name" => {
                 options.pipe_name = arguments
@@ -2381,7 +2385,35 @@ where
             value => return Err(format!("unknown argument: {value}")),
         }
     }
+    if let (Some(uniform), Some(ceiling)) = (options.uniform_target_watts, options.max_target_watts)
+    {
+        if uniform > ceiling {
+            return Err(format!(
+                "--uniform-target-watts {uniform} exceeds --max-target-watts {ceiling}"
+            ));
+        }
+    }
     Ok(options)
+}
+
+fn parse_watts_argument(name: &str, value: &str) -> Result<i32, String> {
+    let watts = value
+        .parse::<i32>()
+        .map_err(|_| format!("{name} needs a number, got {value}"))?;
+    if !(1..=250).contains(&watts) {
+        return Err(format!("{name} out of range: {watts}"));
+    }
+    Ok(watts)
+}
+
+fn uniform_power_policy(watts: i32) -> PowerPolicySettings {
+    PowerPolicySettings {
+        enabled: true,
+        battery_enabled: true,
+        ac_enabled: true,
+        battery_target: PowerLimitTarget::uniform(watts),
+        ac_target: PowerLimitTarget::uniform(watts),
+    }
 }
 
 fn parse_ui_fixture(value: &str) -> Result<UiFixture, String> {
@@ -4557,6 +4589,17 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 let _ = state::save_presets((*app).preset_watts);
             }
         }
+        if let Some(watts) = options.uniform_target_watts {
+            let settings = uniform_power_policy(watts);
+            (*app).saved_policy = Some(settings);
+            (*app).policy_enabled = true;
+            (*app).battery_only = false;
+            (*app).preset_watts = [watts; 3];
+            (*app).selected_preset = Some(0);
+            (*app).selected_target = PowerLimitTarget::uniform(watts);
+            let _ = state::save_power_policy(settings);
+            let _ = state::save_presets((*app).preset_watts);
+        }
         let window_percent = dpi_percent(window_dpi(hwnd));
         (*app).dpi_percent = window_percent;
         let icon_large = create_icon_for_size(scaled(32, window_percent));
@@ -4623,7 +4666,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             set_control_font(controls.battery_target, fonts.metric);
             set_control_font(controls.ac_target, fonts.metric);
         }
-        (*app).saved_policy = state::load_power_policy();
+        if options.uniform_target_watts.is_none() {
+            (*app).saved_policy = state::load_power_policy();
+        }
         if let Some(saved) = (*app).saved_policy {
             (*app).policy_enabled = saved.enabled;
             (*app).battery_only = saved.battery_enabled && !saved.ac_enabled;
@@ -4702,8 +4747,8 @@ mod tests {
     use super::{
         clamp_preset_values, clamp_to_ceiling, diagnostics_document, fixture_snapshot,
         fixture_worker_error, format_policy_state, format_snapshot, format_snapshot_simple,
-        parse_arguments, parse_ui_fixture, preset_menu_label, rgb, state, UiDiagnostics, UiFixture,
-        HIGH_CONTRAST_PALETTE,
+        parse_arguments, parse_ui_fixture, preset_menu_label, rgb, state, uniform_power_policy,
+        UiDiagnostics, UiFixture, HIGH_CONTRAST_PALETTE,
     };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
@@ -5013,6 +5058,32 @@ mod tests {
     }
 
     #[test]
+    fn uniform_target_watts_sets_both_power_lines_and_respects_the_ceiling() {
+        let options = parse_arguments(to_arguments(&[
+            "--max-target-watts",
+            "10",
+            "--uniform-target-watts",
+            "10",
+        ]))
+        .expect("统一目标参数必须被接受");
+        let policy = uniform_power_policy(options.uniform_target_watts.unwrap());
+
+        assert!(policy.enabled);
+        assert!(policy.battery_enabled);
+        assert!(policy.ac_enabled);
+        assert_eq!(policy.battery_target, PowerLimitTarget::uniform(10));
+        assert_eq!(policy.ac_target, PowerLimitTarget::uniform(10));
+        assert!(parse_arguments(to_arguments(&[
+            "--max-target-watts",
+            "10",
+            "--uniform-target-watts",
+            "12",
+        ]))
+        .is_err());
+        assert!(parse_arguments(to_arguments(&["--uniform-target-watts", "0"])).is_err());
+    }
+
+    #[test]
     fn ceiling_clamps_every_preset_without_raising_values() {
         assert_eq!(clamp_to_ceiling([10, 12, 45], Some(12)), [10, 12, 12]);
         assert_eq!(clamp_to_ceiling([5, 6, 7], Some(12)), [5, 6, 7]);
@@ -5043,6 +5114,7 @@ mod tests {
                 let sample = match name.as_str() {
                     "--ui-fixture" => "high-contrast",
                     "--max-target-watts" => "12",
+                    "--uniform-target-watts" => "12",
                     _ => "sample-value",
                 };
                 argv.push(sample.to_owned());

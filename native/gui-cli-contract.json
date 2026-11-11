@@ -33,6 +33,10 @@
     "--max-target-watts": {
       "takesValue": true,
       "summary": "本机硬上限：任何目标/预设/策略都不得高于该瓦数，并写入本机 UI 状态。"
+    },
+    "--uniform-target-watts": {
+      "takesValue": true,
+      "summary": "把电池与插电策略统一为同一瓦数，启用自动策略，并写入本机 UI 状态。"
     }
   }
 }

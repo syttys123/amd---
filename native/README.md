@@ -58,6 +58,11 @@ the publication-readiness gate. Current arguments:
 - `--simple-mode` / `--advanced-mode` pick the starting view and persist it, so a
   shortcut can pin a mode.
 - `--tray` starts hidden in the notification area.
+- `--max-target-watts <N>` pins a per-installation hard ceiling for every
+  target, preset, and saved policy.
+- `--uniform-target-watts <N>` enables automatic policy with both battery and
+  AC targets set to the same wattage and persists that policy in the local UI
+  state.
 - `--pipe-name <name>`, `--worker-executable <path>`, and `--ui-fixture <name>`
   exist for verification and screenshot fixtures.
 
