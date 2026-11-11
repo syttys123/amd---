@@ -30,6 +30,8 @@ UI and hardware access stay behind a narrow named-pipe contract.
 - Read-only by default. Hardware writes require the explicit
   `--enable-write-controls` launch flag, and every write is followed by a
   read-back.
+- Worker supervision: if the worker process exits, the GUI respawns it with a
+  bounded backoff, reconnects, and resumes telemetry without a manual restart.
 - Battery and AC policy automation, editable presets, firmware-clamp reporting,
   and restore attempts on partial Fast/Slow failure.
 - Packaged WinRing0 install and uninstall helpers. The installer reuses an

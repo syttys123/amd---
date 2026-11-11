@@ -142,6 +142,16 @@ not authoritative.
   packaged screenshot rather than cross-process window text: target input
   `10`, one visible `10 W` preset, and live `10/10/10 W` are recorded in
   `docs\evidence\ui\native-deployed-1.0.10-capture-2026-11-12.json`.
+- The GUI now supervises its worker. Previously a worker crash left the panel on
+  "worker 不可用" until the app was restarted by hand. The monitor thread now
+  posts `WM_APP_RESTART_WORKER` on the first failed sample and then backs off
+  `5 s → 10 s → 20 s → 40 s → 60 s`; the UI thread respawns only when its own
+  child exited or, with no child handle, when the pipe is genuinely gone, so an
+  externally started worker is never duplicated. A live test killed the worker
+  under an isolated `%LocalAppData%` instance: a new worker appeared after
+  `0.8 s`, reported `hardware=true`, and the pipe served `10/10/10 W` again.
+  Rust tests are now `20/20` in the main suite with a new backoff-bounds test;
+  Clippy and fmt stay clean.
 - The publication-readiness gate now also requires the deployed headless probe:
   `C:\RyzenAdj\amd-mobile-power-probe.exe` must match
   `DeployedProbeSHA256` in the deployment evidence and pass `--self-test`.

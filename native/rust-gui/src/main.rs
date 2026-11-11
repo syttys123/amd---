@@ -84,6 +84,7 @@ const WM_APP_TRAY: u32 = WM_APP + 2;
 const WM_APP_STATUS: u32 = WM_APP + 3;
 const WM_APP_APPLY_RESULT: u32 = WM_APP + 4;
 const WM_APP_POLICY_RESULT: u32 = WM_APP + 5;
+const WM_APP_RESTART_WORKER: u32 = WM_APP + 6;
 const MENU_SHOW: usize = 1;
 const MENU_EXIT: usize = 2;
 const MENU_SIMPLE_MODE: usize = 3;
@@ -367,6 +368,7 @@ struct GuiApp {
     stop_monitor: Arc<AtomicBool>,
     monitor_thread: Option<JoinHandle<()>>,
     worker_child: Option<Child>,
+    worker_executable: Option<PathBuf>,
     worker_pipe: String,
     write_enabled: bool,
     selected_target: PowerLimitTarget,
@@ -415,6 +417,7 @@ impl GuiApp {
             stop_monitor: Arc::new(AtomicBool::new(false)),
             monitor_thread: None,
             worker_child: None,
+            worker_executable: None,
             worker_pipe: String::new(),
             write_enabled: false,
             selected_target: PowerLimitTarget::uniform(preset_watts[0]),
@@ -2646,6 +2649,60 @@ fn start_worker(options: &Options) -> Result<Option<Child>, String> {
     Ok(Some(child))
 }
 
+/// Backoff for worker restarts: 5 s, 10 s, 20 s, 40 s, then 60 s.
+fn restart_delay(consecutive_failures: u32) -> Duration {
+    let seconds = 5u64 << consecutive_failures.min(4);
+    Duration::from_secs(seconds.min(60))
+}
+
+/// Restart a worker that exited unexpectedly. Returns true when a new process
+/// was spawned. A worker that is still alive (or was started outside this GUI)
+/// is left alone so two hardware owners can never race.
+fn try_restart_worker(app: &mut GuiApp) -> bool {
+    if app.ui_fixture.is_some() || app.worker_pipe.is_empty() {
+        return false;
+    }
+
+    if let Some(child) = app.worker_child.as_mut() {
+        match child.try_wait() {
+            Ok(None) => return false,
+            Ok(Some(_)) | Err(_) => app.worker_child = None,
+        }
+    } else {
+        // No child handle: the worker may have been started by another
+        // launcher. Only spawn when the pipe is genuinely gone.
+        let client = WorkerClient::new(app.worker_pipe.clone());
+        if client.health().is_ok() {
+            return false;
+        }
+    }
+
+    let Some(executable) = app.worker_executable.clone() else {
+        return false;
+    };
+    let mut command = Command::new(&executable);
+    command
+        .arg("--pipe-name")
+        .arg(&app.worker_pipe)
+        .arg("--enable-hardware");
+    if app.write_enabled {
+        command.arg("--enable-write-controls");
+    }
+    match command
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .creation_flags(0x08000000)
+        .spawn()
+    {
+        Ok(child) => {
+            app.worker_child = Some(child);
+            true
+        }
+        Err(_) => false,
+    }
+}
+
 unsafe fn app_from_window(hwnd: HWND) -> *mut GuiApp {
     GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut GuiApp
 }
@@ -2665,10 +2722,14 @@ fn start_worker_monitor(
     thread::spawn(move || {
         let hwnd = hwnd_address as HWND;
         let client = WorkerClient::new(pipe_name);
+        let mut consecutive_failures: u32 = 0;
+        let mut next_restart = Instant::now();
         while !stop.load(Ordering::SeqCst) {
             let policy = client.get_power_policy().ok();
             let update = match client.snapshot() {
                 Ok(snapshot) => {
+                    consecutive_failures = 0;
+                    next_restart = Instant::now();
                     let profile = snapshot.platform.matched_profile.clone();
                     StatusUpdate {
                         text: format_snapshot(&snapshot, policy.as_ref()),
@@ -2678,13 +2739,25 @@ fn start_worker_monitor(
                         worker_error: None,
                     }
                 }
-                Err(error) => StatusUpdate {
-                    text: format!("worker 不可用\n{error}"),
-                    profile: None,
-                    snapshot: None,
-                    policy,
-                    worker_error: Some(error),
-                },
+                Err(error) => {
+                    // Ask the UI thread to respawn a worker that exited. The
+                    // check is rate-limited so a driver fault cannot cause a
+                    // tight restart loop.
+                    if Instant::now() >= next_restart {
+                        unsafe {
+                            PostMessageW(hwnd, WM_APP_RESTART_WORKER, 0, 0);
+                        }
+                        next_restart = Instant::now() + restart_delay(consecutive_failures);
+                    }
+                    consecutive_failures = consecutive_failures.saturating_add(1);
+                    StatusUpdate {
+                        text: format!("worker 不可用\n{error}"),
+                        profile: None,
+                        snapshot: None,
+                        policy,
+                        worker_error: Some(error),
+                    }
+                }
             };
             unsafe {
                 post_status(hwnd, update);
@@ -4288,6 +4361,10 @@ unsafe extern "system" fn window_proc(
             }
             0
         }
+        WM_APP_RESTART_WORKER => {
+            try_restart_worker(app);
+            0
+        }
         WM_APP_APPLY_RESULT => {
             app.apply_in_flight = false;
             let pointer = lparam as *mut String;
@@ -4750,10 +4827,13 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             Ok(child) => unsafe {
                 (*app).worker_child = child;
                 (*app).worker_pipe = options.pipe_name.clone();
+                (*app).worker_executable = worker_executable_path(&options);
             },
             Err(error) => unsafe {
                 let text = wide(&format!("Worker start failed\n{error}"));
                 SetWindowTextW((*app).status_label, text.as_ptr());
+                (*app).worker_pipe = options.pipe_name.clone();
+                (*app).worker_executable = worker_executable_path(&options);
             },
         }
         let monitor = start_worker_monitor(hwnd as usize, options.pipe_name.clone(), unsafe {
@@ -4806,13 +4886,14 @@ mod tests {
     use super::{
         clamp_preset_values, clamp_to_ceiling, diagnostics_document, fixture_snapshot,
         fixture_worker_error, format_policy_state, format_snapshot, format_snapshot_simple,
-        parse_arguments, parse_ui_fixture, preset_menu_label, rgb, state, uniform_power_policy,
-        UiDiagnostics, UiFixture, HIGH_CONTRAST_PALETTE,
+        parse_arguments, parse_ui_fixture, preset_menu_label, restart_delay, rgb, state,
+        uniform_power_policy, UiDiagnostics, UiFixture, HIGH_CONTRAST_PALETTE,
     };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
         PowerPolicySettings, PowerPolicyState, ProfilePayload, SnapshotPayload, TelemetryPayload,
     };
+    use std::time::Duration;
 
     fn sample_snapshot() -> SnapshotPayload {
         SnapshotPayload {
@@ -4882,6 +4963,16 @@ mod tests {
         );
         assert!(!text.contains("Worker: connected"), "{text}");
         assert!(!text.contains("Power source"), "{text}");
+    }
+
+    #[test]
+    fn worker_restart_backoff_is_bounded() {
+        assert_eq!(restart_delay(0), Duration::from_secs(5));
+        assert_eq!(restart_delay(1), Duration::from_secs(10));
+        assert_eq!(restart_delay(2), Duration::from_secs(20));
+        assert_eq!(restart_delay(3), Duration::from_secs(40));
+        assert_eq!(restart_delay(4), Duration::from_secs(60));
+        assert_eq!(restart_delay(12), Duration::from_secs(60));
     }
 
     #[test]
