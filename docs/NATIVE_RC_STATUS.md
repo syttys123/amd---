@@ -3,8 +3,9 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.7-native`. The
-previous native `1.0.6-native` build is preserved as
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.8-native`. The
+previous native `1.0.7-native` build is preserved as
+`C:\RyzenAdj.before-20261112-025316`, `1.0.6-native` as
 `C:\RyzenAdj.before-20261112-023730`, `1.0.5-native` as
 `C:\RyzenAdj.before-20261112-022356`, the earlier `1.0.4-native` build as
 `C:\RyzenAdj.before-20261112-015439`, the `1.0.3-native` builds as
@@ -17,11 +18,14 @@ previous native `1.0.6-native` build is preserved as
 
 Decision (2026-11-12): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.7-native` package. Broader AMD generation support remains experimental.
+`1.0.8-native` package. Broader AMD generation support remains experimental.
 
-Note (2026-11-12): `1.0.7-native` supersedes `1.0.6-native` with a safe
-`uninstall-driver-bootstrap.ps1` and an installer that reuses an existing
-WinRing0 service rather than replacing another installation's binary path.
+Note (2026-11-12): `1.0.8-native` supersedes `1.0.7-native` by waiting for an
+app-owned driver to reach `Stopped` before replacing its `.sys` file and by
+making the UI verifier wait for advanced-mode policy controls. `1.0.7-native`
+added a safe `uninstall-driver-bootstrap.ps1` and an installer that reuses an
+existing WinRing0 service rather than replacing another installation's binary
+path.
 `1.0.6-native` added the package-local elevated `install-driver-bootstrap.ps1`
 for fresh Windows hosts. `1.0.5-native` added deterministic 100/125/150%
 logical DPI layout fixtures executed against the packaged GUI.
@@ -57,23 +61,27 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.7-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.8-native-win-x64-native-preview.zip
 ```
 
-- Size: `570,352` bytes.
+- Size: `570,836` bytes.
 - SHA256:
-  `a018e1af1a82a5be1dc1cee4fa54cf419d35a778cd056a16a5a35a34262635c4`.
-- Source commit: `01cdb506415b0b7fc4b39d7e328f8f282c9696cf`.
+  `8ce1fc66ca5fb9c087f4777cc79a9e93bfc9a3ddbf01ced4e24578b361f1e768`.
+- Source commit: `36287f78b286c68dd44d6f45dd59ce2b9dfa0e00`.
 - Working tree at build time: clean.
 - Policy write verification: intentionally skipped in the clean package gate.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.7-native
+artifacts/native-release-review/v1.0.8-native
 ```
 
 The bundle is `REVIEW_ONLY` and is not a public release.
+
+Historical candidate `1.0.7-native` remains recorded with package SHA256
+`a018e1af1a82a5be1dc1cee4fa54cf419d35a778cd056a16a5a35a34262635c4`
+and source commit `01cdb506415b0b7fc4b39d7e328f8f282c9696cf`.
 
 Historical candidate `1.0.6-native` remains recorded with package SHA256
 `1bb6fbb5e3ff0dd7223cd47a95211fed4b71c6d360f4343700fb2999fbb7321d`
@@ -121,12 +129,16 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Native read-only write guard: invalid target rejected, no write requested.
 - Battery-authorized dry-run write guard: PASS with
   `ExecuteNoChangeWrite=Not requested`.
-- `1.0.7-native` clean package verification with 18 checksum entries,
+- `1.0.8-native` clean package verification with 18 checksum entries,
   isolated install/overwrite/uninstall, extracted GUI/worker read-only
   verification, compatibility JSON/Markdown collection, and
   `PolicyWriteVerification=Skipped`.
 - The package includes safe WinRing0 install and uninstall helpers; package
   verification requires both, and all 18 deployed payload files match.
+- The driver bootstrap waits for an app-owned service to stop before replacing
+  its `.sys` file and attempts a restart if replacement/configuration fails.
+- The UI verifier passed three consecutive policy-control runs after adding
+  readiness waits for the battery-only and policy-enable buttons.
 - Real current-user Start menu, Startup shortcut, and uninstall-entry
   create/remove cycle.
 - Cross-version upgrade from `rc.17` to `1.0.0-native`: installed payload matched the
@@ -143,7 +155,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - High-contrast simple and advanced captures with `ui.highContrast=true`, no
   hardware worker startup, and the same target/preset/diagnostics availability
   checks as the other write-controls fixtures.
-- Extracted `1.0.7-native` packaged GUI/worker verification with GUI and worker
+- Extracted `1.0.8-native` packaged GUI/worker verification with GUI and worker
   hashes, three minimize/restore cycles, close-to-tray, tray restore,
   single-instance wake, `taskbarIconAvailable=true`, `trayIconId=1`, and the
   persisted `simple` to `advanced` mode transition.
@@ -156,7 +168,8 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   differences. `build.ps1`, `build-package.ps1`, and the readiness gate all fail
   on a missing icon.
 - The verified package is deployed at `C:\RyzenAdj` with the prior
-  `1.0.6-native` build at
+  `1.0.7-native` build at
+  `C:\RyzenAdj.before-20261112-025316`, `1.0.6-native` at
   `C:\RyzenAdj.before-20261112-023730`, `1.0.5-native` at
   `C:\RyzenAdj.before-20261112-022356`, `1.0.4-native` at
   `C:\RyzenAdj.before-20261112-015439`, earlier `1.0.3-native` builds at
@@ -196,13 +209,13 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
-- `docs/evidence/packaging/v1.0.7-native-clean-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.7-native-release-gate-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.7-native-shell-integration-2026-11-12.json`
-- `docs/evidence/hardware/v1.0.7-native-power-policy-no-change-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.7-native-deployment-2026-11-12.json`
-- `docs/evidence/ui/native-packaged-1.0.7-native-ui-2026-11-12.json`
-- `docs/evidence/ui/native-deployed-1.0.7-native-ui-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.8-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.8-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.8-native-shell-integration-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.8-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.8-native-deployment-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.8-native-ui-2026-11-12.json`
+- `docs/evidence/ui/native-deployed-1.0.8-native-ui-2026-11-12.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
 - `docs/evidence/release/native-publication-readiness-2026-11-12.json`

@@ -212,13 +212,13 @@ replacing the `.sys` file. The
 uninstaller removes `WinRing0_1_2_0` only when its binary path equals the
 package's ProgramData driver.
 
-The current stable-local candidate is `1.0.7-native`: 570,352 bytes,
+The current stable-local candidate is `1.0.8-native`: 570,836 bytes,
 SHA256
-`a018e1af1a82a5be1dc1cee4fa54cf419d35a778cd056a16a5a35a34262635c4`.
+`8ce1fc66ca5fb9c087f4777cc79a9e93bfc9a3ddbf01ced4e24578b361f1e768`.
 Its aggregate read-only gate is recorded in
-`docs/evidence/packaging/v1.0.7-native-release-gate-2026-11-12.json`.
+`docs/evidence/packaging/v1.0.8-native-release-gate-2026-11-12.json`.
 The current-value policy gate passed and is recorded in
-`docs/evidence/hardware/v1.0.7-native-power-policy-no-change-2026-11-12.json`.
+`docs/evidence/hardware/v1.0.8-native-power-policy-no-change-2026-11-12.json`.
 
 Exercise the real Start menu, Startup shortcut, and current-user uninstall
 entry without launching the GUI:
