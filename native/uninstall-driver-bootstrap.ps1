@@ -8,6 +8,32 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Stop-DriverServiceAndWait {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        [int]$TimeoutSeconds = 15
+    )
+
+    $service = Get-Service -Name $Name -ErrorAction Stop
+    if ($service.Status -eq "Stopped") {
+        return
+    }
+    & sc.exe stop $Name | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to stop driver service $Name."
+    }
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        Start-Sleep -Milliseconds 250
+        $service = Get-Service -Name $Name -ErrorAction SilentlyContinue
+        if ($null -eq $service -or $service.Status -eq "Stopped") {
+            return
+        }
+    } while ((Get-Date) -lt $deadline)
+    throw "Timed out waiting for driver service $Name to stop; state=$($service.Status)."
+}
+
 $allowedRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $env:ProgramData "AmdMobilePower"))
 $resolvedDriverDirectory = [System.IO.Path]::GetFullPath($DriverDirectory)
@@ -50,12 +76,7 @@ $serviceOwnedByUs = $null -ne $normalizedServicePath -and
 
 $serviceRemoved = $false
 if ($null -ne $service -and $serviceOwnedByUs) {
-    if ($service.Status -ne "Stopped") {
-        & sc.exe stop $ServiceName | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            throw "Failed to stop driver service $ServiceName."
-        }
-    }
+    Stop-DriverServiceAndWait -Name $ServiceName
     & sc.exe delete $ServiceName | Out-Null
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to delete driver service $ServiceName."

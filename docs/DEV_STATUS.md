@@ -150,6 +150,10 @@ not authoritative.
   replacing it. The elevated cleanup removes only the service whose binary
   path equals this app's ProgramData driver, plus its narrow logon task and
   ProgramData driver file.
+- The driver bootstrap now stops an app-owned running service and waits for
+  `Stopped` before replacing the `.sys` file. A failed copy or configuration
+  attempts to restart the service, avoiding a silent hardware-channel outage
+  during in-place updates.
 - The Rust GUI now has a test-only `--dpi-fixture` override for deterministic
   100/125/150/200 render scales. The new `verify-dpi-fixtures.ps1` gate passed
   100%, 125%, and 150% with exact physical client sizes for both simple and

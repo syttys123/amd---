@@ -58,6 +58,8 @@ confirms that unrelated user files in an unmarked directory are not replaced.
 The package also carries `install-driver-bootstrap.ps1`; on a fresh Windows
 host the user must run it once from an elevated PowerShell to register the
 demand-start WinRing0 service and the narrow `StartWinRing0` logon task. The
+helper stops an app-owned running service and waits for it to reach `Stopped`
+before replacing the `.sys` file, then restarts it on failure.
 matching `uninstall-driver-bootstrap.ps1` removes only the service whose binary
 path equals this package's ProgramData driver; a WinRing0 service owned by
 another installation is left untouched.

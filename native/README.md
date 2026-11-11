@@ -207,6 +207,8 @@ write into an unmarked non-empty directory. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
 The package also includes `install-driver-bootstrap.ps1` and
 `uninstall-driver-bootstrap.ps1` for the elevated WinRing0 service. The
+installer stops an app-owned running driver and waits for it to stop before
+replacing the `.sys` file. The
 uninstaller removes `WinRing0_1_2_0` only when its binary path equals the
 package's ProgramData driver.
 

@@ -8,6 +8,32 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Stop-DriverServiceAndWait {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        [int]$TimeoutSeconds = 15
+    )
+
+    $service = Get-Service -Name $Name -ErrorAction Stop
+    if ($service.Status -eq "Stopped") {
+        return
+    }
+    & sc.exe stop $Name | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to stop driver service $Name."
+    }
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        Start-Sleep -Milliseconds 250
+        $service = Get-Service -Name $Name -ErrorAction SilentlyContinue
+        if ($null -eq $service -or $service.Status -eq "Stopped") {
+            return
+        }
+    } while ((Get-Date) -lt $deadline)
+    throw "Timed out waiting for driver service $Name to stop; state=$($service.Status)."
+}
+
 if ([string]::IsNullOrWhiteSpace($DriverSource)) {
     $candidates = @(
         (Join-Path $PSScriptRoot "WinRing0x64.sys"),
@@ -29,8 +55,6 @@ if ([System.IO.Path]::GetExtension($driverSourcePath) -ne ".sys") {
 }
 $driverDirectory = Join-Path $env:ProgramData "AmdMobilePower\driver"
 $driverTargetPath = Join-Path $driverDirectory "WinRing0x64.sys"
-New-Item -ItemType Directory -Path $driverDirectory -Force | Out-Null
-Copy-Item -LiteralPath $driverSourcePath -Destination $driverTargetPath -Force
 
 $service = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
 $servicePath = $null
@@ -69,16 +93,29 @@ if ($null -ne $service -and -not $serviceUsesOurDriver -and
         "Refusing to replace a non-WinRing0 service.")
 }
 
-if ($serviceUsesOurDriver) {
-    if ($service.Status -ne "Stopped") {
-        & sc.exe stop $ServiceName | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            throw "Failed to stop driver service $ServiceName."
-        }
-    }
+$stoppedOwnService = $false
+if ($serviceUsesOurDriver -and $service.Status -ne "Stopped") {
+    Stop-DriverServiceAndWait -Name $ServiceName
+    $stoppedOwnService = $true
+}
 
+New-Item -ItemType Directory -Path $driverDirectory -Force | Out-Null
+try {
+    Copy-Item -LiteralPath $driverSourcePath -Destination $driverTargetPath -Force
+}
+catch {
+    if ($stoppedOwnService) {
+        Start-Service -Name $ServiceName -ErrorAction SilentlyContinue
+    }
+    throw
+}
+
+if ($serviceUsesOurDriver) {
     & sc.exe config $ServiceName binPath= "\??\$driverTargetPath" start= demand | Out-Null
     if ($LASTEXITCODE -ne 0) {
+        if ($stoppedOwnService) {
+            Start-Service -Name $ServiceName -ErrorAction SilentlyContinue
+        }
         throw "Failed to configure driver service $ServiceName."
     }
 }
@@ -104,6 +141,9 @@ else {
     $null
 }
 if ([string]::IsNullOrWhiteSpace($finalServicePath)) {
+    if ($stoppedOwnService) {
+        Start-Service -Name $ServiceName -ErrorAction SilentlyContinue
+    }
     throw "Driver service $ServiceName has no readable binary path."
 }
 $normalizedFinalServicePath = [System.IO.Path]::GetFullPath($finalServicePath)
@@ -116,6 +156,9 @@ else {
 if (-not $normalizedFinalServicePath.Equals(
     $expectedServicePath,
     [System.StringComparison]::OrdinalIgnoreCase)) {
+    if ($stoppedOwnService) {
+        Start-Service -Name $ServiceName -ErrorAction SilentlyContinue
+    }
     throw (
         "Driver service $ServiceName points at $normalizedFinalServicePath, " +
         "expected $expectedServicePath.")
