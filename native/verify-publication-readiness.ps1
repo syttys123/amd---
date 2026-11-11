@@ -310,6 +310,27 @@ if (-not $checks.LocalDeployment) {
     $blockers.Add("C:\RyzenAdj does not match the recorded deployment evidence.")
 }
 
+$deployedProbePath = Join-Path "C:\RyzenAdj" "amd-mobile-power-probe.exe"
+$checks.DeployedProbe = $false
+if ((Test-Path -LiteralPath $deployedProbePath -PathType Leaf) -and
+    $deployment.DeployedProbeSHA256 -and
+    (Get-Sha256 $deployedProbePath) -eq $deployment.DeployedProbeSHA256) {
+    try {
+        $probeSelfTest = & $deployedProbePath --self-test 2>$null | ConvertFrom-Json
+        if ($LASTEXITCODE -eq 0 -and
+            $probeSelfTest.selfTest -eq "PASS" -and
+            $probeSelfTest.readOnlyByDefault -eq $true) {
+            $checks.DeployedProbe = $true
+        }
+    }
+    catch {
+    }
+}
+if (-not $checks.DeployedProbe) {
+    $blockers.Add(
+        "Deployed headless probe is missing, does not match the deployment evidence, or failed --self-test.")
+}
+
 $checks.DeployedIcon = $false
 if (Test-Path -LiteralPath $deployedGuiPath -PathType Leaf) {
     try {

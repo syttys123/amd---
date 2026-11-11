@@ -6,8 +6,9 @@ AMD thin-and-light laptops. It uses a Rust GUI and a separate C++ worker so the
 UI and hardware access stay behind a narrow named-pipe contract.
 
 > Status: no public release yet. The current stable-local candidate is
-> `1.0.10-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
-> Local publication readiness is `PASS`; the release remains
+> `1.0.13-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
+> Its GUI, probe, worker, and portable ZIP rebuild byte-identically from the
+> same commit. Local publication readiness is `PASS`; the release remains
 > `READY_FOR_HUMAN_REVIEW`.
 > Broader AMD generation support remains experimental until each device has
 > read-only and supervised write evidence.
@@ -36,8 +37,10 @@ UI and hardware access stay behind a narrow named-pipe contract.
   installation's driver path.
 - Sanitized compatibility reports that contain no local paths, process IDs,
   account names, serial numbers, recent logs, or upload behavior.
+- Headless `amd-mobile-power-probe.exe` that produces the same compatibility
+  schema without the GUI or PowerShell, and never enables writes.
 - Portable ZIP, isolated install/overwrite/uninstall helpers, checksums,
-  diagnostics export, and reproducible native release gates.
+  diagnostics export, and byte-reproducible binaries and packages.
 
 ## Safety
 
@@ -63,12 +66,12 @@ portable package's read-only default.
 Current review candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.10-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.13-native-win-x64-native-preview.zip
 ```
 
-- Size: `571,464` bytes
+- Size: `745,536` bytes
 - SHA256:
-  `d28f499195db2a9c51f9fc07816ee70ed8ebcb9110637489ba3fc43b94a64437`
+  `eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7`
 
 1. Extract the complete ZIP to a writable directory.
 2. On a fresh Windows host, open an elevated PowerShell in the extracted
@@ -95,6 +98,16 @@ For an isolated current-user install, use `install-preview.ps1`. For driver
 cleanup, run `uninstall-driver-bootstrap.ps1` from an elevated PowerShell; it
 removes the service only when its binary path equals this package's
 `%ProgramData%\AmdMobilePower\driver\WinRing0x64.sys`.
+
+To produce a read-only compatibility report without the GUI or PowerShell:
+
+```powershell
+.\amd-mobile-power-probe.exe --diagnose --out compatibility.json
+```
+
+Hardware access is exclusive, so exit the tray app first if you want live
+limits in the report. `--self-test` checks the binary without touching
+hardware. See [docs/HEADLESS_DIAGNOSTICS.md](docs/HEADLESS_DIAGNOSTICS.md).
 
 See [docs/INSTALLATION.md](docs/INSTALLATION.md) and
 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) before enabling writes.
@@ -130,7 +143,8 @@ git submodule update --init --recursive
 .\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui `
   -VerifyRustWorker -VerifyWriteGuard
 .\native\verify-release.ps1 `
-  -Version 1.0.10-native `
+  -Version 1.0.13-native `
+  -VerifyReproducibility `
   -VerifyShellIntegration `
   -ExecuteNoChangePolicy
 ```

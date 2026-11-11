@@ -142,6 +142,20 @@ not authoritative.
   packaged screenshot rather than cross-process window text: target input
   `10`, one visible `10 W` preset, and live `10/10/10 W` are recorded in
   `docs\evidence\ui\native-deployed-1.0.10-capture-2026-11-12.json`.
+- The publication-readiness gate now also requires the deployed headless probe:
+  `C:\RyzenAdj\amd-mobile-power-probe.exe` must match
+  `DeployedProbeSHA256` in the deployment evidence and pass `--self-test`.
+  Re-running readiness for `1.0.13-native` keeps `LocalReadiness=PASS`,
+  `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, zero blockers, and all 13
+  checks true.
+- The GitHub Actions workflow was rewritten against the current scripts. It now
+  lints and formats both Rust crates, syntax-checks every root and native
+  PowerShell script, runs the native build and tests, verifies reproducible
+  binaries plus a reproducible portable package, runs the staged probe's
+  `--self-test`, audits dependencies, and keeps the legacy release gate. The
+  hosted run is still unobservable because the repository API returns 404
+  without credentials; every step that can run locally was executed and passed,
+  including a CI-versioned reproducibility run (`1.1.0-ci.local`).
 - Publication readiness is regenerated for `1.0.13-native`:
   `LocalReadiness=PASS`, `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, and
   no local blockers. The packaged GUI/tray evidence for this version
