@@ -383,6 +383,10 @@ try {
     }
 
     $diagnosticsExportResult = "Not requested"
+    $taskbarIconAvailable = $null
+    $trayIconId = $null
+    $initialUiMode = $null
+    $finalUiMode = $null
     if ($VerifyWorker) {
         $exportButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
             $window,
@@ -435,6 +439,9 @@ try {
             $diagnostics.ui.mode -notin @("simple", "advanced")) {
             throw "Rust GUI diagnostics report does not describe the window icon/mode."
         }
+        $taskbarIconAvailable = [bool]$diagnostics.ui.taskbarIconAvailable
+        $trayIconId = [int]$diagnostics.ui.trayIconId
+        $initialUiMode = [string]$diagnostics.ui.mode
         $diagnosticsExportResult = "PASS"
     }
 
@@ -614,6 +621,10 @@ try {
         if ($windowState.mode -ne "advanced" -or
             $windowState.topMost -ne $true) {
             throw "Window preferences were not persisted: $($windowState | ConvertTo-Json -Depth 6)"
+        }
+        $finalUiMode = [string]$windowState.mode
+        if ($initialUiMode -and ($initialUiMode -ne "simple" -or $finalUiMode -ne "advanced")) {
+            throw "Packaged mode synchronization did not move from simple to advanced."
         }
     $viewModeResult = "PASS"
     $topMostResult = "PASS"
@@ -932,6 +943,26 @@ try {
                 $null
             }
             WorkerStatus = $workerStatus
+            GuiExecutable = Split-Path -Leaf $executable
+            GuiSHA256 = (Get-FileHash -LiteralPath $executable -Algorithm SHA256).Hash.ToLowerInvariant()
+            WorkerExecutable = if ($WorkerExecutable) {
+                Split-Path -Leaf $WorkerExecutable
+            } else {
+                $null
+            }
+            WorkerSHA256 = if ($WorkerExecutable) {
+                (Get-FileHash -LiteralPath $WorkerExecutable -Algorithm SHA256).Hash.ToLowerInvariant()
+            } else {
+                $null
+            }
+            MinimizeRestoreCycles = 3
+            CloseToTray = "PASS"
+            TrayRestore = "PASS"
+            SingleInstanceWake = "PASS"
+            TaskbarIconAvailable = $taskbarIconAvailable
+            TrayIconId = $trayIconId
+            InitialUiMode = $initialUiMode
+            FinalUiMode = $finalUiMode
             DiagnosticsExport = $diagnosticsExportResult
             ViewModes = $viewModeResult
             TopMost = $topMostResult
