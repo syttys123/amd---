@@ -22,7 +22,8 @@ The current release line is the Rust GUI + C++ worker package:
 ```powershell
 .\native\build.ps1 -Offline
 .\native\verify-release.ps1 `
-  -Version 1.0.12-native `
+  -Version 1.0.13-native `
+  -VerifyReproducibility `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```
@@ -41,8 +42,20 @@ C++ rebuild, and compares SHA-256:
 
 ```powershell
 .\native\verify-reproducibility.ps1 `
+  -PackageVersion 1.0.13-native `
   -EvidencePath .\artifacts\native-build\reproducibility.json
 ```
+
+`-PackageVersion` additionally builds the portable ZIP twice and compares it.
+`build-package.ps1` writes the archive itself instead of using
+`Compress-Archive`, because that cmdlet stamps every entry with the file mtime;
+entries are sorted and carry a fixed timestamp. `BUILD-INFO.txt` takes its
+`BuiltAt` value from the source commit's committer date
+(`BuildTimestampSource=git-commit`), so the same commit produces the same ZIP
+bytes as long as the staged payload is unchanged.
+
+`verify-release.ps1 -VerifyReproducibility` runs the whole check as part of the
+release gate.
 
 ## Legacy .NET Application
 

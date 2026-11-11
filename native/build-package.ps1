@@ -35,6 +35,62 @@ function Reset-ArtifactDirectory {
     New-Item -ItemType Directory -Path $resolvedPath -Force | Out-Null
 }
 
+# Compress-Archive stamps every entry with the file's mtime, so two builds of
+# identical files produce different ZIPs. Writing the archive directly with a
+# fixed entry timestamp and a sorted entry order makes the package hash a pure
+# function of the staged content.
+function New-DeterministicZip {
+    param(
+        [Parameter(Mandatory = $true)][string]$Stage,
+        [Parameter(Mandatory = $true)][string]$Destination,
+        [Parameter(Mandatory = $true)][string]$RootPrefix
+    )
+
+    Add-Type -AssemblyName System.IO.Compression | Out-Null
+    Add-Type -AssemblyName System.IO.Compression.FileSystem | Out-Null
+
+    $stream = [System.IO.File]::Open($Destination, [System.IO.FileMode]::Create)
+    try {
+        $archive = New-Object System.IO.Compression.ZipArchive(
+            $stream,
+            [System.IO.Compression.ZipArchiveMode]::Create,
+            $true)
+        try {
+            $fixedTimestamp = [DateTimeOffset]::new(2000, 1, 1, 0, 0, 0, [TimeSpan]::Zero)
+            $files = Get-ChildItem -LiteralPath $Stage -File -Recurse |
+                Sort-Object FullName
+            foreach ($file in $files) {
+                $relative = [System.IO.Path]::GetRelativePath(
+                    $Stage,
+                    $file.FullName).Replace("\", "/")
+                $entry = $archive.CreateEntry(
+                    "$RootPrefix/$relative",
+                    [System.IO.Compression.CompressionLevel]::Optimal)
+                $entry.LastWriteTime = $fixedTimestamp
+                $entryStream = $entry.Open()
+                try {
+                    $source = [System.IO.File]::OpenRead($file.FullName)
+                    try {
+                        $source.CopyTo($entryStream)
+                    }
+                    finally {
+                        $source.Dispose()
+                    }
+                }
+                finally {
+                    $entryStream.Dispose()
+                }
+            }
+        }
+        finally {
+            $archive.Dispose()
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
 function Assert-StagedChecksums {
     param([string]$Path)
 
@@ -189,6 +245,9 @@ $statusText = (& git `
     Where-Object { $_ -notmatch "^.. docs/evidence/" } |
     Out-String).Trim()
 $workingTree = if ($statusText) { "Dirty" } else { "Clean" }
+# The build timestamp is normalized to the source commit's committer date so
+# BUILD-INFO.txt (and therefore the ZIP) is byte-identical for the same commit.
+$commitDate = (& git -C $repositoryRoot log -1 --format=%cI).Trim()
 @(
     "Name=$stageName"
     "Version=$Version"
@@ -196,7 +255,8 @@ $workingTree = if ($statusText) { "Dirty" } else { "Clean" }
     "WorkingTree=$workingTree"
     "Platform=win-x64"
     "Native=True"
-    "BuiltAt=$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz')"
+    "BuiltAt=$commitDate"
+    "BuildTimestampSource=git-commit"
 ) | Set-Content -LiteralPath (Join-Path $stage "BUILD-INFO.txt") -Encoding utf8
 
 $checksumLines = Get-ChildItem -LiteralPath $stage -File -Recurse |
@@ -212,7 +272,10 @@ $checksumCount = Assert-StagedChecksums -Path $stage
 if (Test-Path -LiteralPath $zipPath) {
     Remove-Item -LiteralPath $zipPath -Force
 }
-Compress-Archive -LiteralPath $stage -DestinationPath $zipPath -CompressionLevel Optimal
+New-DeterministicZip `
+    -Stage $stage `
+    -Destination $zipPath `
+    -RootPrefix $stageName
 $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
 "$zipHash  $stageName.zip" | Set-Content -LiteralPath "$zipPath.sha256" -Encoding ascii
 

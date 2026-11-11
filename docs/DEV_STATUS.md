@@ -180,6 +180,15 @@ not authoritative.
   and worker `67af1d41` identical across both builds. The `1.0.11-native`
   deployment predates this change; `1.0.12-native` is the first package whose
   artifacts can be reproduced from the commit.
+- Portable packages are now byte-reproducible as well. `build-package.ps1`
+  writes the archive directly with sorted entries and a fixed entry timestamp
+  instead of `Compress-Archive` (which stamps each entry with the file mtime),
+  and `BUILD-INFO.txt` takes `BuiltAt` from the source commit's committer date
+  (`BuildTimestampSource=git-commit`). Two consecutive `-NoBuild -NoVerify`
+  builds of the same tree produced the identical ZIP hash `9ebc7b88`
+  (745,537 bytes). `verify-reproducibility.ps1 -PackageVersion` now covers the
+  package, and `verify-release.ps1 -VerifyReproducibility` runs it as part of
+  the release gate.
 - Every native package now also ships `amd-mobile-power-probe.exe`, a
   dependency-free diagnostic entry point. `--diagnose` starts a private
   read-only worker, collects health/capabilities/telemetry/profiles/policy,

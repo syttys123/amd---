@@ -2,6 +2,7 @@ param(
     [switch]$SkipGui,
     [switch]$SkipWorker,
     [switch]$SkipProbe,
+    [string]$PackageVersion,
     [string]$EvidencePath
 )
 
@@ -153,6 +154,35 @@ if (-not $SkipWorker) {
     }
     if ($first -ne $second) {
         $failures.Add("C++ worker clean rebuild produced a different hash.")
+    }
+}
+
+if ($PackageVersion) {
+    $packageScript = Join-Path $root "build-package.ps1"
+    $zipPath = Join-Path `
+        $artifacts `
+        "native-packages\amd-mobile-power-v$PackageVersion-win-x64-native-preview.zip"
+    & $packageScript -Version $PackageVersion -NoBuild -NoVerify | Out-Null
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $zipPath)) {
+        throw "Package build failed for $PackageVersion"
+    }
+    $first = Get-Sha256 $zipPath
+    # A short pause makes a wall-clock timestamp visible if one sneaks back in.
+    Start-Sleep -Seconds 2
+    & $packageScript -Version $PackageVersion -NoBuild -NoVerify | Out-Null
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $zipPath)) {
+        throw "Second package build failed for $PackageVersion"
+    }
+    $second = Get-Sha256 $zipPath
+    $results.Package = [ordered]@{
+        Version = $PackageVersion
+        First = $first
+        Second = $second
+        Reproducible = $first -eq $second
+        Size = (Get-Item -LiteralPath $zipPath).Length
+    }
+    if ($first -ne $second) {
+        $failures.Add("Package rebuild produced a different hash.")
     }
 }
 

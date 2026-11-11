@@ -4,6 +4,7 @@ param(
     [switch]$NoBuild,
     [switch]$ExecuteNoChangePolicy,
     [switch]$VerifyShellIntegration,
+    [switch]$VerifyReproducibility,
     [switch]$AllowDirty,
     [switch]$AllowBatteryWriteGuard,
     [string]$EvidencePath
@@ -57,6 +58,25 @@ if ($AllowBatteryWriteGuard) {
 & (Join-Path $root "verify-native.ps1") @nativeArguments
 
 & (Join-Path $root "verify-power-policy.ps1") -NoBuild
+
+$reproducibilityEvidencePath = Join-Path `
+    $repositoryRoot `
+    "docs\evidence\build\reproducibility-$(Get-Date -Format 'yyyy-MM-dd').json"
+$reproducibilityStatus = "Skipped"
+if ($VerifyReproducibility) {
+    $reproOutput = & (Join-Path $root "verify-reproducibility.ps1") `
+        -PackageVersion $Version `
+        -EvidencePath $reproducibilityEvidencePath 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "Reproducibility verification failed: $reproOutput"
+    }
+    $reproReport = Get-Content -LiteralPath $reproducibilityEvidencePath -Raw |
+        ConvertFrom-Json
+    if ($reproReport.Verification -ne "PASS") {
+        throw "Reproducibility verification did not report PASS."
+    }
+    $reproducibilityStatus = "PASS"
+}
 
 $packageArguments = @{
     NoBuild = $true
@@ -158,6 +178,13 @@ $result = [ordered]@{
     PolicyEvidence = if ($ExecuteNoChangePolicy) { $policyEvidence } else { $null }
     DpiFixtures = "PASS"
     DpiEvidence = $dpiEvidencePath
+    Reproducibility = $reproducibilityStatus
+    ReproducibilityEvidence = if ($VerifyReproducibility) {
+        $reproducibilityEvidencePath
+    }
+    else {
+        $null
+    }
     RecordedAt = (Get-Date).ToString("o")
 }
 
