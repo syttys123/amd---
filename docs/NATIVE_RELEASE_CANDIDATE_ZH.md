@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `1.0.2-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.3-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,33 +16,34 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `1.0.2-native`
+- Candidate: `1.0.3-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v1.0.2-native-win-x64-native-preview.zip`
-- Size: `556,027` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.3-native-win-x64-native-preview.zip`
+- Size: `563,217` bytes
 - SHA256:
-  `614743257e66c002b5873e3bc5f36f57a874bf763e6a3cb728a28225eec16d9c`
-- Package source commit: `545f6bcc2e116e667cad0f87331d97b5b9284c2a`
+  `f3a563c73c49a39b05f14a9f14ebf0031bf77da3d181fc11962db5fe3d4d2eee`
+- Package source commit: `b5af0e61233a376d360ee8474fa3821e2e5bb4c3`
 - Working tree at build time: clean
-- Review bundle: `artifacts/native-release-review/v1.0.2-native`
+- Review bundle: `artifacts/native-release-review/v1.0.3-native`
 
-本版把应用图标嵌入 exe 的 PE 资源（`RT_ICON` + `RT_GROUP_ICON` 1），资源管理器、
-任务栏、Alt+Tab 和桌面快捷方式不再退化成通用占位图标。上一版 `1.0.1-native`
-修复了桌面快捷方式启动即退出（`unknown argument: --simple-mode`）：GUI 重新
-接受 `--simple-mode` / `--advanced-mode`，`native/gui-cli-contract.json` 成为
-命令行参数的唯一来源，晋升脚本只保留契约内参数，发布门禁会用真实快捷方式参数
-实际拉起一次 GUI。
+本版把电池与插电策略统一到 `10/10/10 W`，快捷方式同时带
+`--max-target-watts 10 --uniform-target-watts 10`：前者是任何 UI 目标、预设和
+策略都不能越过的硬上限，后者会持久化并启用两端统一策略。GUI 新增 Per-Monitor
+V2 DPI 感知、可拉伸窗口、全按钮手型光标和修正后的指标带布局。上一版
+`1.0.2-native` 把应用图标嵌入 exe 的 PE 资源（`RT_ICON` +
+`RT_GROUP_ICON` 1），避免资源管理器、任务栏、Alt+Tab 和快捷方式退回通用
+占位图标。
 
 ## 本机验证
 
-- Rust GUI 测试：`34/34`。
+- Rust GUI 测试：`37/37`。
 - Rust formatting / Clippy `-D warnings`：PASS。
 - C++ power-limit / power-policy 测试：PASS。
 - 16 项包内 SHA256 校验：PASS。
 - 提取后 GUI/worker 只读验证、诊断导出、兼容性 JSON/Markdown：PASS。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
-- `1.0.1-native -> 1.0.2-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
+- `1.0.2-native -> 1.0.3-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
   参数契约、真实参数启动：PASS。
 - 嵌入图标门禁：构建、暂存、部署三处的 exe 均含 `RT_GROUP_ICON` 1 与 9 个
   `RT_ICON`，取出的 32x32 与源 ICO 逐像素 0 差异。
@@ -52,10 +53,10 @@ AMD 笔记本都受支持。
 
 Evidence:
 
-- `docs/evidence/packaging/v1.0.2-native-clean-2026-11-11.json`
-- `docs/evidence/packaging/v1.0.2-native-release-gate-2026-11-11.json`
-- `docs/evidence/packaging/v1.0.2-native-shell-integration-2026-11-11.json`
-- `docs/evidence/ui/native-packaged-1.0.2-native-ui-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.3-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.3-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.3-native-shell-integration-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.3-native-ui-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
 - `native/gui-cli-contract.json`
 
@@ -64,30 +65,32 @@ Evidence:
 开发机：MECHREVO WUJIE15 PRO / AMD Ryzen 7 8845HS / Hawk Point。
 
 - 只读能力与遥测：SMU `15`、PM table `4c0009`、profile
-  `hawk-point-8845hs [5-60 W]`、AC `25/45/25 W`。
-- 受控当前值策略门禁：请求与回读均为 `25/45/25 W`，策略随后禁用，
+  `hawk-point-8845hs [5-60 W]`、AC `10/10/10 W`。
+- 受控当前值策略门禁：请求与回读均为 `10/10/10 W`，策略随后禁用，
   worker 正常关闭，实际限制不变。
 - 读-only 写入守卫：非法目标被拒绝，没有发起硬件写入。
 
 Evidence:
 
-- `docs/evidence/hardware/v1.0.2-native-power-policy-no-change-2026-11-11.json`
+- `docs/evidence/hardware/v1.0.3-native-power-policy-no-change-2026-11-12.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
 
 ## 本地部署
 
 - 目标目录：`C:\RyzenAdj`
-- 版本：`1.0.2-native`
-- 旧版备份：`C:\RyzenAdj.before-20261111-233609`
+- 版本：`1.0.3-native`
+- 旧版备份：`C:\RyzenAdj.before-20261112-003929`
 - 仓库备份：
-  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.2-native-20261111-233609`
+  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.3-native-20261112-003929`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
-- 快捷方式参数：`--enable-write-controls --simple-mode`
+- 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 10
+  --uniform-target-watts 10`
 - 部署验证：worker、托盘、单实例、模式、预设、电池策略开关、诊断导出 PASS；
-  快捷方式真实参数启动验证 PASS
+  快捷方式真实参数启动验证 PASS；实时策略 `enabled=true`、电池和插电均为
+  `10/10/10 W`，AC 回读 `10/10/10 W`
 - Evidence:
-  `docs/evidence/packaging/v1.0.2-native-deployment-2026-11-11.json`
+  `docs/evidence/packaging/v1.0.3-native-deployment-2026-11-12.json`
 
 ## 发布就绪检查
 

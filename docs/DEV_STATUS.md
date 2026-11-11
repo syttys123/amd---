@@ -45,10 +45,11 @@ not authoritative.
 - The current local stable package is `1.0.4`: 594,763 bytes, SHA256
   `f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433`,
   built from clean commit `b2ac5f4` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` now contains the promoted `1.0.2-native` package. The previous
-  native `1.0.1-native` deployment is preserved as
-  `C:\RyzenAdj.before-20261111-233609` and under
-  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.2-native-20261111-233609`;
+- `C:\RyzenAdj` now contains the promoted `1.0.3-native` package. The previous
+  native `1.0.2-native` deployment is preserved as
+  `C:\RyzenAdj.before-20261112-003929` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.3-native-20261112-003929`;
+  `1.0.1-native` remains at `C:\RyzenAdj.before-20261111-233609`;
   `1.0.0-native` remains at `C:\RyzenAdj.before-20261111-232010`.
   The verified .NET `1.0.4` deployment remains recoverable as
   `C:\RyzenAdj.before-20261111-223017` and under
@@ -59,7 +60,7 @@ not authoritative.
   bands, a split advanced workspace, native text fields, owner-drawn controls,
   dialog keyboard navigation, focus rings, and the embedded AMD Mobile Power
   taskbar/tray icon. The default for a fresh UI state is simple mode.
-- The native Rust GUI test suite now passes 34/34 tests. The runtime verifier
+- The native Rust GUI test suite now passes 37/37 tests. The runtime verifier
   passes worker connection, diagnostics export, mode switching, topmost,
   minimize/restore, close-to-tray, tray restore, single-instance wake, and
   preset editing. The fixture path also verifies the battery-only policy toggle
@@ -84,7 +85,19 @@ not authoritative.
   real icon. `1.0.1-native` (534,763 bytes,
   `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`) remains
   the historical shortcut-argument fix.
-- The next native candidate adds `1.0.3-native` work for a 10 W uniform policy.
+- The clean native candidate is now `1.0.3-native`: 563,217 bytes, SHA256
+  `f3a563c73c49a39b05f14a9f14ebf0031bf77da3d181fc11962db5fe3d4d2eee`,
+  built from clean commit `b5af0e61233a376d360ee8474fa3821e2e5bb4c3`.
+  It was promoted to `C:\RyzenAdj` after the full release gate, packaged GUI
+  verification, shell integration, isolated install/uninstall, and a
+  no-change hardware policy probe passed. The previous `1.0.2-native`
+  deployment is recoverable at `C:\RyzenAdj.before-20261112-003929` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.3-native-20261112-003929`.
+- The `1.0.3-native` shortcut and live worker state now enforce a 10 W uniform
+  policy. The shortcut arguments are
+  `--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10`;
+  local state reports both battery and AC at `10/10/10 W`, presets
+  `[10,10,10]`, and `maxTargetWatts=10`; live AC read-back is `10/10/10 W`.
   `--uniform-target-watts 10` persists and enables the same 10/10/10 target for
   both battery and AC, while `--max-target-watts 10` prevents every later UI
   target, preset, or saved policy from exceeding 10 W. The promotion helper now
