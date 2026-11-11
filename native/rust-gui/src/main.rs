@@ -4362,7 +4362,14 @@ unsafe extern "system" fn window_proc(
             0
         }
         WM_APP_RESTART_WORKER => {
-            try_restart_worker(app);
+            if try_restart_worker(app) {
+                // A fresh worker starts with an empty policy. Force the next
+                // profile refresh to push the saved battery/AC policy again,
+                // otherwise automatic switching would silently stop after a
+                // crash even though the last hardware limits persist.
+                app.policy_profile_applied = false;
+                app.policy_in_flight = false;
+            }
             0
         }
         WM_APP_APPLY_RESULT => {

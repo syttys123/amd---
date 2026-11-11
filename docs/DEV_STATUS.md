@@ -150,6 +150,12 @@ not authoritative.
   externally started worker is never duplicated. A live test killed the worker
   under an isolated `%LocalAppData%` instance: a new worker appeared after
   `0.8 s`, reported `hardware=true`, and the pipe served `10/10/10 W` again.
+  A fresh worker starts with an empty policy, so the restart handler also
+  clears `policy_profile_applied` and `policy_in_flight`; the next profile
+  refresh re-pushes the saved battery/AC policy. Verified in the isolated
+  harness: after killing the worker, the replacement came up in `1.2 s` and
+  `getPowerPolicy` reported `enabled=true`, both targets `10/10/10`, and
+  `lastAttemptSucceeded=true`.
   Rust tests are now `20/20` in the main suite with a new backoff-bounds test;
   Clippy and fmt stay clean.
 - The publication-readiness gate now also requires the deployed headless probe:
