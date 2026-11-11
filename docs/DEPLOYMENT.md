@@ -75,6 +75,27 @@ rolls back on failure.
 
 ## Current Deployment Evidence
 
+On 2026-11-12, `1.0.12-native` replaced `1.0.11-native` at `C:\RyzenAdj`. It is
+the first deployment whose GUI, probe, and worker binaries are byte-identical
+to a verified rebuild of the source commit.
+
+- Package SHA256:
+  `04209688c737c7973dbcc85ab7bdd358c5a61711b07fb189f41c829aa16bc1ed`
+- Package size: `745,516` bytes, 19 checksum entries
+- Package source commit: `6f96f527f8caa76da2b5fa3316744dd542fd3795`
+- Deployed GUI: `ff2dcd48b8c0d67dcba4d41dc17bff0a079d02c0d3546b5f99a3142826690449`
+- Deployed worker: `67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1`
+- Deployed probe: `6a050588c9f8ddc64d79847e3b9e173e315f54528eb02c4a920962ac96730074`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-055115`
+- Release gate:
+  `docs\evidence\packaging\v1.0.12-native-release-gate-2026-11-12.json`
+- Deployment evidence:
+  `docs\evidence\packaging\v1.0.12-native-deployment-2026-11-12.json`
+- Reproducibility evidence:
+  `docs\evidence\build\reproducibility-2026-11-12.json`
+- Live state after restart: policy enabled, battery and AC `10/10/10 W`, worker
+  read-back `10/10/10 W` on AC.
+
 On 2026-11-12, `1.0.11-native` replaced `1.0.10-native` at `C:\RyzenAdj`. The
 only payload change is the new `amd-mobile-power-probe.exe`, which can produce
 a read-only compatibility report without the GUI or PowerShell.

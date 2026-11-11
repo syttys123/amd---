@@ -142,7 +142,20 @@ not authoritative.
   packaged screenshot rather than cross-process window text: target input
   `10`, one visible `10 W` preset, and live `10/10/10 W` are recorded in
   `docs\evidence\ui\native-deployed-1.0.10-capture-2026-11-12.json`.
-- `C:\RyzenAdj` now contains the promoted `1.0.11-native` package, which adds
+- `C:\RyzenAdj` now contains the promoted `1.0.12-native` package, the first
+  deployment whose binaries are byte-identical to a verified rebuild: GUI
+  `ff2dcd48`, worker `67af1d41`, probe `6a050588`. Package SHA256 is
+  `04209688c737c7973dbcc85ab7bdd358c5a61711b07fb189f41c829aa16bc1ed`
+  (745,516 bytes, 19 checksum entries) from clean commit `6f96f52`; the previous
+  `1.0.11-native` deployment is recoverable at
+  `C:\RyzenAdj.before-20261112-055115`. The gate passed C++ tests, native
+  read-only hardware at `10/10/10 W`, GUI lifecycle, packaged headless probe,
+  compatibility collector, install flow, shell integration, DPI fixtures, and a
+  controlled no-change 10 W policy write. After restart the app reports
+  `enabled=true`, battery and AC `10/10/10 W`, and live AC `10/10/10 W`.
+  Evidence: `docs/evidence/packaging/v1.0.12-native-release-gate-2026-11-12.json`,
+  `docs/evidence/packaging/v1.0.12-native-deployment-2026-11-12.json`.
+- `C:\RyzenAdj` previously contained the promoted `1.0.11-native` package, which adds
   the headless `amd-mobile-power-probe.exe` to the stable folder. The previous
   `1.0.10-native` deployment is recoverable at
   `C:\RyzenAdj.before-20261112-052733`. Package SHA256 is
