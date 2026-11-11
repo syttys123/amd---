@@ -9,6 +9,134 @@ $root = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $root
 $artifactsRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $repositoryRoot "artifacts"))
+$guiArgumentContractPath = Join-Path $root "gui-cli-contract.json"
+
+function Get-GuiArgumentContract {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        throw "GUI argument contract is missing: $Path"
+    }
+    return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+}
+
+function Test-ShortcutArgumentsAgainstContract {
+    param(
+        [AllowEmptyString()]
+        [string]$Arguments,
+        [Parameter(Mandatory = $true)]
+        $Contract
+    )
+
+    $unsupported = New-Object System.Collections.Generic.List[string]
+    if (-not [string]::IsNullOrWhiteSpace($Arguments)) {
+        $tokens = @(
+            $Arguments -split "\s+" |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        foreach ($token in $tokens) {
+            if ($null -eq $Contract.arguments.PSObject.Properties[$token]) {
+                $unsupported.Add($token)
+            }
+        }
+    }
+    return [pscustomobject]@{
+        Supported = ($unsupported.Count -eq 0)
+        Unsupported = @($unsupported)
+    }
+}
+
+# Launches the deployed GUI with the exact shortcut arguments under an
+# isolated LOCALAPPDATA and a unique worker pipe. This is the check that
+# catches argument-parser drift before a release gate claims readiness.
+function Test-ShortcutGuiLaunch {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Executable,
+        [AllowEmptyString()]
+        [string]$Arguments
+    )
+
+    $isolatedLocalAppData = [System.IO.Path]::GetFullPath(
+        (Join-Path $artifactsRoot "publication-launch-$([Guid]::NewGuid().ToString('N'))"))
+    if (-not $isolatedLocalAppData.StartsWith(
+        $artifactsRoot + [System.IO.Path]::DirectorySeparatorChar,
+        [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Unsafe launch-check directory: $isolatedLocalAppData"
+    }
+    $pipeName = "AmdMobilePower.Worker.readiness.$([Guid]::NewGuid().ToString('N').Substring(0, 8))"
+    $stderrPath = Join-Path $isolatedLocalAppData "gui-stderr.txt"
+    $argumentList = @()
+    if (-not [string]::IsNullOrWhiteSpace($Arguments)) {
+        $argumentList += @(
+            $Arguments -split "\s+" |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    }
+    $argumentList += @("--pipe-name", $pipeName)
+    $previousLocalAppData = $env:LOCALAPPDATA
+    $process = $null
+    try {
+        New-Item -ItemType Directory -Path $isolatedLocalAppData -Force | Out-Null
+        $env:LOCALAPPDATA = $isolatedLocalAppData
+        $process = Start-Process `
+            -FilePath $Executable `
+            -WorkingDirectory (Split-Path -Parent $Executable) `
+            -ArgumentList $argumentList `
+            -RedirectStandardError $stderrPath `
+            -PassThru
+        $windowReady = $false
+        $exitedEarly = $false
+        $exitCode = $null
+        $deadline = [DateTime]::UtcNow.AddSeconds(12)
+        while ([DateTime]::UtcNow -lt $deadline) {
+            $process.Refresh()
+            if ($process.HasExited) {
+                $exitedEarly = $true
+                $exitCode = $process.ExitCode
+                break
+            }
+            if ($process.MainWindowHandle -ne [IntPtr]::Zero -and
+                $process.MainWindowTitle -like "AMD Mobile Power*") {
+                $windowReady = $true
+                break
+            }
+            Start-Sleep -Milliseconds 250
+        }
+        $stderrText = ""
+        if (Test-Path -LiteralPath $stderrPath -PathType Leaf) {
+            $stderrText = ([string](Get-Content -LiteralPath $stderrPath -Raw)).Trim()
+        }
+        return [pscustomobject]@{
+            Arguments = ($argumentList -join " ")
+            WindowReady = $windowReady
+            ExitedEarly = $exitedEarly
+            ExitCode = $exitCode
+            StandardError = $stderrText
+        }
+    }
+    finally {
+        if ($null -ne $process) {
+            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+        }
+        Get-CimInstance Win32_Process `
+            -Filter "Name = 'amdmobilepower_native_worker.exe'" `
+            -ErrorAction SilentlyContinue |
+            Where-Object { $_.CommandLine -like "*$pipeName*" } |
+            ForEach-Object {
+                Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+            }
+        $env:LOCALAPPDATA = $previousLocalAppData
+        if (Test-Path -LiteralPath $isolatedLocalAppData) {
+            Remove-Item `
+                -LiteralPath $isolatedLocalAppData `
+                -Recurse `
+                -Force `
+                -ErrorAction SilentlyContinue
+        }
+    }
+}
 
 function Read-JsonFile {
     param(
@@ -71,7 +199,7 @@ $policyEvidencePath = Join-Path `
     "docs\evidence\hardware\v$Version-power-policy-no-change-$(Get-Date -Format 'yyyy-MM-dd').json"
 $packagedUiEvidencePath = Join-Path `
     $repositoryRoot `
-    "docs\evidence\ui\native-packaged-1.0.0-ui-$(Get-Date -Format 'yyyy-MM-dd').json"
+    "docs\evidence\ui\native-packaged-$Version-ui-$(Get-Date -Format 'yyyy-MM-dd').json"
 $mediaEvidencePath = Join-Path `
     $repositoryRoot `
     "docs\evidence\media\native-promo-draft-$(Get-Date -Format 'yyyy-MM-dd').json"
@@ -155,17 +283,52 @@ if (-not $checks.LocalDeployment) {
 }
 
 $shortcutPath = "<USER_HOME>\Desktop\功耗设置 5-60W.lnk"
+$deployedGui = Join-Path "C:\RyzenAdj" "amd-mobile-power-gui.exe"
+$shortcutArguments = ""
 $checks.DesktopShortcut = $false
 if (Test-Path -LiteralPath $shortcutPath -PathType Leaf) {
     $shell = New-Object -ComObject WScript.Shell
     $shortcut = $shell.CreateShortcut($shortcutPath)
+    $shortcutArguments = [string]$shortcut.Arguments
     $checks.DesktopShortcut = (
-        $shortcut.TargetPath -eq (Join-Path "C:\RyzenAdj" "amd-mobile-power-gui.exe") -and
-        $shortcut.Arguments -eq "--enable-write-controls --simple-mode"
+        $shortcut.TargetPath -eq $deployedGui -and
+        $shortcut.WorkingDirectory -eq "C:\RyzenAdj"
     )
 }
 if (-not $checks.DesktopShortcut) {
     $blockers.Add("Desktop shortcut target or arguments do not match the deployment.")
+}
+
+$argumentAudit = $null
+$checks.ShortcutArguments = $false
+if (Test-Path -LiteralPath $guiArgumentContractPath -PathType Leaf) {
+    $guiContract = Get-GuiArgumentContract -Path $guiArgumentContractPath
+    $argumentAudit = Test-ShortcutArgumentsAgainstContract `
+        -Arguments $shortcutArguments `
+        -Contract $guiContract
+    $checks.ShortcutArguments = $argumentAudit.Supported
+}
+if (-not $checks.ShortcutArguments) {
+    $rejected = @($argumentAudit.Unsupported) -join ", "
+    $blockers.Add("Desktop shortcut passes arguments the native GUI rejects: $rejected")
+}
+
+$launchAudit = $null
+$checks.ShortcutLaunch = $false
+if ($checks.DesktopShortcut) {
+    $launchAudit = Test-ShortcutGuiLaunch `
+        -Executable $deployedGui `
+        -Arguments $shortcutArguments
+    $checks.ShortcutLaunch = (
+        $launchAudit.WindowReady -or
+        ($launchAudit.ExitedEarly -and
+            $launchAudit.ExitCode -eq 0 -and
+            [string]::IsNullOrWhiteSpace($launchAudit.StandardError))
+    )
+}
+if (-not $checks.ShortcutLaunch) {
+    $blockers.Add(
+        "Desktop shortcut does not launch the native GUI: $($launchAudit.StandardError)")
 }
 
 $checks.CompatibilityIndex = (
@@ -235,9 +398,15 @@ $result = [ordered]@{
     else {
         "BLOCKED_BY_LOCAL_CHECKS"
     }
+    DesktopShortcut = [ordered]@{
+        Path = $shortcutPath
+        Arguments = $shortcutArguments
+        RejectedArguments = @($argumentAudit.Unsupported)
+        Launch = $launchAudit
+    }
     OpenGates = $openGates
     BlockersFromLocalChecks = @($blockers)
-    Note = "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check."
+    Note = "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check. The shortcut launch audit runs the deployed GUI with an isolated LOCALAPPDATA and a unique worker pipe, then stops it."
     RecordedAt = (Get-Date).ToString("o")
 }
 

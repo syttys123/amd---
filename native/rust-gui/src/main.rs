@@ -365,9 +365,13 @@ struct GuiApp {
 }
 
 impl GuiApp {
-    fn new(mutex: HANDLE) -> Self {
+    fn new(mutex: HANDLE, mode_override: Option<state::UiMode>) -> Self {
         let preset_watts = state::load_presets();
-        let window_preferences = state::load_window_preferences();
+        let mut window_preferences = state::load_window_preferences();
+        if let Some(mode) = mode_override {
+            window_preferences.mode = mode;
+            let _ = state::save_window_preferences(window_preferences);
+        }
         Self {
             state: LifecycleState::default(),
             _mutex: mutex,
@@ -449,6 +453,7 @@ struct Options {
     worker_executable: Option<PathBuf>,
     enable_write_controls: bool,
     ui_fixture: Option<UiFixture>,
+    mode_override: Option<state::UiMode>,
 }
 
 impl Default for Options {
@@ -459,6 +464,7 @@ impl Default for Options {
             worker_executable: None,
             enable_write_controls: false,
             ui_fixture: None,
+            mode_override: None,
         }
     }
 }
@@ -2231,11 +2237,22 @@ fn export_diagnostics(app: &GuiApp) -> Result<PathBuf, String> {
 }
 
 fn parse_options() -> Result<Options, String> {
+    parse_arguments(std::env::args().skip(1))
+}
+
+// The supported argument set is mirrored in native/gui-cli-contract.json so
+// promotion scripts and release gates cannot drift away from the parser.
+fn parse_arguments<I>(arguments: I) -> Result<Options, String>
+where
+    I: IntoIterator<Item = String>,
+{
     let mut options = Options::default();
-    let mut arguments = std::env::args().skip(1);
+    let mut arguments = arguments.into_iter();
     while let Some(argument) = arguments.next() {
         match argument.as_str() {
             "--tray" => options.start_hidden = true,
+            "--simple-mode" => options.mode_override = Some(state::UiMode::Simple),
+            "--advanced-mode" => options.mode_override = Some(state::UiMode::Advanced),
             "--pipe-name" => {
                 options.pipe_name = arguments
                     .next()
@@ -4220,7 +4237,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    let initial_mode = state::load_window_preferences().mode;
+    let initial_mode = options
+        .mode_override
+        .unwrap_or_else(|| state::load_window_preferences().mode);
     let client_size = match initial_mode {
         state::UiMode::Simple => SIMPLE_CLIENT_SIZE,
         state::UiMode::Advanced => ADVANCED_CLIENT_SIZE,
@@ -4258,7 +4277,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
-    let app = Box::into_raw(Box::new(GuiApp::new(mutex)));
+    let app = Box::into_raw(Box::new(GuiApp::new(mutex, options.mode_override)));
     unsafe {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, app as isize);
         (*app).write_enabled = options.enable_write_controls;
@@ -4394,8 +4413,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 mod tests {
     use super::{
         clamp_preset_values, diagnostics_document, fixture_snapshot, fixture_worker_error,
-        format_policy_state, format_snapshot, format_snapshot_simple, parse_ui_fixture,
-        preset_menu_label, rgb, state, UiDiagnostics, UiFixture, HIGH_CONTRAST_PALETTE,
+        format_policy_state, format_snapshot, format_snapshot_simple, parse_arguments,
+        parse_ui_fixture, preset_menu_label, rgb, state, UiDiagnostics, UiFixture,
+        HIGH_CONTRAST_PALETTE,
     };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
@@ -4664,5 +4684,64 @@ mod tests {
         assert!(text.contains("目标功耗：10.00 W"), "{text}");
         assert!(text.contains("CPU：44.9 °C"), "{text}");
         assert!(!text.contains("PM 表"), "{text}");
+    }
+
+    fn to_arguments(tokens: &[&str]) -> Vec<String> {
+        tokens.iter().map(|token| (*token).to_owned()).collect()
+    }
+
+    #[test]
+    fn desktop_shortcut_arguments_are_accepted() {
+        let options = parse_arguments(to_arguments(&["--enable-write-controls", "--simple-mode"]))
+            .expect("桌面快捷方式参数必须被接受");
+
+        assert!(options.enable_write_controls);
+        assert_eq!(options.mode_override, Some(state::UiMode::Simple));
+        assert!(!options.start_hidden);
+    }
+
+    #[test]
+    fn advanced_mode_override_is_accepted() {
+        let options =
+            parse_arguments(to_arguments(&["--advanced-mode"])).expect("高级模式参数必须被接受");
+        assert_eq!(options.mode_override, Some(state::UiMode::Advanced));
+    }
+
+    #[test]
+    fn unknown_arguments_are_rejected() {
+        assert!(parse_arguments(to_arguments(&["--no-such-flag"])).is_err());
+    }
+
+    #[test]
+    fn cli_contract_matches_parser() {
+        let contract_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("native 目录")
+            .join("gui-cli-contract.json");
+        let contents = std::fs::read_to_string(&contract_path)
+            .unwrap_or_else(|error| panic!("读取 {} 失败：{error}", contract_path.display()));
+        let contract: serde_json::Value =
+            serde_json::from_str(&contents).expect("gui-cli-contract.json 必须是合法 JSON");
+        let arguments = contract["arguments"]
+            .as_object()
+            .expect("契约必须包含 arguments 对象");
+        assert!(!arguments.is_empty(), "契约不能为空");
+
+        for (name, spec) in arguments {
+            let takes_value = spec["takesValue"]
+                .as_bool()
+                .unwrap_or_else(|| panic!("{name} 缺少 takesValue 布尔值"));
+            let mut argv = vec![name.clone()];
+            if takes_value {
+                let sample = if name == "--ui-fixture" {
+                    "high-contrast"
+                } else {
+                    "sample-value"
+                };
+                argv.push(sample.to_owned());
+            }
+            parse_arguments(argv)
+                .unwrap_or_else(|error| panic!("契约参数 {name} 未被解析器接受：{error}"));
+        }
     }
 }

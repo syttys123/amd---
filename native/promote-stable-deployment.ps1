@@ -15,6 +15,137 @@ $root = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $root
 $artifactsRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $repositoryRoot "artifacts"))
+$guiArgumentContractPath = Join-Path $root "gui-cli-contract.json"
+
+function Get-GuiArgumentContract {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        throw "GUI argument contract is missing: $Path"
+    }
+    $contract = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+    if ($null -eq $contract.arguments) {
+        throw "GUI argument contract has no arguments map: $Path"
+    }
+    return $contract
+}
+
+# The native GUI has its own parser. Legacy .NET shortcuts carry flags such as
+# --simple-mode; keeping unknown flags verbatim is what made the desktop
+# shortcut exit immediately with "unknown argument".
+function Resolve-SupportedGuiArguments {
+    param(
+        [AllowEmptyString()]
+        [string]$Arguments,
+        [Parameter(Mandatory = $true)]
+        $Contract
+    )
+
+    $kept = New-Object System.Collections.Generic.List[string]
+    $dropped = New-Object System.Collections.Generic.List[string]
+    if (-not [string]::IsNullOrWhiteSpace($Arguments)) {
+        $tokens = @(
+            $Arguments -split "\s+" |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $index = 0
+        while ($index -lt $tokens.Count) {
+            $token = $tokens[$index]
+            $entry = $Contract.arguments.PSObject.Properties[$token]
+            if ($null -eq $entry) {
+                $dropped.Add($token)
+                $index += 1
+                continue
+            }
+            $kept.Add($token)
+            if ([bool]$entry.Value.takesValue) {
+                if ($index + 1 -ge $tokens.Count) {
+                    throw "Argument $token requires a value. Fix the shortcut before promoting."
+                }
+                $kept.Add($tokens[$index + 1])
+                $index += 2
+                continue
+            }
+            $index += 1
+        }
+    }
+    return [pscustomobject]@{
+        Arguments = ($kept -join " ")
+        Dropped = @($dropped)
+    }
+}
+
+# Launches the promoted GUI with the exact shortcut arguments under an
+# isolated LOCALAPPDATA and a unique worker pipe. That proves the shortcut
+# really starts a window without touching the user's saved power policy.
+function Test-PromotedGuiLaunch {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Executable,
+        [AllowEmptyString()]
+        [string]$Arguments
+    )
+
+    if (-not (Test-Path -LiteralPath $Executable -PathType Leaf)) {
+        throw "Promoted GUI is missing: $Executable"
+    }
+    $isolatedLocalAppData = Resolve-ArtifactPath (
+        Join-Path $artifactsRoot "promotion-launch-$([Guid]::NewGuid().ToString('N'))")
+    $pipeName = "AmdMobilePower.Worker.promote.$([Guid]::NewGuid().ToString('N').Substring(0, 8))"
+    $previousLocalAppData = $env:LOCALAPPDATA
+    $argumentList = @()
+    if (-not [string]::IsNullOrWhiteSpace($Arguments)) {
+        $argumentList += @(
+            $Arguments -split "\s+" |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    }
+    $argumentList += @("--pipe-name", $pipeName)
+    $process = $null
+    try {
+        New-Item -ItemType Directory -Path $isolatedLocalAppData -Force | Out-Null
+        $env:LOCALAPPDATA = $isolatedLocalAppData
+        $process = Start-Process `
+            -FilePath $Executable `
+            -WorkingDirectory (Split-Path -Parent $Executable) `
+            -ArgumentList $argumentList `
+            -PassThru
+        $deadline = [DateTime]::UtcNow.AddSeconds(20)
+        while ([DateTime]::UtcNow -lt $deadline) {
+            $process.Refresh()
+            if ($process.HasExited) {
+                throw "Promoted GUI exited with code $($process.ExitCode). Arguments: $($argumentList -join ' ')"
+            }
+            if ($process.MainWindowHandle -ne [IntPtr]::Zero -and
+                $process.MainWindowTitle -like "AMD Mobile Power*") {
+                return [pscustomobject]@{
+                    Result = "PASS"
+                    Arguments = ($argumentList -join " ")
+                    WindowTitle = $process.MainWindowTitle
+                }
+            }
+            Start-Sleep -Milliseconds 250
+        }
+        throw "Promoted GUI did not create a window. Arguments: $($argumentList -join ' ')"
+    }
+    finally {
+        if ($null -ne $process) {
+            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+        }
+        Get-CimInstance Win32_Process `
+            -Filter "Name = 'amdmobilepower_native_worker.exe'" `
+            -ErrorAction SilentlyContinue |
+            Where-Object { $_.CommandLine -like "*$pipeName*" } |
+            ForEach-Object {
+                Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+            }
+        $env:LOCALAPPDATA = $previousLocalAppData
+        if (Test-Path -LiteralPath $isolatedLocalAppData) {
+            Remove-Item -LiteralPath $isolatedLocalAppData -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
 
 function Resolve-ArtifactPath {
     param(
@@ -61,7 +192,7 @@ function Get-ShortcutTargets {
         [Parameter(Mandatory = $true)]
         [string]$Root,
         [Parameter(Mandatory = $true)]
-        [string]$LegacyTarget
+        [string[]]$LegacyTargets
     )
 
     $items = @()
@@ -75,9 +206,16 @@ function Get-ShortcutTargets {
         -Filter "*.lnk" `
         -ErrorAction SilentlyContinue) {
         $shortcut = $shell.CreateShortcut($shortcutFile.FullName)
-        if ($shortcut.TargetPath.Equals(
-            $LegacyTarget,
-            [System.StringComparison]::OrdinalIgnoreCase)) {
+        $matchesTarget = $false
+        foreach ($candidate in $LegacyTargets) {
+            if ($shortcut.TargetPath.Equals(
+                $candidate,
+                [System.StringComparison]::OrdinalIgnoreCase)) {
+                $matchesTarget = $true
+                break
+            }
+        }
+        if ($matchesTarget) {
             $items += [pscustomobject]@{
                 Path = $shortcutFile.FullName
                 Target = $shortcut.TargetPath
@@ -102,6 +240,9 @@ function Update-ShortcutTargets {
     foreach ($item in $Shortcuts) {
         $shortcut = $shell.CreateShortcut($item.Path)
         $shortcut.TargetPath = $NewTarget
+        if ($null -ne $item.PSObject.Properties["ResolvedArguments"]) {
+            $shortcut.Arguments = [string]$item.ResolvedArguments
+        }
         $shortcut.WorkingDirectory = Split-Path -Parent $NewTarget
         $shortcut.IconLocation = "$NewTarget,0"
         $shortcut.Save()
@@ -182,17 +323,37 @@ $desktopRoots = @(
 ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
 $programsRoot = [Environment]::GetFolderPath("Programs")
 $legacyGui = Join-Path $resolvedTarget "AmdMobilePower.exe"
+$nativeGui = Join-Path $resolvedTarget "amd-mobile-power-gui.exe"
+$shortcutTargets = @($legacyGui, $nativeGui)
 $shortcutSnapshots = @()
 if (-not $SkipShellIntegration) {
     foreach ($rootPath in $desktopRoots) {
         $shortcutSnapshots += @(Get-ShortcutTargets `
             -Root $rootPath `
-            -LegacyTarget $legacyGui)
+            -LegacyTargets $shortcutTargets)
     }
     if ($programsRoot) {
         $shortcutSnapshots += @(Get-ShortcutTargets `
             -Root $programsRoot `
-            -LegacyTarget $legacyGui)
+            -LegacyTargets $shortcutTargets)
+    }
+}
+
+$guiContract = $null
+if ($shortcutSnapshots.Count -gt 0) {
+    $guiContract = Get-GuiArgumentContract -Path $guiArgumentContractPath
+    foreach ($snapshot in $shortcutSnapshots) {
+        $resolved = Resolve-SupportedGuiArguments `
+            -Arguments $snapshot.Arguments `
+            -Contract $guiContract
+        $snapshot | Add-Member `
+            -NotePropertyName ResolvedArguments `
+            -NotePropertyValue $resolved.Arguments `
+            -Force
+        $snapshot | Add-Member `
+            -NotePropertyName DroppedArguments `
+            -NotePropertyValue @($resolved.Dropped) `
+            -Force
     }
 }
 
@@ -230,6 +391,14 @@ $plan = [ordered]@{
     Backup = $resolvedBackup
     Evidence = $resolvedEvidence
     LegacyShortcuts = @($shortcutSnapshots | ForEach-Object { $_.Path })
+    ShortcutArguments = @($shortcutSnapshots | ForEach-Object {
+        [pscustomobject]@{
+            Path = $_.Path
+            Before = $_.Arguments
+            After = $_.ResolvedArguments
+            Dropped = @($_.DroppedArguments)
+        }
+    })
     Apply = [bool]$Apply
     NoLaunch = [bool]$NoLaunch
 }
@@ -284,26 +453,16 @@ try {
         $shortcutsUpdated = $true
     }
 
+    $primaryShortcutArguments = ""
+    if ($shortcutSnapshots.Count -gt 0) {
+        $primaryShortcutArguments = [string]$shortcutSnapshots[0].ResolvedArguments
+    }
+    $launchResult = "Skipped"
     if (-not $NoLaunch) {
-        $gui = Join-Path $resolvedTarget "amd-mobile-power-gui.exe"
-        $process = Start-Process `
-            -FilePath $gui `
-            -WorkingDirectory $resolvedTarget `
-            -PassThru
-        $deadline = [DateTime]::UtcNow.AddSeconds(15)
-        while ([DateTime]::UtcNow -lt $deadline) {
-            $process.Refresh()
-            if ($process.HasExited) {
-                throw "Promoted GUI exited with code $($process.ExitCode)."
-            }
-            if ($process.MainWindowHandle -ne [IntPtr]::Zero) {
-                break
-            }
-            Start-Sleep -Milliseconds 250
-        }
-        if ($process.MainWindowHandle -eq [IntPtr]::Zero) {
-            throw "Promoted GUI did not create a window."
-        }
+        $launch = Test-PromotedGuiLaunch `
+            -Executable (Join-Path $resolvedTarget "amd-mobile-power-gui.exe") `
+            -Arguments $primaryShortcutArguments
+        $launchResult = $launch.Result
     }
 
     $evidenceDirectory = Split-Path -Parent $resolvedEvidence
@@ -319,6 +478,15 @@ try {
         Target = $resolvedTarget
         Backup = $resolvedBackup
         ShortcutsUpdated = @($shortcutSnapshots | ForEach-Object { $_.Path })
+        ShortcutArguments = @($shortcutSnapshots | ForEach-Object {
+            [pscustomobject]@{
+                Path = $_.Path
+                Before = $_.Arguments
+                After = $_.ResolvedArguments
+                Dropped = @($_.DroppedArguments)
+            }
+        })
+        LaunchVerification = $launchResult
         Launched = (-not $NoLaunch)
         RecordedAt = (Get-Date).ToString("o")
     } |
