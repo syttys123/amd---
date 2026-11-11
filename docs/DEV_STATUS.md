@@ -71,11 +71,11 @@ not authoritative.
   the full simple and advanced shells in black, white, and yellow without
   modifying system accessibility settings; diagnostics expose the active state
   as `ui.highContrast`.
-- The clean native candidate is now `0.6.0-native-rc.15`: 535,408 bytes,
+- The clean native candidate is now `0.6.0-native-rc.16`: 535,408 bytes,
   SHA256
-  `e2940853e82d5aa459b6f5e3f99d680bb29a485fcb3071374ddee395f28948fd`,
-  built from clean commit `c85a0c951f5a36311ebfb176a6e2ea60c2cf29d1`.
-- The rc.15 package passed 16-entry checksum verification, extracted GUI/worker
+  `0bfaa7ba608a73b89660a9c0a36ac741e4b1cd9ac66b50970ecb360aef479263`,
+  built from clean commit `20c570cd7287faa9379a4997cd37bbac14bd95ed`.
+- The rc.16 package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user
   Start menu/Startup/uninstall-entry create-cleanup. It also carries the
@@ -100,6 +100,8 @@ not authoritative.
   tooling update.
 - A real `rc.14` to `rc.15` upgrade passed with the same payload-hash,
   read-only runtime, and uninstall checks after the high-contrast work.
+- A real `rc.15` to `rc.16` upgrade passed with the same payload-hash,
+  read-only runtime, and uninstall checks after the packaged UI evidence work.
 - Native simple/advanced screenshots are now reproducible through
   `native\capture-rust-gui-redesign.ps1`, which uses an isolated
   `%LocalAppData%` and unique worker pipe and does not request a power write.
@@ -1159,6 +1161,12 @@ third_party/
   topmost, and policy changes: active mode, topmost state,
   `taskbarIconAvailable=true`, and `trayIconId=1`. The fixture and
   hardware-worker paths both pass without requesting a power write.
+- Extended the native verifier evidence schema with packaged GUI/worker hashes,
+  three minimize/restore cycles, close-to-tray, tray restore, single-instance
+  wake, taskbar icon availability, tray icon id, and the
+  `simple` to `advanced` mode transition. The dedicated rc.16 packaged run
+  passed all fields without requesting a power write:
+  `docs/evidence/ui/native-packaged-rc16-ui-2026-11-11.json`.
 - Added native Windows high-contrast support without changing user settings.
   The custom canvas, owner-drawn buttons, native edit backgrounds, focus rings,
   semantic badges, and status bands now switch palette on system setting
@@ -1175,6 +1183,14 @@ third_party/
   install/uninstall, real shell integration, and the `rc.14` to `rc.15`
   upgrade. Evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.15-release-gate-2026-11-11.json`.
+- Built and fully gated `0.6.0-native-rc.16` from clean commit
+  `20c570cd7287faa9379a4997cd37bbac14bd95ed`. The package is 535,408 bytes
+  with SHA256
+  `0bfaa7ba608a73b89660a9c0a36ac741e4b1cd9ac66b50970ecb360aef479263`.
+  The aggregate read-only gate, shell integration, compatibility collection,
+  install/uninstall, `rc.15` to `rc.16` upgrade, and dedicated packaged
+  tray/taskbar/mode evidence all passed. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.16-release-gate-2026-11-11.json`.
 
 Development screenshot:
 
@@ -1216,14 +1232,14 @@ Historical development screenshots:
 - Broaden the packaged native worker's hardware matrix beyond the 8845HS and
   collect a second-device write/read-back smoke test; keep `1.0.4` as the
   stable fallback.
-- Run the supervised `rc.15` write-enabled no-change policy gate on the
+- Run the supervised `rc.16` write-enabled no-change policy gate on the
   8845HS before promotion. The clean package currently proves the complete
   read-only runtime and install flow with `PolicyWriteVerification=Skipped`.
 
 ## Next Concrete Task
 
 Repeat the native redesign at 100% and 150% Windows scaling, then run the
-supervised `rc.15` no-change policy gate on the development 8845HS. Keep
+supervised `rc.16` no-change policy gate on the development 8845HS. Keep
 `C:\RyzenAdj` on the verified `1.0.4` rollback point and do not promote a dirty
 or write-unverified native package.
 

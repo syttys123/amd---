@@ -111,6 +111,10 @@ Verified on 2026-11-09:
   GUI connected read-only, and the dry-run guard passed without requesting a
   no-change write. Evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.15-release-gate-2026-11-11.json`.
+- `0.6.0-native-rc.16` repeated the read-only gate after packaged UI evidence:
+  AC power, `25.24/45/25 W`, the native write gate still rejected writes, the
+  Rust GUI connected read-only, and the dry-run guard passed. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.16-release-gate-2026-11-11.json`.
 
 ## Required Capture
 

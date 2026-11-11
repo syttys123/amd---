@@ -79,17 +79,18 @@ runtime details.
 
 The `main` line now includes a clean-room Rust GUI with a
 C++ worker. The current read-only-verified candidate is
-`0.6.0-native-rc.15`:
+`0.6.0-native-rc.16`:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.15-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.16-win-x64-native-preview.zip
 ```
 
 It is an internal candidate, not a replacement for the stable `C:\RyzenAdj`
 deployment. Its clean package gate passed extracted GUI/worker read-only
 verification, sanitized diagnostics, checksums, isolated install/uninstall,
-current-user shell integration, Windows high-contrast rendering, and the
-`rc.14` to `rc.15` upgrade. The supervised policy-write gate remains open.
+current-user shell integration, Windows high-contrast rendering, packaged
+tray/taskbar and mode evidence, and the `rc.15` to `rc.16` upgrade. The
+supervised policy-write gate remains open.
 
 ![Native simple redesign](assets/native-gui-redesign-simple-2026-11-11.png)
 
