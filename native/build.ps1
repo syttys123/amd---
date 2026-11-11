@@ -135,6 +135,11 @@ try {
         throw "Rust GUI build failed."
     }
 
+    # A GUI without an embedded icon shows a generic placeholder in Explorer,
+    # the taskbar, and shortcuts. Fail the build instead of shipping that.
+    & (Join-Path $root "check-exe-icon.ps1") `
+        -Path (Join-Path $root "rust-gui\target\release\amd-mobile-power-gui.exe")
+
     $cargoArguments = @(
         "build",
         "--manifest-path", (Join-Path $root "rust-probe\Cargo.toml"),

@@ -296,6 +296,21 @@ if (-not $checks.LocalDeployment) {
     $blockers.Add("C:\RyzenAdj does not match the recorded deployment evidence.")
 }
 
+$checks.DeployedIcon = $false
+if (Test-Path -LiteralPath $deployedGuiPath -PathType Leaf) {
+    try {
+        $null = & (Join-Path $root "check-exe-icon.ps1") -Path $deployedGuiPath
+        $checks.DeployedIcon = $true
+    }
+    catch {
+        $blockers.Add(
+            "Deployed GUI has no embedded application icon: $($_.Exception.Message)")
+    }
+}
+else {
+    $blockers.Add("Deployed GUI is missing, so its icon resource cannot be verified.")
+}
+
 $shortcutPath = "<USER_HOME>\Desktop\功耗设置 5-60W.lnk"
 $deployedGui = Join-Path "C:\RyzenAdj" "amd-mobile-power-gui.exe"
 $shortcutArguments = ""

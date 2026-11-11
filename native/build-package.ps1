@@ -126,6 +126,9 @@ New-Item -ItemType Directory -Path $nativePackages -Force | Out-Null
 Reset-ArtifactDirectory $stage
 Copy-Item -Path (Join-Path $guiRuntime "*") -Destination $stage -Force
 
+& (Join-Path $root "check-exe-icon.ps1") `
+    -Path (Join-Path $stage "amd-mobile-power-gui.exe")
+
 New-Item -ItemType Directory -Path (Join-Path $stage "licenses") -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repositoryRoot "third_party\RyzenAdj\LICENSE") `
     -Destination (Join-Path $stage "licenses\RyzenAdj-LICENSE.txt") -Force
