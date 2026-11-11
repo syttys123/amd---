@@ -55,7 +55,7 @@ not authoritative.
   bands, a split advanced workspace, native text fields, owner-drawn controls,
   dialog keyboard navigation, focus rings, and the embedded AMD Mobile Power
   taskbar/tray icon. The default for a fresh UI state is simple mode.
-- The native Rust GUI test suite now passes 29/29 tests. The runtime verifier
+- The native Rust GUI test suite now passes 30/30 tests. The runtime verifier
   passes worker connection, diagnostics export, mode switching, topmost,
   minimize/restore, close-to-tray, tray restore, single-instance wake, and
   preset editing. The fixture path also verifies the battery-only policy toggle
@@ -65,6 +65,12 @@ not authoritative.
   now verifies foreground ownership before copying the DWM frame, preventing
   unrelated desktop content from entering UI evidence. The native rewrite is
   not yet a stable deployment and has not replaced `C:\RyzenAdj`.
+- The native shell now follows Windows high contrast through
+  `SPI_GETHIGHCONTRAST` and refreshes on `WM_SETTINGCHANGE` /
+  `WM_SYSCOLORCHANGE`. The test-only `--ui-fixture high-contrast` path renders
+  the full simple and advanced shells in black, white, and yellow without
+  modifying system accessibility settings; diagnostics expose the active state
+  as `ui.highContrast`.
 - The clean native candidate is now `0.6.0-native-rc.14`: 533,597 bytes,
   SHA256
   `069ed024ab30ff7cc7bf53bdd251fbbcd88080c83302f6190812d0866a770cbb`,
@@ -1150,6 +1156,12 @@ third_party/
   topmost, and policy changes: active mode, topmost state,
   `taskbarIconAvailable=true`, and `trayIconId=1`. The fixture and
   hardware-worker paths both pass without requesting a power write.
+- Added native Windows high-contrast support without changing user settings.
+  The custom canvas, owner-drawn buttons, native edit backgrounds, focus rings,
+  semantic badges, and status bands now switch palette on system setting
+  changes. The fixture and capture gates verify `ui.highContrast`, diagnostic
+  state, readable simple/advanced layouts, and no hardware worker startup.
+  Native Rust tests are now 30/30 and Clippy remains clean with `-D warnings`.
 
 Development screenshot:
 

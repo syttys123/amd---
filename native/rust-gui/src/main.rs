@@ -35,13 +35,14 @@ use windows_sys::Win32::Graphics::Gdi::{
     BeginPaint, BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, CreateFontW, CreatePen,
     CreateSolidBrush, DeleteDC, DeleteObject, DrawTextW, EndPaint, FillRect, GetStockObject,
     InvalidateRect, RoundRect, SelectObject, SetBkColor, SetBkMode, SetTextColor, UpdateWindow,
-    COLOR_WINDOW, DT_CENTER, DT_END_ELLIPSIS, DT_LEFT, DT_NOPREFIX, DT_RIGHT, DT_SINGLELINE,
-    DT_VCENTER, FW_BOLD, FW_NORMAL, HBRUSH, HGDIOBJ, NULL_BRUSH, PAINTSTRUCT, PS_SOLID, SRCCOPY,
-    TRANSPARENT, WHITE_BRUSH,
+    BLACK_BRUSH, COLOR_WINDOW, DT_CENTER, DT_END_ELLIPSIS, DT_LEFT, DT_NOPREFIX, DT_RIGHT,
+    DT_SINGLELINE, DT_VCENTER, FW_BOLD, FW_NORMAL, HBRUSH, HGDIOBJ, NULL_BRUSH, PAINTSTRUCT,
+    PS_SOLID, SRCCOPY, TRANSPARENT, WHITE_BRUSH,
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::SystemServices::SS_LEFT;
 use windows_sys::Win32::System::Threading::CreateMutexW;
+use windows_sys::Win32::UI::Accessibility::{HCF_HIGHCONTRASTON, HIGHCONTRASTW};
 use windows_sys::Win32::UI::Controls::{DRAWITEMSTRUCT, ODS_DISABLED, ODS_SELECTED, ODT_BUTTON};
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{EnableWindow, SetFocus};
 use windows_sys::Win32::UI::Shell::{
@@ -53,15 +54,15 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     FindWindowW, GetClientRect, GetCursorPos, GetDlgCtrlID, GetDlgItem, GetMessageW, GetParent,
     GetWindowLongPtrW, IsDialogMessageW, LoadCursorW, LoadIconW, PostMessageW, PostQuitMessage,
     RegisterClassExW, SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, SetWindowTextW,
-    ShowWindow, TrackPopupMenu, TranslateMessage, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT,
-    GWLP_USERDATA, HICON, HMENU, HWND_NOTOPMOST, HWND_TOPMOST, ICON_BIG, ICON_SMALL, IDC_ARROW,
-    IDI_APPLICATION, LR_DEFAULTCOLOR, MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED, MSG,
-    SIZE_MINIMIZED, SIZE_RESTORED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER, SW_HIDE,
-    SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND,
-    WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION, WM_GETICON, WM_LBUTTONUP, WM_QUERYENDSESSION,
-    WM_RBUTTONUP, WM_SETICON, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOMMAND, WNDCLASSEXW, WS_CAPTION,
-    WS_CHILD, WS_CLIPCHILDREN, WS_EX_APPWINDOW, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_SYSMENU,
-    WS_VISIBLE,
+    ShowWindow, SystemParametersInfoW, TrackPopupMenu, TranslateMessage, CS_HREDRAW, CS_VREDRAW,
+    CW_USEDEFAULT, GWLP_USERDATA, HICON, HMENU, HWND_NOTOPMOST, HWND_TOPMOST, ICON_BIG, ICON_SMALL,
+    IDC_ARROW, IDI_APPLICATION, LR_DEFAULTCOLOR, MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED,
+    MSG, SIZE_MINIMIZED, SIZE_RESTORED, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE,
+    SWP_NOSIZE, SWP_NOZORDER, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON,
+    WM_APP, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION, WM_GETICON,
+    WM_LBUTTONUP, WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW,
+    WM_SIZE, WM_SYSCOLORCHANGE, WM_SYSCOMMAND, WNDCLASSEXW, WS_CAPTION, WS_CHILD, WS_CLIPCHILDREN,
+    WS_EX_APPWINDOW, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_SYSMENU, WS_VISIBLE,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_SETCHECK, BS_OWNERDRAW, ES_CENTER,
@@ -115,28 +116,138 @@ const TITLE_LABEL: usize = 360;
 const ADVANCED_DEVICE_LABEL: usize = 370;
 const STATUS_HOLD: Duration = Duration::from_secs(5);
 
-const COLOR_CANVAS: u32 = rgb(238, 241, 246);
-const COLOR_SURFACE: u32 = rgb(255, 255, 255);
-const COLOR_SURFACE_MUTED: u32 = rgb(247, 249, 252);
-const COLOR_HEADER: u32 = rgb(13, 18, 27);
-const COLOR_BORDER: u32 = rgb(211, 218, 230);
-const COLOR_RULE: u32 = rgb(226, 231, 239);
-const COLOR_ACCENT: u32 = rgb(36, 99, 235);
-const COLOR_ACCENT_SOFT: u32 = rgb(232, 239, 255);
-const COLOR_TEXT: u32 = rgb(20, 29, 46);
-const COLOR_TEXT_MUTED: u32 = rgb(91, 103, 125);
-const COLOR_HEADER_MUTED: u32 = rgb(164, 177, 198);
-const COLOR_HERO_BUTTON: u32 = rgb(29, 38, 52);
-const COLOR_WHITE: u32 = rgb(255, 255, 255);
-const COLOR_ACCENT_PRESSED: u32 = rgb(22, 72, 178);
-const COLOR_EXTERNAL: u32 = rgb(36, 99, 235);
-const COLOR_EXTERNAL_SOFT: u32 = rgb(236, 242, 255);
-const COLOR_WARNING: u32 = rgb(156, 82, 7);
-const COLOR_WARNING_SOFT: u32 = rgb(255, 245, 228);
-const COLOR_ERROR: u32 = rgb(185, 48, 42);
-const COLOR_ERROR_SOFT: u32 = rgb(254, 237, 235);
-const COLOR_SUCCESS: u32 = rgb(13, 117, 81);
-const COLOR_SUCCESS_SOFT: u32 = rgb(231, 248, 241);
+struct Palette {
+    canvas: u32,
+    surface: u32,
+    surface_muted: u32,
+    header: u32,
+    border: u32,
+    rule: u32,
+    accent: u32,
+    accent_soft: u32,
+    accent_pressed: u32,
+    on_accent: u32,
+    focus_ring: u32,
+    focus_ring_header: u32,
+    text: u32,
+    text_muted: u32,
+    header_muted: u32,
+    hero_button: u32,
+    disabled_hero: u32,
+    disabled_hero_text: u32,
+    disabled_hero_border: u32,
+    white: u32,
+    external: u32,
+    external_soft: u32,
+    warning: u32,
+    warning_soft: u32,
+    error: u32,
+    error_soft: u32,
+    success: u32,
+    success_soft: u32,
+}
+
+static ACTIVE_HIGH_CONTRAST: AtomicBool = AtomicBool::new(false);
+
+static DEFAULT_PALETTE: Palette = Palette {
+    canvas: rgb(238, 241, 246),
+    surface: rgb(255, 255, 255),
+    surface_muted: rgb(247, 249, 252),
+    header: rgb(13, 18, 27),
+    border: rgb(211, 218, 230),
+    rule: rgb(226, 231, 239),
+    accent: rgb(36, 99, 235),
+    accent_soft: rgb(232, 239, 255),
+    accent_pressed: rgb(22, 72, 178),
+    on_accent: rgb(255, 255, 255),
+    focus_ring: rgb(36, 99, 235),
+    focus_ring_header: rgb(255, 255, 255),
+    text: rgb(20, 29, 46),
+    text_muted: rgb(91, 103, 125),
+    header_muted: rgb(164, 177, 198),
+    hero_button: rgb(29, 38, 52),
+    disabled_hero: rgb(27, 34, 47),
+    disabled_hero_text: rgb(122, 136, 158),
+    disabled_hero_border: rgb(54, 66, 85),
+    white: rgb(255, 255, 255),
+    external: rgb(36, 99, 235),
+    external_soft: rgb(236, 242, 255),
+    warning: rgb(156, 82, 7),
+    warning_soft: rgb(255, 245, 228),
+    error: rgb(185, 48, 42),
+    error_soft: rgb(254, 237, 235),
+    success: rgb(13, 117, 81),
+    success_soft: rgb(231, 248, 241),
+};
+
+static HIGH_CONTRAST_PALETTE: Palette = Palette {
+    canvas: rgb(0, 0, 0),
+    surface: rgb(0, 0, 0),
+    surface_muted: rgb(0, 0, 0),
+    header: rgb(0, 0, 0),
+    border: rgb(255, 255, 0),
+    rule: rgb(255, 255, 0),
+    accent: rgb(255, 255, 0),
+    accent_soft: rgb(0, 0, 0),
+    accent_pressed: rgb(255, 255, 0),
+    on_accent: rgb(0, 0, 0),
+    focus_ring: rgb(255, 255, 0),
+    focus_ring_header: rgb(255, 255, 0),
+    text: rgb(255, 255, 255),
+    text_muted: rgb(255, 255, 255),
+    header_muted: rgb(255, 255, 255),
+    hero_button: rgb(0, 0, 0),
+    disabled_hero: rgb(0, 0, 0),
+    disabled_hero_text: rgb(255, 255, 255),
+    disabled_hero_border: rgb(255, 255, 0),
+    white: rgb(255, 255, 255),
+    external: rgb(255, 255, 0),
+    external_soft: rgb(0, 0, 0),
+    warning: rgb(255, 255, 0),
+    warning_soft: rgb(0, 0, 0),
+    error: rgb(255, 120, 120),
+    error_soft: rgb(0, 0, 0),
+    success: rgb(0, 255, 128),
+    success_soft: rgb(0, 0, 0),
+};
+
+fn palette() -> &'static Palette {
+    if ACTIVE_HIGH_CONTRAST.load(Ordering::Relaxed) {
+        &HIGH_CONTRAST_PALETTE
+    } else {
+        &DEFAULT_PALETTE
+    }
+}
+
+fn system_high_contrast() -> bool {
+    let mut info = HIGHCONTRASTW {
+        cbSize: size_of::<HIGHCONTRASTW>() as u32,
+        ..Default::default()
+    };
+    let result = unsafe {
+        SystemParametersInfoW(
+            SPI_GETHIGHCONTRAST,
+            info.cbSize,
+            &mut info as *mut HIGHCONTRASTW as *mut std::ffi::c_void,
+            0,
+        )
+    };
+    result != 0 && info.dwFlags & HCF_HIGHCONTRASTON != 0
+}
+
+fn refresh_high_contrast(force: bool) {
+    ACTIVE_HIGH_CONTRAST.store(force || system_high_contrast(), Ordering::Relaxed);
+}
+
+fn surface_brush() -> HBRUSH {
+    unsafe {
+        GetStockObject(if ACTIVE_HIGH_CONTRAST.load(Ordering::Relaxed) {
+            BLACK_BRUSH
+        } else {
+            WHITE_BRUSH
+        }) as HBRUSH
+    }
+}
 const SIMPLE_CLIENT_SIZE: (i32, i32) = (640, 392);
 const ADVANCED_CLIENT_SIZE: (i32, i32) = (780, 680);
 const APP_WINDOW_STYLE: u32 =
@@ -160,6 +271,7 @@ struct UiDiagnostics {
     top_most: bool,
     policy_enabled: bool,
     battery_only: bool,
+    high_contrast: bool,
     taskbar_icon_available: bool,
     tray_icon_id: u32,
 }
@@ -357,6 +469,7 @@ enum UiFixture {
     FirmwareClamp,
     UnsupportedPlatform,
     LongError,
+    HighContrast,
 }
 
 fn wide(value: &str) -> Vec<u16> {
@@ -550,7 +663,7 @@ unsafe fn draw_rule(
             right,
             bottom,
         },
-        COLOR_RULE,
+        palette().rule,
     );
 }
 
@@ -635,15 +748,15 @@ unsafe fn visible_status(app: &GuiApp) -> (String, String, u32, u32) {
                 (
                     "需要处理".to_owned(),
                     first_line.to_owned(),
-                    COLOR_ERROR_SOFT,
-                    COLOR_ERROR,
+                    palette().error_soft,
+                    palette().error,
                 )
             } else {
                 (
                     "状态更新".to_owned(),
                     first_line.to_owned(),
-                    COLOR_SUCCESS_SOFT,
-                    COLOR_SUCCESS,
+                    palette().success_soft,
+                    palette().success,
                 )
             };
         }
@@ -652,24 +765,24 @@ unsafe fn visible_status(app: &GuiApp) -> (String, String, u32, u32) {
         return (
             "应用中".to_owned(),
             "正在写入并等待功耗回读".to_owned(),
-            COLOR_WARNING_SOFT,
-            COLOR_WARNING,
+            palette().warning_soft,
+            palette().warning,
         );
     }
     if let Some(error) = app.worker_error.as_ref() {
         return (
             "连接异常".to_owned(),
             error.lines().next().unwrap_or("worker 连接中断").to_owned(),
-            COLOR_ERROR_SOFT,
-            COLOR_ERROR,
+            palette().error_soft,
+            palette().error,
         );
     }
     if app.latest_snapshot.is_none() {
         return (
             "连接中".to_owned(),
             "正在连接硬件 worker".to_owned(),
-            COLOR_EXTERNAL_SOFT,
-            COLOR_EXTERNAL,
+            palette().external_soft,
+            palette().external,
         );
     }
     if let Some(snapshot) = app.latest_snapshot.as_ref() {
@@ -681,8 +794,8 @@ unsafe fn visible_status(app: &GuiApp) -> (String, String, u32, u32) {
                     .unsupported_reason
                     .clone()
                     .unwrap_or_else(|| "当前平台只允许只读监测".to_owned()),
-                COLOR_ERROR_SOFT,
-                COLOR_ERROR,
+                palette().error_soft,
+                palette().error,
             );
         }
     }
@@ -695,16 +808,16 @@ unsafe fn visible_status(app: &GuiApp) -> (String, String, u32, u32) {
         return (
             "固件限制".to_owned(),
             "目标已写入，但固件回读低于请求值".to_owned(),
-            COLOR_WARNING_SOFT,
-            COLOR_WARNING,
+            palette().warning_soft,
+            palette().warning,
         );
     }
     if !app.write_enabled {
         return (
             "只读".to_owned(),
             "可监测实时功耗，写入控制未解锁".to_owned(),
-            COLOR_SURFACE_MUTED,
-            COLOR_TEXT_MUTED,
+            palette().surface_muted,
+            palette().text_muted,
         );
     }
     let target = app
@@ -715,8 +828,8 @@ unsafe fn visible_status(app: &GuiApp) -> (String, String, u32, u32) {
     (
         "已连接".to_owned(),
         format!("当前目标 {:.0} W · APP 回读 {}", target, current_power(app)),
-        COLOR_SUCCESS_SOFT,
-        COLOR_SUCCESS,
+        palette().success_soft,
+        palette().success,
     )
 }
 
@@ -726,7 +839,7 @@ unsafe fn paint_status_banner(
     fonts: &UiFonts,
     rect: RECT,
 ) {
-    paint_surface(hdc, rect, 8, COLOR_SURFACE_MUTED, COLOR_RULE);
+    paint_surface(hdc, rect, 8, palette().surface_muted, palette().rule);
     let (label, message, chip_fill, chip_text) = visible_status(app);
     let chip = RECT {
         left: rect.left + 12,
@@ -752,7 +865,7 @@ unsafe fn paint_status_banner(
         hdc,
         &message,
         fonts.body,
-        COLOR_TEXT,
+        palette().text,
         RECT {
             left: chip.right + 16,
             top: rect.top + 6,
@@ -777,7 +890,7 @@ unsafe fn paint_header(
             right: width,
             bottom: 56,
         },
-        COLOR_HEADER,
+        palette().header,
     );
     fill_rect_color(
         hdc,
@@ -787,13 +900,13 @@ unsafe fn paint_header(
             right: width,
             bottom: 56,
         },
-        COLOR_ACCENT,
+        palette().accent,
     );
     draw_text_in(
         hdc,
         "AMD Mobile Power",
         fonts.title,
-        COLOR_WHITE,
+        palette().white,
         RECT {
             left: 20,
             top: 6,
@@ -806,7 +919,7 @@ unsafe fn paint_header(
         hdc,
         &platform_subtitle(app),
         fonts.caption,
-        rgb(164, 177, 198),
+        palette().header_muted,
         RECT {
             left: 20,
             top: 29,
@@ -835,7 +948,7 @@ unsafe fn paint_target_region(
         hdc,
         "目标功耗",
         fonts.body,
-        COLOR_HEADER_MUTED,
+        palette().header_muted,
         RECT {
             left: label_left,
             top: 82,
@@ -848,7 +961,7 @@ unsafe fn paint_target_region(
         hdc,
         &format!("{minimum}-{maximum} W"),
         fonts.caption,
-        COLOR_HEADER_MUTED,
+        palette().header_muted,
         RECT {
             left: label_left + label_width - 96,
             top: 83,
@@ -866,18 +979,18 @@ unsafe fn paint_target_region(
             bottom: 146,
         },
         8,
-        COLOR_SURFACE,
+        palette().surface,
         if app.focused_control == Some(SIMPLE_TARGET_EDIT) {
-            COLOR_ACCENT
+            palette().accent
         } else {
-            COLOR_BORDER
+            palette().border
         },
     );
     draw_text_in(
         hdc,
         "W",
         fonts.body,
-        COLOR_HEADER_MUTED,
+        palette().header_muted,
         RECT {
             left: edit_left + edit_width + 7,
             top: 108,
@@ -899,7 +1012,7 @@ unsafe fn paint_live_region(
         hdc,
         "实时功耗",
         fonts.caption,
-        COLOR_HEADER_MUTED,
+        palette().header_muted,
         RECT {
             left,
             top,
@@ -912,7 +1025,7 @@ unsafe fn paint_live_region(
         hdc,
         &current_power(app),
         fonts.number_display,
-        COLOR_WHITE,
+        palette().white,
         RECT {
             left,
             top: top + 14,
@@ -925,7 +1038,7 @@ unsafe fn paint_live_region(
         hdc,
         &format!("动态上限 {}", current_power_limit(app)),
         fonts.caption,
-        COLOR_HEADER_MUTED,
+        palette().header_muted,
         RECT {
             left,
             top: top + 72,
@@ -941,14 +1054,14 @@ unsafe fn paint_live_region(
         .map(|snapshot| snapshot.telemetry.power_line == "battery")
         .unwrap_or(false);
     let chip_fill = if is_battery {
-        COLOR_WARNING_SOFT
+        palette().warning_soft
     } else {
-        COLOR_EXTERNAL_SOFT
+        palette().external_soft
     };
     let chip_text = if is_battery {
-        COLOR_WARNING
+        palette().warning
     } else {
-        COLOR_EXTERNAL
+        palette().external
     };
     let chip = RECT {
         left: left + 154,
@@ -985,7 +1098,7 @@ unsafe fn paint_metric(
         hdc,
         title,
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left,
             top,
@@ -998,7 +1111,7 @@ unsafe fn paint_metric(
         hdc,
         value,
         fonts.number_metric,
-        COLOR_TEXT,
+        palette().text,
         RECT {
             left,
             top: top + 21,
@@ -1011,7 +1124,7 @@ unsafe fn paint_metric(
         hdc,
         limit,
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left,
             top: top + 53,
@@ -1036,7 +1149,7 @@ unsafe fn paint_simple_window(
             right: width,
             bottom: 228,
         },
-        COLOR_HEADER,
+        palette().header,
     );
     fill_rect_color(
         hdc,
@@ -1046,7 +1159,7 @@ unsafe fn paint_simple_window(
             right: width - 16,
             bottom: 320,
         },
-        COLOR_SURFACE_MUTED,
+        palette().surface_muted,
     );
     draw_rule(hdc, 16, 240, width - 16, 241);
     draw_rule(hdc, 16, 319, width - 16, 320);
@@ -1058,7 +1171,7 @@ unsafe fn paint_simple_window(
             right: width,
             bottom: 228,
         },
-        COLOR_ACCENT,
+        palette().accent,
     );
 
     paint_live_region(hdc, app, fonts, 36, 82);
@@ -1069,7 +1182,7 @@ unsafe fn paint_simple_window(
         hdc,
         "快捷功耗",
         fonts.caption,
-        COLOR_HEADER_MUTED,
+        palette().header_muted,
         RECT {
             left: 36,
             top: 181,
@@ -1161,7 +1274,7 @@ unsafe fn paint_advanced_window(
             right: width,
             bottom: 228,
         },
-        COLOR_HEADER,
+        palette().header,
     );
     fill_rect_color(
         hdc,
@@ -1171,7 +1284,7 @@ unsafe fn paint_advanced_window(
             right: width,
             bottom: 228,
         },
-        COLOR_ACCENT,
+        palette().accent,
     );
     paint_surface(
         hdc,
@@ -1182,8 +1295,8 @@ unsafe fn paint_advanced_window(
             bottom: 664,
         },
         12,
-        COLOR_SURFACE,
-        COLOR_BORDER,
+        palette().surface,
+        palette().border,
     );
 
     paint_live_region(hdc, app, fonts, 36, 82);
@@ -1194,7 +1307,7 @@ unsafe fn paint_advanced_window(
         hdc,
         "快捷功耗",
         fonts.caption,
-        COLOR_HEADER_MUTED,
+        palette().header_muted,
         RECT {
             left: 36,
             top: 181,
@@ -1210,7 +1323,7 @@ unsafe fn paint_advanced_window(
         hdc,
         "预设编辑",
         fonts.title,
-        COLOR_TEXT,
+        palette().text,
         RECT {
             left: 36,
             top: 252,
@@ -1223,7 +1336,7 @@ unsafe fn paint_advanced_window(
         hdc,
         "三个常用功率",
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left: 36,
             top: 280,
@@ -1242,18 +1355,18 @@ unsafe fn paint_advanced_window(
                 bottom: 318,
             },
             8,
-            COLOR_SURFACE,
+            palette().surface,
             if app.focused_control == Some(PRESET_EDIT_START + index) {
-                COLOR_ACCENT
+                palette().accent
             } else {
-                COLOR_BORDER
+                palette().border
             },
         );
         draw_text_in(
             hdc,
             "W",
             fonts.caption,
-            COLOR_TEXT_MUTED,
+            palette().text_muted,
             RECT {
                 left: left + 61,
                 top: 290,
@@ -1268,7 +1381,7 @@ unsafe fn paint_advanced_window(
         hdc,
         "自动电源策略",
         fonts.title,
-        COLOR_TEXT,
+        palette().text,
         RECT {
             left: 36,
             top: 370,
@@ -1281,7 +1394,7 @@ unsafe fn paint_advanced_window(
         hdc,
         "电池和外接电源分别设置；充电宝仍由 Windows 归为外接电源。",
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left: 36,
             top: 396,
@@ -1294,7 +1407,7 @@ unsafe fn paint_advanced_window(
         hdc,
         "电池目标",
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left: 36,
             top: 424,
@@ -1312,18 +1425,18 @@ unsafe fn paint_advanced_window(
             bottom: 448,
         },
         8,
-        COLOR_SURFACE,
+        palette().surface,
         if app.focused_control == Some(POLICY_BATTERY_EDIT) {
-            COLOR_ACCENT
+            palette().accent
         } else {
-            COLOR_BORDER
+            palette().border
         },
     );
     draw_text_in(
         hdc,
         "外接目标",
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left: 166,
             top: 424,
@@ -1341,18 +1454,18 @@ unsafe fn paint_advanced_window(
             bottom: 448,
         },
         8,
-        COLOR_SURFACE,
+        palette().surface,
         if app.focused_control == Some(POLICY_AC_EDIT) {
-            COLOR_ACCENT
+            palette().accent
         } else {
-            COLOR_BORDER
+            palette().border
         },
     );
     draw_text_in(
         hdc,
         "仅电池时不对外接电源写入",
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left: 166,
             top: 454,
@@ -1366,7 +1479,7 @@ unsafe fn paint_advanced_window(
         hdc,
         "设备与运行",
         fonts.title,
-        COLOR_TEXT,
+        palette().text,
         RECT {
             left: 520,
             top: 252,
@@ -1413,7 +1526,7 @@ unsafe fn paint_advanced_window(
             hdc,
             label,
             fonts.caption,
-            COLOR_TEXT_MUTED,
+            palette().text_muted,
             RECT {
                 left: 520,
                 top,
@@ -1426,7 +1539,7 @@ unsafe fn paint_advanced_window(
             hdc,
             value,
             fonts.body,
-            COLOR_TEXT,
+            palette().text,
             RECT {
                 left: 600,
                 top: top - 2,
@@ -1443,11 +1556,15 @@ unsafe fn paint_advanced_window(
         .map(|snapshot| snapshot.platform.is_supported)
         .unwrap_or(false);
     let chip_fill = if supported {
-        COLOR_SUCCESS_SOFT
+        palette().success_soft
     } else {
-        COLOR_ERROR_SOFT
+        palette().error_soft
     };
-    let chip_color = if supported { COLOR_ACCENT } else { COLOR_ERROR };
+    let chip_color = if supported {
+        palette().accent
+    } else {
+        palette().error
+    };
     let chip = RECT {
         left: 520,
         top: 398,
@@ -1496,7 +1613,7 @@ unsafe fn paint_advanced_window(
             )
         ),
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left: 520,
             top: 432,
@@ -1511,7 +1628,7 @@ unsafe fn paint_advanced_window(
         hdc,
         "运行状态",
         fonts.body,
-        COLOR_TEXT,
+        palette().text,
         RECT {
             left: 520,
             top: 474,
@@ -1530,7 +1647,7 @@ unsafe fn paint_advanced_window(
         hdc,
         &worker_line,
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left: 520,
             top: 500,
@@ -1571,7 +1688,7 @@ unsafe fn paint_advanced_window(
         hdc,
         &policy,
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left: 520,
             top: 524,
@@ -1602,7 +1719,7 @@ unsafe fn paint_advanced_window(
             "回读正常，每秒刷新一次"
         },
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left: 520,
             top: 550,
@@ -1615,7 +1732,7 @@ unsafe fn paint_advanced_window(
         hdc,
         "导出报告已脱敏，不含路径或账户信息。",
         fonts.caption,
-        COLOR_TEXT_MUTED,
+        palette().text_muted,
         RECT {
             left: 520,
             top: 578,
@@ -1630,7 +1747,7 @@ unsafe fn paint_advanced_window(
         hdc,
         "实时回读",
         fonts.body,
-        COLOR_TEXT,
+        palette().text,
         RECT {
             left: 36,
             top: 540,
@@ -1684,7 +1801,7 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
             right: width,
             bottom: height,
         },
-        COLOR_CANVAS,
+        palette().canvas,
     );
     if let Some(fonts) = app.fonts.as_ref() {
         paint_header(target_dc, app, fonts, width);
@@ -1725,45 +1842,61 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
     let header_button = matches!(id, SIMPLE_MODE | ADVANCED_MODE | TOPMOST_TOGGLE);
     let hero_button = matches!(id, PRESET_12 | PRESET_25 | PRESET_45 | PRESET_EDIT_OPEN);
     let (fill, text_color, border) = if disabled && hero_button {
-        (rgb(27, 34, 47), rgb(122, 136, 158), rgb(54, 66, 85))
+        (
+            palette().disabled_hero,
+            palette().disabled_hero_text,
+            palette().disabled_hero_border,
+        )
     } else if disabled {
-        (COLOR_SURFACE_MUTED, rgb(145, 157, 153), COLOR_BORDER)
+        (
+            palette().surface_muted,
+            palette().text_muted,
+            palette().border,
+        )
     } else if header_button {
         if selected {
-            (COLOR_WHITE, COLOR_HEADER, COLOR_WHITE)
+            (palette().white, palette().header, palette().white)
         } else {
-            (COLOR_HEADER, COLOR_HEADER_MUTED, COLOR_HEADER)
+            (palette().header, palette().header_muted, palette().header)
         }
     } else if hero_button {
         if selected {
-            (COLOR_WHITE, COLOR_HEADER, COLOR_WHITE)
+            (palette().white, palette().header, palette().white)
         } else if pressed {
-            (COLOR_ACCENT_SOFT, COLOR_ACCENT, COLOR_ACCENT_SOFT)
+            (
+                palette().accent_soft,
+                palette().accent,
+                palette().accent_soft,
+            )
         } else {
-            (COLOR_HERO_BUTTON, COLOR_WHITE, COLOR_HERO_BUTTON)
+            (
+                palette().hero_button,
+                palette().white,
+                palette().hero_button,
+            )
         }
     } else if primary {
         (
             if pressed {
-                COLOR_ACCENT_PRESSED
+                palette().accent_pressed
             } else {
-                COLOR_ACCENT
+                palette().accent
             },
-            COLOR_WHITE,
-            COLOR_ACCENT,
+            palette().on_accent,
+            palette().accent,
         )
     } else if selected || pressed {
-        (COLOR_ACCENT_SOFT, COLOR_ACCENT, COLOR_ACCENT)
+        (palette().accent_soft, palette().accent, palette().accent)
     } else {
-        (COLOR_SURFACE, COLOR_TEXT, COLOR_RULE)
+        (palette().surface, palette().text, palette().rule)
     };
     fill_rect_color(
         draw.hDC,
         &draw.rcItem,
         if hero_button || header_button || primary {
-            COLOR_HEADER
+            palette().header
         } else {
-            COLOR_SURFACE
+            palette().surface
         },
     );
     paint_surface(draw.hDC, draw.rcItem, 6, fill, border);
@@ -1779,9 +1912,9 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
             5,
             fill,
             if header_button {
-                COLOR_WHITE
+                palette().focus_ring_header
             } else {
-                COLOR_ACCENT
+                palette().focus_ring
             },
         );
     }
@@ -1816,16 +1949,16 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
 fn static_text_color(control_id: i32) -> u32 {
     let control_id = control_id as usize;
     match control_id {
-        TITLE_LABEL => COLOR_WHITE,
-        POWER_VALUE_LABEL => COLOR_ACCENT,
-        POWER_SOURCE_LABEL | TARGET_LABEL | SIMPLE_STATUS_LABEL => COLOR_TEXT_MUTED,
-        id if (METRIC_VALUE_START..METRIC_VALUE_START + 4).contains(&id) => COLOR_TEXT,
+        TITLE_LABEL => palette().white,
+        POWER_VALUE_LABEL => palette().accent,
+        POWER_SOURCE_LABEL | TARGET_LABEL | SIMPLE_STATUS_LABEL => palette().text_muted,
+        id if (METRIC_VALUE_START..METRIC_VALUE_START + 4).contains(&id) => palette().text,
         id if (METRIC_TITLE_START..METRIC_TITLE_START + 4).contains(&id)
             || (METRIC_LIMIT_START..METRIC_LIMIT_START + 4).contains(&id) =>
         {
-            COLOR_TEXT_MUTED
+            palette().text_muted
         }
-        _ => COLOR_TEXT,
+        _ => palette().text,
     }
 }
 
@@ -2039,6 +2172,7 @@ fn diagnostics_document(
             "topMost": ui_state.top_most,
             "policyEnabled": ui_state.policy_enabled,
             "batteryOnly": ui_state.battery_only,
+            "highContrast": ui_state.high_contrast,
             "taskbarIconAvailable": ui_state.taskbar_icon_available,
             "trayIconId": ui_state.tray_icon_id
         },
@@ -2083,6 +2217,7 @@ fn export_diagnostics(app: &GuiApp) -> Result<PathBuf, String> {
             top_most: app.top_most,
             policy_enabled: app.policy_enabled,
             battery_only: app.battery_only,
+            high_contrast: ACTIVE_HIGH_CONTRAST.load(Ordering::Relaxed),
             taskbar_icon_available: !app.icon_large.is_null(),
             tray_icon_id: TRAY_ICON_ID,
         },
@@ -2131,8 +2266,9 @@ fn parse_ui_fixture(value: &str) -> Result<UiFixture, String> {
         "firmware-clamp" => Ok(UiFixture::FirmwareClamp),
         "unsupported-platform" => Ok(UiFixture::UnsupportedPlatform),
         "long-error" => Ok(UiFixture::LongError),
+        "high-contrast" => Ok(UiFixture::HighContrast),
         _ => Err(format!(
-            "unknown UI fixture: {value}; expected worker-offline, firmware-clamp, unsupported-platform, or long-error"
+            "unknown UI fixture: {value}; expected worker-offline, firmware-clamp, unsupported-platform, long-error, or high-contrast"
         )),
     }
 }
@@ -2153,7 +2289,7 @@ fn fixture_worker_error(fixture: UiFixture) -> Option<String> {
              这不是固件钳制，也不是目标值超出范围。"
                 .to_owned(),
         ),
-        UiFixture::FirmwareClamp | UiFixture::UnsupportedPlatform => None,
+        UiFixture::FirmwareClamp | UiFixture::UnsupportedPlatform | UiFixture::HighContrast => None,
     }
 }
 
@@ -2213,6 +2349,36 @@ fn fixture_snapshot(fixture: UiFixture) -> Option<SnapshotPayload> {
                 fast_limit_watts: None,
                 slow_limit_watts: None,
                 tctl_value_celsius: Some(57.2),
+                tctl_limit_celsius: Some(95.0),
+                power_line: "battery".to_owned(),
+                updated_at: Some("2026-11-11T07:45:00Z".to_owned()),
+                has_firmware_clamp: false,
+            },
+        }),
+        UiFixture::HighContrast => Some(SnapshotPayload {
+            platform: fixture_platform(
+                "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+                Some(10),
+                Some("Hawk Point"),
+                Some("hawk-point-8845hs"),
+                true,
+                None,
+                LimitsPayload {
+                    supports_stapm: true,
+                    supports_fast: true,
+                    supports_slow: true,
+                    supports_any: true,
+                },
+            ),
+            telemetry: TelemetryPayload {
+                target_watts: Some(12.0),
+                stapm_value_watts: Some(12.0),
+                fast_value_watts: Some(12.0),
+                slow_value_watts: Some(12.0),
+                stapm_limit_watts: Some(12.0),
+                fast_limit_watts: Some(12.0),
+                slow_limit_watts: Some(12.0),
+                tctl_value_celsius: Some(61.4),
                 tctl_limit_celsius: Some(95.0),
                 power_line: "battery".to_owned(),
                 updated_at: Some("2026-11-11T07:45:00Z".to_owned()),
@@ -2343,6 +2509,9 @@ fn start_worker_monitor(
 }
 
 unsafe fn apply_ui_fixture(app: &mut GuiApp, hwnd: HWND, fixture: UiFixture) {
+    if fixture == UiFixture::HighContrast {
+        refresh_high_contrast(true);
+    }
     app.ui_fixture = Some(fixture);
     app.worker_error = fixture_worker_error(fixture);
     if let Some(snapshot) = fixture_snapshot(fixture) {
@@ -3697,9 +3866,14 @@ unsafe extern "system" fn window_proc(
         WM_CTLCOLOREDIT => {
             let hdc = wparam as windows_sys::Win32::Graphics::Gdi::HDC;
             SetBkMode(hdc, TRANSPARENT as i32);
-            SetBkColor(hdc, COLOR_SURFACE);
-            SetTextColor(hdc, COLOR_TEXT);
-            GetStockObject(WHITE_BRUSH) as LRESULT
+            SetBkColor(hdc, palette().surface);
+            SetTextColor(hdc, palette().text);
+            surface_brush() as LRESULT
+        }
+        WM_SYSCOLORCHANGE | WM_SETTINGCHANGE => {
+            refresh_high_contrast(app.ui_fixture == Some(UiFixture::HighContrast));
+            InvalidateRect(hwnd, std::ptr::null(), 1);
+            0
         }
         WM_CLOSE => {
             dispatch(app, hwnd, LifecycleEvent::CloseRequested);
@@ -4005,6 +4179,7 @@ fn main() {
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let options = parse_options()?;
+    refresh_high_contrast(options.ui_fixture == Some(UiFixture::HighContrast));
     let instance = unsafe { GetModuleHandleW(std::ptr::null()) };
     if instance.is_null() {
         return Err("GetModuleHandleW returned null".into());
@@ -4220,7 +4395,7 @@ mod tests {
     use super::{
         clamp_preset_values, diagnostics_document, fixture_snapshot, fixture_worker_error,
         format_policy_state, format_snapshot, format_snapshot_simple, parse_ui_fixture,
-        preset_menu_label, state, UiDiagnostics, UiFixture,
+        preset_menu_label, rgb, state, UiDiagnostics, UiFixture, HIGH_CONTRAST_PALETTE,
     };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
@@ -4371,6 +4546,14 @@ mod tests {
     }
 
     #[test]
+    fn high_contrast_palette_is_polarized() {
+        assert_eq!(HIGH_CONTRAST_PALETTE.canvas, rgb(0, 0, 0));
+        assert_eq!(HIGH_CONTRAST_PALETTE.text, rgb(255, 255, 255));
+        assert_eq!(HIGH_CONTRAST_PALETTE.accent, rgb(255, 255, 0));
+        assert_eq!(HIGH_CONTRAST_PALETTE.on_accent, rgb(0, 0, 0));
+    }
+
+    #[test]
     fn tray_preset_labels_include_their_editable_value() {
         assert_eq!(preset_menu_label(0, 10), "应用预设 1：10 W");
         assert_eq!(preset_menu_label(2, 43), "应用预设 3：43 W");
@@ -4404,6 +4587,7 @@ mod tests {
                 top_most: true,
                 policy_enabled: true,
                 battery_only: false,
+                high_contrast: false,
                 taskbar_icon_available: true,
                 tray_icon_id: 1,
             },
@@ -4416,6 +4600,7 @@ mod tests {
         assert_eq!(document["ui"]["topMost"], true);
         assert_eq!(document["ui"]["policyEnabled"], true);
         assert_eq!(document["ui"]["batteryOnly"], false);
+        assert_eq!(document["ui"]["highContrast"], false);
         assert_eq!(document["ui"]["taskbarIconAvailable"], true);
         assert_eq!(document["ui"]["trayIconId"], 1);
         assert_eq!(
@@ -4442,6 +4627,10 @@ mod tests {
             parse_ui_fixture("unsupported-platform"),
             Ok(UiFixture::UnsupportedPlatform)
         );
+        assert_eq!(
+            parse_ui_fixture("high-contrast"),
+            Ok(UiFixture::HighContrast)
+        );
         assert!(parse_ui_fixture("unknown").is_err());
 
         let clamp = fixture_snapshot(UiFixture::FirmwareClamp).unwrap();
@@ -4453,6 +4642,11 @@ mod tests {
         let unsupported = fixture_snapshot(UiFixture::UnsupportedPlatform).unwrap();
         assert!(!unsupported.platform.is_supported);
         assert!(unsupported.platform.matched_profile.is_none());
+
+        let high_contrast = fixture_snapshot(UiFixture::HighContrast).unwrap();
+        assert!(high_contrast.platform.is_supported);
+        assert!(!high_contrast.telemetry.has_firmware_clamp);
+        assert_eq!(high_contrast.telemetry.stapm_limit_watts, Some(12.0));
         assert!(unsupported.platform.unsupported_reason.is_some());
 
         let offline = fixture_worker_error(UiFixture::WorkerOffline).unwrap();

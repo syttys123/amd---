@@ -99,6 +99,15 @@ nest cards inside cards.
 Neutral surfaces carry most of the window. Blue, amber, and red remain
 semantic.
 
+### High Contrast
+
+The native shell reads the Windows high-contrast setting and switches the
+entire custom canvas, owner-drawn controls, native edit backgrounds, focus
+rings, semantic badges, and status bands to a black background with white text,
+yellow structure, and black text on yellow primary actions. The test-only
+`--ui-fixture high-contrast` path exercises the same palette without changing
+the user's Windows accessibility settings.
+
 ### Type And Geometry
 
 - `Consolas` is used for live power and telemetry numbers.
@@ -147,7 +156,7 @@ semantic.
 At 125% Windows scaling:
 
 - `cargo test --manifest-path native\rust-gui\Cargo.toml --locked --offline`:
-  29/29 passed.
+  30/30 passed.
 - `cargo clippy --manifest-path native\rust-gui\Cargo.toml --locked --offline
   -- -D warnings`: PASS.
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls`:
@@ -157,12 +166,17 @@ At 125% Windows scaling:
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWriteControls -UiFixture
   firmware-clamp`: PASS for the battery-only policy toggle through the exported
   diagnostics JSON without hardware access.
+- `native\verify-rust-gui.ps1 -NoBuild -VerifyWriteControls -UiFixture
+  high-contrast`: PASS with `ui.highContrast=true` in diagnostics while the
+  isolated fixture keeps Windows accessibility settings unchanged.
 - The same verifier checks the diagnostics `ui` block for the active
   simple/advanced mode, topmost state, `taskbarIconAvailable=true`, and
   `trayIconId=1`.
 - `native\capture-rust-gui-redesign.ps1 -Fixture firmware-clamp
   -FocusControlId 316`: PASS with the target input verified as the actual
   focused child and the focus ring visible in simple and advanced captures.
+- `native\capture-rust-gui-redesign.ps1 -Fixture high-contrast`: PASS for the
+  complete black/white/yellow simple and advanced states.
 - No power write was requested during UI verification.
 
 Evidence and screenshots:
@@ -184,6 +198,9 @@ Evidence and screenshots:
 - `assets/native-battery-only-advanced-2026-11-11.png`
 - `assets/native-focus-simple-2026-11-11.png`
 - `assets/native-focus-advanced-2026-11-11.png`
+- `docs/evidence/ui/native-high-contrast-2026-11-11.json`
+- `assets/native-high-contrast-simple-2026-11-11.png`
+- `assets/native-high-contrast-advanced-2026-11-11.png`
 
 Reproduction:
 
@@ -197,7 +214,6 @@ pwsh -NoProfile -ExecutionPolicy Bypass `
 
 - Repeat the redesigned shell at 100% and 150% Windows scaling on machines or
   sessions configured for those scales.
-- Capture high-contrast states.
 - Verify the packaged build's tray/taskbar icon and mode synchronization.
 - Run one supervised packaged write/read-back smoke test before promotion.
 

@@ -4,7 +4,7 @@ param(
     [switch]$VerifyWriteControls,
     [switch]$ExecuteNoChangePreset,
     [switch]$ExecutePolicySave,
-    [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error")]
+    [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error", "high-contrast")]
     [string]$UiFixture,
     [string]$GuiExecutable,
     [string]$WorkerExecutable,
@@ -666,9 +666,10 @@ try {
             $before.Document.ui.topMost -ne $true -or
             $before.Document.ui.taskbarIconAvailable -ne $true -or
             $before.Document.ui.trayIconId -ne 1 -or
+            [bool]$before.Document.ui.highContrast -ne ($UiFixture -eq "high-contrast") -or
             [bool]$before.Document.ui.batteryOnly -or
             [bool]$before.Document.ui.policyEnabled) {
-            throw "Unexpected native UI mode, icon, or policy state."
+            throw "Unexpected native UI mode, contrast, icon, or policy state."
         }
 
         [AmdMobilePowerRustGuiNative]::SendMessage(

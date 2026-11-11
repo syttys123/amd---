@@ -4,7 +4,7 @@ param(
     [string]$OutputDirectory,
     [string]$EvidencePath,
     [string]$FilePrefix = "native-redesign",
-    [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error")]
+    [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error", "high-contrast")]
     [string]$Fixture,
     [switch]$BatteryOnly,
     [int]$FocusControlId,
@@ -491,7 +491,7 @@ try {
         }
         $expectedWritesEnabled = (
             -not $ReadOnly -and
-            $Fixture -eq "firmware-clamp"
+            $Fixture -in @("firmware-clamp", "high-contrast")
         )
         $actualWritesEnabled = (
             [AmdMobilePowerUiCapture]::IsWindowEnabled($applyButton) -and

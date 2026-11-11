@@ -1,0 +1,26 @@
+{
+  "SchemaVersion": 1,
+  "CaptureMode": "write-controls-visible-no-write-requested",
+  "Fixture": "high-contrast",
+  "BatteryOnly": false,
+  "FocusControlId": null,
+  "ControlChecks": {
+    "TargetAndPresetEnabled": true,
+    "DiagnosticsEnabled": true
+  },
+  "Simple": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\native-high-contrast-simple-2026-11-11.png",
+    "Width": 802,
+    "Height": 530,
+    "CaptureMethod": "CopyFromScreen(foreground-verified)",
+    "SHA256": "2325e18d192abd6ada2e9beaf834e4122f962a19bc207d62c9f7b9a732c7ab3f"
+  },
+  "Advanced": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\native-high-contrast-advanced-2026-11-11.png",
+    "Width": 977,
+    "Height": 890,
+    "CaptureMethod": "CopyFromScreen(foreground-verified)",
+    "SHA256": "234a9ce2a436f1dfcb92978028005c9d8fa6261ee8f0cf704c383b577cd50e80"
+  },
+  "RecordedAt": "2026-11-11T18:57:35.6444681+08:00"
+}

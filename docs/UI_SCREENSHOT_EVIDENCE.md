@@ -1,6 +1,6 @@
 # UI Screenshot Evidence
 
-Last captured: 2026-11-10
+Last captured: 2026-11-11
 
 Machine-readable evidence:
 `docs/evidence/ui/screenshot-baseline-2026-11-10.json`.
@@ -75,6 +75,7 @@ previous stack of independent white cards:
 | Firmware clamp | `assets/native-ui-firmware-clamp-simple-2026-11-11.png`, `assets/native-ui-firmware-clamp-advanced-2026-11-11.png` | `802x530`, `977x890` | Requested 12 W with STAPM clamped to 10 W while Fast/Slow read back 12 W; the amber status remains distinct from transport failure |
 | Battery-only policy fixture | `assets/native-battery-only-simple-2026-11-11.png`, `assets/native-battery-only-advanced-2026-11-11.png` | `802x530`, `977x890` | Advanced mode shows the selected `仅电池` toggle and `外接不控制` copy; the fixture confirms the control is visible/enabled without starting a hardware worker |
 | Focused target input | `assets/native-focus-simple-2026-11-11.png`, `assets/native-focus-advanced-2026-11-11.png` | `802x530`, `977x890` | `-FocusControlId 316` confirms the target input is the actual focused child and the blue focus ring renders in both modes |
+| High contrast | `assets/native-high-contrast-simple-2026-11-11.png`, `assets/native-high-contrast-advanced-2026-11-11.png` | `802x530`, `977x890` | Test-only fixture renders the complete shell with black surfaces, white text, yellow structure, and black text on yellow primary actions; diagnostics report `ui.highContrast=true` without changing Windows accessibility settings |
 | Unsupported platform | `assets/native-ui-unsupported-platform-simple-2026-11-11.png`, `assets/native-ui-unsupported-platform-advanced-2026-11-11.png` | `802x530`, `977x890` | Read-only monitoring remains visible while target, presets, and policy controls are disabled with a visible platform reason |
 | Long error | `assets/native-ui-long-error-simple-2026-11-11.png`, `assets/native-ui-long-error-advanced-2026-11-11.png` | `802x530`, `977x890` | First line states the action (`关闭其他 RyzenAdj 后重启 Windows`) and later details remain in the accessibility text without breaking the layout |
 
@@ -91,12 +92,14 @@ record unrelated desktop content when foreground activation failed.
 
 Runtime verification:
 
-- Native Rust tests: 29/29 passed.
+- Native Rust tests: 30/30 passed.
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls`:
   PASS for simple/advanced switching, topmost, preset editing, diagnostics,
   minimize/restore, tray restore, close-to-tray, and single-instance wake.
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWriteControls -UiFixture
   firmware-clamp`: PASS for the battery-only policy toggle via diagnostics.
+- `native\verify-rust-gui.ps1 -NoBuild -VerifyWriteControls -UiFixture
+  high-contrast`: PASS for the high-contrast palette and diagnostics flag.
 - No power write was requested during screenshot capture.
 
 Machine-readable evidence:
@@ -108,7 +111,8 @@ Battery-only fixture evidence:
 `docs/evidence/ui/native-battery-only-capture-2026-11-11.json`.
 Focused-input evidence:
 `docs/evidence/ui/native-focus-2026-11-11.json`.
+High-contrast evidence:
+`docs/evidence/ui/native-high-contrast-2026-11-11.json`.
 
-Remaining gates: 100%/150% DPI sessions, high-contrast screenshots, packaged
-tray/taskbar verification, and a supervised packaged write/read-back smoke
-test.
+Remaining gates: 100%/150% DPI sessions, packaged tray/taskbar verification,
+and a supervised packaged write/read-back smoke test.
