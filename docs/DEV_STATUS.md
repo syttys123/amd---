@@ -45,11 +45,12 @@ not authoritative.
 - The current local stable package is `1.0.4`: 594,763 bytes, SHA256
   `f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433`,
   built from clean commit `b2ac5f4` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` now contains the promoted `1.0.4-native` package. The previous
-  native `1.0.3-native` deployment is preserved as
-  `C:\RyzenAdj.before-20261112-011649` and under
-  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.4-native-6e9e10c-20261112-011649`;
-  the earlier `1.0.3-native` build remains at
+- `C:\RyzenAdj` now contains the promoted `1.0.5-native` package. The previous
+  native `1.0.4-native` deployment is preserved as
+  `C:\RyzenAdj.before-20261112-015439` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.5-native-22a0624-20261112-015439`;
+  the earlier `1.0.3-native` builds remain at
+  `C:\RyzenAdj.before-20261112-011649` and
   `C:\RyzenAdj.before-20261112-005635`, and `1.0.2-native` at
   `C:\RyzenAdj.before-20261112-003929`. `1.0.1-native` remains at
   `C:\RyzenAdj.before-20261111-233609`;
@@ -63,7 +64,7 @@ not authoritative.
   bands, a split advanced workspace, native text fields, owner-drawn controls,
   dialog keyboard navigation, focus rings, and the embedded AMD Mobile Power
   taskbar/tray icon. The default for a fresh UI state is simple mode.
-- The native Rust GUI test suite now passes 37/37 tests. The runtime verifier
+- The native Rust GUI test suite now passes 38/38 tests. The runtime verifier
   passes worker connection, diagnostics export, mode switching, topmost,
   minimize/restore, close-to-tray, tray restore, single-instance wake, and
   preset editing. The fixture path also verifies the battery-only policy toggle
@@ -88,15 +89,15 @@ not authoritative.
   real icon. `1.0.1-native` (534,763 bytes,
   `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`) remains
   the historical shortcut-argument fix.
-- The clean native candidate is now `1.0.4-native`: 565,651 bytes, SHA256
-  `0f6889803372c70436d3e61b16b544a53ec7b9b87de75d563fd11a117ddcc70e`,
-  built from clean commit `6e9e10c3207660fd5f878b389187ceaa91c9f396`.
+- The clean native candidate is now `1.0.5-native`: 566,614 bytes, SHA256
+  `a0db74b65be3be165c3587beeb61682d7a44db3b584c04622f23d1ca4102ba60`,
+  built from clean commit `22a062479a1c9f162ca8baf6cd21309684681b20`.
   It was promoted to `C:\RyzenAdj` after the full release gate, packaged GUI
   verification, shell integration, isolated install/uninstall, and a
-  no-change hardware policy probe passed. The previous `1.0.2-native`
-  deployment is recoverable at `C:\RyzenAdj.before-20261112-011649` and under
-  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.4-native-6e9e10c-20261112-011649`.
-- The `1.0.4-native` shortcut and live worker state enforce a 10 W uniform
+  no-change hardware policy probe passed. The previous `1.0.4-native`
+  deployment is recoverable at `C:\RyzenAdj.before-20261112-015439` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.5-native-22a0624-20261112-015439`.
+- The `1.0.5-native` shortcut and live worker state enforce a 10 W uniform
   policy. The shortcut arguments are
   `--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10`;
   local state reports both battery and AC at `10/10/10 W`, presets
@@ -106,13 +107,14 @@ not authoritative.
   target, preset, or saved policy from exceeding 10 W. The promotion helper now
   accepts and validates replacement `-GuiArguments`, so the desktop shortcut
   can carry both flags without drifting from `native\gui-cli-contract.json`.
-  Rust GUI tests pass 37/37 and Clippy is clean. A fixture launch with isolated
+  Rust GUI tests pass 38/38 and Clippy is clean. A fixture launch with isolated
   `%LocalAppData%` produced `enabled=true`, both power lines at 10 W, presets
   `[10,10,10]`, and `maxTargetWatts=10`.
-- Final `1.0.4-native` publication readiness reports `LocalReadiness=PASS`,
+- Final `1.0.5-native` publication readiness reports `LocalReadiness=PASS`,
   `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, no local blockers, and a
   successful deployed-shortcut launch with both value-bearing ceiling/uniform
-  arguments parsed correctly. Evidence:
+  arguments parsed correctly. The DPI layout fixture gate is also `PASS`; real
+  100%/150% Windows sessions remain pending. Evidence:
   `docs\evidence\release\native-publication-readiness-2026-11-12.json`.
 - The native worker profile catalog is now a single family-indexed table rather
   than a separate switch statement. Every RyzenAdj family `0-15` is mapped

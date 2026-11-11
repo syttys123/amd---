@@ -3,8 +3,9 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable-local native deployment (`1.0.4-native`) on the
-  development laptop. The previous `1.0.3-native` build remains at
+- `C:\RyzenAdj`: current stable-local native deployment (`1.0.5-native`) on the
+  development laptop. The previous `1.0.4-native` build remains at
+  `C:\RyzenAdj.before-20261112-015439`, `1.0.3-native` at
   `C:\RyzenAdj.before-20261112-011649`, `1.0.3-native` e26ede4 at
   `C:\RyzenAdj.before-20261112-005635`, `1.0.2-native` at
   `C:\RyzenAdj.before-20261112-003929`, and `1.0.1-native` at
@@ -46,7 +47,7 @@ The native Rust GUI + C++ worker line uses the tested reversible helper:
 
 ```powershell
 .\native\promote-stable-deployment.ps1 `
-  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.4-native-win-x64-native-preview.zip `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.5-native-win-x64-native-preview.zip `
   -TargetDirectory C:\RyzenAdj `
   -GuiArguments "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10"
 ```
@@ -56,7 +57,7 @@ shortcut plan:
 
 ```powershell
 .\native\promote-stable-deployment.ps1 `
-  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.4-native-win-x64-native-preview.zip `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.5-native-win-x64-native-preview.zip `
   -TargetDirectory C:\RyzenAdj `
   -GuiArguments "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10" `
   -Apply -NoLaunch
@@ -69,18 +70,18 @@ rolls back on failure.
 
 ## Current Deployment Evidence
 
-On 2026-11-12, `1.0.4-native` replaced `1.0.3-native` at `C:\RyzenAdj`. It adds
-the family-indexed multi-generation profile catalog, read-only `getProfiles`,
-full-catalog compatibility reports, and catalog validation in the report
-importer.
+On 2026-11-12, `1.0.5-native` replaced `1.0.4-native` at `C:\RyzenAdj`. It adds
+the test-only `--dpi-fixture` renderer and the 100/125/150% logical layout gate
+to the release pipeline, while retaining the multi-generation profile catalog
+and 10 W uniform policy.
 
 - Package SHA256:
-  `0f6889803372c70436d3e61b16b544a53ec7b9b87de75d563fd11a117ddcc70e`
-- Package size: `565,651` bytes
-- Package source commit: `6e9e10c3207660fd5f878b389187ceaa91c9f396`
-- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-011649`
+  `a0db74b65be3be165c3587beeb61682d7a44db3b584c04622f23d1ca4102ba60`
+- Package size: `566,614` bytes
+- Package source commit: `22a062479a1c9f162ca8baf6cd21309684681b20`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-015439`
 - Recoverable D: backup:
-  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.4-native-6e9e10c-20261112-011649`
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.5-native-22a0624-20261112-015439`
 - Desktop shortcut:
   `<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - Shortcut target and arguments:
@@ -92,10 +93,12 @@ importer.
   `maxTargetWatts=10`; live AC read-back `10/10/10 W`
 - Profile catalog: 10 entries, one verified, RyzenAdj families `0-15` each
   mapped exactly once; worker version `0.6.0-native`
+- DPI layout fixtures: 100/125/150% client sizes
+  `640x392`/`780x680`, `800x490`/`975x850`, and `960x588`/`1170x1020`: PASS
 - Deployment evidence:
-  `docs/evidence/packaging/v1.0.4-native-deployment-2026-11-12.json`
+  `docs/evidence/packaging/v1.0.5-native-deployment-2026-11-12.json`
 - Deployment UI evidence:
-  `docs/evidence/ui/native-deployed-1.0.4-native-ui-2026-11-12.json`
+  `docs/evidence/ui/native-deployed-1.0.5-native-ui-2026-11-12.json`
 
 The shell icon cache is refreshed with `SHChangeNotify(SHCNE_ASSOCCHANGED)` and
 `ie4uinit.exe -show` after promotion so the new icon appears immediately.

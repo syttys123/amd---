@@ -3,9 +3,10 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.4-native`. The
-previous native `1.0.3-native` build is preserved as
-`C:\RyzenAdj.before-20261112-011649`, the earlier `1.0.3-native` build as
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.5-native`. The
+previous native `1.0.4-native` build is preserved as
+`C:\RyzenAdj.before-20261112-015439`, the earlier `1.0.3-native` builds as
+`C:\RyzenAdj.before-20261112-011649` and
 `C:\RyzenAdj.before-20261112-005635`, `1.0.2-native` as
 `C:\RyzenAdj.before-20261112-003929`, and `1.0.1-native` as
 `C:\RyzenAdj.before-20261111-233609`, `1.0.0-native` as
@@ -14,14 +15,15 @@ previous native `1.0.3-native` build is preserved as
 
 Decision (2026-11-12): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.4-native` package. Broader AMD generation support remains experimental.
+`1.0.5-native` package. Broader AMD generation support remains experimental.
 
-Note (2026-11-12): `1.0.4-native` supersedes `1.0.3-native` with a
-family-indexed multi-generation profile catalog, read-only `getProfiles`,
-complete-catalog compatibility reports, and report-import validation. Every
-RyzenAdj family `0-15` maps to exactly one conservative fallback while
-`8845HS + 4c0009` remains the sole verified device profile. Worker version is
-`0.6.0-native`. The shortcut still launches with
+Note (2026-11-12): `1.0.5-native` supersedes `1.0.4-native` with deterministic
+100/125/150% logical DPI layout fixtures executed against the packaged GUI.
+`1.0.4-native` added the family-indexed multi-generation profile catalog,
+read-only `getProfiles`, complete-catalog compatibility reports, and
+report-import validation. Every RyzenAdj family `0-15` maps to exactly one
+conservative fallback while `8845HS + 4c0009` remains the sole verified device
+profile. Worker version is `0.6.0-native`. The shortcut still launches with
 `--max-target-watts 10 --uniform-target-watts 10`, which persists and enables
 10/10/10 W for both battery and AC while preventing every UI target, preset, or
 policy from exceeding 10 W. `1.0.3-native` added per-monitor DPI awareness, a
@@ -49,23 +51,27 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.4-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.5-native-win-x64-native-preview.zip
 ```
 
-- Size: `565,651` bytes.
+- Size: `566,614` bytes.
 - SHA256:
-  `0f6889803372c70436d3e61b16b544a53ec7b9b87de75d563fd11a117ddcc70e`.
-- Source commit: `6e9e10c3207660fd5f878b389187ceaa91c9f396`.
+  `a0db74b65be3be165c3587beeb61682d7a44db3b584c04622f23d1ca4102ba60`.
+- Source commit: `22a062479a1c9f162ca8baf6cd21309684681b20`.
 - Working tree at build time: clean.
 - Policy write verification: intentionally skipped in the clean package gate.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.4-native
+artifacts/native-release-review/v1.0.5-native
 ```
 
 The bundle is `REVIEW_ONLY` and is not a public release.
+
+Historical candidate `1.0.4-native` remains recorded with package SHA256
+`0f6889803372c70436d3e61b16b544a53ec7b9b87de75d563fd11a117ddcc70e`
+and source commit `6e9e10c3207660fd5f878b389187ceaa91c9f396`.
 
 Historical candidate `1.0.3-native` remains recorded with package SHA256
 `2935779907f89d38c0ca7d1a46a9661de6a18b32b6bf8bb7083bedff74807b8e`
@@ -90,7 +96,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Rust GUI lifecycle, three Win32 minimize/restore cycles, close-to-tray, tray
   restore, single-instance wake-up, diagnostics export, view switching,
   topmost, and editable preset persistence.
-- Rust unit tests: 37/37 passed, including a contract test that parses every
+- Rust unit tests: 38/38 passed, including a contract test that parses every
   entry in `native/gui-cli-contract.json` and a regression test for the
   desktop shortcut arguments and uniform 10 W policy.
 - Rust formatting and Clippy with `-D warnings`.
@@ -101,7 +107,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Native read-only write guard: invalid target rejected, no write requested.
 - Battery-authorized dry-run write guard: PASS with
   `ExecuteNoChangeWrite=Not requested`.
-- `1.0.4-native` clean package verification with 16 checksum entries,
+- `1.0.5-native` clean package verification with 16 checksum entries,
   isolated install/overwrite/uninstall, extracted GUI/worker read-only
   verification, compatibility JSON/Markdown collection, and
   `PolicyWriteVerification=Skipped`.
@@ -121,7 +127,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - High-contrast simple and advanced captures with `ui.highContrast=true`, no
   hardware worker startup, and the same target/preset/diagnostics availability
   checks as the other write-controls fixtures.
-- Extracted `1.0.4-native` packaged GUI/worker verification with GUI and worker
+- Extracted `1.0.5-native` packaged GUI/worker verification with GUI and worker
   hashes, three minimize/restore cycles, close-to-tray, tray restore,
   single-instance wake, `taskbarIconAvailable=true`, `trayIconId=1`, and the
   persisted `simple` to `advanced` mode transition.
@@ -134,8 +140,9 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   differences. `build.ps1`, `build-package.ps1`, and the readiness gate all fail
   on a missing icon.
 - The verified package is deployed at `C:\RyzenAdj` with the prior
-  `1.0.3-native` build at
-  `C:\RyzenAdj.before-20261112-011649`, earlier `1.0.3-native` builds at
+  `1.0.4-native` build at
+  `C:\RyzenAdj.before-20261112-015439`, earlier `1.0.3-native` builds at
+  `C:\RyzenAdj.before-20261112-011649` and
   `C:\RyzenAdj.before-20261112-005635`, `1.0.2-native` at
   `C:\RyzenAdj.before-20261112-003929`, and `1.0.1-native` at
   `C:\RyzenAdj.before-20261111-233609`, `1.0.0-native` at
@@ -151,6 +158,11 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   `0.6.0-native`, matched `hawk-point-8845hs`, and live `10/10/10 W` limits;
   the importer accepted the report and rejected a synthetic catalog missing
   family `8`.
+- DPI layout gate: the packaged GUI rendered simple and advanced shells at
+  logical 100/125/150% with exact client sizes `640x392`/`780x680`,
+  `800x490`/`975x850`, and `960x588`/`1170x1020`. Separate region inspection
+  found no clipped header, target, preset, metric, or status text. Real
+  100%/150% Windows sessions remain an external open gate.
 - Desktop-shortcut launch gate: the promotion helper launched the promoted GUI
   with the real shortcut arguments under an isolated `%LocalAppData%` and a
   unique worker pipe, and reported `LaunchVerification=PASS` with window title
@@ -166,13 +178,14 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
-- `docs/evidence/packaging/v1.0.4-native-clean-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.4-native-release-gate-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.4-native-shell-integration-2026-11-12.json`
-- `docs/evidence/hardware/v1.0.4-native-power-policy-no-change-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.4-native-deployment-2026-11-12.json`
-- `docs/evidence/ui/native-packaged-1.0.4-native-ui-2026-11-12.json`
-- `docs/evidence/ui/native-deployed-1.0.4-native-ui-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.5-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.5-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.5-native-shell-integration-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.5-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.5-native-deployment-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.5-native-ui-2026-11-12.json`
+- `docs/evidence/ui/native-deployed-1.0.5-native-ui-2026-11-12.json`
+- `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
 - `docs/evidence/release/native-publication-readiness-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
