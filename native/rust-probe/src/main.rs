@@ -185,11 +185,7 @@ fn request(pipe_name: &str, command: &str, payload: &Value) -> Result<Value, Str
         "payload": payload,
     });
 
-    let stream = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .open(pipe_name)
-        .map_err(|error| format!("unable to open the worker pipe: {error}"))?;
+    let stream = open_pipe(pipe_name)?;
     let mut writer = stream
         .try_clone()
         .map_err(|error| format!("unable to clone the worker pipe: {error}"))?;
@@ -226,6 +222,27 @@ fn request(pipe_name: &str, command: &str, payload: &Value) -> Result<Value, Str
         return Err(format!("{}: {}", error.code, error.message));
     }
     Ok(response.payload.unwrap_or(Value::Null))
+}
+
+/// The worker exposes a single pipe instance, so a client can legitimately see
+/// ERROR_PIPE_BUSY while the GUI is polling. Retry that case briefly; every
+/// other error (for example ERROR_FILE_NOT_FOUND) is returned immediately.
+fn open_pipe(pipe_name: &str) -> Result<std::fs::File, String> {
+    const ERROR_PIPE_BUSY: i32 = 231;
+    let mut last_error = String::new();
+    for _ in 0..40 {
+        match OpenOptions::new().read(true).write(true).open(pipe_name) {
+            Ok(stream) => return Ok(stream),
+            Err(error) => {
+                last_error = error.to_string();
+                if error.raw_os_error() != Some(ERROR_PIPE_BUSY) {
+                    break;
+                }
+                std::thread::sleep(Duration::from_millis(50));
+            }
+        }
+    }
+    Err(format!("unable to open the worker pipe: {last_error}"))
 }
 
 fn run_single_request(options: &Options) -> Result<u8, String> {
@@ -1209,6 +1226,18 @@ mod tests {
         assert!(markdown.contains("## Telemetry"));
         assert!(markdown.contains("## Checks"));
         assert!(markdown.contains("## Privacy"));
+    }
+
+    #[test]
+    fn open_pipe_reports_a_missing_pipe_immediately() {
+        let name = format!(r"\\.\pipe\AmdMobilePower.ProbeTest.{}", std::process::id());
+        let started = std::time::Instant::now();
+        let error = open_pipe(&name).expect_err("missing pipe must fail");
+        assert!(error.contains("unable to open the worker pipe"));
+        assert!(
+            started.elapsed() < Duration::from_secs(1),
+            "a missing pipe must not go through the busy-retry loop"
+        );
     }
 
     #[test]

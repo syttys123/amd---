@@ -159,6 +159,14 @@ not authoritative.
   Rust tests are now `20/20` in the main suite with a new backoff-bounds test;
   Clippy and fmt stay clean.
 - The publication-readiness gate now also requires the deployed headless probe:
+- The probe now retries `ERROR_PIPE_BUSY` when it talks to a running GUI. The
+  worker exposes a single pipe instance, so a `--command` call could collide
+  with the GUI's one-second poll and fail with "所有的管道范例都在使用中".
+  `open_pipe` retries only that error (40 × 50 ms) and returns every other error
+  immediately, including a missing pipe. Stress test against the running GUI:
+  `50/50` `getHealth` calls succeeded (previously the first call could fail);
+  probe tests are now `7/7`.
+- The publication-readiness gate now also requires the deployed headless probe:
   `C:\RyzenAdj\amd-mobile-power-probe.exe` must match
   `DeployedProbeSHA256` in the deployment evidence and pass `--self-test`.
   Re-running readiness for `1.0.13-native` keeps `LocalReadiness=PASS`,
