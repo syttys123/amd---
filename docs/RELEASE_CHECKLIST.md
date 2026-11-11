@@ -1,17 +1,19 @@
 # Release Checklist
 
-Release under review: `1.0.8-native`
+Release under review: `1.0.18-native`
 
 ## Source And Build
 
 - [x] Tracked worktree is clean before the package build.
-- [x] Rust GUI tests pass: 38/38.
+- [x] Rust tests pass: 41/41 (22 GUI tests + 19 library tests).
 - [x] Rust formatting and Clippy with `-D warnings` pass.
 - [x] C++ power-limit and power-policy tests pass.
 - [x] Release build completes with the packaged icon present.
-- [x] `native\verify-release.ps1 -NoBuild -VerifyShellIntegration
-  -ExecuteNoChangePolicy` passes.
+- [x] `native\verify-release.ps1 -NoBuild -VerifyReproducibility
+  -VerifyShellIntegration -ExecuteNoChangePolicy -VerifyWorkerHang` passes.
 - [x] Package source commit and final SHA256 match the clean evidence.
+      Package SHA256 `fd7bf191ac557fb9bc1038cb725907ba67e5f819b8eeee6136f5cbe2721d6ef1`,
+      source commit `12934dfb2850fab6a9a91216343b45a18f849d07`.
 - [ ] Hosted Windows CI passes for the release commit.
       Current blocker: GitHub Actions billing/spending-limit failure before job
       startup. Local release gates pass.
@@ -33,6 +35,10 @@ Release under review: `1.0.8-native`
       candidates.
 - [x] Firmware-clamp behavior is documented instead of treated as a transport
       failure.
+- [x] `-VerifyWorkerHang` passes against the expanded package: replacement in
+      `34.9 s`, `28/28` responsive samples, zero failures, and 10/10/10 W
+      restored. A separate clean-tree run against the deployed binaries
+      replaced the worker in `35.6 s` with `27/27` responsive samples.
 
 ## Safety And Licensing
 
@@ -53,7 +59,7 @@ Release under review: `1.0.8-native`
 
 - [x] Portable ZIP builds from the recorded source commit.
 - [x] ZIP SHA256 and source commit are recorded.
-- [x] `SHA256SUMS.txt` verifies all 18 staged payload files.
+- [x] `SHA256SUMS.txt` verifies all 19 staged payload files.
 - [x] First install, overwrite install, and uninstall pass in an isolated path.
 - [x] Real current-user Start menu, Startup shortcut, and uninstall entry
       create/cleanup pass.
@@ -62,7 +68,7 @@ Release under review: `1.0.8-native`
 - [x] DPI layout fixtures pass at 100%, 125%, and 150%.
 - [x] Packaged compatibility collector produces sanitized JSON and Markdown.
 - [x] No machine-specific diagnostics, logs, or user data are included.
-- [x] Deployed `C:\RyzenAdj` payload matches all 18 staged files.
+- [x] Deployed `C:\RyzenAdj` payload matches all 19 staged files.
 - [x] Deployment backup and recoverable repository copy exist.
 
 ## Documentation And Media
@@ -74,8 +80,11 @@ Release under review: `1.0.8-native`
 - [x] Supported-hardware wording does not claim universal support.
 - [x] Native simple/advanced screenshots exist.
 - [x] Promo video draft is rendered and machine-verified.
-- [x] Bilibili cover exists and is machine-verified.
+- [x] Bilibili cover exists and is machine-verified:
+      `docs/assets/bilibili-cover-native-10w-2026-11-12.png` (`10 W / VERIFIED`).
 - [x] Local review bundle validates package, video, cover, and runtime drift.
+- [x] Review bundle `artifacts/native-release-review/v1.0.18-native` contains
+      27 files and its SHA256SUMS verifies cleanly.
 - [ ] Project owner reviews the final video voice, pacing, claims, and cover.
 - [ ] Bilibili title, description, cover, and tags are reviewed.
 
