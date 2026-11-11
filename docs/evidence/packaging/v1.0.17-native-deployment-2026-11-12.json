@@ -18,6 +18,7 @@
   "DeployedProbeSHA256": "9750418f15ebce2d70e750e845cfa5408751a96b178d60bbaa168155322a615e",
   "PayloadVerification": "PASS",
   "PayloadFilesMatched": 19,
+  "UiVerification": "PASS",
   "PackagedUiVerification": "PASS",
   "PackagedUiEvidence": "docs/evidence/packaging/v1.0.17-native-clean-2026-11-12.json",
   "WorkerSupervision": "PASS",
