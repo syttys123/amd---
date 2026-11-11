@@ -36,19 +36,24 @@ CI and on a fresh machine):
 
 1. Starts a private copy of `amdmobilepower_native_worker.exe` with a unique
    pipe name derived from the probe process id and a timestamp.
-2. Passes `--enable-hardware` but never `--enable-write-controls`, so the
+2. Checks `Local\AmdMobilePower.HardwareOwner.v1` first: if the installed GUI
+   already owns hardware access, the probe reports that explicitly instead of
+   failing inside the driver.
+3. Passes `--enable-hardware` but never `--enable-write-controls`, so the
    worker can read SMU telemetry and rejects every write command.
-3. Collects `getHealth`, `getCapabilities`, `getSnapshot`, `getProfiles`, and
+4. Collects `getHealth`, `getCapabilities`, `getSnapshot`, `getProfiles`, and
    `getPowerPolicy`.
-4. Reads SMBIOS and Windows version strings from the registry.
-5. Sends `shutdown`, waits for the worker to exit, and kills it if it does not.
-6. Emits one JSON document and, optionally, a Markdown summary.
+5. Reads SMBIOS and Windows version strings from the registry.
+6. Sends `shutdown`, waits for the worker to exit, and kills it if it does not.
+7. Emits one JSON document and, optionally, a Markdown summary.
 
-If the driver cannot be opened, typically because the shell is not elevated,
-the probe keeps the run useful: it restarts the worker without
-`--enable-hardware`, still records host information, worker health, and the
-profile catalog, and reports `collectionStatus: "FAILED"` with a clear reason
-instead of crashing.
+Hardware access is exclusive: the worker takes
+`Local\AmdMobilePower.HardwareOwner.v1` and a second owner is rejected. If the
+GUI is already running, or the driver cannot be opened, the probe keeps the run
+useful: it restarts the worker without `--enable-hardware`, still records host
+information, worker health, and the profile catalog, and reports
+`collectionStatus: "FAILED"` with a clear reason instead of crashing. Exit the
+app from the tray and rerun for live limits.
 
 ## Report shape
 
@@ -84,6 +89,7 @@ The document uses the same schema as `collect-native-diagnostics.ps1`, so
   "profileCatalog": { "schemaVersion": 1, "profiles": [ ] },
   "telemetry": { "powerLine": "ac", "stapmLimitWatts": 10.0 },
   "powerPolicy": { },
+  "powerPolicyNote": "state of the private diagnostic worker, not the installed app's saved policy",
   "checks": [ { "id": "worker.health", "status": "PASS", "detail": "..." } ],
   "error": null
 }
@@ -117,6 +123,14 @@ pwsh -File .\native\import-compatibility-report.ps1 `
 The importer re-validates the schema, privacy flags, profile catalog coverage,
 and path redaction before indexing the report under
 `docs/evidence/compatibility/`.
+
+## Verified run
+
+`docs/evidence/diagnostics/headless-probe-8845hs-live-2026-11-12.json` records a
+full `PASS` from the expanded `1.0.11-native` ZIP with the tray app closed:
+`hardwareInitialized=true`, `writeControlsEnabled=false`, matched
+`hawk-point-8845hs`, and live AC `10/10/10 W`. The following run against the
+installed GUI shows the `worker.exclusive` warning instead.
 
 ## Release gate
 

@@ -17,7 +17,7 @@ use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
 use std::os::windows::process::CommandExt;
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command, ExitCode, Stdio};
+use std::process::{Child, ChildStderr, Command, ExitCode, Stdio};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const PROTOCOL_VERSION: u32 = 1;
@@ -26,6 +26,7 @@ const DEFAULT_WORKER_EXE: &str = "amdmobilepower_native_worker.exe";
 const BUILD_INFO_FILE: &str = "BUILD-INFO.txt";
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const REPORT_TYPE: &str = "amd-mobile-power-native-compatibility";
+const HARDWARE_OWNER_MUTEX: &str = r"Local\AmdMobilePower.HardwareOwner.v1";
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -383,6 +384,7 @@ struct Collection {
     profiles: Option<Value>,
     policy: Option<Value>,
     error: Option<String>,
+    owner_conflict: bool,
 }
 
 fn collect_with_worker(
@@ -396,14 +398,22 @@ fn collect_with_worker(
     // First attempt: full read-only hardware access. If the process cannot load
     // the driver (typically because the shell is not elevated) fall back to a
     // worker without hardware so the report still carries host and version data.
-    let mut session =
+    let mut session = None;
+    if hardware_owner_is_active() {
+        // The worker holds an exclusive hardware-owner mutex. Starting a second
+        // owner would only surface a confusing driver error, so name the real
+        // cause and continue with the read-only fallback worker.
+        collection.owner_conflict = true;
+        collection.error = Some(
+            "another AMD Mobile Power instance currently owns hardware access; exit it from the tray and run the probe again for live limits"
+                .to_owned(),
+        );
+    } else {
         match WorkerSession::start(worker_path, working_directory, pipe_name, true, timeout) {
-            Ok(session) => Some(session),
-            Err(error) => {
-                collection.error = Some(error);
-                None
-            }
-        };
+            Ok(started) => session = Some(started),
+            Err(error) => collection.error = Some(error),
+        }
+    }
 
     if session.is_none() {
         if let Ok(fallback) =
@@ -432,7 +442,7 @@ fn collect_with_worker(
         .unwrap_or(false);
     if !hardware_initialized && collection.error.is_none() {
         collection.error = Some(
-            "the worker started without hardware access; run the probe from an elevated shell to read live power limits"
+            "the worker started without hardware access; exit any running AMD Mobile Power instance and run the probe again"
                 .to_owned(),
         );
     }
@@ -444,6 +454,9 @@ fn collect_with_worker(
 struct WorkerSession {
     child: Child,
     pipe_name: String,
+    // Kept alive so the worker's stderr pipe stays open; the handle is only
+    // consumed on the startup-failure path.
+    _stderr: Option<ChildStderr>,
 }
 
 impl WorkerSession {
@@ -461,7 +474,7 @@ impl WorkerSession {
             .current_dir(working_directory)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            .stderr(Stdio::piped())
             .creation_flags(CREATE_NO_WINDOW);
         if enable_hardware {
             command.arg("--enable-hardware");
@@ -469,6 +482,7 @@ impl WorkerSession {
         let mut child = command
             .spawn()
             .map_err(|error| format!("unable to start {DEFAULT_WORKER_EXE}: {error}"))?;
+        let mut child_stderr = child.stderr.take();
 
         let deadline = Instant::now() + timeout;
         loop {
@@ -477,17 +491,15 @@ impl WorkerSession {
                     return Ok(Self {
                         child,
                         pipe_name: pipe_name.to_owned(),
+                        _stderr: child_stderr,
                     })
                 }
                 Err(error) => {
                     if let Ok(Some(status)) = child.try_wait() {
-                        let mode = if enable_hardware {
-                            "with hardware access"
-                        } else {
-                            "without hardware access"
-                        };
+                        let detail = take_child_stderr(&mut child_stderr);
+                        let reason = if detail.is_empty() { error } else { detail };
                         return Err(format!(
-                            "{DEFAULT_WORKER_EXE} exited early ({status}) when started {mode}: {error}"
+                            "{DEFAULT_WORKER_EXE} exited early ({status}): {reason}"
                         ));
                     }
                     if Instant::now() >= deadline {
@@ -574,14 +586,34 @@ fn build_report(build: &BTreeMap<String, String>, collection: &Collection) -> Va
         if hardware_initialized { "PASS" } else { "WARN" },
         if hardware_initialized {
             "RyzenAdj hardware context initialized".to_owned()
+        } else if collection.owner_conflict {
+            "another AMD Mobile Power instance owns the hardware mutex".to_owned()
         } else {
-            "hardware context unavailable; run elevated for live limits".to_owned()
+            "hardware context unavailable; close other power tools and retry".to_owned()
         },
     ));
     checks.push(check(
         "worker.readOnly",
         "PASS",
         "worker started without --enable-write-controls".to_owned(),
+    ));
+    checks.push(check(
+        "worker.exclusive",
+        if collection.owner_conflict {
+            "WARN"
+        } else if hardware_initialized {
+            "PASS"
+        } else {
+            "WARN"
+        },
+        if collection.owner_conflict {
+            "another AMD Mobile Power instance owns hardware access; exit it from the tray and rerun"
+                .to_owned()
+        } else if hardware_initialized {
+            "exclusive hardware access acquired".to_owned()
+        } else {
+            "hardware access not acquired".to_owned()
+        },
     ));
     checks.push(check(
         "platform.supported",
@@ -691,6 +723,7 @@ fn build_report(build: &BTreeMap<String, String>, collection: &Collection) -> Va
         "profileCatalog": collection.profiles.clone().unwrap_or(Value::Null),
         "telemetry": telemetry.map(redact_telemetry).unwrap_or(Value::Null),
         "powerPolicy": collection.policy.clone().unwrap_or(Value::Null),
+        "powerPolicyNote": "state of the private diagnostic worker, not the installed app's saved policy",
         "checks": checks,
         "error": collection.error.clone(),
     })
@@ -808,6 +841,50 @@ fn render_markdown(report: &Value) -> String {
         "- Slow limit: {} W",
         text(&telemetry, "slowLimitWatts")
     ));
+
+    let policy = report.get("powerPolicy").cloned().unwrap_or(Value::Null);
+    let policy_enabled = policy
+        .get("settings")
+        .and_then(|settings| settings.get("enabled"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    if policy.get("settings").is_some() && policy_enabled {
+        let settings = policy.get("settings").cloned().unwrap_or(Value::Null);
+        let battery = settings
+            .get("batteryTarget")
+            .cloned()
+            .unwrap_or(Value::Null);
+        let ac = settings.get("acTarget").cloned().unwrap_or(Value::Null);
+        lines.push(String::new());
+        lines.push("## Power Policy".to_owned());
+        lines.push(String::new());
+        lines.push(format!(
+            "- Policy enabled: {}",
+            settings
+                .get("enabled")
+                .and_then(Value::as_bool)
+                .unwrap_or(false)
+        ));
+        lines.push(format!(
+            "- Battery target: {}/{}/{} W",
+            text(&battery, "stapmWatts"),
+            text(&battery, "fastWatts"),
+            text(&battery, "slowWatts")
+        ));
+        lines.push(format!(
+            "- AC target: {}/{}/{} W",
+            text(&ac, "stapmWatts"),
+            text(&ac, "fastWatts"),
+            text(&ac, "slowWatts")
+        ));
+        lines.push(format!(
+            "- Last attempt succeeded: {}",
+            policy
+                .get("lastAttemptSucceeded")
+                .and_then(Value::as_bool)
+                .unwrap_or(false)
+        ));
+    }
     lines.push(String::new());
     lines.push("## Checks".to_owned());
     lines.push(String::new());
@@ -924,6 +1001,14 @@ extern "system" {
 const HKEY_LOCAL_MACHINE: usize = 0x8000_0002;
 const RRF_RT_REG_SZ: u32 = 0x0000_0002;
 
+#[link(name = "kernel32")]
+extern "system" {
+    fn OpenMutexW(desired_access: u32, inherit_handle: i32, name: *const u16) -> isize;
+    fn CloseHandle(handle: isize) -> i32;
+}
+
+const SYNCHRONIZE: u32 = 0x0010_0000;
+
 fn read_registry_string(sub_key: &str, value_name: &str) -> Option<String> {
     let sub_key: Vec<u16> = sub_key.encode_utf16().chain(std::iter::once(0)).collect();
     let value_name: Vec<u16> = value_name
@@ -976,6 +1061,33 @@ fn read_registry_string(sub_key: &str, value_name: &str) -> Option<String> {
     } else {
         Some(text.to_owned())
     }
+}
+
+/// True when another AMD Mobile Power process already holds the exclusive
+/// `Local\AmdMobilePower.HardwareOwner.v1` mutex.
+fn hardware_owner_is_active() -> bool {
+    let name: Vec<u16> = HARDWARE_OWNER_MUTEX
+        .encode_utf16()
+        .chain(std::iter::once(0))
+        .collect();
+    let handle = unsafe { OpenMutexW(SYNCHRONIZE, 0, name.as_ptr()) };
+    if handle == 0 {
+        return false;
+    }
+    unsafe {
+        CloseHandle(handle);
+    }
+    true
+}
+
+fn take_child_stderr(stderr: &mut Option<ChildStderr>) -> String {
+    use std::io::Read;
+    let Some(mut pipe) = stderr.take() else {
+        return String::new();
+    };
+    let mut bytes = Vec::new();
+    let _ = pipe.read_to_end(&mut bytes);
+    String::from_utf8_lossy(&bytes).trim().to_owned()
 }
 
 fn iso8601_now() -> String {
@@ -1097,5 +1209,25 @@ mod tests {
         assert!(markdown.contains("## Telemetry"));
         assert!(markdown.contains("## Checks"));
         assert!(markdown.contains("## Privacy"));
+    }
+
+    #[test]
+    fn markdown_lists_power_policy_targets() {
+        let collection = Collection {
+            policy: Some(json!({
+                "settings": {
+                    "enabled": true,
+                    "batteryTarget": { "stapmWatts": 10, "fastWatts": 10, "slowWatts": 10 },
+                    "acTarget": { "stapmWatts": 10, "fastWatts": 10, "slowWatts": 10 }
+                },
+                "lastAttemptSucceeded": true
+            })),
+            ..Collection::default()
+        };
+        let report = build_report(&BTreeMap::new(), &collection);
+        let markdown = render_markdown(&report);
+        assert!(markdown.contains("## Power Policy"));
+        assert!(markdown.contains("- Battery target: 10/10/10 W"));
+        assert!(markdown.contains("- AC target: 10/10/10 W"));
     }
 }

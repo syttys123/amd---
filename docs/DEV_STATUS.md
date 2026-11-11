@@ -151,13 +151,26 @@ not authoritative.
   `--enable-write-controls`, includes no local paths, pipe names, or process
   ids, and degrades to a host-plus-health report with a clear reason when the
   driver cannot be opened. `--self-test` validates the binary without touching
-  hardware. `build.ps1` now runs 5 probe unit tests, the staged package runs
+  hardware. `build.ps1` now runs 6 probe unit tests, the staged package runs
   `--self-test`, and package verification runs `--diagnose` from the expanded
   ZIP with schema/privacy/redaction assertions. A non-elevated run on the
   8845HS emitted `collectionStatus=FAILED`, `hardwareInitialized=false`, full
   host data (`MECHREVO WUJIE15 PRO`), worker health, and all ten profile-catalog
   entries; `import-compatibility-report.ps1` accepted the report as
   `Verification=PASS`. Docs: `docs/HEADLESS_DIAGNOSTICS.md`.
+- The probe now names the real reason hardware access is unavailable. The
+  worker takes the exclusive `Local\AmdMobilePower.HardwareOwner.v1` mutex, so
+  a running GUI previously surfaced only an opaque worker-exit error; the probe
+  checks the mutex first, reports `worker.exclusive=WARN` with "exit it from
+  the tray", and still collects host, worker, and profile data. Worker stderr
+  is captured for every other startup failure. A full live run from the
+  expanded `1.0.11-native` ZIP with the GUI closed reported
+  `collectionStatus=PASS`, `hardwareInitialized=true`,
+  `writeControlsEnabled=false`, matched `hawk-point-8845hs`, all seven checks
+  `PASS`, and live AC `10/10/10 W`. The GUI was then restarted with the
+  original arguments and verified back at `enabled=true`, battery and AC
+  `10/10/10 W`, `lastAttemptSucceeded=true`, live `10/10/10 W`. Evidence:
+  `docs/evidence/diagnostics/headless-probe-8845hs-live-2026-11-12.json`.
 - The 10 W review media now uses those corrected real screenshots. The updated
   78.2-second draft is verified at 1920x1080 with full decode, hashes, audio
   level, safe-width, cover, contact-sheet, and Bilibili-cover checks in

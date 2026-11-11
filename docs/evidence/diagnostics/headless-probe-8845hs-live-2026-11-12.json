@@ -1,0 +1,312 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-12T05:14:19Z",
+  "probeVersion": "0.1.0",
+  "package": "1.0.11-native",
+  "packageZipSha256": "6d5689c68aaf6f7c0e4633e8c8839ebcbe0bb2c3ff9277ff89b363937937a427",
+  "sourceCommit": "92fe2285eabed550568a67d67d9307740cdf7eb2",
+  "mode": "packaged ZIP --diagnose, read-only worker, hardware owner mutex free, GUI restarted afterwards",
+  "result": "PASS",
+  "checkSummary": "worker.health=PASS; worker.hardware=PASS; worker.readOnly=PASS; worker.exclusive=PASS; platform.supported=PASS; limits.available=PASS; telemetry.readable=PASS",
+  "report": {
+    "checks": [
+      {
+        "detail": "worker answered getHealth",
+        "id": "worker.health",
+        "status": "PASS"
+      },
+      {
+        "detail": "RyzenAdj hardware context initialized",
+        "id": "worker.hardware",
+        "status": "PASS"
+      },
+      {
+        "detail": "worker started without --enable-write-controls",
+        "id": "worker.readOnly",
+        "status": "PASS"
+      },
+      {
+        "detail": "exclusive hardware access acquired",
+        "id": "worker.exclusive",
+        "status": "PASS"
+      },
+      {
+        "detail": "platform reports power-limit support",
+        "id": "platform.supported",
+        "status": "PASS"
+      },
+      {
+        "detail": "stapm=true fast=true slow=true",
+        "id": "limits.available",
+        "status": "PASS"
+      },
+      {
+        "detail": "powerLine=ac stapm=10.00W fast=10.00W slow=10.00W",
+        "id": "telemetry.readable",
+        "status": "PASS"
+      }
+    ],
+    "collectedAt": "2026-11-11T21:14:24Z",
+    "collectionStatus": "PASS",
+    "collector": {
+      "mode": "headless-diagnose",
+      "name": "amd-mobile-power-probe",
+      "requiresGui": false,
+      "requiresPowerShell": false,
+      "version": "0.1.0"
+    },
+    "environment": {
+      "architecture": "x86_64",
+      "os": "Windows",
+      "probe": "amd-mobile-power-probe 0.1.0"
+    },
+    "error": null,
+    "host": {
+      "biosReleaseDate": "09/25/2024",
+      "biosVersion": "T153_HPT_V05",
+      "manufacturer": "MECHREVO",
+      "model": "WUJIE15 PRO",
+      "windowsBuild": "26300",
+      "windowsDisplayVersion": "26H2",
+      "windowsEdition": "Windows 10 Pro for Workstations",
+      "windowsVersion": "6.3"
+    },
+    "package": {
+      "buildTimestamp": "2026-11-12 05:14:03 +08:00",
+      "name": "amd-mobile-power-v1.0.11-native-win-x64-native-preview",
+      "sourceCommit": "92fe2285eabed550568a67d67d9307740cdf7eb2",
+      "version": "1.0.11-native",
+      "workingTree": "Dirty"
+    },
+    "platform": {
+      "isSupported": true,
+      "limits": {
+        "supportsAny": true,
+        "supportsFast": true,
+        "supportsSlow": true,
+        "supportsStapm": true
+      },
+      "pmTableVersion": "4c0009",
+      "processorName": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+      "profile": {
+        "defaultWatts": 25,
+        "displayName": "Hawk Point 8845HS development profile",
+        "families": [
+          10
+        ],
+        "id": "hawk-point-8845hs",
+        "isFamilyFallback": false,
+        "isVerified": true,
+        "maximumWatts": 60,
+        "minimumWatts": 5
+      },
+      "ryzenAdjFamily": 10,
+      "ryzenAdjFamilyName": "Hawk Point",
+      "smuBiosVersion": "15",
+      "unsupportedReason": null,
+      "vendor": "AuthenticAMD"
+    },
+    "powerPolicy": {
+      "lastAppliedTarget": null,
+      "lastAttemptAt": null,
+      "lastAttemptSucceeded": null,
+      "lastError": null,
+      "lastObservedPowerLine": null,
+      "settings": null
+    },
+    "powerPolicyNote": "state of the private diagnostic worker, not the installed app's saved policy",
+    "privacy": {
+      "accountNamesIncluded": false,
+      "localPathsIncluded": false,
+      "networkUploadPerformed": false,
+      "pipeNameIncluded": false,
+      "processIdIncluded": false,
+      "recentLogsIncluded": false,
+      "serialNumbersIncluded": false
+    },
+    "profileCatalog": {
+      "profiles": [
+        {
+          "defaultWatts": 25,
+          "displayName": "Hawk Point 8845HS development profile",
+          "families": [
+            10
+          ],
+          "id": "hawk-point-8845hs",
+          "isFamilyFallback": false,
+          "isVerified": true,
+          "maximumWatts": 60,
+          "minimumWatts": 5,
+          "supportsFast": true,
+          "supportsSlow": true,
+          "supportsStapm": true
+        },
+        {
+          "defaultWatts": 15,
+          "displayName": "Hawk Point family profile (unverified)",
+          "families": [
+            10
+          ],
+          "id": "ryzenadj-hawk-point",
+          "isFamilyFallback": true,
+          "isVerified": false,
+          "maximumWatts": 45,
+          "minimumWatts": 5,
+          "supportsFast": true,
+          "supportsSlow": true,
+          "supportsStapm": true
+        },
+        {
+          "defaultWatts": 15,
+          "displayName": "Phoenix family profile (unverified)",
+          "families": [
+            9
+          ],
+          "id": "ryzenadj-phoenix",
+          "isFamilyFallback": true,
+          "isVerified": false,
+          "maximumWatts": 45,
+          "minimumWatts": 5,
+          "supportsFast": true,
+          "supportsSlow": true,
+          "supportsStapm": true
+        },
+        {
+          "defaultWatts": 15,
+          "displayName": "Rembrandt family profile (unverified)",
+          "families": [
+            7
+          ],
+          "id": "ryzenadj-rembrandt",
+          "isFamilyFallback": true,
+          "isVerified": false,
+          "maximumWatts": 45,
+          "minimumWatts": 5,
+          "supportsFast": true,
+          "supportsSlow": true,
+          "supportsStapm": true
+        },
+        {
+          "defaultWatts": 15,
+          "displayName": "Renoir/Cezanne/Lucienne family profile (unverified)",
+          "families": [
+            2,
+            3,
+            5
+          ],
+          "id": "ryzenadj-renoir-cezanne",
+          "isFamilyFallback": true,
+          "isVerified": false,
+          "maximumWatts": 45,
+          "minimumWatts": 5,
+          "supportsFast": true,
+          "supportsSlow": true,
+          "supportsStapm": true
+        },
+        {
+          "defaultWatts": 20,
+          "displayName": "Krackan/Strix family profile (unverified)",
+          "families": [
+            12,
+            13
+          ],
+          "id": "ryzenadj-krackan-strix",
+          "isFamilyFallback": true,
+          "isVerified": false,
+          "maximumWatts": 55,
+          "minimumWatts": 5,
+          "supportsFast": true,
+          "supportsSlow": true,
+          "supportsStapm": true
+        },
+        {
+          "defaultWatts": 25,
+          "displayName": "Strix Halo family profile (unverified)",
+          "families": [
+            14
+          ],
+          "id": "ryzenadj-strix-halo",
+          "isFamilyFallback": true,
+          "isVerified": false,
+          "maximumWatts": 60,
+          "minimumWatts": 5,
+          "supportsFast": true,
+          "supportsSlow": true,
+          "supportsStapm": true
+        },
+        {
+          "defaultWatts": 30,
+          "displayName": "Dragon/Fire Range family profile (unverified)",
+          "families": [
+            11,
+            15
+          ],
+          "id": "ryzenadj-dragon-fire",
+          "isFamilyFallback": true,
+          "isVerified": false,
+          "maximumWatts": 65,
+          "minimumWatts": 5,
+          "supportsFast": true,
+          "supportsSlow": true,
+          "supportsStapm": true
+        },
+        {
+          "defaultWatts": 12,
+          "displayName": "Mendocino family profile (unverified)",
+          "families": [
+            8
+          ],
+          "id": "ryzenadj-mendocino",
+          "isFamilyFallback": true,
+          "isVerified": false,
+          "maximumWatts": 30,
+          "minimumWatts": 5,
+          "supportsFast": true,
+          "supportsSlow": true,
+          "supportsStapm": true
+        },
+        {
+          "defaultWatts": 15,
+          "displayName": "Legacy Ryzen mobile family profile (unverified)",
+          "families": [
+            0,
+            1,
+            4,
+            6
+          ],
+          "id": "ryzenadj-legacy",
+          "isFamilyFallback": true,
+          "isVerified": false,
+          "maximumWatts": 35,
+          "minimumWatts": 5,
+          "supportsFast": true,
+          "supportsSlow": true,
+          "supportsStapm": true
+        }
+      ],
+      "schemaVersion": 1
+    },
+    "reportType": "amd-mobile-power-native-compatibility",
+    "schemaVersion": 1,
+    "telemetry": {
+      "fastLimitWatts": 10,
+      "fastValueWatts": 9.99083,
+      "hasFirmwareClamp": false,
+      "powerLine": "ac",
+      "slowLimitWatts": 10,
+      "slowValueWatts": 9.78597,
+      "stapmLimitWatts": 10,
+      "stapmValueWatts": 10.0031,
+      "targetWatts": null,
+      "tctlLimitCelsius": 95,
+      "tctlValueCelsius": 41.2591,
+      "updatedAt": "2026-11-11T21:14:24Z"
+    },
+    "worker": {
+      "hardwareInitialized": true,
+      "status": "ok",
+      "version": "0.6.0-native",
+      "writeControlsEnabled": false
+    }
+  }
+}

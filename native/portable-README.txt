@@ -45,8 +45,10 @@ No GUI and no PowerShell required:
 
 The probe starts a private read-only worker, collects health, capabilities,
 telemetry, profiles, and policy state, and writes one redacted JSON document.
-It never enables write controls. On a machine where the driver cannot be
-opened it still records host and worker information and explains the failure.
+It never enables write controls. Hardware access is exclusive, so exit AMD
+Mobile Power from its tray menu before running a diagnosis for live limits;
+with the app running the report still records host and worker information and
+says exactly why the limits are unavailable.
 Check the binary itself without touching hardware:
 
   amd-mobile-power-probe.exe --self-test
