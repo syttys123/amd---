@@ -3,8 +3,11 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.13-native`. The
-previous native `1.0.12-native` build is preserved as
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.16-native`. The
+previous native `1.0.15-native` build is preserved as
+`C:\RyzenAdj.before-20261112-064143`, `1.0.14-native` as
+`C:\RyzenAdj.before-20261112-063328`, `1.0.13-native` as
+`C:\RyzenAdj.before-20261112-062726`, `1.0.12-native` as
 `C:\RyzenAdj.before-20261112-055844`, `1.0.11-native` as
 `C:\RyzenAdj.before-20261112-055115`, `1.0.10-native` as
 `C:\RyzenAdj.before-20261112-052733`, `1.0.9-native` as
@@ -23,13 +26,14 @@ previous native `1.0.12-native` build is preserved as
 
 Decision (2026-11-12): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.13-native` package. Broader AMD generation support remains experimental.
+`1.0.16-native` package. Broader AMD generation support remains experimental.
 The current local publication readiness gate is `PASS` with all 13 checks true,
 with
 `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW` and no local blockers. Evidence:
-`docs/evidence/release/native-publication-readiness-1.0.13-2026-11-12.json`.
+`docs/evidence/release/native-publication-readiness-1.0.16-2026-11-12.json`.
 
-Note (2026-11-12): `1.0.13-native` adds the packaged headless
+Note (2026-11-12): `1.0.16-native` adds worker supervision with automatic
+policy restore and a probe that retries `ERROR_PIPE_BUSY`. `1.0.13-native` added the packaged headless
 `amd-mobile-power-probe.exe` and makes the GUI, probe, worker, and portable ZIP
 byte-reproducible from the same commit. `1.0.12-native` was the first release
 whose deployed binaries matched a verified rebuild. `1.0.10-native` supersedes `1.0.9-native` by keeping the
@@ -77,22 +81,22 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.13-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.16-native-win-x64-native-preview.zip
 ```
 
-- Size: `745,536` bytes.
+- Size: `747,390` bytes.
 - SHA256:
-  `eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7`.
-- Source commit: `6a986923df03a228c520be3132f11b61ff1b79b7`.
+  `e11d3ab0c5e954bec0cf8e1bb66b813d28170f406d628f968bd2dc982ef0b3e4`.
+- Source commit: `5bcad77397a6cce159599bcf423fab371adb1cc1`.
 - Working tree at build time: clean.
-- Reproducibility: GUI `ff2dcd48`, probe `6a050588`, worker `67af1d41`, and the
+- Reproducibility: GUI `89fedf42`, probe `9750418f`, worker `67af1d41`, and the
   ZIP itself are byte-identical across two builds.
 - Policy write verification: intentionally skipped in the clean package gate.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.13-native
+artifacts/native-release-review/v1.0.16-native
 ```
 
 The bundle is `REVIEW_ONLY` and is not a public release.
@@ -144,7 +148,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Read-only hardware capability and telemetry probe on Ryzen 7 8845HS on AC:
   Hawk Point family `10`, PM table `4c0009`, profile
   `hawk-point-8845hs`, limits `10/10/10 W`.
-- `1.0.13-native` clean package verification (19 checksum entries), isolated
+- `1.0.16-native` clean package verification (19 checksum entries), isolated
   install/uninstall, shell integration, DPI fixtures, packaged headless probe,
   and a controlled current-value policy probe pass. The deployed UI shows
   target editor `10`, effective range `5-10 W`, one visible `10 W` preset, and
@@ -154,6 +158,10 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   matched `hawk-point-8845hs`, live AC `10/10/10 W`.
 - Reproducibility gate: GUI, probe, C++ worker, and the portable ZIP are
   byte-identical across two builds of the same commit.
+- Worker supervision: killing the deployed worker produced a replacement in
+  `1.3 s`; the saved policy was re-applied (`enabled=true`, both targets
+  `10/10/10`) and the pipe served `10/10/10 W` again. The probe answered
+  `30/30` calls while the GUI polled.
 - Native read-only write guard: invalid target rejected, no write requested.
 - Battery-authorized dry-run write guard: PASS with
   `ExecuteNoChangeWrite=Not requested`.
@@ -237,6 +245,12 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
+- `docs/evidence/packaging/v1.0.16-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.16-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.16-native-shell-integration-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.16-native-deployment-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.16-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.16-native-ui-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.13-native-clean-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.13-native-release-gate-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.13-native-shell-integration-2026-11-12.json`
@@ -258,7 +272,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - `docs/evidence/ui/native-deployed-1.0.8-native-ui-2026-11-12.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
-- `docs/evidence/release/native-publication-readiness-1.0.13-2026-11-12.json`
+- `docs/evidence/release/native-publication-readiness-1.0.16-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
 - `native/rust-gui/build.rs`
 - `native/check-exe-icon.ps1`

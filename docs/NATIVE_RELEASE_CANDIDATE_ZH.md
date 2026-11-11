@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `1.0.13-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.16-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,25 +16,24 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `1.0.13-native`
+- Candidate: `1.0.16-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v1.0.13-native-win-x64-native-preview.zip`
-- Size: `745,536` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.16-native-win-x64-native-preview.zip`
+- Size: `747,390` bytes
 - SHA256:
-  `eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7`
-- Package source commit: `6a986923df03a228c520be3132f11b61ff1b79b7`
+  `e11d3ab0c5e954bec0cf8e1bb66b813d28170f406d628f968bd2dc982ef0b3e4`
+- Package source commit: `5bcad77397a6cce159599bcf423fab371adb1cc1`
 - Working tree at build time: clean
-- Review bundle: `artifacts/native-release-review/v1.0.13-native`
+- Review bundle: `artifacts/native-release-review/v1.0.16-native`
 
-本版新增随包发布的 `amd-mobile-power-probe.exe`：无需 GUI、无需
-PowerShell，即可启动私有只读 worker 并导出一份脱敏兼容性报告，格式与现有
-导入脚本一致；它绝不打开写控制。同时，GUI、探针、C++ worker 和整个便携 ZIP
-都已做到同提交逐字节可复现。此前的目标框同步、安全驱动卸载、多代 profile
-目录、DPI 门禁和电池/插电统一策略全部保留。
+本版新增 worker 自我修复：worker 意外退出后 GUI 会在 1 秒左右拉起新进程，
+并把掉电/插电自动策略重新下发；探针在 GUI 轮询期间遇到管道忙会自动重试，
+不再随机失败。此前随包的无头探针、同提交逐字节可复现、目标框同步、安全驱动
+卸载、多代 profile 目录、DPI 门禁和电池/插电统一策略全部保留。
 
 ## 本机验证
 
-- Rust GUI 测试：`38/38`。
+- Rust GUI 测试：`39/39`（19 + 20 两个测试目标）。
 - Rust formatting / Clippy `-D warnings`：PASS。
 - C++ power-limit / power-policy 测试：PASS。
 - 19 项包内 SHA256 校验：PASS。
@@ -42,7 +41,12 @@ PowerShell，即可启动私有只读 worker 并导出一份脱敏兼容性报�
 - 无头探针：6/6 单元测试、`--self-test`、包内真实 `--diagnose`
   （`collectionStatus=PASS`，AC `10/10/10 W`）：PASS。
 - 可复现构建：GUI `ff2dcd48`、worker `67af1d41`、探针 `6a050588`、
-  ZIP `eac6fc73`，两次构建逐字节一致。
+  ZIP `eac6fc73`，两次构建逐字节一致。（1.0.13 记录）
+- 1.0.16 可复现构建：GUI `89fedf42`、worker `67af1d41`、探针 `9750418f`、
+  ZIP `e11d3ab0`，两次构建逐字节一致。
+- worker 自我修复：杀掉部署中的 worker 后新进程 `1.3 s` 内就绪，策略重新
+  下发为 `enabled=true`、电池/插电 `10/10/10`，实时回读 `10/10/10 W`；探针在
+  GUI 轮询下连续 `30/30` 次调用成功。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
 - `1.0.9-native -> 1.0.10-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
@@ -63,10 +67,10 @@ PowerShell，即可启动私有只读 worker 并导出一份脱敏兼容性报�
 
 Evidence:
 
-- `docs/evidence/packaging/v1.0.13-native-clean-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.13-native-release-gate-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.13-native-shell-integration-2026-11-12.json`
-- `docs/evidence/ui/native-packaged-1.0.13-native-ui-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.16-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.16-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.16-native-shell-integration-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.16-native-ui-2026-11-12.json`
 - `docs/evidence/build/reproducibility-2026-11-12.json`
 - `docs/evidence/diagnostics/headless-probe-8845hs-live-2026-11-12.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
@@ -85,7 +89,7 @@ Evidence:
 
 Evidence:
 
-- `docs/evidence/hardware/v1.0.13-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.16-native-power-policy-no-change-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
@@ -93,10 +97,10 @@ Evidence:
 ## 本地部署
 
 - 目标目录：`C:\RyzenAdj`
-- 版本：`1.0.13-native`
-- 旧版备份：`C:\RyzenAdj.before-20261112-055844`
+- 版本：`1.0.16-native`
+- 旧版备份：`C:\RyzenAdj.before-20261112-064143`
 - 仓库备份：
-  `artifacts/deployment-backups/promote-amd-mobile-power-v1.0.13-native-win-x64-native-preview-20261112-055844.json`
+  `artifacts/deployment-backups/promote-amd-mobile-power-v1.0.16-native-win-x64-native-preview-20261112-064143.json`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 10
   --uniform-target-watts 10`
@@ -104,7 +108,7 @@ Evidence:
   快捷方式真实参数启动验证 PASS；实时策略 `enabled=true`、电池和插电均为
   `10/10/10 W`，AC 回读 `10/10/10 W`
 - Evidence:
-  `docs/evidence/packaging/v1.0.13-native-deployment-2026-11-12.json`
+  `docs/evidence/packaging/v1.0.16-native-deployment-2026-11-12.json`
 
 ## 发布就绪检查
 
@@ -119,7 +123,7 @@ Evidence:
   真实 100%/150% Windows 会话缩放、托管 CI、
   WinRing0 干净安全基线、视频/封面/文案审阅、公开发布批准、B 站上传。
 - Evidence:
-  `docs/evidence/release/native-publication-readiness-1.0.13-2026-11-12.json`
+  `docs/evidence/release/native-publication-readiness-1.0.16-2026-11-12.json`
 
 ## 发布媒体
 
