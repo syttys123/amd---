@@ -36,10 +36,24 @@ function Test-ShortcutArgumentsAgainstContract {
         $tokens = @(
             $Arguments -split "\s+" |
                 Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        foreach ($token in $tokens) {
-            if ($null -eq $Contract.arguments.PSObject.Properties[$token]) {
+        $index = 0
+        while ($index -lt $tokens.Count) {
+            $token = $tokens[$index]
+            $entry = $Contract.arguments.PSObject.Properties[$token]
+            if ($null -eq $entry) {
                 $unsupported.Add($token)
+                $index += 1
+                continue
             }
+            if ([bool]$entry.Value.takesValue) {
+                if ($index + 1 -ge $tokens.Count) {
+                    $unsupported.Add("$token (missing value)")
+                    break
+                }
+                $index += 2
+                continue
+            }
+            $index += 1
         }
     }
     return [pscustomobject]@{
