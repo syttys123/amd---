@@ -45,8 +45,11 @@ not authoritative.
 - The current local stable package is `1.0.4`: 594,763 bytes, SHA256
   `f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433`,
   built from clean commit `b2ac5f4` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` now contains the promoted `1.0.5-native` package. The previous
-  native `1.0.4-native` deployment is preserved as
+- `C:\RyzenAdj` now contains the promoted `1.0.6-native` package. The previous
+  native `1.0.5-native` deployment is preserved as
+  `C:\RyzenAdj.before-20261112-022356` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.6-native-a9c02aa-20261112-022356`;
+  `1.0.4-native` remains at
   `C:\RyzenAdj.before-20261112-015439` and under
   `artifacts\deployment-backups\C-RyzenAdj-before-1.0.5-native-22a0624-20261112-015439`;
   the earlier `1.0.3-native` builds remain at
@@ -89,15 +92,17 @@ not authoritative.
   real icon. `1.0.1-native` (534,763 bytes,
   `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`) remains
   the historical shortcut-argument fix.
-- The clean native candidate is now `1.0.5-native`: 566,614 bytes, SHA256
-  `a0db74b65be3be165c3587beeb61682d7a44db3b584c04622f23d1ca4102ba60`,
-  built from clean commit `22a062479a1c9f162ca8baf6cd21309684681b20`.
+- The clean native candidate is now `1.0.6-native`: 568,430 bytes, SHA256
+  `1bb6fbb5e3ff0dd7223cd47a95211fed4b71c6d360f4343700fb2999fbb7321d`,
+  built from clean commit `a9c02aa1dcc7722c71ccc37a9f55ce82ae32ee6e`.
   It was promoted to `C:\RyzenAdj` after the full release gate, packaged GUI
   verification, shell integration, isolated install/uninstall, and a
-  no-change hardware policy probe passed. The previous `1.0.4-native`
-  deployment is recoverable at `C:\RyzenAdj.before-20261112-015439` and under
-  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.5-native-22a0624-20261112-015439`.
-- The `1.0.5-native` shortcut and live worker state enforce a 10 W uniform
+  no-change hardware policy probe passed. The package adds the bundled
+  `install-driver-bootstrap.ps1`; all 17 deployed payload files match the
+  staged package. The previous `1.0.5-native` deployment is recoverable at
+  `C:\RyzenAdj.before-20261112-022356` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.6-native-a9c02aa-20261112-022356`.
+- The `1.0.6-native` shortcut and live worker state enforce a 10 W uniform
   policy. The shortcut arguments are
   `--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10`;
   local state reports both battery and AC at `10/10/10 W`, presets
@@ -110,7 +115,12 @@ not authoritative.
   Rust GUI tests pass 38/38 and Clippy is clean. A fixture launch with isolated
   `%LocalAppData%` produced `enabled=true`, both power lines at 10 W, presets
   `[10,10,10]`, and `maxTargetWatts=10`.
-- Final `1.0.5-native` publication readiness reports `LocalReadiness=PASS`,
+- The `1.0.6-native` release gate reports `Verification=PASS`, including 17
+  checksum entries, isolated install/uninstall, packaged GUI lifecycle,
+  shell integration, DPI fixtures, read-only hardware, and a controlled
+  current-value policy write-back. Publication readiness will be regenerated
+  after the final review bundle is rebuilt from this package.
+- Final `1.0.5-native` publication readiness reported `LocalReadiness=PASS`,
   `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, no local blockers, and a
   successful deployed-shortcut launch with both value-bearing ceiling/uniform
   arguments parsed correctly. The DPI layout fixture gate is also `PASS`; real

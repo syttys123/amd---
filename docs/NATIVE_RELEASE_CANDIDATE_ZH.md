@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `1.0.5-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.6-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,32 +16,34 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `1.0.5-native`
+- Candidate: `1.0.6-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v1.0.5-native-win-x64-native-preview.zip`
-- Size: `566,614` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.6-native-win-x64-native-preview.zip`
+- Size: `568,430` bytes
 - SHA256:
-  `a0db74b65be3be165c3587beeb61682d7a44db3b584c04622f23d1ca4102ba60`
-- Package source commit: `22a062479a1c9f162ca8baf6cd21309684681b20`
+  `1bb6fbb5e3ff0dd7223cd47a95211fed4b71c6d360f4343700fb2999fbb7321d`
+- Package source commit: `a9c02aa1dcc7722c71ccc37a9f55ce82ae32ee6e`
 - Working tree at build time: clean
-- Review bundle: `artifacts/native-release-review/v1.0.5-native`
+- Review bundle: `artifacts/native-release-review/v1.0.6-native`
 
-本版新增测试专用 `--dpi-fixture`，发布门禁直接用包内 GUI 在逻辑 100%、
-125%、150% 下渲染简单和高级界面，并校验物理客户端尺寸与截图。多代 profile
-目录、只读 `getProfiles`、完整目录兼容性报告、电池/插电统一 `10/10/10 W`
-策略均保留。真实 100%/150% Windows 系统会话切换仍属于外部人工门禁。
+本版新增包内 elevated `install-driver-bootstrap.ps1`。新机器只需从解压目录
+以管理员 PowerShell 执行一次，即可把自带 WinRing0 驱动安装到
+`%ProgramData%\AmdMobilePower\driver`、注册 demand-start 服务并创建只启动
+驱动的窄权限登录任务。多代 profile 目录、只读 `getProfiles`、DPI 门禁和
+电池/插电统一 `10/10/10 W` 策略均保留。
 
 ## 本机验证
 
 - Rust GUI 测试：`38/38`。
 - Rust formatting / Clippy `-D warnings`：PASS。
 - C++ power-limit / power-policy 测试：PASS。
-- 16 项包内 SHA256 校验：PASS。
+- 17 项包内 SHA256 校验：PASS。
 - 提取后 GUI/worker 只读验证、诊断导出、兼容性 JSON/Markdown：PASS。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
-- `1.0.4-native -> 1.0.5-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
+- `1.0.5-native -> 1.0.6-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
   参数契约、真实参数启动：PASS。
+- 驱动 bootstrap：脚本进入 ZIP 和 `C:\RyzenAdj`，部署后与暂存文件逐字节匹配。
 - DPI 布局夹具：包内 GUI 在 100/125/150% 下简单/高级客户端尺寸分别为
   `640x392`/`780x680`、`800x490`/`975x850`、`960x588`/`1170x1020`，PASS。
 - 多代 profile 目录：10 条 profile、family `0-15` 全覆盖且各一次、一个
@@ -54,10 +56,10 @@ AMD 笔记本都受支持。
 
 Evidence:
 
-- `docs/evidence/packaging/v1.0.5-native-clean-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.5-native-release-gate-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.5-native-shell-integration-2026-11-12.json`
-- `docs/evidence/ui/native-packaged-1.0.5-native-ui-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.6-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.6-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.6-native-shell-integration-2026-11-12.json`
+- `docs/evidence/ui/native-deployed-1.0.6-native-ui-2026-11-12.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
 - `native/gui-cli-contract.json`
@@ -74,7 +76,7 @@ Evidence:
 
 Evidence:
 
-- `docs/evidence/hardware/v1.0.5-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.6-native-power-policy-no-change-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
@@ -82,10 +84,10 @@ Evidence:
 ## 本地部署
 
 - 目标目录：`C:\RyzenAdj`
-- 版本：`1.0.5-native`
-- 旧版备份：`C:\RyzenAdj.before-20261112-015439`
+- 版本：`1.0.6-native`
+- 旧版备份：`C:\RyzenAdj.before-20261112-022356`
 - 仓库备份：
-  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.5-native-22a0624-20261112-015439`
+  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.6-native-a9c02aa-20261112-022356`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 10
   --uniform-target-watts 10`
@@ -93,7 +95,7 @@ Evidence:
   快捷方式真实参数启动验证 PASS；实时策略 `enabled=true`、电池和插电均为
   `10/10/10 W`，AC 回读 `10/10/10 W`
 - Evidence:
-  `docs/evidence/packaging/v1.0.5-native-deployment-2026-11-12.json`
+  `docs/evidence/packaging/v1.0.6-native-deployment-2026-11-12.json`
 
 ## 发布就绪检查
 
@@ -155,7 +157,7 @@ PM table、匹配 profile、电源线和当前限制，并写出脱敏 JSON/Mark
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass `
   -File native\verify-release.ps1 `
-  -Version 1.0.0-native `
+  -Version 1.0.6-native `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```
