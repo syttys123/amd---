@@ -84,13 +84,18 @@ C++ worker. The current stable-local candidate is `1.0.0-native`:
 artifacts/native-packages/amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip
 ```
 
-It is an internal candidate, not a replacement for the stable `C:\RyzenAdj`
-deployment. Its clean package gate passed extracted GUI/worker read-only
+It is now deployed at `C:\RyzenAdj` as the stable-local candidate for the
+verified 8845HS platform. The previous .NET `1.0.4` deployment is preserved as
+`C:\RyzenAdj.before-20261111-223017` and in
+`artifacts/deployment-backups/C-RyzenAdj-before-1.0.0-native-20261111-223017`.
+Its clean package gate passed extracted GUI/worker read-only
 verification, sanitized diagnostics, checksums, isolated install/uninstall,
 current-user shell integration, Windows high-contrast rendering, packaged
 tray/taskbar and mode evidence, the `rc.17` to `1.0.0-native` upgrade, and a
 controlled current-value write-back/read-back policy gate on the development
-8845HS. Broader AMD generation evidence and 100%/150% DPI sessions remain open.
+8845HS, and the deployed C-drive copy passed lifecycle, worker, tray,
+single-instance, mode, preset, and diagnostics verification. Broader AMD
+generation evidence and 100%/150% DPI sessions remain open.
 
 ![Native simple redesign](assets/native-gui-redesign-simple-2026-11-11.png)
 

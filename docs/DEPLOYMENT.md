@@ -3,7 +3,9 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable deployment on the development laptop.
+- `C:\RyzenAdj`: current stable-local native deployment on the development
+  laptop. The previous .NET `1.0.4` deployment remains at
+  `C:\RyzenAdj.before-20261111-223017`.
 
 ## Promotion Rules
 
@@ -33,7 +35,54 @@ D:\amd-mobile-power
 
 No source changes are made directly in `C:\RyzenAdj`.
 
+## Native Stable-Local Promotion
+
+The native Rust GUI + C++ worker line uses the tested reversible helper:
+
+```powershell
+.\native\promote-stable-deployment.ps1 `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip `
+  -TargetDirectory C:\RyzenAdj
+```
+
+That command is a dry run. Apply only after reviewing the target, backup, and
+shortcut plan:
+
+```powershell
+.\native\promote-stable-deployment.ps1 `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip `
+  -TargetDirectory C:\RyzenAdj `
+  -Apply -NoLaunch
+```
+
+The helper stops native and legacy owners, moves the current target to a
+timestamped backup, installs the verified package, retargets existing desktop
+shortcuts while preserving their arguments, writes deployment evidence, and
+rolls back on failure.
+
 ## Current Deployment Evidence
+
+On 2026-11-11, `1.0.0-native` replaced the .NET `1.0.4` directory at
+`C:\RyzenAdj`.
+
+- Package SHA256:
+  `f3fd6ea1d1b0292c6ec9ea7445f191adc302066f78a728528a3722923c73a0bf`
+- Package source commit: `ddb7d9cba3195f4a16df1299215a9e26cd18544f`
+- Previous stable rollback directory:
+  `C:\RyzenAdj.before-20261111-223017`
+- Recoverable D: backup:
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.0-native-20261111-223017`
+- Desktop shortcut:
+  `<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
+- Shortcut target and arguments:
+  `C:\RyzenAdj\amd-mobile-power-gui.exe --enable-write-controls --simple-mode`
+- Deployment evidence:
+  `docs/evidence/packaging/v1.0.0-native-deployment-2026-11-11.json`
+
+The deployed GUI/worker passed worker connection, three minimize/restore
+cycles, close-to-tray, tray restore, single-instance wake, view switching,
+topmost, preset editing, battery-only toggle, and diagnostics export. No power
+write was requested during deployment verification.
 
 On 2026-11-10, the clean `1.0.4` Lite package was promoted to `C:\RyzenAdj`
 after copying and hashing the complete `1.0.3` deployment to a recoverable D:

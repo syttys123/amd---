@@ -155,11 +155,11 @@ artifacts/native-packages/amd-mobile-power-v1.0.0-native-win-x64-native-preview.
 - Policy no-change evidence:
   `docs/evidence/hardware/v1.0.0-native-power-policy-no-change-2026-11-11.json`.
 
-This RC is not yet the public stable release. The `.NET` GUI remains the
-deployed product until the promotion helper replaces it with a verified
-backup. The native preview still needs 100%/150% DPI sessions, broader AMD
-generation evidence, and final human review before any public promotion
-discussion.
+This RC is not yet the public stable release. `C:\RyzenAdj` now contains this
+hardware-gated native package for the verified 8845HS platform, with the
+previous .NET `1.0.4` deployment preserved as a recoverable backup. The native
+preview still needs 100%/150% DPI sessions, broader AMD generation evidence,
+and final human review before any public promotion discussion.
 Track the candidate's open gates in `docs/NATIVE_RC_STATUS.md`.
 
 ## Portable ZIP

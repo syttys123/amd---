@@ -45,10 +45,10 @@ not authoritative.
 - The current local stable package is `1.0.4`: 594,763 bytes, SHA256
   `f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433`,
   built from clean commit `b2ac5f4` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` now contains the verified `1.0.4` package. The previous `1.0.3`
-  deployment is preserved as `C:\RyzenAdj.before-v1.0.4-20261110-190202` and
-  under
-  `artifacts\deployment-backups\C-RyzenAdj-before-v1.0.4-20261110-190202`.
+- `C:\RyzenAdj` now contains the promoted `1.0.0-native` package. The previous
+  verified .NET `1.0.4` deployment is preserved as
+  `C:\RyzenAdj.before-20261111-223017` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.0-native-20261111-223017`.
 - Active native-development branch: `main`.
 - The Rust GUI now uses one continuous dark command deck shared by simple and
   advanced modes, with a double-buffered custom canvas, flat telemetry/status
@@ -64,7 +64,7 @@ not authoritative.
   simple/advanced and read-only screenshots at 125% scaling. The capture gate
   now verifies foreground ownership before copying the DWM frame, preventing
   unrelated desktop content from entering UI evidence. The native rewrite is
-  not yet a stable deployment and has not replaced `C:\RyzenAdj`.
+  now the stable-local C-drive deployment for the verified 8845HS platform.
 - The native shell now follows Windows high contrast through
   `SPI_GETHIGHCONTRAST` and refreshes on `WM_SETTINGCHANGE` /
   `WM_SYSCOLORCHANGE`. The test-only `--ui-fixture high-contrast` path renders
@@ -1235,6 +1235,15 @@ third_party/
   installer call, desktop shortcut retargeting, launch check, and rollback on
   failure. It passed an isolated backup/install test against a throwaway target
   under `artifacts/verify`.
+- Promoted `1.0.0-native` to `C:\RyzenAdj` on 2026-11-11. The full pre-promotion
+  directory is preserved on C and under
+  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.0-native-20261111-223017`.
+  The deployed GUI/worker passed the read-only worker, minimize/restore,
+  close-to-tray, tray restore, single-instance, mode, topmost, preset-editing,
+  battery-only, and diagnostics checks. The existing desktop shortcut now
+  targets `C:\RyzenAdj\amd-mobile-power-gui.exe` with
+  `--enable-write-controls --simple-mode`. Evidence:
+  `docs/evidence/packaging/v1.0.0-native-deployment-2026-11-11.json`.
 
 Development screenshot:
 
@@ -1274,24 +1283,19 @@ Historical development screenshots:
 - Resolve GitHub Actions account billing/visibility and complete final public
   release review.
 - Broaden the packaged native worker's hardware matrix beyond the 8845HS and
-  collect a second-device write/read-back smoke test; keep `1.0.4` as the
-  stable fallback.
+  collect a second-device write/read-back smoke test; keep the
+  `C:\RyzenAdj.before-20261111-223017` backup as the .NET stable fallback.
 - Repeat the native UI matrix at 100% and 150% Windows scaling. The current
   display session is 125%.
-- Promote `1.0.0-native` to `C:\RyzenAdj` only through
-  `native\promote-stable-deployment.ps1`, after a fresh backup and with the
-  legacy desktop shortcut retargeted to the native GUI.
-
 ## Next Concrete Task
 
-Promote the hardware-gated `1.0.0-native` package to `C:\RyzenAdj` through the
-tested reversible deployment helper, verify the deployed GUI/worker and
-desktop shortcut, then repeat the native redesign at 100% and 150% Windows
-scaling. Keep the pre-promotion `C:\RyzenAdj` backup and never promote a dirty
-or write-unverified native package.
+Repeat the native redesign at 100% and 150% Windows scaling, resolve the hosted
+CI account blocker, and complete the final human review for public release.
+Keep the pre-promotion `C:\RyzenAdj` backup until the public release gates are
+closed, and never promote a dirty or write-unverified native package.
 
-The `.NET` GUI remains the shipped product. Native parity work continues on the
-side branch and does not gate `.NET` fixes or releases.
+The native GUI is now the stable-local deployment for the verified 8845HS
+platform. The `.NET` `1.0.4` directory is retained as the fallback.
 
 ## Known Risks
 

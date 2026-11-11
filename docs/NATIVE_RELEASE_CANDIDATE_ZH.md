@@ -64,6 +64,19 @@ Evidence:
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
 
+## 本地部署
+
+- 目标目录：`C:\RyzenAdj`
+- 版本：`1.0.0-native`
+- 旧版备份：`C:\RyzenAdj.before-20261111-223017`
+- 仓库备份：
+  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.0-native-20261111-223017`
+- 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
+- 快捷方式参数：`--enable-write-controls --simple-mode`
+- 部署验证：worker、托盘、单实例、模式、预设、电池策略开关、诊断导出 PASS
+- Evidence:
+  `docs/evidence/packaging/v1.0.0-native-deployment-2026-11-11.json`
+
 ## 界面证据
 
 - `assets/native-gui-redesign-simple-2026-11-11.png`

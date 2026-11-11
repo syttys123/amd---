@@ -1,14 +1,14 @@
 # Native Release Candidate Status
 
-Status: `STABLE_LOCAL_CANDIDATE`
+Status: `STABLE_LOCAL_DEPLOYED`
 
-This document tracks the native Rust GUI + C++ worker package separately from
-the already deployed .NET `1.0.4` stable package.
+This document tracks the native Rust GUI + C++ worker package and its
+stable-local deployment. The .NET `1.0.4` package remains available as
+`C:\RyzenAdj.before-20261111-223017`.
 
 Decision (2026-11-11): the native line has a hardware-gated stable-local
-candidate for the verified 8845HS platform. The `.NET` GUI remains deployed
-until the reversible promotion helper replaces `C:\RyzenAdj`; broader AMD
-generation support remains experimental.
+candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
+`1.0.0-native` package. Broader AMD generation support remains experimental.
 
 Note (2026-11-11): `1.0.0-native` supersedes `rc.17`. It contains the complete
 break-and-rebuild UI: one continuous dark command deck shared by simple and
@@ -83,6 +83,11 @@ The bundle is `REVIEW_ONLY` and is not a public release.
 - Controlled policy probe requested the live AC limits `25/45/25 W`, verified
   the worker read-back, disabled the policy, and shut down cleanly. Live limits
   remained `25/45/25 W`.
+- The verified package is deployed at `C:\RyzenAdj` with the prior .NET `1.0.4`
+  directory preserved at `C:\RyzenAdj.before-20261111-223017`. The deployed
+  GUI/worker passed read-only worker, lifecycle, tray, single-instance, mode,
+  preset, battery-only, and diagnostics checks; the desktop shortcut keeps
+  `--enable-write-controls --simple-mode`.
 - Added a local compatibility-report importer that rejects non-read-only,
   incomplete-privacy, path-leaking, and duplicate reports; the first rc.17
   report is archived under `docs/evidence/compatibility` and indexed in
@@ -95,6 +100,7 @@ The bundle is `REVIEW_ONLY` and is not a public release.
 - `docs/evidence/packaging/v1.0.0-native-shell-integration-2026-11-11.json`
 - `docs/evidence/packaging/v1.0.0-native-cross-version-upgrade-2026-11-11.json`
 - `docs/evidence/hardware/v1.0.0-native-power-policy-no-change-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.0-native-deployment-2026-11-11.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
 - `docs/evidence/ui/native-redesign-2026-11-11.json`
