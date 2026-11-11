@@ -67,6 +67,15 @@ not authoritative.
   The verified .NET `1.0.4` deployment remains recoverable as
   `C:\RyzenAdj.before-20261111-223017` and under
   `artifacts\deployment-backups\C-RyzenAdj-before-1.0.0-native-20261111-223017`.
+- `C:\RyzenAdj` now contains the promoted `1.0.10-native` package. The
+  previous `1.0.9-native` deployment is recoverable at
+  `C:\RyzenAdj.before-20261112-041014`; `1.0.9-native` remains a historical
+  gate-passing candidate and was superseded because its target editor still
+  retained the old default at runtime. Package SHA256 is
+  `d28f499195db2a9c51f9fc07816ee70ed8ebcb9110637489ba3fc43b94a64437`
+  (571,464 bytes), source commit
+  `b93dd5d53d596dba75f9ca004e0b31947b65c1d6`, and the full release gate,
+  shell integration, DPI fixtures, and controlled 10 W policy probe all pass.
 - Active native-development branch: `main`.
 - The Rust GUI now uses one continuous dark command deck shared by simple and
   advanced modes, with a double-buffered custom canvas, flat telemetry/status
@@ -126,6 +135,10 @@ not authoritative.
   captures show target input `10`, effective range `5-10 W`, one visible
   preset, and live `10/10/10 W` read-back; evidence is recorded in
   `docs\evidence\ui\native-10w-capture-2026-11-12.json`.
+- The `1.0.10-native` runtime also verifies the deployed target editor from the
+  packaged screenshot rather than cross-process window text: target input
+  `10`, one visible `10 W` preset, and live `10/10/10 W` are recorded in
+  `docs\evidence\ui\native-deployed-1.0.10-capture-2026-11-12.json`.
 - The 10 W review media now uses those corrected real screenshots. The updated
   78.2-second draft is verified at 1920x1080 with full decode, hashes, audio
   level, safe-width, cover, contact-sheet, and Bilibili-cover checks in

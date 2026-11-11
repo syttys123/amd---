@@ -215,6 +215,8 @@ Evidence and screenshots:
 - `assets/native-gui-redesign-advanced-2026-11-11.png` (`977x890` physical)
 - `assets/native-gui-10w-simple-2026-11-12.png` (`802x529` physical)
 - `assets/native-gui-10w-advanced-2026-11-12.png` (`977x889` physical)
+- `assets/native-gui-10w-1.0.10-simple-2026-11-12.png` (`802x529` physical)
+- `assets/native-gui-10w-1.0.10-advanced-2026-11-12.png` (`977x889` physical)
 - `assets/native-gui-redesign-readonly-simple-2026-11-11.png`
 - `assets/native-gui-redesign-readonly-advanced-2026-11-11.png`
 - `assets/native-ui-worker-offline-simple-2026-11-11.png`
@@ -234,6 +236,7 @@ Evidence and screenshots:
 - `docs/evidence/ui/native-packaged-1.0.0-ui-2026-11-11.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/evidence/ui/native-10w-capture-2026-11-12.json`
+- `docs/evidence/ui/native-deployed-1.0.10-capture-2026-11-12.json`
 
 Reproduction:
 

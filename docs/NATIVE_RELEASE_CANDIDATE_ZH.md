@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `1.0.8-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.10-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,20 +16,20 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `1.0.8-native`
+- Candidate: `1.0.10-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v1.0.8-native-win-x64-native-preview.zip`
-- Size: `570,836` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.10-native-win-x64-native-preview.zip`
+- Size: `571,464` bytes
 - SHA256:
-  `8ce1fc66ca5fb9c087f4777cc79a9e93bfc9a3ddbf01ced4e24578b361f1e768`
-- Package source commit: `36287f78b286c68dd44d6f45dd59ce2b9dfa0e00`
+  `d28f499195db2a9c51f9fc07816ee70ed8ebcb9110637489ba3fc43b94a64437`
+- Package source commit: `b93dd5d53d596dba75f9ca004e0b31947b65c1d6`
 - Working tree at build time: clean
-- Review bundle: `artifacts/native-release-review/v1.0.8-native`
+- Review bundle: `artifacts/native-release-review/v1.0.10-native`
 
-本版让驱动 bootstrap 在替换 `.sys` 前先停止本应用自己的运行中服务并等待
-`Stopped`，失败时尝试恢复服务；同时让 GUI 验证器等待高级模式策略控件可用
-后再断言，消除了间歇性“仅电池不可用”假失败。安全驱动卸载、多代 profile
-目录、DPI 门禁和电池/插电统一 `10/10/10 W` 策略均保留。
+本版修复目标输入框在启动和策略刷新后仍显示旧默认值的问题。目标框现在与
+当前预设和有效上限同步，部署截图、策略状态和硬件回读均显示统一
+`10/10/10 W`。安全驱动卸载、多代 profile 目录、DPI 门禁和电池/插电统一
+策略均保留。
 
 ## 本机验证
 
@@ -40,7 +40,7 @@ AMD 笔记本都受支持。
 - 提取后 GUI/worker 只读验证、诊断导出、兼容性 JSON/Markdown：PASS。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
-- `1.0.7-native -> 1.0.8-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
+- `1.0.9-native -> 1.0.10-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
   参数契约、真实参数启动：PASS。
 - 驱动安装/卸载脚本：均进入 ZIP 和 `C:\RyzenAdj`，部署后 18 个载荷文件
   与暂存包逐字节匹配。
@@ -58,11 +58,10 @@ AMD 笔记本都受支持。
 
 Evidence:
 
-- `docs/evidence/packaging/v1.0.8-native-clean-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.8-native-release-gate-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.8-native-shell-integration-2026-11-12.json`
-- `docs/evidence/ui/native-packaged-1.0.8-native-ui-2026-11-12.json`
-- `docs/evidence/ui/native-deployed-1.0.8-native-ui-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.10-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.10-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.10-native-shell-integration-2026-11-12.json`
+- `docs/evidence/ui/native-deployed-1.0.10-capture-2026-11-12.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
 - `native/gui-cli-contract.json`
@@ -79,7 +78,7 @@ Evidence:
 
 Evidence:
 
-- `docs/evidence/hardware/v1.0.8-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.10-native-power-policy-no-change-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
@@ -87,10 +86,10 @@ Evidence:
 ## 本地部署
 
 - 目标目录：`C:\RyzenAdj`
-- 版本：`1.0.8-native`
-- 旧版备份：`C:\RyzenAdj.before-20261112-025316`
+- 版本：`1.0.10-native`
+- 旧版备份：`C:\RyzenAdj.before-20261112-041014`
 - 仓库备份：
-  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.8-native-36287f7-20261112-025316`
+  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.10-native-b93dd5d-20261112-041014`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 10
   --uniform-target-watts 10`
@@ -98,7 +97,7 @@ Evidence:
   快捷方式真实参数启动验证 PASS；实时策略 `enabled=true`、电池和插电均为
   `10/10/10 W`，AC 回读 `10/10/10 W`
 - Evidence:
-  `docs/evidence/packaging/v1.0.8-native-deployment-2026-11-12.json`
+  `docs/evidence/packaging/v1.0.10-native-release-gate-2026-11-12.json`
 
 ## 发布就绪检查
 

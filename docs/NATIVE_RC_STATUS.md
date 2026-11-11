@@ -3,8 +3,10 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.8-native`. The
-previous native `1.0.7-native` build is preserved as
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.10-native`. The
+previous native `1.0.9-native` build is preserved as
+`C:\RyzenAdj.before-20261112-041014`, `1.0.8-native` as
+`C:\RyzenAdj.before-20261112-033749`, and `1.0.7-native` as
 `C:\RyzenAdj.before-20261112-025316`, `1.0.6-native` as
 `C:\RyzenAdj.before-20261112-023730`, `1.0.5-native` as
 `C:\RyzenAdj.before-20261112-022356`, the earlier `1.0.4-native` build as
@@ -18,9 +20,13 @@ previous native `1.0.7-native` build is preserved as
 
 Decision (2026-11-12): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.8-native` package. Broader AMD generation support remains experimental.
+`1.0.10-native` package. Broader AMD generation support remains experimental.
 
-Note (2026-11-12): `1.0.8-native` supersedes `1.0.7-native` by waiting for an
+Note (2026-11-12): `1.0.10-native` supersedes `1.0.9-native` by keeping the
+target editor synchronized with the active preset at startup and during policy
+refresh. `1.0.9-native` itself superseded `1.0.8-native` by correcting the
+target input after profile clamping. `1.0.8-native` supersedes `1.0.7-native`
+by waiting for an
 app-owned driver to reach `Stopped` before replacing its `.sys` file and by
 making the UI verifier wait for advanced-mode policy controls. `1.0.7-native`
 added a safe `uninstall-driver-bootstrap.ps1` and an installer that reuses an
@@ -61,20 +67,20 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.8-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.10-native-win-x64-native-preview.zip
 ```
 
-- Size: `570,836` bytes.
+- Size: `571,464` bytes.
 - SHA256:
-  `8ce1fc66ca5fb9c087f4777cc79a9e93bfc9a3ddbf01ced4e24578b361f1e768`.
-- Source commit: `36287f78b286c68dd44d6f45dd59ce2b9dfa0e00`.
+  `d28f499195db2a9c51f9fc07816ee70ed8ebcb9110637489ba3fc43b94a64437`.
+- Source commit: `b93dd5d53d596dba75f9ca004e0b31947b65c1d6`.
 - Working tree at build time: clean.
 - Policy write verification: intentionally skipped in the clean package gate.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.8-native
+artifacts/native-release-review/v1.0.10-native
 ```
 
 The bundle is `REVIEW_ONLY` and is not a public release.
@@ -126,6 +132,10 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Read-only hardware capability and telemetry probe on Ryzen 7 8845HS on AC:
   Hawk Point family `10`, PM table `4c0009`, profile
   `hawk-point-8845hs`, limits `10/10/10 W`.
+- `1.0.10-native` clean package verification, isolated install/uninstall,
+  shell integration, DPI fixtures, and controlled current-value policy probe
+  pass. The deployed foreground capture shows target editor `10`, effective
+  range `5-10 W`, one visible `10 W` preset, and live `10/10/10 W` read-back.
 - Native read-only write guard: invalid target rejected, no write requested.
 - Battery-authorized dry-run write guard: PASS with
   `ExecuteNoChangeWrite=Not requested`.
@@ -209,6 +219,11 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
+- `docs/evidence/packaging/v1.0.10-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.10-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.10-native-shell-integration-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.10-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/ui/native-deployed-1.0.10-capture-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.8-native-clean-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.8-native-release-gate-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.8-native-shell-integration-2026-11-12.json`

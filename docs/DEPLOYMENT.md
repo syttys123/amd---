@@ -3,8 +3,10 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable-local native deployment (`1.0.8-native`) on the
-  development laptop. The previous `1.0.7-native` build remains at
+- `C:\RyzenAdj`: current stable-local native deployment (`1.0.10-native`) on
+  the development laptop. The previous `1.0.9-native` build remains at
+  `C:\RyzenAdj.before-20261112-041014`, `1.0.8-native` at
+  `C:\RyzenAdj.before-20261112-033749`, and `1.0.7-native` at
   `C:\RyzenAdj.before-20261112-025316`, `1.0.6-native` at
   `C:\RyzenAdj.before-20261112-023730`, `1.0.5-native` at
   `C:\RyzenAdj.before-20261112-022356`, `1.0.4-native` at
@@ -50,7 +52,7 @@ The native Rust GUI + C++ worker line uses the tested reversible helper:
 
 ```powershell
 .\native\promote-stable-deployment.ps1 `
-  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.8-native-win-x64-native-preview.zip `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.10-native-win-x64-native-preview.zip `
   -TargetDirectory C:\RyzenAdj `
   -GuiArguments "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10"
 ```
@@ -60,7 +62,7 @@ shortcut plan:
 
 ```powershell
 .\native\promote-stable-deployment.ps1 `
-  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.8-native-win-x64-native-preview.zip `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.10-native-win-x64-native-preview.zip `
   -TargetDirectory C:\RyzenAdj `
   -GuiArguments "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10" `
   -Apply -NoLaunch
@@ -72,6 +74,28 @@ shortcuts while preserving their arguments, writes deployment evidence, and
 rolls back on failure.
 
 ## Current Deployment Evidence
+
+On 2026-11-12, `1.0.10-native` replaced `1.0.9-native` at `C:\RyzenAdj`.
+It fixes the target editor so the initial and background policy refresh both
+leave the visible target aligned with the active 10 W preset.
+
+- Package SHA256:
+  `d28f499195db2a9c51f9fc07816ee70ed8ebcb9110637489ba3fc43b94a64437`
+- Package size: `571,464` bytes
+- Package source commit: `b93dd5d53d596dba75f9ca004e0b31947b65c1d6`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-041014`
+- Desktop shortcut target and arguments:
+  `C:\RyzenAdj\amd-mobile-power-gui.exe --enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10`
+- Deployed UI evidence:
+  `docs\evidence\ui\native-deployed-1.0.10-capture-2026-11-12.json`
+- Release gate:
+  `docs\evidence\packaging\v1.0.10-native-release-gate-2026-11-12.json`
+- Live state: battery and AC both `10/10/10 W`, target editor `10`, effective
+  range `5-10 W`, and worker read-back within firmware measurement tolerance of
+  10 W.
+
+The prior `1.0.8-native` deployment remains recoverable at
+`C:\RyzenAdj.before-20261112-033749`.
 
 On 2026-11-12, `1.0.8-native` replaced `1.0.7-native` at `C:\RyzenAdj`. It
 stops an app-owned running driver and waits for `Stopped` before replacing the

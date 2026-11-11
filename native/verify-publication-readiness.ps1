@@ -384,7 +384,7 @@ if (-not $checks.CompatibilityIndex) {
 
 $videoPath = Join-Path `
     $repositoryRoot `
-    "artifacts\media\amd-mobile-power-native-promo-draft-2026-11-11\amd-mobile-power-native-intro-draft-2026-11-11.mp4"
+    ($media.video.path -replace "/", "\")
 $checks.MediaDraft = (
     (Test-Path -LiteralPath $videoPath -PathType Leaf) -and
     (Get-Sha256 $videoPath) -eq $media.video.sha256 -and

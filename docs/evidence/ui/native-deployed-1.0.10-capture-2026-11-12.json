@@ -1,0 +1,28 @@
+{
+  "SchemaVersion": 1,
+  "CaptureMode": "write-controls-visible-policy-seeded",
+  "Fixture": null,
+  "DpiFixture": null,
+  "UniformTargetWatts": 10,
+  "PolicySeeded": true,
+  "BatteryOnly": false,
+  "FocusControlId": null,
+  "ControlChecks": null,
+  "Simple": {
+    "Path": "assets/native-gui-10w-1.0.10-simple-2026-11-12.png",
+    "Width": 802,
+    "Height": 529,
+    "CaptureMethod": "CopyFromScreen(foreground-verified)",
+    "SHA256": "3938aa6c156dea826dfb805315158538f46e38e80ad24f165ed257dac6031abc"
+  },
+  "Advanced": {
+    "Path": "assets/native-gui-10w-1.0.10-advanced-2026-11-12.png",
+    "Width": 977,
+    "Height": 889,
+    "CaptureMethod": "CopyFromScreen(foreground-verified)",
+    "SHA256": "a85408c7c87befabf91e23b2200e0ac8d9dd73e843bde9070e8693cbcf0a79de"
+  },
+  "SimpleClientSize": null,
+  "AdvancedClientSize": null,
+  "RecordedAt": "2026-11-12T04:10:39.2121414+08:00"
+}
