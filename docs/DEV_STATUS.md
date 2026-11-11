@@ -183,6 +183,9 @@ not authoritative.
   binaries: replacement in `34.7 s`, `22/22` responsive samples, zero
   failures, and the 10/10/10 W policy restored; evidence:
   `docs/evidence/hardware/v1.0.17-native-worker-hang-verifier-2026-11-12.json`.
+  A negative guard run with the deployed app active refused to start, named
+  the owning worker PID, left both processes alive, and kept the 10/10/10 W
+  policy unchanged.
 - The publication-readiness gate now also requires the deployed headless probe:
 - The probe now retries `ERROR_PIPE_BUSY` when it talks to a running GUI. The
   worker exposes a single pipe instance, so a `--command` call could collide

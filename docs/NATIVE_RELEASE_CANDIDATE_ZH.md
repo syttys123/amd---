@@ -95,6 +95,7 @@ Evidence:
 Evidence:
 
 - `docs/evidence/hardware/v1.0.17-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.17-native-worker-hang-verifier-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
