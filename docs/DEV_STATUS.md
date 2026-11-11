@@ -65,11 +65,11 @@ not authoritative.
   now verifies foreground ownership before copying the DWM frame, preventing
   unrelated desktop content from entering UI evidence. The native rewrite is
   not yet a stable deployment and has not replaced `C:\RyzenAdj`.
-- The clean native candidate is now `0.6.0-native-rc.12`: 530,713 bytes,
+- The clean native candidate is now `0.6.0-native-rc.13`: 533,593 bytes,
   SHA256
-  `e312b0636e1025252e73e7349a311ba37a34fd6c6b002c1c06617ede42c70ff6`,
-  built from clean commit `29492f18272db4f3bd1b6907f9958a9af07b008c`.
-- The rc.12 package passed 16-entry checksum verification, extracted GUI/worker
+  `8850a9cf5ea87fc35353e5ce859a7feb32d695e5582e2d47a8d58a5078d2c99f`,
+  built from clean commit `054097edc553fb64887fa1d712eac9bd91b21994`.
+- The rc.13 package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user
   Start menu/Startup/uninstall-entry create-cleanup. Policy-write verification
@@ -86,6 +86,8 @@ not authoritative.
   payload-hash, upgraded read-only runtime, and uninstall checks.
 - A real `rc.11` to `rc.12` upgrade passed the same payload, read-only runtime,
   and uninstall gates after the UI failure-state work.
+- A real `rc.12` to `rc.13` upgrade passed with the same payload-hash,
+  read-only runtime, and uninstall checks after the battery-only policy work.
 - Native simple/advanced screenshots are now reproducible through
   `native\capture-rust-gui-redesign.ps1`, which uses an isolated
   `%LocalAppData%` and unique worker pipe and does not request a power write.
@@ -1102,6 +1104,17 @@ third_party/
   and real shell integration. The `rc.11` to `rc.12` upgrade passed payload
   matching, upgraded read-only runtime, and uninstall cleanup. Review bundle:
   `artifacts/native-release-review/v0.6.0-native-rc.12`.
+- Built and fully gated `0.6.0-native-rc.13` from clean commit
+  `054097edc553fb64887fa1d712eac9bd91b21994`. The package is 533,593 bytes
+  with SHA256
+  `8850a9cf5ea87fc35353e5ce859a7feb32d695e5582e2d47a8d58a5078d2c99f`.
+  The aggregate read-only gate passed C++ tests, 29 Rust tests, Clippy,
+  hardware capability/telemetry, the native write rejection gate, the dry-run
+  write guard, GUI lifecycle, compatibility collection, checksums, isolated
+  install/uninstall, and real shell integration. The `rc.12` to `rc.13`
+  upgrade passed payload matching, read-only runtime, and uninstall cleanup.
+  Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.13-release-gate-2026-11-11.json`.
 - Added the native battery-only policy path on 2026-11-11. `PowerPolicySettings`
   now carries `batteryEnabled` and `acEnabled`; legacy payloads and persisted
   state default both to enabled. The controller skips hardware writes for the
@@ -1158,14 +1171,14 @@ Historical development screenshots:
 - Broaden the packaged native worker's hardware matrix beyond the 8845HS and
   collect a second-device write/read-back smoke test; keep `1.0.4` as the
   stable fallback.
-- Run the supervised `rc.12` write-enabled no-change policy gate on the
+- Run the supervised `rc.13` write-enabled no-change policy gate on the
   8845HS before promotion. The clean package currently proves the complete
   read-only runtime and install flow with `PolicyWriteVerification=Skipped`.
 
 ## Next Concrete Task
 
 Repeat the native redesign at 100% and 150% Windows scaling, then run the
-supervised `rc.12` no-change policy gate on the development 8845HS. Keep
+supervised `rc.13` no-change policy gate on the development 8845HS. Keep
 `C:\RyzenAdj` on the verified `1.0.4` rollback point and do not promote a dirty
 or write-unverified native package.
 

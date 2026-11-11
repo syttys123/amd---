@@ -40,7 +40,7 @@ the policy-save write, use the read-only runtime gate:
 .\native\build-package.ps1 `
   -NoBuild `
   -ReadOnlyRuntimeVerification `
-  -Version 0.6.0-native-rc.12
+  -Version 0.6.0-native-rc.13
 ```
 
 This runs the extracted GUI/worker, write-control UI, diagnostics export,
@@ -112,13 +112,13 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 Current internal native release candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.12-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.13-win-x64-native-preview.zip
 ```
 
-- Size: `530,713` bytes.
+- Size: `533,593` bytes.
 - SHA256:
-  `e312b0636e1025252e73e7349a311ba37a34fd6c6b002c1c06617ede42c70ff6`.
-- Source commit: `29492f18272db4f3bd1b6907f9958a9af07b008c`.
+  `8850a9cf5ea87fc35353e5ce859a7feb32d695e5582e2d47a8d58a5078d2c99f`.
+- Source commit: `054097edc553fb64887fa1d712eac9bd91b21994`.
 - Working tree at build time: clean.
 - Runtime verification: hardware read-only/write-guard, clean-room native GUI
   lifecycle with three Win32 minimize/restore cycles, extracted read-only
@@ -133,16 +133,16 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.12-win-x64-native-pr
   staged rollback switching, uninstall, and refusal to overwrite an unmarked
   non-empty directory.
 - Aggregate evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.12-release-gate-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.13-release-gate-2026-11-11.json`.
 - Package evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.12-clean-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.13-clean-2026-11-11.json`.
 - Shell evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.12-shell-integration-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.13-shell-integration-2026-11-11.json`.
 - Install upgrade evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.12-cross-version-upgrade-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.13-cross-version-upgrade-2026-11-11.json`.
 
 This RC is not yet the public stable release. The `.NET` GUI remains the
-deployed product, and the native preview still needs a supervised rc.12
+deployed product, and the native preview still needs a supervised rc.13
 no-change write plus read-only compatibility evidence from a second physical
 AMD laptop before any promotion
 discussion.

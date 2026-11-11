@@ -93,6 +93,13 @@ Verified on 2026-11-09:
   stable GUI exited: collection `PASS`, AC power, SMU `15`, PM table `4c0009`,
   matched profile `hawk-point-8845hs [5-60 W]`, all three limit capabilities
   true, and effective limits `10/10/10 W`. No write controls were enabled.
+- Rechecked again for `0.6.0-native-rc.13` after the battery-only policy
+  change: AC power, SMU `15`, PM table `4c0009`, matched profile
+  `hawk-point-8845hs [5-60 W]`, effective limits `25.01/45/25 W`, native
+  write-control command rejected without the explicit flag, Rust GUI
+  read-only/diagnostics passed, and the dry-run write guard reported
+  `ExecuteNoChangeWrite=Not requested`. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.13-release-gate-2026-11-11.json`.
 
 ## Required Capture
 
