@@ -1,0 +1,16 @@
+{
+  "Verification": "PASS",
+  "OldPackage": "amd-mobile-power-v0.6.0-native-rc.13-win-x64-native-preview.zip",
+  "OldPackageSHA256": "8850a9cf5ea87fc35353e5ce859a7feb32d695e5582e2d47a8d58a5078d2c99f",
+  "NewPackage": "amd-mobile-power-v0.6.0-native-rc.14-win-x64-native-preview.zip",
+  "NewPackageSHA256": "069ed024ab30ff7cc7bf53bdd251fbbcd88080c83302f6190812d0866a770cbb",
+  "OldVersion": "0.6.0-native-rc.13",
+  "NewVersion": "0.6.0-native-rc.14",
+  "InstallFlow": "PASS",
+  "InstalledPayloadMatchesNewPackage": true,
+  "RemovedSupersededFiles": [],
+  "ReadOnlyGuiAfterUpgrade": "PASS",
+  "Uninstall": "PASS",
+  "ResidualInstallDirectory": false,
+  "RecordedAt": "2026-11-11T18:31:14.2185017+08:00"
+}

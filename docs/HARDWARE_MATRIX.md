@@ -100,6 +100,12 @@ Verified on 2026-11-09:
   read-only/diagnostics passed, and the dry-run write guard reported
   `ExecuteNoChangeWrite=Not requested`. Evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.13-release-gate-2026-11-11.json`.
+- `0.6.0-native-rc.14` repeated the read-only gate after the focus/icon
+  verification update: AC power, `25.22/45/25 W`, the native write gate still
+  rejected writes, the Rust GUI brought up the worker read-only, diagnostics
+  reported `taskbarIconAvailable=true`/`trayIconId=1`, and the dry-run guard
+  passed. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.14-release-gate-2026-11-11.json`.
 
 ## Required Capture
 
