@@ -1,6 +1,6 @@
 {
   "Verification": "PASS",
-  "RecordedAt": "2026-11-12T05:46:58.9312330+08:00",
+  "RecordedAt": "2026-11-12T05:57:22.2322690+08:00",
   "Results": {
     "Gui": {
       "First": "ff2dcd48b8c0d67dcba4d41dc17bff0a079d02c0d3546b5f99a3142826690449",
@@ -19,6 +19,13 @@
       "Second": "67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1",
       "Reproducible": true,
       "Size": 140800
+    },
+    "Package": {
+      "Version": "1.0.13-native",
+      "First": "eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7",
+      "Second": "eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7",
+      "Reproducible": true,
+      "Size": 745536
     }
   },
   "Failures": []

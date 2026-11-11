@@ -75,6 +75,27 @@ rolls back on failure.
 
 ## Current Deployment Evidence
 
+On 2026-11-12, `1.0.13-native` replaced `1.0.12-native` at `C:\RyzenAdj`. It is
+the first release whose portable ZIP rebuilds byte-identically from the same
+commit; the binaries are unchanged from `1.0.12-native`.
+
+- Package SHA256:
+  `eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7`
+- Package size: `745,536` bytes, 19 checksum entries
+- Package source commit: `6a986923df03a228c520be3132f11b61ff1b79b7`
+- Rebuild from the same tree reproduced the identical ZIP hash
+- Deployed GUI: `ff2dcd48b8c0d67dcba4d41dc17bff0a079d02c0d3546b5f99a3142826690449`
+- Deployed worker: `67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1`
+- Deployed probe: `6a050588c9f8ddc64d79847e3b9e173e315f54528eb02c4a920962ac96730074`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-055844`
+- Release gate:
+  `docs\evidence\packaging\v1.0.13-native-release-gate-2026-11-12.json`
+  (`Reproducibility=PASS`)
+- Deployment evidence:
+  `docs\evidence\packaging\v1.0.13-native-deployment-2026-11-12.json`
+- Live state after restart: policy enabled, battery and AC `10/10/10 W`, worker
+  read-back `10/10/10 W` on AC.
+
 On 2026-11-12, `1.0.12-native` replaced `1.0.11-native` at `C:\RyzenAdj`. It is
 the first deployment whose GUI, probe, and worker binaries are byte-identical
 to a verified rebuild of the source commit.

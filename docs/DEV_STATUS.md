@@ -142,7 +142,20 @@ not authoritative.
   packaged screenshot rather than cross-process window text: target input
   `10`, one visible `10 W` preset, and live `10/10/10 W` are recorded in
   `docs\evidence\ui\native-deployed-1.0.10-capture-2026-11-12.json`.
-- `C:\RyzenAdj` now contains the promoted `1.0.12-native` package, the first
+- `C:\RyzenAdj` now contains the promoted `1.0.13-native` package. Package
+  SHA256 is
+  `eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7`
+  (745,536 bytes, 19 checksum entries) from clean commit `6a98692`, and a
+  rebuild from the same tree reproduced the identical ZIP hash. The binaries
+  are unchanged from `1.0.12` (GUI `ff2dcd48`, worker `67af1d41`, probe
+  `6a050588`); the previous deployment is recoverable at
+  `C:\RyzenAdj.before-20261112-055844`. The gate reported
+  `Reproducibility=PASS` alongside the usual hardware, UI, install, shell, DPI,
+  and no-change policy checks. After restart the app reports `enabled=true`,
+  battery and AC `10/10/10 W`, and live AC `10/10/10 W`. Evidence:
+  `docs/evidence/packaging/v1.0.13-native-release-gate-2026-11-12.json`,
+  `docs/evidence/packaging/v1.0.13-native-deployment-2026-11-12.json`.
+- `C:\RyzenAdj` previously contained the promoted `1.0.12-native` package, the first
   deployment whose binaries are byte-identical to a verified rebuild: GUI
   `ff2dcd48`, worker `67af1d41`, probe `6a050588`. Package SHA256 is
   `04209688c737c7973dbcc85ab7bdd358c5a61711b07fb189f41c829aa16bc1ed`
@@ -185,10 +198,11 @@ not authoritative.
   instead of `Compress-Archive` (which stamps each entry with the file mtime),
   and `BUILD-INFO.txt` takes `BuiltAt` from the source commit's committer date
   (`BuildTimestampSource=git-commit`). Two consecutive `-NoBuild -NoVerify`
-  builds of the same tree produced the identical ZIP hash `9ebc7b88`
-  (745,537 bytes). `verify-reproducibility.ps1 -PackageVersion` now covers the
-  package, and `verify-release.ps1 -VerifyReproducibility` runs it as part of
-  the release gate.
+  builds of the same tree produced identical hashes; the clean `1.0.13-native`
+  tree rebuilt to `eac6fc73` (745,536 bytes) both inside and outside the gate.
+  `verify-reproducibility.ps1 -PackageVersion` now covers the package, and
+  `verify-release.ps1 -VerifyReproducibility` runs it as part of the release
+  gate.
 - Every native package now also ships `amd-mobile-power-probe.exe`, a
   dependency-free diagnostic entry point. `--diagnose` starts a private
   read-only worker, collects health/capabilities/telemetry/profiles/policy,
