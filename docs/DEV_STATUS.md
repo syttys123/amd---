@@ -154,6 +154,11 @@ not authoritative.
   `Stopped` before replacing the `.sys` file. A failed copy or configuration
   attempts to restart the service, avoiding a silent hardware-channel outage
   during in-place updates.
+- The Rust GUI verifier now waits for the battery-only and policy-enable
+  controls to become visible, enabled, and correctly labeled after switching
+  to advanced mode. This removes the observed intermittent
+  `battery-only policy toggle is not usable` false failure without relaxing the
+  final assertions.
 - The Rust GUI now has a test-only `--dpi-fixture` override for deterministic
   100/125/150/200 render scales. The new `verify-dpi-fixtures.ps1` gate passed
   100%, 125%, and 150% with exact physical client sizes for both simple and

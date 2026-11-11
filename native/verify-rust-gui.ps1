@@ -652,23 +652,34 @@ try {
             }
         }
 
+        Wait-Until `
+            -Description "battery-only policy toggle to become usable" `
+            -Condition {
+                $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+                    $window,
+                    318)
+                $control -ne [IntPtr]::Zero -and
+                    [AmdMobilePowerRustGuiNative]::IsWindowVisible($control) -and
+                    [AmdMobilePowerRustGuiNative]::IsWindowEnabled($control) -and
+                    (Get-ControlText -Window $window -ControlId 318) -eq "仅电池"
+            }
         $batteryOnlyButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
             $window,
             318)
-        if ($batteryOnlyButton -eq [IntPtr]::Zero -or
-            -not [AmdMobilePowerRustGuiNative]::IsWindowVisible($batteryOnlyButton)) {
-            throw "Rust GUI battery-only policy toggle is missing."
-        }
         $batteryOnlyText = Get-ControlText -Window $window -ControlId 318
-        if ($batteryOnlyText -ne "仅电池" -or
-            -not [AmdMobilePowerRustGuiNative]::IsWindowEnabled($batteryOnlyButton)) {
+        if ($batteryOnlyText -ne "仅电池") {
             throw "Rust GUI battery-only policy toggle is not usable: '$batteryOnlyText'."
         }
+        Wait-Until `
+            -Description "policy enable toggle to become usable" `
+            -Condition {
+                $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+                    $window,
+                    315)
+                $control -ne [IntPtr]::Zero -and
+                    [AmdMobilePowerRustGuiNative]::IsWindowEnabled($control)
+            }
         $policyEnabledButton = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, 315)
-        if ($policyEnabledButton -eq [IntPtr]::Zero -or
-            -not [AmdMobilePowerRustGuiNative]::IsWindowEnabled($policyEnabledButton)) {
-            throw "Rust GUI policy enable toggle is not usable."
-        }
 
         $before = Export-GuiDiagnostics `
             -Window $window `
