@@ -1,7 +1,13 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$Version,
-    [string]$OutputDirectory
+    [string]$OutputDirectory,
+    [switch]$IncludeMedia,
+    [string]$VideoPath = "artifacts\media\amd-mobile-power-native-promo-draft-2026-11-11\amd-mobile-power-native-intro-draft-2026-11-11.mp4",
+    [string]$MediaEvidencePath = "docs\evidence\media\native-promo-draft-2026-11-11.json",
+    [string]$BilibiliCoverPath = "docs\assets\bilibili-cover-native-2026-11-11.png",
+    [string]$ContactSheetPath = "docs\assets\native-promo-draft-contact-sheet-2026-11-11.png",
+    [string]$LaunchCopyPath = "docs\NATIVE_LAUNCH_COPY_ZH.md"
 )
 
 $ErrorActionPreference = "Stop"
@@ -105,6 +111,35 @@ if ($includePolicyEvidence) {
         Destination = "power-policy-no-change.json"
     }
 }
+if ($IncludeMedia) {
+    $mediaInputs = @(
+        @{ Source = $VideoPath; Destination = "amd-mobile-power-native-intro-draft.mp4" },
+        @{ Source = $MediaEvidencePath; Destination = "media-evidence.json" },
+        @{ Source = $BilibiliCoverPath; Destination = "bilibili-cover.png" },
+        @{ Source = $ContactSheetPath; Destination = "native-promo-contact-sheet.png" },
+        @{ Source = $LaunchCopyPath; Destination = "NATIVE_LAUNCH_COPY_ZH.md" },
+        @{
+            Source = (Join-Path $repositoryRoot "docs\NATIVE_RELEASE_CANDIDATE_ZH.md")
+            Destination = "NATIVE_RELEASE_CANDIDATE_ZH.md"
+        }
+    )
+    foreach ($mediaInput in $mediaInputs) {
+        $resolvedMediaSource = [System.IO.Path]::GetFullPath(
+            $(if ([System.IO.Path]::IsPathRooted($mediaInput.Source)) {
+                $mediaInput.Source
+            }
+            else {
+                Join-Path $repositoryRoot $mediaInput.Source
+            }))
+        if (-not (Test-Path -LiteralPath $resolvedMediaSource -PathType Leaf)) {
+            throw "Native media review input is missing: $resolvedMediaSource"
+        }
+        $copies += @{
+            Source = $resolvedMediaSource
+            Destination = $mediaInput.Destination
+        }
+    }
+}
 foreach ($copy in $copies) {
     Copy-Item `
         -LiteralPath $copy.Source `
@@ -128,8 +163,20 @@ $manifest = [ordered]@{
     PackageSHA256 = $packageHash
     PackageSize = (Get-Item -LiteralPath $packagePath).Length
     NoChangePolicy = $releaseGate.NoChangePolicy
+    MediaIncluded = [bool]$IncludeMedia
     Files = $files
     RecordedAt = (Get-Date).ToString("o")
+}
+if ($IncludeMedia) {
+    $manifest.VideoSHA256 = (Get-FileHash `
+        -LiteralPath ([System.IO.Path]::GetFullPath(
+            $(if ([System.IO.Path]::IsPathRooted($VideoPath)) {
+                $VideoPath
+            }
+            else {
+                Join-Path $repositoryRoot $VideoPath
+            }))) `
+        -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 $manifest |
     ConvertTo-Json -Depth 8 |
