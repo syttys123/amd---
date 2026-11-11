@@ -142,6 +142,11 @@ not authoritative.
   validates the driver source, configures the demand-start service, verifies
   the service binary path, and creates only the narrow `StartWinRing0` logon
   task. Package verification now requires the helper to be present.
+- The native package now also carries `uninstall-driver-bootstrap.ps1` and the
+  installer reuses a valid WinRing0 service at another path instead of
+  replacing it. The elevated cleanup removes only the service whose binary
+  path equals this app's ProgramData driver, plus its narrow logon task and
+  ProgramData driver file.
 - The Rust GUI now has a test-only `--dpi-fixture` override for deterministic
   100/125/150/200 render scales. The new `verify-dpi-fixtures.ps1` gate passed
   100%, 125%, and 150% with exact physical client sizes for both simple and

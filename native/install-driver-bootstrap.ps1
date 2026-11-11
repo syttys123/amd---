@@ -33,7 +33,43 @@ New-Item -ItemType Directory -Path $driverDirectory -Force | Out-Null
 Copy-Item -LiteralPath $driverSourcePath -Destination $driverTargetPath -Force
 
 $service = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
+$servicePath = $null
 if ($null -ne $service) {
+    $driver = Get-CimInstance `
+        -ClassName Win32_SystemDriver `
+        -Filter "Name='$ServiceName'" `
+        -ErrorAction SilentlyContinue
+    $servicePath = if ($null -ne $driver) {
+        ([string]$driver.PathName) -replace "^\\\?\?\\", ""
+    }
+    else {
+        $null
+    }
+}
+
+$normalizedServicePath = if ([string]::IsNullOrWhiteSpace($servicePath)) {
+    $null
+}
+else {
+    [System.IO.Path]::GetFullPath($servicePath)
+}
+$normalizedTargetPath = [System.IO.Path]::GetFullPath($driverTargetPath)
+$serviceUsesOurDriver = $null -ne $normalizedServicePath -and
+    $normalizedServicePath.Equals(
+        $normalizedTargetPath,
+        [System.StringComparison]::OrdinalIgnoreCase)
+$serviceIsAnotherWinRing0 = $null -ne $normalizedServicePath -and
+    [System.IO.Path]::GetFileName($normalizedServicePath).Equals(
+        "WinRing0x64.sys",
+        [System.StringComparison]::OrdinalIgnoreCase)
+if ($null -ne $service -and -not $serviceUsesOurDriver -and
+    -not $serviceIsAnotherWinRing0) {
+    throw (
+        "Service $ServiceName already belongs to $servicePath. " +
+        "Refusing to replace a non-WinRing0 service.")
+}
+
+if ($serviceUsesOurDriver) {
     if ($service.Status -ne "Stopped") {
         & sc.exe stop $ServiceName | Out-Null
         if ($LASTEXITCODE -ne 0) {
@@ -46,6 +82,10 @@ if ($null -ne $service) {
         throw "Failed to configure driver service $ServiceName."
     }
 }
+elseif ($serviceIsAnotherWinRing0) {
+    # Another installation already provides the same WinRing0 device. Reuse it
+    # instead of changing its service path out from under that installation.
+}
 else {
     & sc.exe create $ServiceName type= kernel start= demand error= normal binPath= "\??\$driverTargetPath" | Out-Null
     if ($LASTEXITCODE -ne 0) {
@@ -53,10 +93,32 @@ else {
     }
 }
 
-$serviceConfig = & sc.exe qc $ServiceName 2>&1
-if ($LASTEXITCODE -ne 0 -or
-    ($serviceConfig -join "`n") -notmatch [regex]::Escape($driverTargetPath)) {
-    throw "Driver service $ServiceName does not point at $driverTargetPath."
+$finalDriver = Get-CimInstance `
+    -ClassName Win32_SystemDriver `
+    -Filter "Name='$ServiceName'" `
+    -ErrorAction SilentlyContinue
+$finalServicePath = if ($null -ne $finalDriver) {
+    (([string]$finalDriver.PathName) -replace "^\\\?\?\\", "")
+}
+else {
+    $null
+}
+if ([string]::IsNullOrWhiteSpace($finalServicePath)) {
+    throw "Driver service $ServiceName has no readable binary path."
+}
+$normalizedFinalServicePath = [System.IO.Path]::GetFullPath($finalServicePath)
+$expectedServicePath = if ($serviceUsesOurDriver -or $null -eq $service) {
+    $normalizedTargetPath
+}
+else {
+    $normalizedServicePath
+}
+if (-not $normalizedFinalServicePath.Equals(
+    $expectedServicePath,
+    [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw (
+        "Driver service $ServiceName points at $normalizedFinalServicePath, " +
+        "expected $expectedServicePath.")
 }
 
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()

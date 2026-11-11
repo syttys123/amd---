@@ -148,12 +148,15 @@ Copy-Item -LiteralPath (Join-Path $root "install-preview.ps1") `
     -Destination (Join-Path $stage "install-preview.ps1") -Force
 Copy-Item -LiteralPath (Join-Path $root "install-driver-bootstrap.ps1") `
     -Destination (Join-Path $stage "install-driver-bootstrap.ps1") -Force
+Copy-Item -LiteralPath (Join-Path $root "uninstall-driver-bootstrap.ps1") `
+    -Destination (Join-Path $stage "uninstall-driver-bootstrap.ps1") -Force
 Copy-Item -LiteralPath (Join-Path $root "uninstall-preview.ps1") `
     -Destination (Join-Path $stage "uninstall-preview.ps1") -Force
 
 foreach ($payloadScript in @(
     "install-preview.ps1",
     "install-driver-bootstrap.ps1",
+    "uninstall-driver-bootstrap.ps1",
     "uninstall-preview.ps1"
 )) {
     if (-not (Test-Path -LiteralPath (Join-Path $stage $payloadScript) -PathType Leaf)) {

@@ -55,6 +55,12 @@ This copies the driver to `%ProgramData%\AmdMobilePower\driver`, configures the
 `\AmdMobilePower\StartWinRing0` logon task. The task elevates only
 `Start-Service`; it does not run the GUI or worker elevated.
 
+To remove only the driver service, logon task, and ProgramData driver installed
+by this package, run `uninstall-driver-bootstrap.ps1` from an elevated
+PowerShell. It deletes the service only when its binary path points at this
+package's ProgramData driver and otherwise leaves the existing WinRing0 owner
+untouched.
+
 Use `-InstallDirectory` to select another destination. Paths at a filesystem
 root or with fewer than two segments below the root are rejected.
 

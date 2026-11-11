@@ -11,8 +11,8 @@ Build a portable native preview without replacing the stable .NET deployment:
 The native preview contains the Rust GUI, C++ worker, RyzenAdj/WinRing0/InpOut
 runtime files, third-party notices, licenses, build metadata, SHA256 checksums,
 and isolated `install-preview.ps1`, elevated `install-driver-bootstrap.ps1`,
-and `uninstall-preview.ps1` helpers. The build script extracts the ZIP into an
-isolated directory and reruns the GUI
+elevated `uninstall-driver-bootstrap.ps1`, and `uninstall-preview.ps1` helpers.
+The build script extracts the ZIP into an isolated directory and reruns the GUI
 lifecycle, read-only worker, write-control button, read-only
 compatibility-collector, isolated install/uninstall, and real
 Startup/registry-fingerprint gates.
@@ -57,7 +57,10 @@ fresh install, a same-version overwrite, and uninstall; a separate guard test
 confirms that unrelated user files in an unmarked directory are not replaced.
 The package also carries `install-driver-bootstrap.ps1`; on a fresh Windows
 host the user must run it once from an elevated PowerShell to register the
-demand-start WinRing0 service and the narrow `StartWinRing0` logon task.
+demand-start WinRing0 service and the narrow `StartWinRing0` logon task. The
+matching `uninstall-driver-bootstrap.ps1` removes only the service whose binary
+path equals this package's ProgramData driver; a WinRing0 service owned by
+another installation is left untouched.
 `native\verify-upgrade.ps1` additionally installs the previous package,
 upgrades to the new package in place, compares the installed payload with the
 new archive, and runs the upgraded GUI/worker read-only before uninstalling.

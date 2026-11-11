@@ -72,6 +72,17 @@ The script copies the bundled driver to
 `WinRing0_1_2_0` service, and creates the `\AmdMobilePower\StartWinRing0`
 logon task. The task elevates only driver startup; the GUI and worker remain
 non-elevated. Run the script again after moving the package to another machine.
+If a valid WinRing0 service already exists at another path, the installer
+reuses it instead of changing that service's binary path.
+
+To remove only the driver service, logon task, and ProgramData driver installed
+by this package, run the matching elevated cleanup script:
+
+  powershell -ExecutionPolicy Bypass -File .\uninstall-driver-bootstrap.ps1
+
+The cleanup script deletes `WinRing0_1_2_0` only when its binary path points at
+this package's ProgramData driver. A WinRing0 service owned by another
+installation is left untouched.
 
 Requirements
 ------------

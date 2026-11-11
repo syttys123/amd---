@@ -31,6 +31,7 @@ if (-not $PackageDirectory) {
         Where-Object {
             (Test-Path -LiteralPath (Join-Path $_.FullName "install-preview.ps1")) -and
             (Test-Path -LiteralPath (Join-Path $_.FullName "install-driver-bootstrap.ps1")) -and
+            (Test-Path -LiteralPath (Join-Path $_.FullName "uninstall-driver-bootstrap.ps1")) -and
             (Test-Path -LiteralPath (Join-Path $_.FullName "uninstall-preview.ps1"))
         } |
         Sort-Object LastWriteTime -Descending |
@@ -44,10 +45,12 @@ if (-not $PackageDirectory) {
 $PackageDirectory = (Resolve-Path -LiteralPath $PackageDirectory).Path
 $installer = Join-Path $PackageDirectory "install-preview.ps1"
 $driverBootstrap = Join-Path $PackageDirectory "install-driver-bootstrap.ps1"
+$driverUninstaller = Join-Path $PackageDirectory "uninstall-driver-bootstrap.ps1"
 $uninstaller = Join-Path $PackageDirectory "uninstall-preview.ps1"
 $buildInfoPath = Join-Path $PackageDirectory "BUILD-INFO.txt"
 if (-not (Test-Path -LiteralPath $installer) -or
     -not (Test-Path -LiteralPath $driverBootstrap) -or
+    -not (Test-Path -LiteralPath $driverUninstaller) -or
     -not (Test-Path -LiteralPath $uninstaller) -or
     -not (Test-Path -LiteralPath $buildInfoPath)) {
     throw "Package directory does not contain the native preview installer scripts."
