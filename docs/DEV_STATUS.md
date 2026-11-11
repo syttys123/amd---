@@ -179,7 +179,9 @@ not authoritative.
   and only stops the processes it created. `verify-release.ps1
   -VerifyWorkerHang` runs it against the expanded package. A direct unit test
   for `terminate_process_bounded` was added as well. The maintained verifier
-  was exercised against the deployed 1.0.17 binaries; evidence:
+  was exercised from clean commit `f56ebe7` against the deployed 1.0.17
+  binaries: replacement in `34.7 s`, `22/22` responsive samples, zero
+  failures, and the 10/10/10 W policy restored; evidence:
   `docs/evidence/hardware/v1.0.17-native-worker-hang-verifier-2026-11-12.json`.
 - The publication-readiness gate now also requires the deployed headless probe:
 - The probe now retries `ERROR_PIPE_BUSY` when it talks to a running GUI. The
