@@ -45,10 +45,11 @@ not authoritative.
 - The current local stable package is `1.0.4`: 594,763 bytes, SHA256
   `f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433`,
   built from clean commit `b2ac5f4` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` now contains the promoted `1.0.1-native` package. The previous
-  native `1.0.0-native` deployment is preserved as
-  `C:\RyzenAdj.before-20261111-232010` and under
-  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.1-native-20261111-232010`.
+- `C:\RyzenAdj` now contains the promoted `1.0.2-native` package. The previous
+  native `1.0.1-native` deployment is preserved as
+  `C:\RyzenAdj.before-20261111-233609` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.2-native-20261111-233609`;
+  `1.0.0-native` remains at `C:\RyzenAdj.before-20261111-232010`.
   The verified .NET `1.0.4` deployment remains recoverable as
   `C:\RyzenAdj.before-20261111-223017` and under
   `artifacts\deployment-backups\C-RyzenAdj-before-1.0.0-native-20261111-223017`.
@@ -74,12 +75,15 @@ not authoritative.
   the full simple and advanced shells in black, white, and yellow without
   modifying system accessibility settings; diagnostics expose the active state
   as `ui.highContrast`.
-- The clean native candidate is now `1.0.1-native`: 534,763 bytes,
+- The clean native candidate is now `1.0.2-native`: 556,027 bytes,
   SHA256
-  `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`,
-  built from clean commit `442309753f6965a4ba01ff0ae4f34e81280f34e5`.
-  It fixes the desktop shortcut exiting immediately with
-  `unknown argument: --simple-mode`.
+  `614743257e66c002b5873e3bc5f36f57a874bf763e6a3cb728a28225eec16d9c`,
+  built from clean commit `545f6bcc2e116e667cad0f87331d97b5b9284c2a`.
+  It embeds the application icon as a PE resource (9 `RT_ICON` images plus
+  `RT_GROUP_ICON` 1) so Explorer, the taskbar, Alt+Tab, and shortcuts show the
+  real icon. `1.0.1-native` (534,763 bytes,
+  `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`) remains
+  the historical shortcut-argument fix.
 - The 1.0.0-native package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user
@@ -1292,6 +1296,27 @@ third_party/
   `--enable-write-controls --simple-mode` and produced
   `LaunchVerification=PASS`. Deployment evidence:
   `docs/evidence/packaging/v1.0.1-native-deployment-2026-11-11.json`.
+- Fixed the native GUI showing a generic placeholder icon. Root cause: the Rust
+  GUI only drew the window/tray icon from `include_bytes!` at runtime; the exe
+  had no PE `RT_ICON` / `RT_GROUP_ICON`, so `IconLocation ...exe,0` resolved to
+  nothing and Explorer, the taskbar, Alt+Tab, and the shortcut fell back to the
+  generic icon. Added `native/rust-gui/build.rs`, which compiles
+  `assets/amd-mobile-power.ico` into `app-icon.res` through `rc.exe` (found via
+  `RC`, `PATH`, then the highest installed Windows SDK) and links it with
+  `cargo:rustc-link-arg-bins`; a missing `rc.exe` now fails the build instead of
+  shipping an iconless exe. Added `native/check-exe-icon.ps1` and wired it into
+  `build.ps1`, `build-package.ps1`, and the `DeployedIcon` readiness check.
+  Verified: 9 `RT_ICON` images plus icon group 1 in the built and deployed exe,
+  and the extracted 32x32 icon matches the source ICO with 0 of 1024 pixel
+  differences. Render: `docs/assets/native-exe-icon-2026-11-11.png`.
+- Built and fully gated `1.0.2-native` from clean commit
+  `545f6bcc2e116e667cad0f87331d97b5b9284c2a`
+  (SHA256
+  `614743257e66c002b5873e3bc5f36f57a874bf763e6a3cb728a28225eec16d9c`,
+  556,027 bytes) and promoted it to `C:\RyzenAdj` with
+  `LaunchVerification=PASS`. Live limits stayed `25/45/45 W` on AC. Evidence:
+  `docs/evidence/packaging/v1.0.2-native-release-gate-2026-11-11.json`,
+  `docs/evidence/packaging/v1.0.2-native-deployment-2026-11-11.json`.
 
 Development screenshot:
 

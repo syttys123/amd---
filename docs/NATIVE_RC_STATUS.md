@@ -3,16 +3,20 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.1-native`. The
-previous native `1.0.0-native` deployment is preserved as
-`C:\RyzenAdj.before-20261111-232010`, and the .NET `1.0.4` package remains
-available as `C:\RyzenAdj.before-20261111-223017`.
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.2-native`. The
+previous native `1.0.1-native` deployment is preserved as
+`C:\RyzenAdj.before-20261111-233609`, `1.0.0-native` as
+`C:\RyzenAdj.before-20261111-232010`, and the .NET `1.0.4` package as
+`C:\RyzenAdj.before-20261111-223017`.
 
 Decision (2026-11-11): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.1-native` package. Broader AMD generation support remains experimental.
+`1.0.2-native` package. Broader AMD generation support remains experimental.
 
-Note (2026-11-11): `1.0.1-native` supersedes `1.0.0-native`. It fixes the desktop
+Note (2026-11-11): `1.0.2-native` supersedes `1.0.1-native`. It embeds the
+application icon as a PE resource (`RT_ICON` + `RT_GROUP_ICON` 1) so Explorer,
+the taskbar, Alt+Tab, and shortcuts no longer fall back to a generic
+placeholder. `1.0.1-native` fixed the desktop
 shortcut exiting immediately with `unknown argument: --simple-mode`. The native
 parser now accepts `--simple-mode` / `--advanced-mode`, the promotion helper
 only keeps arguments listed in `native/gui-cli-contract.json`, and the
@@ -33,23 +37,28 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.1-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.2-native-win-x64-native-preview.zip
 ```
 
-- Size: `534,763` bytes.
+- Size: `556,027` bytes.
 - SHA256:
-  `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`.
-- Source commit: `442309753f6965a4ba01ff0ae4f34e81280f34e5`.
+  `614743257e66c002b5873e3bc5f36f57a874bf763e6a3cb728a28225eec16d9c`.
+- Source commit: `545f6bcc2e116e667cad0f87331d97b5b9284c2a`.
 - Working tree at build time: clean.
 - Policy write verification: intentionally skipped in the clean package gate.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.1-native
+artifacts/native-release-review/v1.0.2-native
 ```
 
 The bundle is `REVIEW_ONLY` and is not a public release.
+
+Historical candidate `1.0.1-native` remains recorded with its exact package
+SHA256
+`992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`
+and source commit `442309753f6965a4ba01ff0ae4f34e81280f34e5`.
 
 Historical candidate `1.0.0-native` remains recorded with its exact package
 SHA256
@@ -72,7 +81,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Native read-only write guard: invalid target rejected, no write requested.
 - Battery-authorized dry-run write guard: PASS with
   `ExecuteNoChangeWrite=Not requested`.
-- `1.0.1-native` clean package verification with 16 checksum entries,
+- `1.0.2-native` clean package verification with 16 checksum entries,
   isolated install/overwrite/uninstall, extracted GUI/worker read-only
   verification, compatibility JSON/Markdown collection, and
   `PolicyWriteVerification=Skipped`.
@@ -92,16 +101,22 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - High-contrast simple and advanced captures with `ui.highContrast=true`, no
   hardware worker startup, and the same target/preset/diagnostics availability
   checks as the other write-controls fixtures.
-- Extracted `1.0.1-native` packaged GUI/worker verification with GUI and worker
+- Extracted `1.0.2-native` packaged GUI/worker verification with GUI and worker
   hashes, three minimize/restore cycles, close-to-tray, tray restore,
   single-instance wake, `taskbarIconAvailable=true`, `trayIconId=1`, and the
   persisted `simple` to `advanced` mode transition.
 - Controlled policy probe requested the live AC limits `25/45/25 W`, verified
   the worker read-back, disabled the policy, and shut down cleanly. Live limits
   remained `25/45/25 W`.
+- Embedded-icon gate: the built, staged, and deployed GUI each carry
+  `RT_GROUP_ICON` 1 with 9 `RT_ICON` images, and the 32x32 icon extracted from
+  the deployed exe matches `assets/amd-mobile-power.ico` with zero pixel
+  differences. `build.ps1`, `build-package.ps1`, and the readiness gate all fail
+  on a missing icon.
 - The verified package is deployed at `C:\RyzenAdj` with the prior
-  `1.0.0-native` directory preserved at
-  `C:\RyzenAdj.before-20261111-232010` and the .NET `1.0.4` directory at
+  `1.0.1-native` directory preserved at
+  `C:\RyzenAdj.before-20261111-233609`, `1.0.0-native` at
+  `C:\RyzenAdj.before-20261111-232010`, and the .NET `1.0.4` directory at
   `C:\RyzenAdj.before-20261111-223017`. The deployed GUI/worker passed
   read-only worker, lifecycle, tray, single-instance, mode, preset,
   battery-only, and diagnostics checks; the desktop shortcut keeps
@@ -118,6 +133,16 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
+- `docs/evidence/packaging/v1.0.2-native-clean-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.2-native-release-gate-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.2-native-shell-integration-2026-11-11.json`
+- `docs/evidence/hardware/v1.0.2-native-power-policy-no-change-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.2-native-deployment-2026-11-11.json`
+- `docs/evidence/ui/native-packaged-1.0.2-native-ui-2026-11-11.json`
+- `docs/evidence/ui/native-deployed-1.0.2-native-ui-2026-11-11.json`
+- `docs/assets/native-exe-icon-2026-11-11.png`
+- `native/rust-gui/build.rs`
+- `native/check-exe-icon.ps1`
 - `docs/evidence/packaging/v1.0.1-native-clean-2026-11-11.json`
 - `docs/evidence/packaging/v1.0.1-native-release-gate-2026-11-11.json`
 - `docs/evidence/packaging/v1.0.1-native-shell-integration-2026-11-11.json`

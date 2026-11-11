@@ -1,0 +1,17 @@
+{
+  "Version": "1.0.2-native",
+  "SourcePackageCommit": "545f6bcc2e116e667cad0f87331d97b5b9284c2a",
+  "Verification": "PASS",
+  "InstallDirectoryCreated": true,
+  "InstallMarkerCreated": true,
+  "StartMenuShortcutCreated": true,
+  "StartupShortcutCreated": true,
+  "UninstallEntryCreated": true,
+  "UninstallEntryVersion": "1.0.2-native",
+  "Cleanup": "PASS",
+  "ResidualInstallDirectory": false,
+  "ResidualStartMenuShortcut": false,
+  "ResidualStartupShortcut": false,
+  "ResidualUninstallEntry": false,
+  "RecordedAt": "2026-11-11T23:35:23.0587438+08:00"
+}

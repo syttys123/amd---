@@ -3,8 +3,9 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable-local native deployment (`1.0.1-native`) on the
-  development laptop. The previous native `1.0.0-native` deployment remains at
+- `C:\RyzenAdj`: current stable-local native deployment (`1.0.2-native`) on the
+  development laptop. The previous native `1.0.1-native` deployment remains at
+  `C:\RyzenAdj.before-20261111-233609`, `1.0.0-native` at
   `C:\RyzenAdj.before-20261111-232010`, and the .NET `1.0.4` deployment at
   `C:\RyzenAdj.before-20261111-223017`.
 
@@ -62,6 +63,33 @@ shortcuts while preserving their arguments, writes deployment evidence, and
 rolls back on failure.
 
 ## Current Deployment Evidence
+
+On 2026-11-11, `1.0.2-native` replaced `1.0.1-native` at `C:\RyzenAdj`. It
+embeds the application icon as a PE resource, so Explorer, the taskbar,
+Alt+Tab, and the desktop shortcut show the real icon.
+
+- Package SHA256:
+  `614743257e66c002b5873e3bc5f36f57a874bf763e6a3cb728a28225eec16d9c`
+- Package size: `556,027` bytes
+- Package source commit: `545f6bcc2e116e667cad0f87331d97b5b9284c2a`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261111-233609`
+- Recoverable D: backup:
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.2-native-20261111-233609`
+- Desktop shortcut:
+  `<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
+- Shortcut target and arguments:
+  `C:\RyzenAdj\amd-mobile-power-gui.exe --enable-write-controls --simple-mode`
+- Embedded icon: `RT_GROUP_ICON` 1 with 9 `RT_ICON` images; extracted 32x32
+  matches `assets/amd-mobile-power.ico` pixel for pixel
+- Launch verification: `PASS` (window title `AMD Mobile Power`)
+- Deployment evidence:
+  `docs/evidence/packaging/v1.0.2-native-deployment-2026-11-11.json`
+- Deployment UI evidence:
+  `docs/evidence/ui/native-deployed-1.0.2-native-ui-2026-11-11.json`
+- Icon render: `docs/assets/native-exe-icon-2026-11-11.png`
+
+The shell icon cache is refreshed with `SHChangeNotify(SHCNE_ASSOCCHANGED)` and
+`ie4uinit.exe -show` after promotion so the new icon appears immediately.
 
 On 2026-11-11, `1.0.1-native` replaced `1.0.0-native` at `C:\RyzenAdj`. It fixes
 the desktop shortcut exiting immediately with `unknown argument: --simple-mode`.
