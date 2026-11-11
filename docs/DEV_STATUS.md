@@ -170,7 +170,17 @@ not authoritative.
   after `34.5 s`, `getPowerPolicy` returned `enabled=true`, both targets
   `10/10/10`, `lastAttemptSucceeded=true`, and the live snapshot returned to
   `10/10/10 W`. The deployed app was restored afterward with the same policy.
-  Rust tests are now `21/21` in the main suite plus `19/19` library tests.
+  Rust tests are now `22/22` in the main suite plus `19/19` library tests.
+- The hang check is now a maintained verifier instead of a one-off harness:
+  `native/verify-worker-hang.ps1` starts an isolated GUI/worker pair, suspends
+  the worker with `NtSuspendProcess`, samples GUI responsiveness every second,
+  waits for a replacement, and requires the 10/10/10 W policy plus live
+  telemetry to return. It refuses to run while another hardware worker exists
+  and only stops the processes it created. `verify-release.ps1
+  -VerifyWorkerHang` runs it against the expanded package. A direct unit test
+  for `terminate_process_bounded` was added as well. The maintained verifier
+  was exercised against the deployed 1.0.17 binaries; evidence:
+  `docs/evidence/hardware/v1.0.17-native-worker-hang-verifier-2026-11-12.json`.
 - The publication-readiness gate now also requires the deployed headless probe:
 - The probe now retries `ERROR_PIPE_BUSY` when it talks to a running GUI. The
   worker exposes a single pipe instance, so a `--command` call could collide

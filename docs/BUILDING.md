@@ -22,13 +22,35 @@ The current release line is the Rust GUI + C++ worker package:
 ```powershell
 .\native\build.ps1 -Offline
 .\native\verify-release.ps1 `
-  -Version 1.0.13-native `
+  -Version 1.0.17-native `
   -VerifyReproducibility `
   -ExecuteNoChangePolicy `
-  -VerifyShellIntegration
+  -VerifyShellIntegration `
+  -VerifyWorkerHang
 ```
 
 See `PACKAGING.md` and `DEPLOYMENT.md` for package promotion and rollback.
+
+## Worker Hang Verification
+
+`verify-worker-hang.ps1` launches an isolated GUI + worker pair, suspends the
+worker with `NtSuspendProcess`, and waits for the 30 s heartbeat watchdog to
+replace it. It fails if the GUI stops responding, no replacement appears, or
+the saved 10/10/10 W policy is not restored. The check needs exclusive hardware
+access and never kills a worker it did not start.
+
+```powershell
+.\native\verify-worker-hang.ps1 `
+  -Version 1.0.17-native `
+  -GuiExecutable C:\RyzenAdj\amd-mobile-power-gui.exe `
+  -WorkerExecutable C:\RyzenAdj\amdmobilepower_native_worker.exe `
+  -ProbeExecutable C:\RyzenAdj\amd-mobile-power-probe.exe `
+  -EvidencePath docs\evidence\hardware\v1.0.17-native-worker-hang-verifier-2026-11-12.json
+```
+
+`verify-release.ps1 -VerifyWorkerHang` runs the same check against the expanded
+package. The evidence records binary hashes, worker PIDs, replacement time,
+every GUI responsiveness sample, the restored policy, and live telemetry.
 
 ## Reproducible Builds
 

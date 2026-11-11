@@ -5017,13 +5017,14 @@ mod tests {
         clamp_preset_values, clamp_to_ceiling, diagnostics_document, fixture_snapshot,
         fixture_worker_error, format_policy_state, format_snapshot, format_snapshot_simple,
         parse_arguments, parse_ui_fixture, preset_menu_label, restart_delay, rgb, state,
-        uniform_power_policy, watchdog_should_restart, UiDiagnostics, UiFixture,
-        HIGH_CONTRAST_PALETTE,
+        terminate_process_bounded, uniform_power_policy, watchdog_should_restart, UiDiagnostics,
+        UiFixture, HIGH_CONTRAST_PALETTE,
     };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
         PowerPolicySettings, PowerPolicyState, ProfilePayload, SnapshotPayload, TelemetryPayload,
     };
+    use std::process::{Command, Stdio};
     use std::time::Duration;
 
     fn sample_snapshot() -> SnapshotPayload {
@@ -5112,6 +5113,21 @@ mod tests {
         assert!(!watchdog_should_restart(5));
         assert!(watchdog_should_restart(6));
         assert!(watchdog_should_restart(60));
+    }
+
+    #[test]
+    fn bounded_terminate_reaps_a_long_running_child() {
+        let mut child = Command::new("cmd")
+            .args(["/c", "ping", "-n", "60", "127.0.0.1"])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("spawn a long-running child");
+        let pid = child.id();
+
+        assert!(terminate_process_bounded(pid, Duration::from_secs(10)));
+        let status = child.wait().expect("reap the terminated child");
+        assert!(!status.success());
     }
 
     #[test]

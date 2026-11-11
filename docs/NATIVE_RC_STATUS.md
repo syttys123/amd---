@@ -145,7 +145,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Rust GUI lifecycle, three Win32 minimize/restore cycles, close-to-tray, tray
   restore, single-instance wake-up, diagnostics export, view switching,
   topmost, and editable preset persistence.
-- Rust unit tests: 40/40 passed, including a contract test that parses every
+- Rust unit tests: 41/41 passed, including a contract test that parses every
   entry in `native/gui-cli-contract.json` and a regression test for the
   desktop shortcut arguments and uniform 10 W policy.
 - Rust formatting and Clippy with `-D warnings`.
@@ -172,6 +172,11 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   and the saved policy was re-applied (`enabled=true`, both targets
   `10/10/10`, `lastAttemptSucceeded=true`). Termination and the bounded wait
   run off the UI thread.
+- The hang check is now repeatable: `native/verify-worker-hang.ps1` refuses to
+  run beside another hardware owner, starts an isolated GUI/worker pair,
+  suspends the worker, samples GUI responsiveness every second, and requires
+  the replacement to restore the 10 W policy. `verify-release.ps1
+  -VerifyWorkerHang` runs it against the expanded package.
 - Native read-only write guard: invalid target rejected, no write requested.
 - Battery-authorized dry-run write guard: PASS with
   `ExecuteNoChangeWrite=Not requested`.

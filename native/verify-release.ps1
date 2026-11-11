@@ -4,6 +4,7 @@ param(
     [switch]$NoBuild,
     [switch]$ExecuteNoChangePolicy,
     [switch]$VerifyShellIntegration,
+    [switch]$VerifyWorkerHang,
     [switch]$VerifyReproducibility,
     [switch]$AllowDirty,
     [switch]$AllowBatteryWriteGuard,
@@ -23,6 +24,9 @@ $shellEvidence = Join-Path `
 $policyEvidence = Join-Path `
     $repositoryRoot `
     "docs\evidence\hardware\v$Version-power-policy-no-change-$(Get-Date -Format 'yyyy-MM-dd').json"
+$workerHangEvidence = Join-Path `
+    $repositoryRoot `
+    "docs\evidence\hardware\v$Version-worker-hang-$(Get-Date -Format 'yyyy-MM-dd').json"
 
 if (-not $EvidencePath) {
     $EvidencePath = Join-Path `
@@ -118,6 +122,17 @@ if ($ExecuteNoChangePolicy) {
     $policyStatus = "PASS"
 }
 
+$workerHangStatus = "Not requested"
+if ($VerifyWorkerHang) {
+    $null = & (Join-Path $root "verify-worker-hang.ps1") `
+        -Version $Version `
+        -GuiExecutable (Join-Path $packageDirectory "amd-mobile-power-gui.exe") `
+        -WorkerExecutable (Join-Path $packageDirectory "amdmobilepower_native_worker.exe") `
+        -ProbeExecutable (Join-Path $packageDirectory "amd-mobile-power-probe.exe") `
+        -EvidencePath $workerHangEvidence
+    $workerHangStatus = "PASS"
+}
+
 $package = Get-Content -LiteralPath $packageEvidence -Raw | ConvertFrom-Json
 $headCommit = (& git -C $repositoryRoot rev-parse HEAD).Trim()
 if ($package.Version -ne $Version) {
@@ -164,6 +179,15 @@ if ($ExecuteNoChangePolicy) {
         throw "Power-policy evidence does not match the release candidate."
     }
 }
+if ($VerifyWorkerHang) {
+    $workerHang = Get-Content -LiteralPath $workerHangEvidence -Raw | ConvertFrom-Json
+    if ($workerHang.Version -ne $Version -or
+        $workerHang.Verification -ne "PASS" -or
+        $workerHang.GuiRespondingFailures -ne 0 -or
+        $null -eq $workerHang.NewWorkerPid) {
+        throw "Worker-hang replacement evidence does not match the release candidate."
+    }
+}
 $result = [ordered]@{
     Version = $Version
     Verification = "PASS"
@@ -176,6 +200,8 @@ $result = [ordered]@{
     ShellEvidence = if ($VerifyShellIntegration) { $shellEvidence } else { $null }
     NoChangePolicy = $policyStatus
     PolicyEvidence = if ($ExecuteNoChangePolicy) { $policyEvidence } else { $null }
+    WorkerHang = $workerHangStatus
+    WorkerHangEvidence = if ($VerifyWorkerHang) { $workerHangEvidence } else { $null }
     DpiFixtures = "PASS"
     DpiEvidence = $dpiEvidencePath
     Reproducibility = $reproducibilityStatus
