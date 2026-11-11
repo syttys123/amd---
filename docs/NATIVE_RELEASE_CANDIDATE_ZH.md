@@ -59,6 +59,7 @@ Evidence:
 - `docs/evidence/packaging/v1.0.6-native-clean-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.6-native-release-gate-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.6-native-shell-integration-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.6-native-ui-2026-11-12.json`
 - `docs/evidence/ui/native-deployed-1.0.6-native-ui-2026-11-12.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`

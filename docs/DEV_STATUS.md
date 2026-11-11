@@ -118,13 +118,12 @@ not authoritative.
 - The `1.0.6-native` release gate reports `Verification=PASS`, including 17
   checksum entries, isolated install/uninstall, packaged GUI lifecycle,
   shell integration, DPI fixtures, read-only hardware, and a controlled
-  current-value policy write-back. Publication readiness will be regenerated
-  after the final review bundle is rebuilt from this package.
-- Final `1.0.5-native` publication readiness reported `LocalReadiness=PASS`,
-  `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, no local blockers, and a
-  successful deployed-shortcut launch with both value-bearing ceiling/uniform
-  arguments parsed correctly. The DPI layout fixture gate is also `PASS`; real
-  100%/150% Windows sessions remain pending. Evidence:
+  current-value policy write-back. Publication readiness reports
+  `LocalReadiness=PASS`, `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, no
+  local blockers, and a successful deployed-shortcut launch with both
+  value-bearing ceiling/uniform arguments parsed correctly. The DPI layout
+  fixture gate is also `PASS`; real 100%/150% Windows sessions remain pending.
+  Evidence:
   `docs\evidence\release\native-publication-readiness-2026-11-12.json`.
 - The native worker profile catalog is now a single family-indexed table rather
   than a separate switch statement. Every RyzenAdj family `0-15` is mapped

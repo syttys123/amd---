@@ -1,8 +1,8 @@
 {
   "SchemaVersion": 1,
-  "Version": "1.0.5-native",
-  "Package": "amd-mobile-power-v1.0.5-native-win-x64-native-preview.zip",
-  "PackageSHA256": "a0db74b65be3be165c3587beeb61682d7a44db3b584c04622f23d1ca4102ba60",
+  "Version": "1.0.6-native",
+  "Package": "amd-mobile-power-v1.0.6-native-win-x64-native-preview.zip",
+  "PackageSHA256": "1bb6fbb5e3ff0dd7223cd47a95211fed4b71c6d360f4343700fb2999fbb7321d",
   "LocalDeployment": "C:\\RyzenAdj",
   "Checks": {
     "PackageHash": true,
@@ -25,7 +25,7 @@
     "Arguments": "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10",
     "RejectedArguments": [],
     "Launch": {
-      "Arguments": "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10 --pipe-name AmdMobilePower.Worker.readiness.d6a33ffa",
+      "Arguments": "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10 --pipe-name AmdMobilePower.Worker.readiness.729a59e2",
       "WindowReady": true,
       "ExitedEarly": false,
       "ExitCode": null,
@@ -75,5 +75,5 @@
   },
   "BlockersFromLocalChecks": [],
   "Note": "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check. The shortcut launch audit runs the deployed GUI with an isolated LOCALAPPDATA and a unique worker pipe, then stops it.",
-  "RecordedAt": "2026-11-12T02:12:12.6357382+08:00"
+  "RecordedAt": "2026-11-12T02:30:08.2583371+08:00"
 }

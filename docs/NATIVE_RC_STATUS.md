@@ -192,6 +192,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - `docs/evidence/packaging/v1.0.6-native-shell-integration-2026-11-12.json`
 - `docs/evidence/hardware/v1.0.6-native-power-policy-no-change-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.6-native-deployment-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.6-native-ui-2026-11-12.json`
 - `docs/evidence/ui/native-deployed-1.0.6-native-ui-2026-11-12.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
