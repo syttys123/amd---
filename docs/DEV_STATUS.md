@@ -142,6 +142,22 @@ not authoritative.
   packaged screenshot rather than cross-process window text: target input
   `10`, one visible `10 W` preset, and live `10/10/10 W` are recorded in
   `docs\evidence\ui\native-deployed-1.0.10-capture-2026-11-12.json`.
+- Every native package now also ships `amd-mobile-power-probe.exe`, a
+  dependency-free diagnostic entry point. `--diagnose` starts a private
+  read-only worker, collects health/capabilities/telemetry/profiles/policy,
+  reads SMBIOS and Windows version strings from the registry, and emits the
+  same compatibility schema the PowerShell collector produces, so
+  `import-compatibility-report.ps1` accepts either source. It never passes
+  `--enable-write-controls`, includes no local paths, pipe names, or process
+  ids, and degrades to a host-plus-health report with a clear reason when the
+  driver cannot be opened. `--self-test` validates the binary without touching
+  hardware. `build.ps1` now runs 5 probe unit tests, the staged package runs
+  `--self-test`, and package verification runs `--diagnose` from the expanded
+  ZIP with schema/privacy/redaction assertions. A non-elevated run on the
+  8845HS emitted `collectionStatus=FAILED`, `hardwareInitialized=false`, full
+  host data (`MECHREVO WUJIE15 PRO`), worker health, and all ten profile-catalog
+  entries; `import-compatibility-report.ps1` accepted the report as
+  `Verification=PASS`. Docs: `docs/HEADLESS_DIAGNOSTICS.md`.
 - The 10 W review media now uses those corrected real screenshots. The updated
   78.2-second draft is verified at 1920x1080 with full decode, hashes, audio
   level, safe-width, cover, contact-sheet, and Bilibili-cover checks in

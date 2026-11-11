@@ -474,24 +474,30 @@ Microsoft .NET 8 Desktop Runtime x64 and appends that requirement to
 
 ## Read-Only Compatibility Collection
 
-The portable package includes `collect-diagnostics.ps1`, allowing a tester to
-produce a compatibility report without opening the GUI:
+The native portable package offers two read-only ways to produce a compatibility
+report without opening the GUI.
+
+Headless probe (no PowerShell, no GUI, no write controls):
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\collect-diagnostics.ps1
+.\amd-mobile-power-probe.exe --diagnose --out .\compatibility.json --markdown .\compatibility.md
 ```
 
-The collector starts the packaged worker hidden with `--enable-hardware` only.
-It never passes `--enable-write-controls`, exports the worker's read-only
-diagnostics through an isolated named pipe, and requests a graceful shutdown.
-The JSON file is written to the desktop by default or to an explicit
-`-OutputPath`.
+PowerShell collector (same schema, richer host data via CIM):
 
-The collector uses a field whitelist and recursively replaces known user,
-package, temporary, drive, and network paths before writing JSON. It excludes
-worker process IDs, executable/log directories, recent logs, and pipe names.
-It does not connect to the network or upload the report. Inspect the JSON before
-attaching it to a compatibility issue.
+```powershell
+powershell -ExecutionPolicy Bypass -File .\collect-native-diagnostics.ps1
+```
+
+Both start the packaged worker hidden with `--enable-hardware` only. Neither ever
+passes `--enable-write-controls`, both use an isolated named pipe, and both
+request a graceful shutdown. The collector writes JSON to the desktop by default
+or to an explicit `-OutputPath`; the probe writes wherever `--out` points.
+
+Both use a field whitelist: no local paths, pipe names, process ids, account
+names, serial numbers, or recent logs. Neither connects to the network or
+uploads the report. Inspect the JSON before attaching it to a compatibility
+issue. See `HEADLESS_DIAGNOSTICS.md` for the probe schema and exit codes.
 
 ## User Installation
 

@@ -111,6 +111,7 @@ if (-not $NoBuild) {
 
 foreach ($required in @(
     "amd-mobile-power-gui.exe",
+    "amd-mobile-power-probe.exe",
     "amdmobilepower_native_worker.exe",
     "libryzenadj.dll",
     "WinRing0x64.dll",
@@ -128,6 +129,21 @@ Copy-Item -Path (Join-Path $guiRuntime "*") -Destination $stage -Force
 
 & (Join-Path $root "check-exe-icon.ps1") `
     -Path (Join-Path $stage "amd-mobile-power-gui.exe")
+
+# Hardware-free probe smoke test: proves the shipped binary parses its CLI and
+# emits a schema-valid self-test document before any driver is installed.
+$stagedProbe = Join-Path $stage "amd-mobile-power-probe.exe"
+$selfTestOutput = & $stagedProbe --self-test
+if ($LASTEXITCODE -ne 0) {
+    throw "Staged headless probe self-test failed: $selfTestOutput"
+}
+$selfTest = $selfTestOutput | ConvertFrom-Json
+if ($selfTest.selfTest -ne "PASS" -or
+    [int]$selfTest.schemaVersion -ne 1 -or
+    [string]$selfTest.reportType -ne "amd-mobile-power-native-compatibility" -or
+    $selfTest.readOnlyByDefault -ne $true) {
+    throw "Staged headless probe self-test returned an unexpected document."
+}
 
 New-Item -ItemType Directory -Path (Join-Path $stage "licenses") -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repositoryRoot "third_party\RyzenAdj\LICENSE") `
@@ -266,6 +282,49 @@ if (-not $NoVerify) {
             $reportMarkdown -match [regex]::Escape("\\.\pipe\")) {
             throw "Native compatibility Markdown report failed its sanitization checks."
         }
+
+        # Headless compatibility probe: no PowerShell, no GUI, read-only worker.
+        $probePath = Join-Path `
+            $verifyRoot `
+            "$stageName\amd-mobile-power-probe.exe"
+        $probeReportPath = Join-Path $verifyRoot "native-probe-report.json"
+        $probeMarkdownPath = Join-Path $verifyRoot "native-probe-report.md"
+        $probeOutput = & $probePath `
+            --diagnose `
+            --out $probeReportPath `
+            --markdown $probeMarkdownPath 2>&1
+        $probeExitCode = $LASTEXITCODE
+        if ($probeExitCode -ne 0) {
+            throw "Headless compatibility probe failed: $probeOutput"
+        }
+        $probeText = Get-Content -LiteralPath $probeReportPath -Raw
+        $probeReport = $probeText | ConvertFrom-Json
+        if ([int]$probeReport.schemaVersion -ne 1 -or
+            [string]$probeReport.reportType -ne "amd-mobile-power-native-compatibility" -or
+            [string]$probeReport.collectionStatus -ne "PASS" -or
+            $probeReport.worker.hardwareInitialized -ne $true -or
+            $probeReport.worker.writeControlsEnabled -ne $false -or
+            $probeReport.platform.isSupported -ne $true -or
+            $null -eq $probeReport.platform.profile) {
+            throw "Headless compatibility probe report did not pass its schema/hardware checks."
+        }
+        foreach ($privacyFlag in @(
+            "localPathsIncluded",
+            "pipeNameIncluded",
+            "processIdIncluded",
+            "accountNamesIncluded",
+            "serialNumbersIncluded",
+            "recentLogsIncluded",
+            "networkUploadPerformed"
+        )) {
+            if ([bool]$probeReport.privacy.$privacyFlag) {
+                throw "Headless compatibility probe leaked privacy flag: $privacyFlag"
+            }
+        }
+        if ($probeText -match [regex]::Escape($repositoryRoot) -or
+            $probeText -match [regex]::Escape("\\.\pipe\")) {
+            throw "Headless compatibility probe report contains a local path or pipe name."
+        }
     }
 
     $installer = Join-Path `
@@ -356,6 +415,12 @@ $result = [pscustomobject]@{
     else {
         "PASS"
     }
+    HeadlessProbe = if ($SkipRuntimeVerification -or $NoVerify) {
+        "Skipped"
+    }
+    else {
+        "PASS"
+    }
     PolicyWriteVerification = if ($SkipRuntimeVerification -or $NoVerify) {
         "Skipped"
     }
@@ -385,6 +450,7 @@ if ($EvidencePath) {
         RuntimeVerification = $result.RuntimeVerification
         CompatibilityCollector = $result.CompatibilityCollector
         CompatibilityMarkdown = $result.CompatibilityMarkdown
+        HeadlessProbe = $result.HeadlessProbe
         PolicyWriteVerification = $result.PolicyWriteVerification
         InstallFlow = $result.InstallFlow
         RecordedAt = (Get-Date).ToString("o")

@@ -257,5 +257,24 @@ When `C:\RyzenAdj\worker\AmdMobilePower.Worker.exe` exists, the verification
 also runs the Rust probe against the stable C# worker. This proves that the new
 transport can interoperate with the current production process boundary.
 
+## Headless Compatibility Probe
+
+Every native package ships `amd-mobile-power-probe.exe`. It can produce a
+compatibility report on a laptop that has never seen this project, using only
+the package itself:
+
+```powershell
+.\amd-mobile-power-probe.exe --diagnose --out .\compatibility.json --markdown .\compatibility.md
+```
+
+The probe starts a private worker with read-only hardware access, collects
+health, capabilities, telemetry, profiles, and policy state, and emits the same
+schema that `import-compatibility-report.ps1` already validates. It never
+enables write controls, never needs PowerShell or the GUI, and reports a clear
+failure with host information preserved when the driver cannot be opened.
+
+See `docs/HEADLESS_DIAGNOSTICS.md` for the schema, exit codes, privacy rules,
+and release-gate coverage.
+
 See `docs/RUST_CPP_MIGRATION.md` for the phase gates and stable-deployment
 boundary.

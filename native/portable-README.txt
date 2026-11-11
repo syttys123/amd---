@@ -1,9 +1,9 @@
 AMD Mobile Power - Native Preview
 =================================
 
-This package is an experimental Rust GUI + C++ worker build. It is not the
-stable C:\RyzenAdj deployment and it has not replaced the verified .NET 1.0.4
-package.
+This package is the native Rust GUI + C++ worker build. Extract it anywhere and
+run the GUI from that folder; nothing is installed into Program Files unless you
+run install-preview.ps1.
 
 Read-only mode
 --------------
@@ -17,17 +17,39 @@ power source, STAPM/Fast/Slow limits, temperature, and firmware-clamp status.
 Closing the window hides it to the notification area. Use the tray Exit menu to
 terminate the application.
 
-Write-control preview
-----------------------
+Write controls
+--------------
 
 Run:
 
   amd-mobile-power-gui.exe --enable-write-controls
 
-This exposes 12 W, 25 W, and 45 W preset buttons plus Apply. The worker only
-accepts writes when the GUI starts it with the explicit write-controls flag.
-Every write is followed by a read-back; Fast/Slow failures attempt to restore
-the previous limits.
+This exposes the editable preset buttons, the target field, and Apply. The
+worker only accepts writes when the GUI starts it with the explicit
+write-controls flag. Every write is followed by a read-back; Fast/Slow failures
+attempt to restore the previous limits.
+
+Two optional arguments make a deployment deterministic:
+
+  --max-target-watts 10        clamp every target/preset to 10 W or less
+  --uniform-target-watts 10    force battery and AC to the same 10/10/10 W target
+
+Both are persisted into the saved policy, so a restart keeps the same limit.
+
+Headless compatibility report
+-----------------------------
+
+No GUI and no PowerShell required:
+
+  amd-mobile-power-probe.exe --diagnose --out compatibility.json --markdown compatibility.md
+
+The probe starts a private read-only worker, collects health, capabilities,
+telemetry, profiles, and policy state, and writes one redacted JSON document.
+It never enables write controls. On a machine where the driver cannot be
+opened it still records host and worker information and explains the failure.
+Check the binary itself without touching hardware:
+
+  amd-mobile-power-probe.exe --self-test
 
 Driver warning
 --------------

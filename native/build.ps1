@@ -140,6 +140,19 @@ try {
     & (Join-Path $root "check-exe-icon.ps1") `
         -Path (Join-Path $root "rust-gui\target\release\amd-mobile-power-gui.exe")
 
+    $rustProbeTestArguments = @(
+        "test",
+        "--manifest-path", (Join-Path $root "rust-probe\Cargo.toml"),
+        "--locked"
+    )
+    if ($Offline) {
+        $rustProbeTestArguments += "--offline"
+    }
+    & cargo @rustProbeTestArguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "Rust probe tests failed."
+    }
+
     $cargoArguments = @(
         "build",
         "--manifest-path", (Join-Path $root "rust-probe\Cargo.toml"),
@@ -175,6 +188,12 @@ try {
         New-Item -ItemType Directory -Path $guiRuntime -Force | Out-Null
         Copy-Item `
             -LiteralPath (Join-Path $root "rust-gui\target\release\amd-mobile-power-gui.exe") `
+            -Destination $guiRuntime `
+            -Force
+        # The headless probe ships next to the GUI so a user on an unknown AMD
+        # laptop can produce a compatibility report without PowerShell.
+        Copy-Item `
+            -LiteralPath (Join-Path $root "rust-probe\target\release\amd-mobile-power-probe.exe") `
             -Destination $guiRuntime `
             -Force
         Copy-Item `
