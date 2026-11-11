@@ -202,7 +202,22 @@ not authoritative.
   bundle is `artifacts/native-release-review/v1.0.13-native`. Open gates remain
   the second AMD device, real 100%/150% Windows sessions, and hosted CI.
   Evidence: `docs/evidence/release/native-publication-readiness-1.0.13-2026-11-12.json`.
-- `C:\RyzenAdj` now contains the promoted `1.0.16-native` package, which adds
+- `C:\RyzenAdj` now contains the promoted `1.0.17-native` package, which adds
+  hung-worker replacement on top of the 1.0.16 supervision path. Package
+  SHA256 is
+  `95abf61a87ff4aaf9c549f0f8df1d0632dd8ceb7daace8e9e3650f8ff66cde62`
+  (751,599 bytes, 19 checksum entries) from clean commit `672933c`; GUI
+  `63193c17`, probe `9750418f`, worker `67af1d41`. The previous deployment is
+  recoverable at `C:\RyzenAdj.before-20261112-070824`. Gate PASS includes
+  reproducibility, shell integration, DPI fixtures, packaged GUI/probe, and a
+  controlled no-change 10 W policy write. Deployment acceptance suspended the
+  live worker with `NtSuspendProcess`: the window stayed responsive, a
+  replacement appeared after `34.5 s`, and `enabled=true` with both targets
+  `10/10/10` was re-applied. Evidence:
+  `docs/evidence/packaging/v1.0.17-native-watchdog-hang-2026-11-12.json`,
+  `docs/evidence/packaging/v1.0.17-native-release-gate-2026-11-12.json`,
+  `docs/evidence/packaging/v1.0.17-native-deployment-2026-11-12.json`.
+- `C:\RyzenAdj` previously contained the promoted `1.0.16-native` package, which adds
   worker supervision with automatic policy restore and a probe that retries
   `ERROR_PIPE_BUSY`. Package SHA256 is
   `e11d3ab0c5e954bec0cf8e1bb66b813d28170f406d628f968bd2dc982ef0b3e4`

@@ -6,7 +6,7 @@ AMD thin-and-light laptops. It uses a Rust GUI and a separate C++ worker so the
 UI and hardware access stay behind a narrow named-pipe contract.
 
 > Status: no public release yet. The current stable-local candidate is
-> `1.0.16-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
+> `1.0.17-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
 > Its GUI, probe, worker, and portable ZIP rebuild byte-identically from the
 > same commit. Local publication readiness is `PASS`; the release remains
 > `READY_FOR_HUMAN_REVIEW`.
@@ -71,12 +71,12 @@ portable package's read-only default.
 Current review candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.16-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.17-native-win-x64-native-preview.zip
 ```
 
-- Size: `747,390` bytes
+- Size: `751,599` bytes
 - SHA256:
-  `e11d3ab0c5e954bec0cf8e1bb66b813d28170f406d628f968bd2dc982ef0b3e4`
+  `95abf61a87ff4aaf9c549f0f8df1d0632dd8ceb7daace8e9e3650f8ff66cde62`
 
 1. Extract the complete ZIP to a writable directory.
 2. On a fresh Windows host, open an elevated PowerShell in the extracted
@@ -148,7 +148,7 @@ git submodule update --init --recursive
 .\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui `
   -VerifyRustWorker -VerifyWriteGuard
 .\native\verify-release.ps1 `
-  -Version 1.0.16-native `
+  -Version 1.0.17-native `
   -VerifyReproducibility `
   -VerifyShellIntegration `
   -ExecuteNoChangePolicy
