@@ -151,7 +151,8 @@ git submodule update --init --recursive
   -Version 1.0.17-native `
   -VerifyReproducibility `
   -VerifyShellIntegration `
-  -ExecuteNoChangePolicy
+  -ExecuteNoChangePolicy `
+  -VerifyWorkerHang
 ```
 
 The release gate writes package, shell, DPI, hardware-policy, deployment, and
