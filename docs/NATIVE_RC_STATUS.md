@@ -272,6 +272,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - `docs/evidence/packaging/v1.0.18-native-deployment-2026-11-12.json`
 - `docs/evidence/hardware/v1.0.18-native-power-policy-no-change-2026-11-12.json`
 - `docs/evidence/hardware/v1.0.18-native-worker-hang-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.18-native-worker-hang-clean-2026-11-12.json`
 - `docs/evidence/ui/native-packaged-1.0.18-native-ui-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-watchdog-hang-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-clean-2026-11-12.json`

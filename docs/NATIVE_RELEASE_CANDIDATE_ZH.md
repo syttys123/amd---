@@ -77,6 +77,7 @@ Evidence:
 - `docs/evidence/packaging/v1.0.18-native-release-gate-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.18-native-shell-integration-2026-11-12.json`
 - `docs/evidence/hardware/v1.0.18-native-worker-hang-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.18-native-worker-hang-clean-2026-11-12.json`
 - `docs/evidence/ui/native-packaged-1.0.18-native-ui-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-watchdog-hang-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-clean-2026-11-12.json`

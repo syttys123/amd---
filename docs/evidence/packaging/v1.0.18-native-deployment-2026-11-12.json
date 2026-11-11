@@ -26,6 +26,10 @@
   "WorkerHangReplacementSeconds": 34.9,
   "WorkerHangResponsiveSamples": 28,
   "WorkerHangResponsiveFailures": 0,
+  "WorkerHangCleanRun": "PASS",
+  "WorkerHangCleanEvidence": "docs/evidence/hardware/v1.0.18-native-worker-hang-clean-2026-11-12.json",
+  "WorkerHangCleanReplacementSeconds": 35.6,
+  "WorkerHangCleanResponsiveSamples": 27,
   "PolicyRestoredAfterHang": "PASS",
   "HeadlessProbe": "PASS",
   "UniformPolicy": {
