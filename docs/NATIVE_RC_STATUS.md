@@ -137,8 +137,11 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Desktop-shortcut launch gate: the promotion helper launched the promoted GUI
   with the real shortcut arguments under an isolated `%LocalAppData%` and a
   unique worker pipe, and reported `LaunchVerification=PASS` with window title
-  `AMD Mobile Power`. The readiness gate performs the same check against
-  `C:\RyzenAdj`.
+  `AMD Mobile Power`. The final readiness gate performs the same check against
+  `C:\RyzenAdj`, including value-bearing `--max-target-watts 10` and
+  `--uniform-target-watts 10`, and reports `LocalReadiness=PASS`,
+  `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, and
+  `BlockersFromLocalChecks=[]`.
 - Added a local compatibility-report importer that rejects non-read-only,
   incomplete-privacy, path-leaking, and duplicate reports; the first rc.17
   report is archived under `docs/evidence/compatibility` and indexed in
@@ -153,6 +156,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - `docs/evidence/packaging/v1.0.3-native-deployment-2026-11-12.json`
 - `docs/evidence/ui/native-packaged-1.0.3-native-ui-2026-11-12.json`
 - `docs/evidence/ui/native-deployed-1.0.3-native-ui-2026-11-12.json`
+- `docs/evidence/release/native-publication-readiness-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
 - `native/rust-gui/build.rs`
 - `native/check-exe-icon.ps1`

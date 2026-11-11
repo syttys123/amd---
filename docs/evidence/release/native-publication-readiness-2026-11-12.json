@@ -1,0 +1,48 @@
+{
+  "SchemaVersion": 1,
+  "Version": "1.0.3-native",
+  "Package": "amd-mobile-power-v1.0.3-native-win-x64-native-preview.zip",
+  "PackageSHA256": "2935779907f89d38c0ca7d1a46a9661de6a18b32b6bf8bb7083bedff74807b8e",
+  "LocalDeployment": "C:\\RyzenAdj",
+  "Checks": {
+    "PackageHash": true,
+    "PackageVerification": true,
+    "NoChangePolicy": true,
+    "PackagedUi": true,
+    "LocalDeployment": true,
+    "DeployedIcon": true,
+    "DesktopShortcut": true,
+    "ShortcutArguments": true,
+    "ShortcutLaunch": true,
+    "CompatibilityIndex": true,
+    "MediaDraft": true,
+    "ReviewBundle": true
+  },
+  "LocalReadiness": "PASS",
+  "PublicReleaseReadiness": "READY_FOR_HUMAN_REVIEW",
+  "DesktopShortcut": {
+    "Path": "<USER_HOME>\\Desktop\\功耗设置 5-60W.lnk",
+    "Arguments": "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10",
+    "RejectedArguments": [],
+    "Launch": {
+      "Arguments": "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10 --pipe-name AmdMobilePower.Worker.readiness.b1aec7a9",
+      "WindowReady": true,
+      "ExitedEarly": false,
+      "ExitCode": null,
+      "StandardError": "",
+      "Note": "GUI window observed."
+    }
+  },
+  "OpenGates": {
+    "SecondAmdDevice": "PENDING",
+    "Dpi100And150": "PENDING",
+    "HostedWindowsCi": "PENDING",
+    "CleanWindowsWinRing0Baseline": "PENDING",
+    "HumanVideoAndClaimReview": "PENDING",
+    "ExplicitPublicReleaseApproval": "PENDING",
+    "BilibiliAuthenticatedUpload": "PENDING"
+  },
+  "BlockersFromLocalChecks": [],
+  "Note": "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check. The shortcut launch audit runs the deployed GUI with an isolated LOCALAPPDATA and a unique worker pipe, then stops it.",
+  "RecordedAt": "2026-11-12T00:59:33.0592126+08:00"
+}

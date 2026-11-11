@@ -98,10 +98,12 @@ Evidence:
 - Public release readiness：`READY_FOR_HUMAN_REVIEW`
 - 已核对：包 hash、clean gate、当前值策略回写、打包 UI/托盘、C 盘部署文件、
   桌面快捷方式、兼容性索引、媒体草稿、review bundle 校验和。
+- 桌面快捷方式实际拉起：`WindowReady=true`，拒绝参数为空；带值参数
+  `--max-target-watts 10` 与 `--uniform-target-watts 10` 均按契约正确识别。
 - 仍需人工/外部完成：第二台 AMD 设备、100%/150% 缩放、托管 CI、
   WinRing0 干净安全基线、视频/封面/文案审阅、公开发布批准、B 站上传。
 - Evidence:
-  `docs/evidence/release/native-publication-readiness-2026-11-11.json`
+  `docs/evidence/release/native-publication-readiness-2026-11-12.json`
 
 ## 发布媒体
 

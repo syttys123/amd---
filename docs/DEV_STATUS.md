@@ -106,6 +106,11 @@ not authoritative.
   Rust GUI tests pass 37/37 and Clippy is clean. A fixture launch with isolated
   `%LocalAppData%` produced `enabled=true`, both power lines at 10 W, presets
   `[10,10,10]`, and `maxTargetWatts=10`.
+- Final `1.0.3-native` publication readiness reports `LocalReadiness=PASS`,
+  `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, no local blockers, and a
+  successful deployed-shortcut launch with both value-bearing ceiling/uniform
+  arguments parsed correctly. Evidence:
+  `docs\evidence\release\native-publication-readiness-2026-11-12.json`.
 - The 1.0.0-native package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user
