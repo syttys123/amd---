@@ -106,7 +106,12 @@ function Test-ShortcutGuiLaunch {
         }
         $stderrText = ""
         if (Test-Path -LiteralPath $stderrPath -PathType Leaf) {
-            $stderrText = ([string](Get-Content -LiteralPath $stderrPath -Raw)).Trim()
+            # In PowerShell 7, [string]$null stays $null, so an empty stderr file
+            # would otherwise throw on .Trim().
+            $rawStderr = Get-Content -LiteralPath $stderrPath -Raw
+            if ($null -ne $rawStderr) {
+                $stderrText = ([string]$rawStderr).Trim()
+            }
         }
         return [pscustomobject]@{
             Arguments = ($argumentList -join " ")
@@ -114,6 +119,15 @@ function Test-ShortcutGuiLaunch {
             ExitedEarly = $exitedEarly
             ExitCode = $exitCode
             StandardError = $stderrText
+            Note = if ($windowReady) {
+                "GUI window observed."
+            }
+            elseif ($exitedEarly) {
+                "GUI exited immediately; exit code 0 means the arguments parsed and another instance owns the single-instance mutex."
+            }
+            else {
+                "GUI stayed alive but no window appeared within the timeout."
+            }
         }
     }
     finally {

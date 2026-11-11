@@ -1,8 +1,8 @@
 {
   "SchemaVersion": 1,
-  "Version": "1.0.0-native",
-  "Package": "amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip",
-  "PackageSHA256": "f3fd6ea1d1b0292c6ec9ea7445f191adc302066f78a728528a3722923c73a0bf",
+  "Version": "1.0.1-native",
+  "Package": "amd-mobile-power-v1.0.1-native-win-x64-native-preview.zip",
+  "PackageSHA256": "992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad",
   "LocalDeployment": "C:\\RyzenAdj",
   "Checks": {
     "PackageHash": true,
@@ -11,12 +11,27 @@
     "PackagedUi": true,
     "LocalDeployment": true,
     "DesktopShortcut": true,
+    "ShortcutArguments": true,
+    "ShortcutLaunch": true,
     "CompatibilityIndex": true,
     "MediaDraft": true,
     "ReviewBundle": true
   },
   "LocalReadiness": "PASS",
   "PublicReleaseReadiness": "READY_FOR_HUMAN_REVIEW",
+  "DesktopShortcut": {
+    "Path": "<USER_HOME>\\Desktop\\功耗设置 5-60W.lnk",
+    "Arguments": "--enable-write-controls --simple-mode",
+    "RejectedArguments": [],
+    "Launch": {
+      "Arguments": "--enable-write-controls --simple-mode --pipe-name AmdMobilePower.Worker.readiness.442eedc1",
+      "WindowReady": false,
+      "ExitedEarly": true,
+      "ExitCode": 0,
+      "StandardError": "",
+      "Note": "GUI exited immediately; exit code 0 means the arguments parsed and another instance owns the single-instance mutex."
+    }
+  },
   "OpenGates": {
     "SecondAmdDevice": "PENDING",
     "Dpi100And150": "PENDING",
@@ -27,6 +42,6 @@
     "BilibiliAuthenticatedUpload": "PENDING"
   },
   "BlockersFromLocalChecks": [],
-  "Note": "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check.",
-  "RecordedAt": "2026-11-11T23:00:47.3913332+08:00"
+  "Note": "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check. The shortcut launch audit runs the deployed GUI with an isolated LOCALAPPDATA and a unique worker pipe, then stops it.",
+  "RecordedAt": "2026-11-11T23:25:20.3802220+08:00"
 }
