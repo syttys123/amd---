@@ -32,6 +32,9 @@ UI and hardware access stay behind a narrow named-pipe contract.
   read-back.
 - Worker supervision: if the worker process exits, the GUI respawns it with a
   bounded backoff, reconnects, and resumes telemetry without a manual restart.
+  If it stops answering for 30 seconds, the GUI replaces it from a background
+  thread, re-applies the saved battery/AC policy, and keeps the window
+  responsive even while the old process is being terminated.
 - Battery and AC policy automation, editable presets, firmware-clamp reporting,
   and restore attempts on partial Fast/Slow failure.
 - Packaged WinRing0 install and uninstall helpers. The installer reuses an

@@ -158,6 +158,19 @@ not authoritative.
   `lastAttemptSucceeded=true`.
   Rust tests are now `20/20` in the main suite with a new backoff-bounds test;
   Clippy and fmt stay clean.
+- Worker supervision now covers a hung worker as well as an exited one. The
+  monitor thread publishes a heartbeat after every completed sample; a 5 s
+  watchdog asks the UI thread to replace the worker after six stalled checks
+  (30 s). Termination and the bounded 15 s wait run on a background thread, so
+  a driver-bound worker cannot freeze the window, and the replacement is only
+  spawned after the old process is confirmed gone. Dead children are reaped
+  before any PID is passed to `OpenProcess`, avoiding PID-reuse kills. A real
+  `NtSuspendProcess` test on 2026-11-12 suspended the isolated worker: the GUI
+  stayed `Responding=true` for the whole stall, a replacement worker appeared
+  after `34.5 s`, `getPowerPolicy` returned `enabled=true`, both targets
+  `10/10/10`, `lastAttemptSucceeded=true`, and the live snapshot returned to
+  `10/10/10 W`. The deployed app was restored afterward with the same policy.
+  Rust tests are now `21/21` in the main suite plus `19/19` library tests.
 - The publication-readiness gate now also requires the deployed headless probe:
 - The probe now retries `ERROR_PIPE_BUSY` when it talks to a running GUI. The
   worker exposes a single pipe instance, so a `--command` call could collide

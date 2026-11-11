@@ -13,7 +13,7 @@ use std::mem::size_of;
 use std::os::windows::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
-use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -41,7 +41,10 @@ use windows_sys::Win32::Graphics::Gdi::{
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::SystemServices::SS_LEFT;
-use windows_sys::Win32::System::Threading::CreateMutexW;
+use windows_sys::Win32::System::Threading::{
+    CreateMutexW, OpenProcess, TerminateProcess, WaitForSingleObject, PROCESS_SYNCHRONIZE,
+    PROCESS_TERMINATE,
+};
 use windows_sys::Win32::UI::Accessibility::{HCF_HIGHCONTRASTON, HIGHCONTRASTW};
 use windows_sys::Win32::UI::Controls::{DRAWITEMSTRUCT, ODS_DISABLED, ODS_SELECTED, ODT_BUTTON};
 use windows_sys::Win32::UI::HiDpi::{
@@ -85,6 +88,8 @@ const WM_APP_STATUS: u32 = WM_APP + 3;
 const WM_APP_APPLY_RESULT: u32 = WM_APP + 4;
 const WM_APP_POLICY_RESULT: u32 = WM_APP + 5;
 const WM_APP_RESTART_WORKER: u32 = WM_APP + 6;
+const WM_APP_FORCE_RESTART_WORKER: u32 = WM_APP + 7;
+const WM_APP_FORCE_RESTART_READY: u32 = WM_APP + 8;
 const MENU_SHOW: usize = 1;
 const MENU_EXIT: usize = 2;
 const MENU_SIMPLE_MODE: usize = 3;
@@ -367,6 +372,8 @@ struct GuiApp {
     status_label: HWND,
     stop_monitor: Arc<AtomicBool>,
     monitor_thread: Option<JoinHandle<()>>,
+    monitor_heartbeat: Arc<AtomicU64>,
+    force_restart_in_flight: Arc<AtomicBool>,
     worker_child: Option<Child>,
     worker_executable: Option<PathBuf>,
     worker_pipe: String,
@@ -416,6 +423,8 @@ impl GuiApp {
             status_label: std::ptr::null_mut(),
             stop_monitor: Arc::new(AtomicBool::new(false)),
             monitor_thread: None,
+            monitor_heartbeat: Arc::new(AtomicU64::new(0)),
+            force_restart_in_flight: Arc::new(AtomicBool::new(false)),
             worker_child: None,
             worker_executable: None,
             worker_pipe: String::new(),
@@ -2718,6 +2727,7 @@ fn start_worker_monitor(
     hwnd_address: usize,
     pipe_name: String,
     stop: Arc<AtomicBool>,
+    heartbeat: Arc<AtomicU64>,
 ) -> JoinHandle<()> {
     thread::spawn(move || {
         let hwnd = hwnd_address as HWND;
@@ -2762,7 +2772,66 @@ fn start_worker_monitor(
             unsafe {
                 post_status(hwnd, update);
             }
+            heartbeat.fetch_add(1, Ordering::SeqCst);
             thread::sleep(Duration::from_secs(1));
+        }
+    })
+}
+
+/// A worker that stops answering blocks the monitor inside a pipe read, so the
+/// monitor cannot report its own failure. The watchdog only watches the
+/// heartbeat and asks the UI thread to replace the worker after 30 s without a
+/// single completed sample.
+fn watchdog_should_restart(stalled_checks: u32) -> bool {
+    stalled_checks >= 6
+}
+
+/// Kill a hung worker without blocking the UI thread indefinitely. A worker
+/// stuck inside a driver call can outlive TerminateProcess for a moment, so the
+/// wait is bounded and the next watchdog cycle retries if it is still alive.
+fn terminate_process_bounded(pid: u32, timeout: Duration) -> bool {
+    unsafe {
+        let handle = OpenProcess(PROCESS_TERMINATE | PROCESS_SYNCHRONIZE, 0, pid);
+        if handle.is_null() {
+            return false;
+        }
+        let terminated = TerminateProcess(handle, 1) != 0;
+        let wait_ms = timeout.as_millis().min(u32::MAX as u128) as u32;
+        let _ = WaitForSingleObject(handle, wait_ms);
+        CloseHandle(handle);
+        terminated
+    }
+}
+
+fn start_worker_watchdog(
+    hwnd_address: usize,
+    heartbeat: Arc<AtomicU64>,
+    stop: Arc<AtomicBool>,
+) -> JoinHandle<()> {
+    thread::spawn(move || {
+        let hwnd = hwnd_address as HWND;
+        let mut last = heartbeat.load(Ordering::SeqCst);
+        let mut stalled_checks = 0u32;
+        while !stop.load(Ordering::SeqCst) {
+            thread::sleep(Duration::from_secs(5));
+            if stop.load(Ordering::SeqCst) {
+                return;
+            }
+            let current = heartbeat.load(Ordering::SeqCst);
+            if current != last {
+                last = current;
+                stalled_checks = 0;
+                continue;
+            }
+            stalled_checks = stalled_checks.saturating_add(1);
+            if watchdog_should_restart(stalled_checks) {
+                unsafe {
+                    PostMessageW(hwnd, WM_APP_FORCE_RESTART_WORKER, 0, 0);
+                }
+                // Give the replacement a full window before forcing again.
+                stalled_checks = 0;
+                last = current;
+            }
         }
     })
 }
@@ -4361,6 +4430,52 @@ unsafe extern "system" fn window_proc(
             }
             0
         }
+        WM_APP_FORCE_RESTART_WORKER => {
+            let live_pid = match app.worker_child.as_mut() {
+                Some(child) => match child.try_wait() {
+                    Ok(None) => Some(child.id()),
+                    Ok(Some(_)) | Err(_) => {
+                        app.worker_child = None;
+                        None
+                    }
+                },
+                None => None,
+            };
+            if app.ui_fixture.is_none() {
+                if live_pid.is_none() {
+                    // The worker already exited; replace it now instead of
+                    // waiting for the monitor's restart backoff.
+                    if try_restart_worker(app) {
+                        app.policy_profile_applied = false;
+                        app.policy_in_flight = false;
+                    }
+                } else if !app.force_restart_in_flight.swap(true, Ordering::SeqCst) {
+                    // A worker that stopped answering may still be alive, so
+                    // the regular restart path would refuse to replace it.
+                    // Kill and wait off the UI thread: a driver-bound worker
+                    // must not freeze the window while it is replaced.
+                    let hwnd_address = hwnd as usize;
+                    let pid = live_pid.unwrap_or_default();
+                    thread::spawn(move || {
+                        terminate_process_bounded(pid, Duration::from_secs(15));
+                        unsafe {
+                            PostMessageW(hwnd_address as HWND, WM_APP_FORCE_RESTART_READY, 0, 0);
+                        }
+                    });
+                }
+            }
+            0
+        }
+        WM_APP_FORCE_RESTART_READY => {
+            app.force_restart_in_flight.store(false, Ordering::SeqCst);
+            if app.ui_fixture.is_none() && try_restart_worker(app) {
+                // A fresh worker starts with an empty policy; force the next
+                // refresh to re-push the saved battery/AC targets.
+                app.policy_profile_applied = false;
+                app.policy_in_flight = false;
+            }
+            0
+        }
         WM_APP_RESTART_WORKER => {
             if try_restart_worker(app) {
                 // A fresh worker starts with an empty policy. Force the next
@@ -4843,9 +4958,17 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 (*app).worker_executable = worker_executable_path(&options);
             },
         }
-        let monitor = start_worker_monitor(hwnd as usize, options.pipe_name.clone(), unsafe {
-            (*app).stop_monitor.clone()
-        });
+        let monitor = start_worker_monitor(
+            hwnd as usize,
+            options.pipe_name.clone(),
+            unsafe { (*app).stop_monitor.clone() },
+            unsafe { (*app).monitor_heartbeat.clone() },
+        );
+        let _watchdog = start_worker_watchdog(
+            hwnd as usize,
+            unsafe { (*app).monitor_heartbeat.clone() },
+            unsafe { (*app).stop_monitor.clone() },
+        );
         unsafe {
             (*app).monitor_thread = Some(monitor);
         }
@@ -4894,7 +5017,8 @@ mod tests {
         clamp_preset_values, clamp_to_ceiling, diagnostics_document, fixture_snapshot,
         fixture_worker_error, format_policy_state, format_snapshot, format_snapshot_simple,
         parse_arguments, parse_ui_fixture, preset_menu_label, restart_delay, rgb, state,
-        uniform_power_policy, UiDiagnostics, UiFixture, HIGH_CONTRAST_PALETTE,
+        uniform_power_policy, watchdog_should_restart, UiDiagnostics, UiFixture,
+        HIGH_CONTRAST_PALETTE,
     };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
@@ -4980,6 +5104,14 @@ mod tests {
         assert_eq!(restart_delay(3), Duration::from_secs(40));
         assert_eq!(restart_delay(4), Duration::from_secs(60));
         assert_eq!(restart_delay(12), Duration::from_secs(60));
+    }
+
+    #[test]
+    fn watchdog_restarts_only_after_six_stalled_checks() {
+        assert!(!watchdog_should_restart(0));
+        assert!(!watchdog_should_restart(5));
+        assert!(watchdog_should_restart(6));
+        assert!(watchdog_should_restart(60));
     }
 
     #[test]
