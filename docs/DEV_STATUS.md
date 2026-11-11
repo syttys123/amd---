@@ -167,7 +167,10 @@ not authoritative.
   expanded `1.0.11-native` ZIP with the GUI closed reported
   `collectionStatus=PASS`, `hardwareInitialized=true`,
   `writeControlsEnabled=false`, matched `hawk-point-8845hs`, all seven checks
-  `PASS`, and live AC `10/10/10 W`. The GUI was then restarted with the
+  `PASS`, and live AC `10/10/10 W`. The clean `1.0.11-native` package
+  (`b8b422a0…`, 745,376 bytes, 19 checksum entries) was built from commit
+  `ebe3f98` with `WorkingTree=Clean`; the packaged `BUILD-INFO.txt` inside the
+  expanded ZIP reported the same commit and tree state. The GUI was then restarted with the
   original arguments and verified back at `enabled=true`, battery and AC
   `10/10/10 W`, `lastAttemptSucceeded=true`, live `10/10/10 W`. Evidence:
   `docs/evidence/diagnostics/headless-probe-8845hs-live-2026-11-12.json`.

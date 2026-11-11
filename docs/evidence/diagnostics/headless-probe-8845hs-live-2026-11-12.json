@@ -1,10 +1,12 @@
 {
   "version": 1,
-  "recordedAt": "2026-11-12T05:14:19Z",
+  "recordedAt": "2026-11-12T05:16:18.0095145+08:00",
   "probeVersion": "0.1.0",
   "package": "1.0.11-native",
-  "packageZipSha256": "6d5689c68aaf6f7c0e4633e8c8839ebcbe0bb2c3ff9277ff89b363937937a427",
-  "sourceCommit": "92fe2285eabed550568a67d67d9307740cdf7eb2",
+  "packageZipSha256": "b8b422a0204167b33c4a2877946fa33cd35b572dfc03d3bdc927866c79de7a06",
+  "packageZipSize": 745376,
+  "sourceCommit": "ebe3f98b2ebc841612b5a4673586be1b0a7f18d0",
+  "workingTree": "Clean",
   "mode": "packaged ZIP --diagnose, read-only worker, hardware owner mutex free, GUI restarted afterwards",
   "result": "PASS",
   "checkSummary": "worker.health=PASS; worker.hardware=PASS; worker.readOnly=PASS; worker.exclusive=PASS; platform.supported=PASS; limits.available=PASS; telemetry.readable=PASS",
@@ -46,7 +48,7 @@
         "status": "PASS"
       }
     ],
-    "collectedAt": "2026-11-11T21:14:24Z",
+    "collectedAt": "2026-11-11T21:16:01Z",
     "collectionStatus": "PASS",
     "collector": {
       "mode": "headless-diagnose",
@@ -72,11 +74,11 @@
       "windowsVersion": "6.3"
     },
     "package": {
-      "buildTimestamp": "2026-11-12 05:14:03 +08:00",
+      "buildTimestamp": "2026-11-12 05:15:43 +08:00",
       "name": "amd-mobile-power-v1.0.11-native-win-x64-native-preview",
-      "sourceCommit": "92fe2285eabed550568a67d67d9307740cdf7eb2",
+      "sourceCommit": "ebe3f98b2ebc841612b5a4673586be1b0a7f18d0",
       "version": "1.0.11-native",
-      "workingTree": "Dirty"
+      "workingTree": "Clean"
     },
     "platform": {
       "isSupported": true,
@@ -290,17 +292,17 @@
     "schemaVersion": 1,
     "telemetry": {
       "fastLimitWatts": 10,
-      "fastValueWatts": 9.99083,
+      "fastValueWatts": 10.0877,
       "hasFirmwareClamp": false,
       "powerLine": "ac",
       "slowLimitWatts": 10,
-      "slowValueWatts": 9.78597,
+      "slowValueWatts": 9.92301,
       "stapmLimitWatts": 10,
-      "stapmValueWatts": 10.0031,
+      "stapmValueWatts": 9.9995,
       "targetWatts": null,
       "tctlLimitCelsius": 95,
-      "tctlValueCelsius": 41.2591,
-      "updatedAt": "2026-11-11T21:14:24Z"
+      "tctlValueCelsius": 41.3781,
+      "updatedAt": "2026-11-11T21:16:01Z"
     },
     "worker": {
       "hardwareInitialized": true,

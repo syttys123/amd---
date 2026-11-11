@@ -1,7 +1,7 @@
 # AMD Mobile Power Compatibility Report
 
 - Collection status: `PASS`
-- Collected at: 2026-11-11T21:14:24Z
+- Collected at: 2026-11-11T21:16:01Z
 - Package version: 1.0.11-native (amd-mobile-power-v1.0.11-native-win-x64-native-preview)
 - System: MECHREVO WUJIE15 PRO
 - BIOS: T153_HPT_V05 (09/25/2024)
