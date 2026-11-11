@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `1.0.0-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.1-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,37 +16,43 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `1.0.0-native`
+- Candidate: `1.0.1-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip`
-- Size: `535,197` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.1-native-win-x64-native-preview.zip`
+- Size: `534,763` bytes
 - SHA256:
-  `f3fd6ea1d1b0292c6ec9ea7445f191adc302066f78a728528a3722923c73a0bf`
-- Package source commit: `ddb7d9cba3195f4a16df1299215a9e26cd18544f`
+  `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`
+- Package source commit: `442309753f6965a4ba01ff0ae4f34e81280f34e5`
 - Working tree at build time: clean
-- Review bundle: `artifacts/native-release-review/v1.0.0-native`
+- Review bundle: `artifacts/native-release-review/v1.0.1-native`
+
+本版修复桌面快捷方式启动即退出（`unknown argument: --simple-mode`）。GUI 重新
+接受 `--simple-mode` / `--advanced-mode`，`native/gui-cli-contract.json` 成为
+命令行参数的唯一来源，晋升脚本只保留契约内参数，发布门禁会用真实快捷方式参数
+实际拉起一次 GUI。
 
 ## 本机验证
 
-- Rust GUI 测试：`30/30`。
+- Rust GUI 测试：`34/34`。
 - Rust formatting / Clippy `-D warnings`：PASS。
 - C++ power-limit / power-policy 测试：PASS。
 - 16 项包内 SHA256 校验：PASS。
 - 提取后 GUI/worker 只读验证、诊断导出、兼容性 JSON/Markdown：PASS。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
-- `rc.17 -> 1.0.0-native` 升级：payload 一致、升级后只读运行、卸载清理：PASS。
+- `1.0.0-native -> 1.0.1-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
+  参数契约、真实参数启动：PASS。
 - 打包版托盘/任务栏与模式同步证据：`CloseToTray`、`TrayRestore`、
   `SingleInstanceWake`、`taskbarIconAvailable=true`、`trayIconId=1`、
   `simple -> advanced` 同步：PASS。
 
 Evidence:
 
-- `docs/evidence/packaging/v1.0.0-native-clean-2026-11-11.json`
-- `docs/evidence/packaging/v1.0.0-native-release-gate-2026-11-11.json`
-- `docs/evidence/packaging/v1.0.0-native-shell-integration-2026-11-11.json`
-- `docs/evidence/packaging/v1.0.0-native-cross-version-upgrade-2026-11-11.json`
-- `docs/evidence/ui/native-packaged-1.0.0-ui-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.1-native-clean-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.1-native-release-gate-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.1-native-shell-integration-2026-11-11.json`
+- `docs/evidence/ui/native-packaged-1.0.1-native-ui-2026-11-11.json`
+- `native/gui-cli-contract.json`
 
 ## 硬件门禁
 
@@ -60,22 +66,23 @@ Evidence:
 
 Evidence:
 
-- `docs/evidence/hardware/v1.0.0-native-power-policy-no-change-2026-11-11.json`
+- `docs/evidence/hardware/v1.0.1-native-power-policy-no-change-2026-11-11.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
 
 ## 本地部署
 
 - 目标目录：`C:\RyzenAdj`
-- 版本：`1.0.0-native`
-- 旧版备份：`C:\RyzenAdj.before-20261111-223017`
+- 版本：`1.0.1-native`
+- 旧版备份：`C:\RyzenAdj.before-20261111-232010`
 - 仓库备份：
-  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.0-native-20261111-223017`
+  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.1-native-20261111-232010`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - 快捷方式参数：`--enable-write-controls --simple-mode`
-- 部署验证：worker、托盘、单实例、模式、预设、电池策略开关、诊断导出 PASS
+- 部署验证：worker、托盘、单实例、模式、预设、电池策略开关、诊断导出 PASS；
+  快捷方式真实参数启动验证 PASS
 - Evidence:
-  `docs/evidence/packaging/v1.0.0-native-deployment-2026-11-11.json`
+  `docs/evidence/packaging/v1.0.1-native-deployment-2026-11-11.json`
 
 ## 发布就绪检查
 

@@ -50,6 +50,20 @@ The native worker has no write capability unless both `--enable-hardware` and
 `--enable-write-controls` are supplied. The default verification gate checks
 that `applyTarget` is rejected without the write flag.
 
+The GUI command line is described by `native\gui-cli-contract.json`, which is the
+single source of truth shared by the Rust parser tests, the promotion helper, and
+the publication-readiness gate. Current arguments:
+
+- `--enable-write-controls` enables the write UI; the default is read-only.
+- `--simple-mode` / `--advanced-mode` pick the starting view and persist it, so a
+  shortcut can pin a mode.
+- `--tray` starts hidden in the notification area.
+- `--pipe-name <name>`, `--worker-executable <path>`, and `--ui-fixture <name>`
+  exist for verification and screenshot fixtures.
+
+Unknown arguments make the GUI exit with code 1 and print the rejected token to
+stderr, which is what the shortcut launch gate checks.
+
 The native worker maps RyzenAdj families to conservative profiles. Only the
 development `8845HS + 4c0009` match is marked verified; other families are
 experimental and receive narrower profile ceilings until hardware evidence is

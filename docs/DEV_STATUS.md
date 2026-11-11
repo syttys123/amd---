@@ -45,8 +45,11 @@ not authoritative.
 - The current local stable package is `1.0.4`: 594,763 bytes, SHA256
   `f54558295515f875b655a2bdf420c719b907639999700988f0a5910deb033433`,
   built from clean commit `b2ac5f4` with .NET SDK `10.0.400`.
-- `C:\RyzenAdj` now contains the promoted `1.0.0-native` package. The previous
-  verified .NET `1.0.4` deployment is preserved as
+- `C:\RyzenAdj` now contains the promoted `1.0.1-native` package. The previous
+  native `1.0.0-native` deployment is preserved as
+  `C:\RyzenAdj.before-20261111-232010` and under
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.1-native-20261111-232010`.
+  The verified .NET `1.0.4` deployment remains recoverable as
   `C:\RyzenAdj.before-20261111-223017` and under
   `artifacts\deployment-backups\C-RyzenAdj-before-1.0.0-native-20261111-223017`.
 - Active native-development branch: `main`.
@@ -55,7 +58,7 @@ not authoritative.
   bands, a split advanced workspace, native text fields, owner-drawn controls,
   dialog keyboard navigation, focus rings, and the embedded AMD Mobile Power
   taskbar/tray icon. The default for a fresh UI state is simple mode.
-- The native Rust GUI test suite now passes 30/30 tests. The runtime verifier
+- The native Rust GUI test suite now passes 34/34 tests. The runtime verifier
   passes worker connection, diagnostics export, mode switching, topmost,
   minimize/restore, close-to-tray, tray restore, single-instance wake, and
   preset editing. The fixture path also verifies the battery-only policy toggle
@@ -71,10 +74,12 @@ not authoritative.
   the full simple and advanced shells in black, white, and yellow without
   modifying system accessibility settings; diagnostics expose the active state
   as `ui.highContrast`.
-- The clean native candidate is now `1.0.0-native`: 535,197 bytes,
+- The clean native candidate is now `1.0.1-native`: 534,763 bytes,
   SHA256
-  `f3fd6ea1d1b0292c6ec9ea7445f191adc302066f78a728528a3722923c73a0bf`,
-  built from clean commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
+  `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`,
+  built from clean commit `442309753f6965a4ba01ff0ae4f34e81280f34e5`.
+  It fixes the desktop shortcut exiting immediately with
+  `unknown argument: --simple-mode`.
 - The 1.0.0-native package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user
@@ -1259,6 +1264,34 @@ third_party/
   human media review, release approval, and Bilibili upload still pending.
   Evidence:
   `docs/evidence/release/native-publication-readiness-2026-11-11.json`.
+- Fixed the desktop shortcut launching and exiting immediately (exit code 1,
+  `unknown argument: --simple-mode`). Root cause had three layers: the native
+  Rust parser did not accept `--simple-mode`, the promotion helper preserved
+  the legacy .NET shortcut arguments verbatim, and the readiness gate hard-coded
+  that same broken string as the expected value. The GUI now accepts
+  `--simple-mode` / `--advanced-mode` and persists the requested mode.
+  `native/gui-cli-contract.json` is the single source of truth for supported
+  arguments; a Rust test parses every contract entry, the promotion helper
+  drops arguments outside the contract, and the readiness gate both audits the
+  shortcut against the contract and launches the deployed GUI with the real
+  shortcut arguments (isolated `%LocalAppData%` plus a unique worker pipe).
+  `cargo test` is now 34/34, Clippy `-D warnings` and `cargo fmt --check`
+  pass, and the release binary launched with
+  `--enable-write-controls --simple-mode` shows the window and persists
+  `mode=simple`.
+- Built and fully gated `1.0.1-native` from clean commit
+  `442309753f6965a4ba01ff0ae4f34e81280f34e5`
+  (SHA256
+  `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`,
+  534,763 bytes). The gate covered Rust tests, Clippy, C++ policy tests,
+  isolated install/overwrite/uninstall, shell integration, packaged UI/tray,
+  and a current-value AC policy probe that kept `25/45/25 W`. Evidence:
+  `docs/evidence/packaging/v1.0.1-native-release-gate-2026-11-11.json`.
+- Promoted `1.0.1-native` to `C:\RyzenAdj` with launch verification driven by
+  the real desktop-shortcut arguments. The shortcut keeps
+  `--enable-write-controls --simple-mode` and produced
+  `LaunchVerification=PASS`. Deployment evidence:
+  `docs/evidence/packaging/v1.0.1-native-deployment-2026-11-11.json`.
 
 Development screenshot:
 

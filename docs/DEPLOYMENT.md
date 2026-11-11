@@ -3,8 +3,9 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable-local native deployment on the development
-  laptop. The previous .NET `1.0.4` deployment remains at
+- `C:\RyzenAdj`: current stable-local native deployment (`1.0.1-native`) on the
+  development laptop. The previous native `1.0.0-native` deployment remains at
+  `C:\RyzenAdj.before-20261111-232010`, and the .NET `1.0.4` deployment at
   `C:\RyzenAdj.before-20261111-223017`.
 
 ## Promotion Rules
@@ -61,6 +62,32 @@ shortcuts while preserving their arguments, writes deployment evidence, and
 rolls back on failure.
 
 ## Current Deployment Evidence
+
+On 2026-11-11, `1.0.1-native` replaced `1.0.0-native` at `C:\RyzenAdj`. It fixes
+the desktop shortcut exiting immediately with `unknown argument: --simple-mode`.
+
+- Package SHA256:
+  `992290ffb2337038c937932e2a4888db19946df46c2678b7a32b33285f997cad`
+- Package size: `534,763` bytes
+- Package source commit: `442309753f6965a4ba01ff0ae4f34e81280f34e5`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261111-232010`
+- Recoverable D: backup:
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.1-native-20261111-232010`
+- Desktop shortcut:
+  `<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
+- Shortcut target and arguments:
+  `C:\RyzenAdj\amd-mobile-power-gui.exe --enable-write-controls --simple-mode`
+- Launch verification: `PASS` (window title `AMD Mobile Power`)
+- Deployment evidence:
+  `docs/evidence/packaging/v1.0.1-native-deployment-2026-11-11.json`
+- Deployment UI evidence:
+  `docs/evidence/ui/native-deployed-1.0.1-native-ui-2026-11-11.json`
+
+The shortcut arguments are now checked against `native/gui-cli-contract.json`.
+The promotion helper drops arguments outside that contract, and the launch check
+runs the promoted GUI with the real shortcut arguments plus an isolated
+`%LocalAppData%` and a unique worker pipe. Nothing is written to the power
+policy during that check because the isolated state has no saved policy.
 
 On 2026-11-11, `1.0.0-native` replaced the .NET `1.0.4` directory at
 `C:\RyzenAdj`.
