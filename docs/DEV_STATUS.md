@@ -186,6 +186,10 @@ not authoritative.
   A negative guard run with the deployed app active refused to start, named
   the owning worker PID, left both processes alive, and kept the 10/10/10 W
   policy unchanged.
+  Negative control: the same check against the `1.0.16` GUI (no hang watchdog)
+  failed with "The worker was not replaced within 12 s" after nine responsive
+  samples, proving the verifier distinguishes the unfixed build. Evidence:
+  `docs/evidence/hardware/v1.0.16-negative-control-worker-hang-2026-11-12.json`.
 - The publication-readiness gate now also requires the deployed headless probe:
 - The probe now retries `ERROR_PIPE_BUSY` when it talks to a running GUI. The
   worker exposes a single pipe instance, so a `--command` call could collide
