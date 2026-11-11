@@ -48,7 +48,7 @@ use windows_sys::Win32::UI::HiDpi::{
     AdjustWindowRectExForDpi, GetDpiForSystem, GetDpiForWindow, SetProcessDpiAwarenessContext,
     DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
 };
-use windows_sys::Win32::UI::Input::KeyboardAndMouse::{EnableWindow, SetFocus};
+use windows_sys::Win32::UI::Input::KeyboardAndMouse::{EnableWindow, GetFocus, SetFocus};
 use windows_sys::Win32::UI::Shell::{
     Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE, NOTIFYICONDATAW,
 };
@@ -3392,6 +3392,16 @@ unsafe fn update_simple_view(app: &GuiApp) {
     };
     update_write_availability(app, GetParent(controls.target_edit));
     let (range_minimum, range_maximum) = profile_limits(app);
+    let expected_target = app
+        .selected_preset
+        .map(|index| app.preset_watts[index])
+        .unwrap_or(app.selected_target.stapm_watts)
+        .clamp(range_minimum, range_maximum);
+    if GetFocus() != controls.target_edit
+        && get_control_text(controls.target_edit).trim() != expected_target.to_string()
+    {
+        set_edit_watts(controls.target_edit, expected_target);
+    }
     let target_label = wide(&format!(
         "目标功耗 · 范围 {range_minimum}-{range_maximum} W"
     ));
@@ -4718,6 +4728,17 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         (*app).fonts = Some(fonts);
         apply_topmost_style(hwnd, (*app).top_most);
         apply_view_mode(&mut *app, hwnd, (*app).view_mode);
+        let initial_watts = options
+            .uniform_target_watts
+            .unwrap_or((*app).preset_watts[0]);
+        let initial_watts = (*app)
+            .max_target_watts
+            .map(|cap| initial_watts.min(cap))
+            .unwrap_or(initial_watts)
+            .max(1);
+        (*app).selected_preset = Some(0);
+        (*app).selected_target = PowerLimitTarget::uniform(initial_watts);
+        set_edit_watts(GetDlgItem(hwnd, SIMPLE_TARGET_EDIT as i32), initial_watts);
     }
 
     if let Some(fixture) = options.ui_fixture {
