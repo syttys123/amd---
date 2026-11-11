@@ -127,6 +127,12 @@ not authoritative.
   `PASS`, ten catalog entries, one verified profile, matched
   `hawk-point-8845hs`, and live `10/10/10 W` limits; the importer accepted the
   report and rejected a deliberately missing family mapping.
+- The portable native package now carries `install-driver-bootstrap.ps1`, so a
+  fresh Windows host can initialize the bundled WinRing0 driver from the
+  extracted ZIP instead of relying on a development-machine path. The helper
+  validates the driver source, configures the demand-start service, verifies
+  the service binary path, and creates only the narrow `StartWinRing0` logon
+  task. Package verification now requires the helper to be present.
 - The Rust GUI now has a test-only `--dpi-fixture` override for deterministic
   100/125/150/200 render scales. The new `verify-dpi-fixtures.ps1` gate passed
   100%, 125%, and 150% with exact physical client sizes for both simple and

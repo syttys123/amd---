@@ -58,10 +58,26 @@ uninstall entry. It starts the GUI in read-only mode from the Startup folder
 and does not replace the stable `C:\RyzenAdj` deployment. Use
 `uninstall-preview.ps1` from the installed directory to remove it.
 
+Driver bootstrap
+----------------
+
+On a fresh Windows installation, the WinRing0 kernel service must be prepared
+once from an elevated PowerShell before the worker can read AMD SMU data. From
+the extracted package:
+
+  powershell -ExecutionPolicy Bypass -File .\install-driver-bootstrap.ps1
+
+The script copies the bundled driver to
+`%ProgramData%\AmdMobilePower\driver`, configures the demand-start
+`WinRing0_1_2_0` service, and creates the `\AmdMobilePower\StartWinRing0`
+logon task. The task elevates only driver startup; the GUI and worker remain
+non-elevated. Run the script again after moving the package to another machine.
+
 Requirements
 ------------
 
 - Windows 10 or Windows 11 x64.
 - An AMD mobile platform supported by the bundled RyzenAdj family profiles.
+- A one-time elevated driver bootstrap as described above.
 - Run the GUI as the current interactive user; the worker is a hidden child
   process.

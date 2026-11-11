@@ -49,6 +49,7 @@ From an elevated PowerShell session, run:
 .\install-driver-bootstrap.ps1
 ```
 
+The native portable ZIP includes this script beside `install-preview.ps1`.
 This copies the driver to `%ProgramData%\AmdMobilePower\driver`, configures the
 `WinRing0_1_2_0` demand-start service, and creates a small
 `\AmdMobilePower\StartWinRing0` logon task. The task elevates only
