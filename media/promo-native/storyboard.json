@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "title": "AMD Mobile Power",
+  "subtitle": "原生 GUI · 实时功耗 · 安全回读",
+  "repositoryUrl": "https://github.com/syttys123/amd-mobile-power",
+  "voice": "Microsoft Huihui Desktop",
+  "voiceRate": 3,
+  "voiceVolume": 90,
+  "scenes": [
+    {
+      "id": "hook",
+      "layout": "hero",
+      "eyebrow": "OPEN SOURCE / NATIVE GUI",
+      "title": "AMD 轻薄本\n功耗别只靠猜",
+      "caption": "实时看见 STAPM / PPT / 温度",
+      "image": "assets/native-gui-redesign-simple-2026-11-11.png",
+      "badges": [
+        "实时功耗",
+        "简洁 / 高级",
+        "原生 GUI"
+      ],
+      "narration": "插电、离电或接充电宝时，AMD 轻薄本的功耗会变化。AMD Mobile Power 把 RyzenAdj 做成可读、可回读的原生桌面工具。"
+    },
+    {
+      "id": "live",
+      "layout": "screenshot-right",
+      "eyebrow": "LIVE TELEMETRY",
+      "title": "每秒看见\n真实状态",
+      "bullets": [
+        "实时 STAPM / PPT",
+        "目标值与固件上限分开",
+        "供电、温度和匹配配置"
+      ],
+      "image": "assets/native-gui-redesign-advanced-2026-11-11.png",
+      "narration": "每秒刷新实时功耗、功耗上限和温度。目标值与固件上限分开显示，避免把调用成功当成实际生效。"
+    },
+    {
+      "id": "presets",
+      "layout": "screenshot-right",
+      "eyebrow": "EDITABLE PRESETS",
+      "title": "12 / 25 / 45 W\n快捷，也能编辑",
+      "bullets": [
+        "默认只读",
+        "校验平台与范围",
+        "GUI / worker 双门控"
+      ],
+      "image": "assets/native-gui-redesign-advanced-2026-11-11.png",
+      "narration": "三个常用功耗可以编辑并持久保存。开发版默认只读，写入需要显式解锁并校验平台与范围。"
+    },
+    {
+      "id": "safety",
+      "layout": "screenshot-right",
+      "eyebrow": "FAIL CLOSED",
+      "title": "安全边界\n写进产品里",
+      "bullets": [
+        "GUI / worker 隔离",
+        "单一硬件所有者",
+        "强制回读与失败锁定"
+      ],
+      "image": "assets/native-ui-worker-offline-simple-2026-11-11.png",
+      "narration": "硬件访问隔离在独立 worker，只允许一个 RyzenAdj 所有者。写入后强制回读，读取超时立即停止自动重启。"
+    },
+    {
+      "id": "contrast",
+      "layout": "screenshot-right",
+      "eyebrow": "ACCESSIBILITY",
+      "title": "高对比度\n也能清楚读",
+      "bullets": [
+        "跟随 Windows 设置",
+        "黑底 / 白字 / 黄色结构",
+        "完整几何不跳动"
+      ],
+      "image": "assets/native-high-contrast-advanced-2026-11-11.png",
+      "narration": "界面跟随 Windows 高对比度设置，切换到黑底、白字和黄色结构，同时保持控件几何和焦点状态稳定。"
+    },
+    {
+      "id": "compatibility",
+      "layout": "screenshot-right",
+      "eyebrow": "EVIDENCE FIRST",
+      "title": "先测清楚\n再谈兼容",
+      "bullets": [
+        "Ryzen 7 8845HS / Hawk Point",
+        "多世代保守配置",
+        "脱敏只读诊断"
+      ],
+      "image": "assets/native-battery-only-advanced-2026-11-11.png",
+      "narration": "目前完整实机证据来自 Ryzen 七 八八四五 H S。项目为多个 AMD 世代准备了保守配置，并提供无需打开图形界面的脱敏只读诊断；不同机型仍需独立验证。"
+    },
+    {
+      "id": "closing",
+      "layout": "closing",
+      "eyebrow": "OPEN SOURCE / SAFETY FIRST",
+      "title": "默认只读\n谨慎写入",
+      "caption": "欢迎提交同型号诊断与兼容性证据",
+      "image": "assets/amd-mobile-power-256.png",
+      "narration": "本地稳定版已经换上原生界面，默认只读，危险写入留在受控验证之后。Git Hub 开源，欢迎提交同型号诊断，不要关闭系统安全防护。"
+    }
+  ]
+}

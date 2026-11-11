@@ -1,5 +1,14 @@
 param(
-    [string]$OutputPath = "docs\assets\bilibili-cover-2026-11-10.png"
+    [string]$OutputPath = "docs\assets\bilibili-cover-2026-11-10.png",
+    [string]$ScreenshotPath = "docs\assets\main-dashboard-clean-package-2026-11-10.png",
+    [string]$Eyebrow = "AMD THIN & LIGHT",
+    [string]$PreviewLabel = "DEV PREVIEW",
+    [string]$TitleLine1 = "AMD 轻薄本",
+    [string]$TitleLine2 = "功耗看得见",
+    [string]$Subtitle = "实时功耗 · 可编辑预设 · 只读诊断",
+    [string]$PillText = "原生 GUI|1 秒刷新|回读校验",
+    [string]$FooterLeft = "github.com/syttys123/amd-mobile-power",
+    [string]$FooterRight = "READ-ONLY DEV BUILD"
 )
 
 $ErrorActionPreference = "Stop"
@@ -122,7 +131,7 @@ $resolvedOutputPath = Resolve-ProjectPath $OutputPath
 $outputDirectory = Split-Path -Parent $resolvedOutputPath
 New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 
-$screenshotPath = Resolve-ProjectPath "docs\assets\main-dashboard-clean-package-2026-11-10.png"
+$screenshotPath = Resolve-ProjectPath $ScreenshotPath
 $iconPath = Resolve-ProjectPath "assets\amd-mobile-power-256.png"
 if (-not (Test-Path -LiteralPath $screenshotPath)) {
     throw "Dashboard screenshot not found: $screenshotPath"
@@ -204,7 +213,7 @@ try {
     $previewFormat.Alignment = [Drawing.StringAlignment]::Far
     try {
         $graphics.DrawString(
-            "DEV PREVIEW",
+            $PreviewLabel,
             $previewFont,
             $previewBrush,
             [Drawing.RectangleF]::new(880, 52, 218, 26),
@@ -225,16 +234,16 @@ try {
     $accentBrush = [Drawing.SolidBrush]::new($accent)
     $subtitleBrush = [Drawing.SolidBrush]::new($textMuted)
     try {
-        Assert-TextWidth $graphics "eyebrow" "AMD THIN & LIGHT" $eyebrowFont 500
-        Assert-TextWidth $graphics "title line 1" "AMD 轻薄本" $titleFont 500
-        Assert-TextWidth $graphics "title line 2" "功耗看得见" $accentTitleFont 500
-        Assert-TextWidth $graphics "subtitle" "实时功耗 · 可编辑预设 · 只读诊断" $subtitleFont 500
+        Assert-TextWidth $graphics "eyebrow" $Eyebrow $eyebrowFont 500
+        Assert-TextWidth $graphics "title line 1" $TitleLine1 $titleFont 500
+        Assert-TextWidth $graphics "title line 2" $TitleLine2 $accentTitleFont 500
+        Assert-TextWidth $graphics "subtitle" $Subtitle $subtitleFont 500
 
-        $graphics.DrawString("AMD THIN & LIGHT", $eyebrowFont, $eyebrowBrush, 50, 136)
-        $graphics.DrawString("AMD 轻薄本", $titleFont, $titleBrush, 50, 178)
-        $graphics.DrawString("功耗看得见", $accentTitleFont, $accentBrush, 50, 250)
+        $graphics.DrawString($Eyebrow, $eyebrowFont, $eyebrowBrush, 50, 136)
+        $graphics.DrawString($TitleLine1, $titleFont, $titleBrush, 50, 178)
+        $graphics.DrawString($TitleLine2, $accentTitleFont, $accentBrush, 50, 250)
         $graphics.DrawString(
-            "实时功耗 · 可编辑预设 · 只读诊断",
+            $Subtitle,
             $subtitleFont,
             $subtitleBrush,
             52,
@@ -257,7 +266,12 @@ try {
     $pillBorder = [Drawing.Pen]::new([Drawing.Color]::FromArgb(130, 69, 214, 168), 1)
     try {
         $pillX = 52.0
-        foreach ($text in @("原生 GUI", "1 秒刷新", "回读校验")) {
+        $pillItems = @(
+            $PillText -split "\|" |
+                ForEach-Object { $_.Trim() } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        )
+        foreach ($text in $pillItems) {
             $size = $graphics.MeasureString($text, $pillFont)
             $rectangle = [Drawing.RectangleF]::new(
                 $pillX,
@@ -314,13 +328,13 @@ try {
     $footerMutedBrush = [Drawing.SolidBrush]::new($textMuted)
     try {
         $graphics.DrawString(
-            "github.com/syttys123/amd-mobile-power",
+            $FooterLeft,
             $footerFont,
             $footerBrush,
             50,
             622)
         $graphics.DrawString(
-            "READ-ONLY DEV BUILD",
+            $FooterRight,
             $footerFont,
             $footerMutedBrush,
             846,

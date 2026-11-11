@@ -1244,6 +1244,12 @@ third_party/
   targets `C:\RyzenAdj\amd-mobile-power-gui.exe` with
   `--enable-write-controls --simple-mode`. Evidence:
   `docs/evidence/packaging/v1.0.0-native-deployment-2026-11-11.json`.
+- Rendered a native `1.0.0` promotional-video draft from the current verified
+  screenshots: 74.2 seconds, 1920x1080, 25 fps, Chinese narration, captions,
+  review contact sheet, and a new native Bilibili cover. `verify-media.ps1`
+  passes full decode, audio, hash, text-safe-width, and review-asset checks.
+  Evidence: `docs/evidence/media/native-promo-draft-2026-11-11.json`. The draft
+  is `DRAFT_FOR_HUMAN_REVIEW`; no login or upload occurred.
 
 Development screenshot:
 

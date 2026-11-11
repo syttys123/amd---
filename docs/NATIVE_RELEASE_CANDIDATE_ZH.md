@@ -77,6 +77,17 @@ Evidence:
 - Evidence:
   `docs/evidence/packaging/v1.0.0-native-deployment-2026-11-11.json`
 
+## 发布媒体
+
+- 视频草稿：
+  `artifacts/media/amd-mobile-power-native-promo-draft-2026-11-11/amd-mobile-power-native-intro-draft-2026-11-11.mp4`
+- 时长：`74.2 s`，`1920x1080`，25 fps，H.264 + AAC
+- SHA256：
+  `0c2045722273783038c65b2f586e8590fadf09f5a6612b5613cae62b7affb276`
+- B 站封面：`docs/assets/bilibili-cover-native-2026-11-11.png`
+- 审片帧：`docs/assets/native-promo-draft-contact-sheet-2026-11-11.png`
+- 机器证据：`docs/evidence/media/native-promo-draft-2026-11-11.json`
+
 ## 界面证据
 
 - `assets/native-gui-redesign-simple-2026-11-11.png`

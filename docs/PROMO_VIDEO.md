@@ -1,45 +1,48 @@
 # Promotional Video Draft
 
-The first development-preview video is generated from the reviewed screenshots,
+The native development-preview video is generated from the reviewed screenshots,
 not from live hardware during rendering. Rendering starts no application
 process and performs no hardware write.
 
 ## Current Draft
 
-The current draft is 77.1 seconds at 1920x1080, 25 fps, with H.264 video, AAC
+The current draft is 74.2 seconds at 1920x1080, 25 fps, with H.264 video, AAC
 stereo audio, Chinese narration, and simplified-Chinese captions. It is marked
 `DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
 
-![Promo draft cover](assets/promo-draft-cover-2026-11-10.png)
+![Promo draft cover](assets/native-promo-draft-cover-2026-11-11.png)
 
-![Seven-scene review contact sheet](assets/promo-draft-contact-sheet-2026-11-10.png)
+![Seven-scene review contact sheet](assets/native-promo-draft-contact-sheet-2026-11-11.png)
 
 Bilibili 1146x717 cover:
 
-![Bilibili launch cover](assets/bilibili-cover-2026-11-10.png)
+![Bilibili launch cover](assets/bilibili-cover-native-2026-11-11.png)
 
 Local render:
 
 ```text
-artifacts/media/amd-mobile-power-promo-draft-2026-11-10/
-  amd-mobile-power-intro-draft-2026-11-10.mp4
+artifacts/media/amd-mobile-power-native-promo-draft-2026-11-11/
+  amd-mobile-power-native-intro-draft-2026-11-11.mp4
 ```
 
-- Size: 18,821,110 bytes.
+- Size: 20,542,287 bytes.
 - SHA256:
-  `5fa82dabe9030f0328095023d80413f281e48f9b876ae7c68d715ea14e334380`.
+  `0c2045722273783038c65b2f586e8590fadf09f5a6612b5613cae62b7affb276`.
 - Full-file FFmpeg decode: PASS.
-- Audio level: mean `-21.2 dB`, peak `-1.3 dB`.
+- Audio level: mean `-21.3 dB`, peak `-1.1 dB`.
 - Title, caption, and bullet safe-width checks: PASS.
 - Scene count: 7.
 
 Machine-readable evidence:
-`docs/evidence/media/promo-draft-2026-11-10.json`.
+`docs/evidence/media/native-promo-draft-2026-11-11.json`.
 
 Verify the local MP4 and every committed review/source hash without rerendering:
 
 ```powershell
-.\verify-media.ps1
+.\verify-media.ps1 `
+  -VideoPath .\artifacts\media\amd-mobile-power-native-promo-draft-2026-11-11\amd-mobile-power-native-intro-draft-2026-11-11.mp4 `
+  -ManifestPath .\artifacts\media\amd-mobile-power-native-promo-draft-2026-11-11\promo-manifest.json `
+  -EvidencePath .\docs\evidence\media\native-promo-draft-2026-11-11.json
 ```
 
 The verifier checks the manifest, evidence, SHA256, codecs, dimensions, frame
@@ -49,7 +52,14 @@ renderer, video cover, contact sheet, and the 1146x717 Bilibili cover.
 Regenerate the Bilibili cover:
 
 ```powershell
-.\render-launch-cover.ps1
+.\render-launch-cover.ps1 `
+  -OutputPath .\docs\assets\bilibili-cover-native-2026-11-11.png `
+  -ScreenshotPath .\assets\native-gui-redesign-simple-2026-11-11.png `
+  -Eyebrow "AMD NATIVE / OPEN SOURCE" `
+  -PreviewLabel "1.0.0 / LOCAL STABLE" `
+  -Subtitle "实时功耗 · 预设 · 回读校验" `
+  -PillText "原生 GUI|只读默认|兼容诊断" `
+  -FooterRight "READ-ONLY BY DEFAULT"
 ```
 
 The cover uses the verified clean-package screenshot, application icon, and
@@ -58,14 +68,17 @@ reviewed launch copy. Rendering fails if the main text exceeds its safe width.
 ## Render
 
 ```powershell
-.\render-promo.ps1
+.\render-promo.ps1 `
+  -Storyboard .\media\promo-native\storyboard.json `
+  -OutputDirectory .\artifacts\media\amd-mobile-power-native-promo-draft-2026-11-11 `
+  -OutputName amd-mobile-power-native-intro-draft-2026-11-11.mp4
 ```
 
 The default output is written under the ignored `artifacts/media` directory:
 
 ```text
-artifacts/media/amd-mobile-power-promo-draft-2026-11-10/
-  amd-mobile-power-intro-draft-2026-11-10.mp4
+artifacts/media/amd-mobile-power-native-promo-draft-2026-11-11/
+  amd-mobile-power-native-intro-draft-2026-11-11.mp4
   captions-zh.srt
   cover-draft.png
   promo-manifest.json

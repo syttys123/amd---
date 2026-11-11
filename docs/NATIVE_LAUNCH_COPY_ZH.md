@@ -103,6 +103,19 @@ AMD 轻薄本
 原生 GUI · 实时功耗 · 安全回读
 ```
 
+当前原生封面：
+
+```text
+docs/assets/bilibili-cover-native-2026-11-11.png
+```
+
+当前原生视频草稿：
+
+```text
+artifacts/media/amd-mobile-power-native-promo-draft-2026-11-11/
+  amd-mobile-power-native-intro-draft-2026-11-11.mp4
+```
+
 ## 发布前人工确认
 
 - 确认最终视频的配音、字幕、节奏和事实口径。
