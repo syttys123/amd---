@@ -1,0 +1,18 @@
+{
+  "Version": "1.0.15-native",
+  "Verification": "PASS",
+  "Package": "amd-mobile-power-v1.0.15-native-win-x64-native-preview.zip",
+  "SHA256": "590ad158f7b4f64b1b906a6369ce28a1aff2f2b1b5afb133d89bcb33a8c005c3",
+  "Size": 747058,
+  "SourceCommit": "c279db34d040fddd658e55495ca4b9b59e51d85a",
+  "PackageEvidence": "D:\\amd-mobile-power\\docs\\evidence\\packaging\\v1.0.15-native-clean-2026-11-12.json",
+  "ShellIntegration": "PASS",
+  "ShellEvidence": "D:\\amd-mobile-power\\docs\\evidence\\packaging\\v1.0.15-native-shell-integration-2026-11-12.json",
+  "NoChangePolicy": "PASS",
+  "PolicyEvidence": "D:\\amd-mobile-power\\docs\\evidence\\hardware\\v1.0.15-native-power-policy-no-change-2026-11-12.json",
+  "DpiFixtures": "PASS",
+  "DpiEvidence": "D:\\amd-mobile-power\\docs\\evidence\\ui\\native-dpi-100-125-150-2026-11-12.json",
+  "Reproducibility": "PASS",
+  "ReproducibilityEvidence": "D:\\amd-mobile-power\\docs\\evidence\\build\\reproducibility-2026-11-12.json",
+  "RecordedAt": "2026-11-12T06:33:20.2996046+08:00"
+}

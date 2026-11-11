@@ -189,7 +189,20 @@ not authoritative.
   bundle is `artifacts/native-release-review/v1.0.13-native`. Open gates remain
   the second AMD device, real 100%/150% Windows sessions, and hosted CI.
   Evidence: `docs/evidence/release/native-publication-readiness-1.0.13-2026-11-12.json`.
-- `C:\RyzenAdj` now contains the promoted `1.0.13-native` package. Package
+- `C:\RyzenAdj` now contains the promoted `1.0.16-native` package, which adds
+  worker supervision with automatic policy restore and a probe that retries
+  `ERROR_PIPE_BUSY`. Package SHA256 is
+  `e11d3ab0c5e954bec0cf8e1bb66b813d28170f406d628f968bd2dc982ef0b3e4`
+  (747,390 bytes, 19 checksum entries) from clean commit `5bcad77`; GUI
+  `89fedf42`, probe `9750418f`, worker `67af1d41`. The previous deployment is
+  recoverable at `C:\RyzenAdj.before-20261112-064143`. Gate PASS includes
+  reproducibility, and deployment acceptance killed the live worker: it came
+  back in `1.3 s`, re-applied `enabled=true` with both targets `10/10/10`, and
+  served `10/10/10 W` again. The probe answered `30/30` concurrent-poll stress
+  calls. Evidence:
+  `docs/evidence/packaging/v1.0.16-native-release-gate-2026-11-12.json`,
+  `docs/evidence/packaging/v1.0.16-native-deployment-2026-11-12.json`.
+- `C:\RyzenAdj` previously contained the promoted `1.0.13-native` package. Package
   SHA256 is
   `eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7`
   (745,536 bytes, 19 checksum entries) from clean commit `6a98692`, and a
