@@ -3,8 +3,9 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.17-native`. The
-previous native `1.0.16-native` build is preserved as
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.18-native`. The
+previous native `1.0.17-native` build is preserved as
+`C:\RyzenAdj.before-20261112-074413`, `1.0.16-native` as
 `C:\RyzenAdj.before-20261112-070824`, `1.0.15-native` as
 `C:\RyzenAdj.before-20261112-064143`, `1.0.14-native` as
 `C:\RyzenAdj.before-20261112-063328`, `1.0.13-native` as
@@ -27,13 +28,15 @@ previous native `1.0.16-native` build is preserved as
 
 Decision (2026-11-12): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.17-native` package. Broader AMD generation support remains experimental.
+`1.0.18-native` package. Broader AMD generation support remains experimental.
 The current local publication readiness gate is `PASS` with all 13 checks true,
 with
 `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW` and no local blockers. Evidence:
-`docs/evidence/release/native-publication-readiness-1.0.17-2026-11-12.json`.
+`docs/evidence/release/native-publication-readiness-1.0.18-2026-11-12.json`.
 
-Note (2026-11-12): `1.0.17-native` adds hung-worker replacement on top of the
+Note (2026-11-12): `1.0.18-native` is the first package gated with
+`-VerifyWorkerHang`, which runs the maintained hang verifier against the
+expanded package. `1.0.17-native` added hung-worker replacement on top of the
 30 s heartbeat watchdog. A worker that stops answering is terminated from a
 background thread and respawned, then the saved battery/AC policy is restored;
 the GUI window remains responsive even while a driver-bound worker is being
@@ -86,13 +89,13 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.17-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.18-native-win-x64-native-preview.zip
 ```
 
-- Size: `751,599` bytes.
+- Size: `751,600` bytes.
 - SHA256:
-  `95abf61a87ff4aaf9c549f0f8df1d0632dd8ceb7daace8e9e3650f8ff66cde62`.
-- Source commit: `672933c9a053cb3d163c0d0166f34da09bf6d8d5`.
+  `fd7bf191ac557fb9bc1038cb725907ba67e5f819b8eeee6136f5cbe2721d6ef1`.
+- Source commit: `12934dfb2850fab6a9a91216343b45a18f849d07`.
 - Working tree at build time: clean.
 - Reproducibility: GUI `63193c17`, probe `9750418f`, worker `67af1d41`, and the
   ZIP itself are byte-identical across two builds.
@@ -101,7 +104,7 @@ artifacts/native-packages/amd-mobile-power-v1.0.17-native-win-x64-native-preview
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.17-native
+artifacts/native-release-review/v1.0.18-native
 ```
 
 The bundle is `REVIEW_ONLY` and is not a public release.
@@ -153,7 +156,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Read-only hardware capability and telemetry probe on Ryzen 7 8845HS on AC:
   Hawk Point family `10`, PM table `4c0009`, profile
   `hawk-point-8845hs`, limits `10/10/10 W`.
-- `1.0.17-native` clean package verification (19 checksum entries), isolated
+- `1.0.18-native` clean package verification (19 checksum entries), isolated
   install/uninstall, shell integration, DPI fixtures, packaged headless probe,
   and a controlled current-value policy probe pass. The deployed UI shows
   target editor `10`, effective range `5-10 W`, one visible `10 W` preset, and
@@ -177,6 +180,9 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   suspends the worker, samples GUI responsiveness every second, and requires
   the replacement to restore the 10 W policy. `verify-release.ps1
   -VerifyWorkerHang` runs it against the expanded package.
+- `1.0.18-native` is the first package gated with `-VerifyWorkerHang`:
+  replacement in `34.9 s`, `28/28` responsive samples, zero failures, and the
+  10/10/10 W policy restored.
 - Native read-only write guard: invalid target rejected, no write requested.
 - Battery-authorized dry-run write guard: PASS with
   `ExecuteNoChangeWrite=Not requested`.
@@ -260,6 +266,13 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
+- `docs/evidence/packaging/v1.0.18-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.18-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.18-native-shell-integration-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.18-native-deployment-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.18-native-power-policy-no-change-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.18-native-worker-hang-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.18-native-ui-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-watchdog-hang-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-clean-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-release-gate-2026-11-12.json`
@@ -295,7 +308,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - `docs/evidence/ui/native-deployed-1.0.8-native-ui-2026-11-12.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
-- `docs/evidence/release/native-publication-readiness-1.0.17-2026-11-12.json`
+- `docs/evidence/release/native-publication-readiness-1.0.18-2026-11-12.json`
 - `docs/assets/native-exe-icon-2026-11-11.png`
 - `native/rust-gui/build.rs`
 - `native/check-exe-icon.ps1`

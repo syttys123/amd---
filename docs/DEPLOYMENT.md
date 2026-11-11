@@ -75,27 +75,28 @@ rolls back on failure.
 
 ## Current Deployment Evidence
 
-On 2026-11-12, `1.0.17-native` replaced `1.0.16-native` at `C:\RyzenAdj`. It
-adds hung-worker replacement: a 30 s heartbeat watchdog terminates and
-respawns a worker that stops answering, from a background thread, then
-restores the saved battery/AC policy. Exit supervision, probe pipe-busy
-retries, and the 10 W uniform policy remain in place.
+On 2026-11-12, `1.0.18-native` replaced `1.0.17-native` at `C:\RyzenAdj`. It
+is the first package gated with `-VerifyWorkerHang`: the gate suspends the
+isolated worker, waits for the 30 s heartbeat watchdog to replace it, checks
+that the GUI stays responsive, and requires the saved 10/10/10 W policy to
+return. Exit supervision, probe pipe-busy retries, and the 10 W uniform policy
+remain in place.
 
 - Package SHA256:
-  `95abf61a87ff4aaf9c549f0f8df1d0632dd8ceb7daace8e9e3650f8ff66cde62`
-- Package size: `751,599` bytes, 19 checksum entries
-- Package source commit: `672933c9a053cb3d163c0d0166f34da09bf6d8d5`
+  `fd7bf191ac557fb9bc1038cb725907ba67e5f819b8eeee6136f5cbe2721d6ef1`
+- Package size: `751,600` bytes, 19 checksum entries
+- Package source commit: `12934dfb2850fab6a9a91216343b45a18f849d07`
 - Deployed GUI: `63193c17a1bf67a6a4638fe4f42a8f07301ad67ab6131be550f18cef774db24b`
 - Deployed worker: `67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1`
 - Deployed probe: `9750418f15ebce2d70e750e845cfa5408751a96b178d60bbaa168155322a615e`
-- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-070824`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-074413`
 - Release gate:
-  `docs\evidence\packaging\v1.0.17-native-release-gate-2026-11-12.json`
+  `docs\evidence\packaging\v1.0.18-native-release-gate-2026-11-12.json`
 - Deployment evidence:
-  `docs\evidence\packaging\v1.0.17-native-deployment-2026-11-12.json`
-- Acceptance: `NtSuspendProcess` held the live worker for `34.5 s`; the GUI
-  stayed responsive, a replacement worker appeared, and the saved policy was
-  re-applied (`enabled=true`, both targets `10/10/10`).
+  `docs\evidence\packaging\v1.0.18-native-deployment-2026-11-12.json`
+- Acceptance: `-VerifyWorkerHang` held the isolated worker until the watchdog
+  replaced it in `34.9 s`; `28/28` responsiveness samples passed and the saved
+  policy was re-applied (`enabled=true`, both targets `10/10/10`).
 
 On 2026-11-12, `1.0.13-native` replaced `1.0.12-native` at `C:\RyzenAdj`. It is
 the first release whose portable ZIP rebuilds byte-identically from the same

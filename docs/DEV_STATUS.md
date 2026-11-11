@@ -221,7 +221,19 @@ not authoritative.
   bundle is `artifacts/native-release-review/v1.0.13-native`. Open gates remain
   the second AMD device, real 100%/150% Windows sessions, and hosted CI.
   Evidence: `docs/evidence/release/native-publication-readiness-1.0.13-2026-11-12.json`.
-- `C:\RyzenAdj` now contains the promoted `1.0.17-native` package, which adds
+- `C:\RyzenAdj` now contains the promoted `1.0.18-native` package, the first
+  package gated with `-VerifyWorkerHang`. Package SHA256 is
+  `fd7bf191ac557fb9bc1038cb725907ba67e5f819b8eeee6136f5cbe2721d6ef1`
+  (751,600 bytes, 19 checksum entries) from clean commit `12934df`; GUI
+  `63193c17`, probe `9750418f`, worker `67af1d41`. The previous deployment is
+  recoverable at `C:\RyzenAdj.before-20261112-074413`. The gate suspended the
+  isolated worker, replaced it in `34.9 s` with `28/28` responsive samples,
+  and restored `enabled=true` with both targets `10/10/10 W`. Packaged UI,
+  shell integration, DPI fixtures, the no-change 10 W policy write, and
+  reproducibility all passed. Evidence:
+  `docs/evidence/packaging/v1.0.18-native-release-gate-2026-11-12.json`,
+  `docs/evidence/packaging/v1.0.18-native-deployment-2026-11-12.json`.
+- `C:\RyzenAdj` previously contained the promoted `1.0.17-native` package, which adds
   hung-worker replacement on top of the 1.0.16 supervision path. Package
   SHA256 is
   `95abf61a87ff4aaf9c549f0f8df1d0632dd8ceb7daace8e9e3650f8ff66cde62`

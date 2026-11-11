@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `1.0.17-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.18-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,21 +16,21 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `1.0.17-native`
+- Candidate: `1.0.18-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v1.0.17-native-win-x64-native-preview.zip`
-- Size: `751,599` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.18-native-win-x64-native-preview.zip`
+- Size: `751,600` bytes
 - SHA256:
-  `95abf61a87ff4aaf9c549f0f8df1d0632dd8ceb7daace8e9e3650f8ff66cde62`
-- Package source commit: `672933c9a053cb3d163c0d0166f34da09bf6d8d5`
+  `fd7bf191ac557fb9bc1038cb725907ba67e5f819b8eeee6136f5cbe2721d6ef1`
+- Package source commit: `12934dfb2850fab6a9a91216343b45a18f849d07`
 - Working tree at build time: clean
-- Review bundle: `artifacts/native-release-review/v1.0.17-native`
+- Review bundle: `artifacts/native-release-review/v1.0.18-native`
 
-本版新增 worker 卡死自愈：监控线程每完成一轮采样就更新心跳，连续 30 秒无
-心跳时 GUI 在后台线程终止并重启 worker，再下发掉电/插电自动策略；终止和
-限时等待都不占用 UI 线程，worker 卡在驱动调用时窗口仍可响应。1.0.16 的
-退出重启、探针管道忙重试、同提交逐字节可复现、目标框同步、安全驱动卸载、
-多代 profile 目录、DPI 门禁和电池/插电统一策略全部保留。
+本版是第一个把 `-VerifyWorkerHang` 纳入发布门禁的包：门禁会在展开包上
+挂起 worker，等待 30 秒心跳 watchdog 替换，检查窗口全程可响应，并要求
+10/10/10 W 策略恢复。1.0.17 的卡死自愈、退出重启、探针管道忙重试、同提交
+逐字节可复现、目标框同步、安全驱动卸载、多代 profile 目录、DPI 门禁和
+电池/插电统一策略全部保留。
 
 ## 本机验证
 
@@ -43,14 +43,16 @@ AMD 笔记本都受支持。
   （`collectionStatus=PASS`，AC `10/10/10 W`）：PASS。
 - 可复现构建：GUI `ff2dcd48`、worker `67af1d41`、探针 `6a050588`、
   ZIP `eac6fc73`，两次构建逐字节一致。（1.0.13 记录）
-- 1.0.17 可复现构建：GUI `63193c17`、worker `67af1d41`、探针 `9750418f`、
-  ZIP `95abf61a`，两次构建逐字节一致。
+- 1.0.18 可复现构建：GUI `63193c17`、worker `67af1d41`、探针 `9750418f`、
+  ZIP `fd7bf191`，两次构建逐字节一致。
 - worker 自我修复：杀掉部署中的 worker 后新进程 `1.3 s` 内就绪，策略重新
   下发为 `enabled=true`、电池/插电 `10/10/10`，实时回读 `10/10/10 W`；探针在
   GUI 轮询下连续 `30/30` 次调用成功。
 - worker 卡死替换：`NtSuspendProcess` 挂起隔离 worker `34.5 s`，GUI 全程
   `Responding=true`，新 worker 接替后策略恢复为 `enabled=true`、电池/插电
   `10/10/10`、`lastAttemptSucceeded=true`。
+- `1.0.18` 的 `-VerifyWorkerHang` 打包门禁：替换 `34.9 s`、`28/28` 次窗口
+  响应采样通过、失败 0 次，策略恢复 `10/10/10 W`。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
 - `1.0.9-native -> 1.0.10-native` 晋升：包校验、隔离安装/卸载、桌面快捷方式
@@ -71,6 +73,11 @@ AMD 笔记本都受支持。
 
 Evidence:
 
+- `docs/evidence/packaging/v1.0.18-native-clean-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.18-native-release-gate-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.18-native-shell-integration-2026-11-12.json`
+- `docs/evidence/hardware/v1.0.18-native-worker-hang-2026-11-12.json`
+- `docs/evidence/ui/native-packaged-1.0.18-native-ui-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-watchdog-hang-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-clean-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-release-gate-2026-11-12.json`
@@ -94,6 +101,7 @@ Evidence:
 
 Evidence:
 
+- `docs/evidence/hardware/v1.0.18-native-power-policy-no-change-2026-11-12.json`
 - `docs/evidence/hardware/v1.0.17-native-power-policy-no-change-2026-11-12.json`
 - `docs/evidence/hardware/v1.0.17-native-worker-hang-verifier-2026-11-12.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
@@ -103,10 +111,10 @@ Evidence:
 ## 本地部署
 
 - 目标目录：`C:\RyzenAdj`
-- 版本：`1.0.17-native`
-- 旧版备份：`C:\RyzenAdj.before-20261112-070824`
+- 版本：`1.0.18-native`
+- 旧版备份：`C:\RyzenAdj.before-20261112-074413`
 - 仓库备份：
-  `artifacts/deployment-backups/promote-amd-mobile-power-v1.0.17-native-win-x64-native-preview-20261112-070824.json`
+  `artifacts/deployment-backups/promote-amd-mobile-power-v1.0.18-native-win-x64-native-preview-20261112-074413.json`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 10
   --uniform-target-watts 10`
@@ -114,7 +122,7 @@ Evidence:
   快捷方式真实参数启动验证 PASS；实时策略 `enabled=true`、电池和插电均为
   `10/10/10 W`，AC 回读 `10/10/10 W`
 - Evidence:
-  `docs/evidence/packaging/v1.0.17-native-deployment-2026-11-12.json`
+  `docs/evidence/packaging/v1.0.18-native-deployment-2026-11-12.json`
 
 ## 发布就绪检查
 
@@ -129,7 +137,7 @@ Evidence:
   真实 100%/150% Windows 会话缩放、托管 CI、
   WinRing0 干净安全基线、视频/封面/文案审阅、公开发布批准、B 站上传。
 - Evidence:
-  `docs/evidence/release/native-publication-readiness-1.0.17-2026-11-12.json`
+  `docs/evidence/release/native-publication-readiness-1.0.18-2026-11-12.json`
 
 ## 发布媒体
 
@@ -138,7 +146,7 @@ Evidence:
 - 时长：`78.2 s`，`1920x1080`，H.264 + AAC
 - SHA256：
   `af70c9e7bd837c04346dde7110fa7cd0a9c9221edad5f3e5826a28c92ed7d575`
-- B 站封面：`docs/assets/bilibili-cover-native-1.0.17-2026-11-12.png`
+- B 站封面：`docs/assets/bilibili-cover-native-10w-2026-11-12.png`
 - 审片帧：`docs/assets/native-promo-10w-contact-sheet-2026-11-12.png`
 - 机器证据：`docs/evidence/media/native-promo-draft-2026-11-12.json`
 
@@ -177,7 +185,7 @@ PM table、匹配 profile、电源线和当前限制，并写出脱敏 JSON/Mark
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass `
   -File native\verify-release.ps1 `
-  -Version 1.0.17-native `
+  -Version 1.0.18-native `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```

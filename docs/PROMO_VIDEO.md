@@ -18,7 +18,7 @@ target editor and the `5-10 W` effective range. It is marked
 
 Bilibili 1146x717 cover:
 
-![Bilibili launch cover](assets/bilibili-cover-native-1.0.17-2026-11-12.png)
+![Bilibili launch cover](assets/bilibili-cover-native-10w-2026-11-12.png)
 
 Local render:
 
@@ -55,10 +55,10 @@ Regenerate the Bilibili cover:
 
 ```powershell
 .\render-launch-cover.ps1 `
-  -OutputPath .\docs\assets\bilibili-cover-native-1.0.17-2026-11-12.png `
+  -OutputPath .\docs\assets\bilibili-cover-native-10w-2026-11-12.png `
   -ScreenshotPath .\assets\native-gui-10w-1.0.10-simple-2026-11-12.png `
   -Eyebrow "AMD NATIVE / OPEN SOURCE" `
-  -PreviewLabel "1.0.17 / LOCAL 10 W" `
+  -PreviewLabel "10 W / VERIFIED" `
   -TitleLine1 "AMD 轻薄本" `
   -TitleLine2 "10W" `
   -Subtitle "10W 统一 · 实时回读" `
