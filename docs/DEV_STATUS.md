@@ -1175,6 +1175,13 @@ third_party/
   separate current-value read-back/write-back probe. A failed `rc.17` attempt
   exposed that the old path could request 12/45 W during package verification;
   the live limits remained `25.08/45/25 W` and the policy stayed disabled.
+- Added `native/import-compatibility-report.ps1` to turn reviewed collector
+  JSON into repository evidence. It requires schema 1, a read-only worker,
+  every privacy flag false, no drive/user-profile paths or pipe names, and a
+  unique report hash. It archives the JSON under
+  `docs/evidence/compatibility`, updates `index.json`, and regenerates
+  `docs/COMPATIBILITY_REPORTS.md`. The rc.17 self-report is the first indexed
+  entry; duplicate and path-leak rejection paths were negative-tested.
 - Added native Windows high-contrast support without changing user settings.
   The custom canvas, owner-drawn buttons, native edit backgrounds, focus rings,
   semantic badges, and status bands now switch palette on system setting

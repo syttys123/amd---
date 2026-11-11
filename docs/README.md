@@ -20,6 +20,7 @@ conflict, prefer the first applicable source in this order:
 | `MIGRATING_FROM_LEGACY.md` | Safe transition from the old RyzenPower task and worker |
 | `SUPPORTED_HARDWARE.md` | Current compatibility scope and evidence limits |
 | `COMPATIBILITY_REPORT_TEMPLATE.md` | Public hardware-evidence report format |
+| `COMPATIBILITY_REPORTS.md` | Imported, sanitized read-only device reports |
 | `SECURITY.md` | Hardware-write, driver, privilege, and data-safety model |
 | `WINDOWS_DRIVER_SECURITY.md` | Current Windows, Defender, WinRing0, and signature evidence |
 | `HARDWARE_MATRIX.md` | Device-level evidence |

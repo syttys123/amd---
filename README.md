@@ -105,6 +105,7 @@ controlled current-value write-back/read-back policy gate on the development
 - `docs/UI_DESIGN_DATABASE.md` records the local design-system evidence and
   compact-window UI contracts.
 - `docs/SUPPORTED_HARDWARE.md` explains current compatibility evidence.
+- `docs/COMPATIBILITY_REPORTS.md` indexes sanitized read-only device reports.
 - `docs/SECURITY.md` documents hardware and driver safety boundaries.
 - `docs/BUILDING.md` covers application and RyzenAdj builds.
 - `docs/PACKAGING.md` covers portable and installed packaging.

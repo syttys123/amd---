@@ -151,3 +151,6 @@ For every tested device record:
 - Requested and effective limits.
 - Temperature and stability observations.
 
+Import reviewed reports with `native/import-compatibility-report.ps1`; the
+resulting device index is `docs/COMPATIBILITY_REPORTS.md`.
+

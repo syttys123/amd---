@@ -81,6 +81,10 @@ The bundle is `REVIEW_ONLY` and is not a public release.
 - Controlled policy probe requested the live AC limits `25/45/25 W`, verified
   the worker read-back, disabled the policy, and shut down cleanly. Live limits
   remained `25/45/25 W`.
+- Added a local compatibility-report importer that rejects non-read-only,
+  incomplete-privacy, path-leaking, and duplicate reports; the first rc.17
+  report is archived under `docs/evidence/compatibility` and indexed in
+  `docs/COMPATIBILITY_REPORTS.md`.
 
 ## Evidence
 
@@ -89,6 +93,8 @@ The bundle is `REVIEW_ONLY` and is not a public release.
 - `docs/evidence/packaging/v0.6.0-native-rc.17-shell-integration-2026-11-11.json`
 - `docs/evidence/packaging/v0.6.0-native-rc.17-cross-version-upgrade-2026-11-11.json`
 - `docs/evidence/hardware/v0.6.0-native-rc.17-power-policy-no-change-2026-11-11.json`
+- `docs/COMPATIBILITY_REPORTS.md`
+- `docs/evidence/compatibility/index.json`
 - `docs/evidence/ui/native-redesign-2026-11-11.json`
 - `docs/evidence/ui/native-ui-failure-states-2026-11-11.json`
 - `docs/evidence/ui/native-battery-only-policy-2026-11-11.json`

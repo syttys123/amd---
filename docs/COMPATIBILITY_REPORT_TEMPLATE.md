@@ -18,6 +18,19 @@ uses a field whitelist plus path sanitization. Review the JSON before attaching
 it publicly. The optional Markdown file is an issue-ready summary; review it
 before attaching it to a public issue.
 
+Maintainers import a reviewed report into the repository index with:
+
+```powershell
+.\native\import-compatibility-report.ps1 `
+  -ReportPath .\compatibility.json
+```
+
+The importer rejects reports that do not declare all privacy flags false,
+reports from a write-enabled worker, local drive paths, user-profile paths, and
+named-pipe names. It deduplicates by SHA256, archives the sanitized JSON under
+`docs/evidence/compatibility`, updates `docs/evidence/compatibility/index.json`,
+and regenerates `docs/COMPATIBILITY_REPORTS.md`. It does not upload anything.
+
 The report already carries a `host` block with manufacturer, model, BIOS
 version, Windows edition/version/build, and a `privacy` block that states no
 paths, process IDs, account names, serial numbers, logs, or upload were

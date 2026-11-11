@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "reportType": "amd-mobile-power-native-compatibility",
+  "collectionStatus": "PASS",
+  "collectedAt": "2026-11-11T19:27:54.3204853+08:00",
+  "privacy": {
+    "localPathsIncluded": false,
+    "processIdIncluded": false,
+    "accountNamesIncluded": false,
+    "serialNumbersIncluded": false,
+    "recentLogsIncluded": false,
+    "networkUploadPerformed": false
+  },
+  "host": {
+    "manufacturer": "MECHREVO",
+    "model": "WUJIE15 PRO",
+    "biosVersion": "T153_HPT_V05",
+    "windowsEdition": "Microsoft Windows 11 专业工作站版",
+    "windowsVersion": "10.0.26300",
+    "windowsBuild": "26300"
+  },
+  "package": {
+    "name": "amd-mobile-power-v0.6.0-native-rc.17-win-x64-native-preview",
+    "version": "0.6.0-native-rc.17",
+    "sourceCommit": "3323f25a5072c2f6a09eaa630c46b02bccce3b52"
+  },
+  "environment": {
+    "os": "Microsoft Windows NT 10.0.26300.0",
+    "architecture": "X64",
+    "powerShell": "7.6.9"
+  },
+  "worker": {
+    "status": "ok",
+    "version": "0.5.0-native",
+    "hardwareInitialized": true,
+    "writeControlsEnabled": false
+  },
+  "platform": {
+    "processorName": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "vendor": "AuthenticAMD",
+    "ryzenAdjFamily": 10,
+    "ryzenAdjFamilyName": "Hawk Point",
+    "smuBiosVersion": "15",
+    "pmTableVersion": "4c0009",
+    "isSupported": true,
+    "unsupportedReason": null,
+    "limits": {
+      "supportsStapm": true,
+      "supportsFast": true,
+      "supportsSlow": true,
+      "supportsAny": true
+    },
+    "profile": {
+      "id": "hawk-point-8845hs",
+      "displayName": "Hawk Point 8845HS development profile",
+      "minimumWatts": 5,
+      "maximumWatts": 60,
+      "defaultWatts": 25,
+      "isVerified": true
+    }
+  },
+  "telemetry": {
+    "powerLine": "ac",
+    "targetWatts": null,
+    "stapmLimitWatts": 25.0512,
+    "fastLimitWatts": 45,
+    "slowLimitWatts": 25,
+    "tctlValueCelsius": 64.1679,
+    "tctlLimitCelsius": 95,
+    "hasFirmwareClamp": false,
+    "updatedAt": "2026-11-11T11:27:53Z"
+  },
+  "error": null
+}
