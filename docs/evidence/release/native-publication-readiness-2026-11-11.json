@@ -1,0 +1,32 @@
+{
+  "SchemaVersion": 1,
+  "Version": "1.0.0-native",
+  "Package": "amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip",
+  "PackageSHA256": "f3fd6ea1d1b0292c6ec9ea7445f191adc302066f78a728528a3722923c73a0bf",
+  "LocalDeployment": "C:\\RyzenAdj",
+  "Checks": {
+    "PackageHash": true,
+    "PackageVerification": true,
+    "NoChangePolicy": true,
+    "PackagedUi": true,
+    "LocalDeployment": true,
+    "DesktopShortcut": true,
+    "CompatibilityIndex": true,
+    "MediaDraft": true,
+    "ReviewBundle": true
+  },
+  "LocalReadiness": "PASS",
+  "PublicReleaseReadiness": "READY_FOR_HUMAN_REVIEW",
+  "OpenGates": {
+    "SecondAmdDevice": "PENDING",
+    "Dpi100And150": "PENDING",
+    "HostedWindowsCi": "PENDING",
+    "CleanWindowsWinRing0Baseline": "PENDING",
+    "HumanVideoAndClaimReview": "PENDING",
+    "ExplicitPublicReleaseApproval": "PENDING",
+    "BilibiliAuthenticatedUpload": "PENDING"
+  },
+  "BlockersFromLocalChecks": [],
+  "Note": "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check.",
+  "RecordedAt": "2026-11-11T23:00:47.3913332+08:00"
+}

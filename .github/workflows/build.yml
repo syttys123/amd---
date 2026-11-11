@@ -27,7 +27,8 @@ jobs:
             "native/verify-upgrade.ps1",
             "native/capture-rust-gui-redesign.ps1",
             "native/collect-native-diagnostics.ps1",
-            "native/import-compatibility-report.ps1"
+            "native/import-compatibility-report.ps1",
+            "native/verify-publication-readiness.ps1"
           )
           foreach ($file in $files) {
             $tokens = $null

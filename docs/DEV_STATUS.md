@@ -1250,6 +1250,15 @@ third_party/
   passes full decode, audio, hash, text-safe-width, and review-asset checks.
   Evidence: `docs/evidence/media/native-promo-draft-2026-11-11.json`. The draft
   is `DRAFT_FOR_HUMAN_REVIEW`; no login or upload occurred.
+- Added `native/verify-publication-readiness.ps1`. It cross-checks the package
+  hash, clean package gate, current-value policy evidence, packaged UI/tray
+  evidence, deployed `C:\RyzenAdj` hashes/version, desktop shortcut, compatibility
+  index, native media draft, and review-bundle checksums. The current report is
+  `LocalReadiness=PASS` and `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`,
+  with second-device, 100%/150% DPI, hosted CI, WinRing0 clean-baseline,
+  human media review, release approval, and Bilibili upload still pending.
+  Evidence:
+  `docs/evidence/release/native-publication-readiness-2026-11-11.json`.
 
 Development screenshot:
 
