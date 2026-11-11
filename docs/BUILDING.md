@@ -165,7 +165,7 @@ version:
 
 ```powershell
 .\native\verify-release.ps1 `
-  -Version 0.6.0-native-rc.17 `
+  -Version 1.0.0-native `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```

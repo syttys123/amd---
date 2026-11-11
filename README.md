@@ -78,17 +78,17 @@ runtime details.
 ## Native Preview
 
 The `main` line now includes a clean-room Rust GUI with a
-C++ worker. The current hardware-gated candidate is `0.6.0-native-rc.17`:
+C++ worker. The current stable-local candidate is `1.0.0-native`:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.17-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip
 ```
 
 It is an internal candidate, not a replacement for the stable `C:\RyzenAdj`
 deployment. Its clean package gate passed extracted GUI/worker read-only
 verification, sanitized diagnostics, checksums, isolated install/uninstall,
 current-user shell integration, Windows high-contrast rendering, packaged
-tray/taskbar and mode evidence, the `rc.16` to `rc.17` upgrade, and a
+tray/taskbar and mode evidence, the `rc.17` to `1.0.0-native` upgrade, and a
 controlled current-value write-back/read-back policy gate on the development
 8845HS. Broader AMD generation evidence and 100%/150% DPI sessions remain open.
 
@@ -112,11 +112,11 @@ controlled current-value write-back/read-back policy gate on the development
 - `docs/HARDWARE_TEST_PROCEDURE.md` defines the supervised write-test gate.
 - `docs/LAUNCH_COPY_ZH.md` contains the review-only GitHub and Bilibili launch
   copy. It is not approval to publish.
-- `docs/NATIVE_LAUNCH_COPY_ZH.md` contains the native rc.17 review-only launch
+- `docs/NATIVE_LAUNCH_COPY_ZH.md` contains the native 1.0.0 review-only launch
   copy. It is not approval to publish.
 - `docs/RELEASE_CANDIDATE_ZH.md` consolidates the current package, evidence,
   media, launch copy, and remaining publication gates.
-- `docs/NATIVE_RELEASE_CANDIDATE_ZH.md` consolidates the native rc.17 package,
+- `docs/NATIVE_RELEASE_CANDIDATE_ZH.md` consolidates the native 1.0.0 package,
   hardware gate, UI evidence, and remaining publication gates.
 
 ## Development

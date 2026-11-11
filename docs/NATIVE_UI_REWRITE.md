@@ -223,7 +223,7 @@ Evidence and screenshots:
 - `docs/evidence/ui/native-high-contrast-2026-11-11.json`
 - `assets/native-high-contrast-simple-2026-11-11.png`
 - `assets/native-high-contrast-advanced-2026-11-11.png`
-- `docs/evidence/ui/native-packaged-rc17-ui-2026-11-11.json`
+- `docs/evidence/ui/native-packaged-1.0.0-ui-2026-11-11.json`
 
 Reproduction:
 

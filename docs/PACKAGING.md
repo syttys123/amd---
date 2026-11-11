@@ -40,7 +40,7 @@ the policy-save write, use the read-only runtime gate:
 .\native\build-package.ps1 `
   -NoBuild `
   -ReadOnlyRuntimeVerification `
-  -Version 0.6.0-native-rc.17
+  -Version 1.0.0-native
 ```
 
 This runs the extracted GUI/worker, write-control UI, diagnostics export,
@@ -63,7 +63,7 @@ worktree:
 
 ```powershell
 .\native\verify-release.ps1 `
-  -Version 0.6.0-native-rc.17 `
+  -Version 1.0.0-native `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```
@@ -79,7 +79,7 @@ After the release gate passes and the evidence is committed, create a local
 review-only bundle:
 
 ```powershell
-.\native\prepare-release-review.ps1 -Version 0.6.0-native-rc.17
+.\native\prepare-release-review.ps1 -Version 1.0.0-native
 ```
 
 The command writes the ZIP, release gate, policy/shell evidence, notices,
@@ -115,13 +115,13 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 Current internal native release candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.17-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip
 ```
 
-- Size: `535,407` bytes.
+- Size: `535,197` bytes.
 - SHA256:
-  `79e1e48505d9d00802a3d5b724da7b5232d9ff3f2d98c20d7776722f4142b35c`.
-- Source commit: `3323f25a5072c2f6a09eaa630c46b02bccce3b52`.
+  `f3fd6ea1d1b0292c6ec9ea7445f191adc302066f78a728528a3722923c73a0bf`.
+- Source commit: `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Working tree at build time: clean.
 - Runtime verification: hardware read-only/write-guard, clean-room native GUI
   lifecycle with three Win32 minimize/restore cycles, extracted read-only
@@ -145,20 +145,21 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.17-win-x64-native-pr
   staged rollback switching, uninstall, and refusal to overwrite an unmarked
   non-empty directory.
 - Aggregate evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.17-release-gate-2026-11-11.json`.
+  `docs/evidence/packaging/v1.0.0-native-release-gate-2026-11-11.json`.
 - Package evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.17-clean-2026-11-11.json`.
+  `docs/evidence/packaging/v1.0.0-native-clean-2026-11-11.json`.
 - Shell evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.17-shell-integration-2026-11-11.json`.
+  `docs/evidence/packaging/v1.0.0-native-shell-integration-2026-11-11.json`.
 - Install upgrade evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.17-cross-version-upgrade-2026-11-11.json`.
+  `docs/evidence/packaging/v1.0.0-native-cross-version-upgrade-2026-11-11.json`.
 - Policy no-change evidence:
-  `docs/evidence/hardware/v0.6.0-native-rc.17-power-policy-no-change-2026-11-11.json`.
+  `docs/evidence/hardware/v1.0.0-native-power-policy-no-change-2026-11-11.json`.
 
 This RC is not yet the public stable release. The `.NET` GUI remains the
-deployed product, and the native preview still needs 100%/150% DPI sessions,
-broader AMD generation evidence, and final human review before any public
-promotion discussion.
+deployed product until the promotion helper replaces it with a verified
+backup. The native preview still needs 100%/150% DPI sessions, broader AMD
+generation evidence, and final human review before any public promotion
+discussion.
 Track the candidate's open gates in `docs/NATIVE_RC_STATUS.md`.
 
 ## Portable ZIP

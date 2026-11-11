@@ -141,11 +141,11 @@ local JSON report. `-ReadOnlyRuntimeVerification` runs the extracted
 GUI/worker, diagnostics, compatibility collector, and install flow without
 executing the policy-save write. `verify-release.ps1` keeps the extracted
 package gate read-only and runs the controlled current-value policy probe as a
-separate step. The current clean `0.6.0-native-rc.17` package is recorded in
-`docs/evidence/packaging/v0.6.0-native-rc.17-clean-2026-11-11.json` and
-`docs/evidence/packaging/v0.6.0-native-rc.17-release-gate-2026-11-11.json`;
+separate step. The current clean `1.0.0-native` package is recorded in
+`docs/evidence/packaging/v1.0.0-native-clean-2026-11-11.json` and
+`docs/evidence/packaging/v1.0.0-native-release-gate-2026-11-11.json`;
 the real current-user Start menu, Startup, and uninstall-entry lifecycle is
 recorded in
-`docs/evidence/packaging/v0.6.0-native-rc.17-shell-integration-2026-11-11.json`,
+`docs/evidence/packaging/v1.0.0-native-shell-integration-2026-11-11.json`,
 and the current-value policy gate is recorded in
-`docs/evidence/hardware/v0.6.0-native-rc.17-power-policy-no-change-2026-11-11.json`.
+`docs/evidence/hardware/v1.0.0-native-power-policy-no-change-2026-11-11.json`.

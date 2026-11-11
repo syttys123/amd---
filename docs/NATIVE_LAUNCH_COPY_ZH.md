@@ -2,12 +2,12 @@
 
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
-本文只准备原生候选 `rc.17` 的 GitHub 与 B 站文案，不代表已经批准公开。
+本文只准备原生候选 `1.0.0-native` 的 GitHub 与 B 站文案，不代表已经批准公开。
 最终 Release、视频、封面、账号登录和上传仍需项目所有者确认。
 
 ## 事实口径
 
-- 当前候选包为 `0.6.0-native-rc.17`，默认只读。
+- 当前候选包为 `1.0.0-native`，默认只读。
 - 唯一完整实机证据：MECHREVO WUJIE15 PRO / AMD Ryzen 7 8845HS。
 - 已验证 AC `25/45/25 W` 当前值写回/回读、策略禁用和优雅退出。
 - 已验证打包版托盘、任务栏图标、单实例、模式同步、诊断导出。
@@ -20,7 +20,7 @@
 标题：
 
 ```text
-v0.6.0-native-rc.17 — AMD Mobile Power 原生候选
+1.0.0-native — AMD Mobile Power 原生稳定本地候选
 ```
 
 正文：
@@ -37,7 +37,7 @@ AMD Mobile Power 将 RyzenAdj 封装为原生 Rust GUI + C++ worker，默认只�
 - Ryzen 7 8845HS / Hawk Point 只读能力与遥测。
 - AC `25/45/25 W` 当前值写回、回读、策略禁用和 worker 关闭。
 - 30/30 Rust 测试、C++ 策略测试、Clippy、包内 SHA256。
-- 隔离安装、覆盖安装、卸载、`rc.16 -> rc.17` 升级。
+- 隔离安装、覆盖安装、卸载、`rc.17 -> 1.0.0-native` 升级。
 - 托盘、任务栏图标、单实例唤醒、简洁/高级模式同步。
 - 高对比度、本地化、诊断脱敏和兼容性报告导入。
 

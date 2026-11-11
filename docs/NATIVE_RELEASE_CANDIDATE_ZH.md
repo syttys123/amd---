@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `rc.17` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.0-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,15 +16,15 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `0.6.0-native-rc.17`
+- Candidate: `1.0.0-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.17-win-x64-native-preview.zip`
-- Size: `535,407` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip`
+- Size: `535,197` bytes
 - SHA256:
-  `79e1e48505d9d00802a3d5b724da7b5232d9ff3f2d98c20d7776722f4142b35c`
-- Package source commit: `3323f25a5072c2f6a09eaa630c46b02bccce3b52`
+  `f3fd6ea1d1b0292c6ec9ea7445f191adc302066f78a728528a3722923c73a0bf`
+- Package source commit: `ddb7d9cba3195f4a16df1299215a9e26cd18544f`
 - Working tree at build time: clean
-- Review bundle: `artifacts/native-release-review/v0.6.0-native-rc.17`
+- Review bundle: `artifacts/native-release-review/v1.0.0-native`
 
 ## 本机验证
 
@@ -35,18 +35,18 @@ AMD 笔记本都受支持。
 - 提取后 GUI/worker 只读验证、诊断导出、兼容性 JSON/Markdown：PASS。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
-- `rc.16 -> rc.17` 升级：payload 一致、升级后只读运行、卸载清理：PASS。
+- `rc.17 -> 1.0.0-native` 升级：payload 一致、升级后只读运行、卸载清理：PASS。
 - 打包版托盘/任务栏与模式同步证据：`CloseToTray`、`TrayRestore`、
   `SingleInstanceWake`、`taskbarIconAvailable=true`、`trayIconId=1`、
   `simple -> advanced` 同步：PASS。
 
 Evidence:
 
-- `docs/evidence/packaging/v0.6.0-native-rc.17-clean-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.17-release-gate-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.17-shell-integration-2026-11-11.json`
-- `docs/evidence/packaging/v0.6.0-native-rc.17-cross-version-upgrade-2026-11-11.json`
-- `docs/evidence/ui/native-packaged-rc17-ui-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.0-native-clean-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.0-native-release-gate-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.0-native-shell-integration-2026-11-11.json`
+- `docs/evidence/packaging/v1.0.0-native-cross-version-upgrade-2026-11-11.json`
+- `docs/evidence/ui/native-packaged-1.0.0-ui-2026-11-11.json`
 
 ## 硬件门禁
 
@@ -60,7 +60,7 @@ Evidence:
 
 Evidence:
 
-- `docs/evidence/hardware/v0.6.0-native-rc.17-power-policy-no-change-2026-11-11.json`
+- `docs/evidence/hardware/v1.0.0-native-power-policy-no-change-2026-11-11.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 - `docs/evidence/compatibility/index.json`
 
@@ -99,7 +99,7 @@ PM table、匹配 profile、电源线和当前限制，并写出脱敏 JSON/Mark
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass `
   -File native\verify-release.ps1 `
-  -Version 0.6.0-native-rc.17 `
+  -Version 1.0.0-native `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```
