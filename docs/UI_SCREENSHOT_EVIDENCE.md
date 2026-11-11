@@ -114,7 +114,6 @@ Focused-input evidence:
 High-contrast evidence:
 `docs/evidence/ui/native-high-contrast-2026-11-11.json`.
 Packaged tray/taskbar and mode synchronization evidence:
-`docs/evidence/ui/native-packaged-rc16-ui-2026-11-11.json`.
+`docs/evidence/ui/native-packaged-rc17-ui-2026-11-11.json`.
 
-Remaining gates: 100%/150% DPI sessions and a supervised packaged
-write/read-back smoke test.
+Remaining gates: 100%/150% DPI sessions and broader AMD generation evidence.

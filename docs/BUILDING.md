@@ -165,14 +165,15 @@ version:
 
 ```powershell
 .\native\verify-release.ps1 `
-  -Version 0.6.0-native-rc.1 `
+  -Version 0.6.0-native-rc.17 `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```
 
 The wrapper runs the build, hardware read-only/write-guard gates, policy
-read-only checks, full package verification, optional no-change policy write,
-optional real shell integration, and writes an aggregate release-gate JSON.
+read-only checks, full read-only package verification, the optional
+current-value no-change policy write, optional real shell integration, and
+writes an aggregate release-gate JSON.
 Omit `-ExecuteNoChangePolicy` for a fully read-only diagnostic run.
 
 Build output is intentionally ignored by Git.

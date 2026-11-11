@@ -40,7 +40,7 @@ the policy-save write, use the read-only runtime gate:
 .\native\build-package.ps1 `
   -NoBuild `
   -ReadOnlyRuntimeVerification `
-  -Version 0.6.0-native-rc.16
+  -Version 0.6.0-native-rc.17
 ```
 
 This runs the extracted GUI/worker, write-control UI, diagnostics export,
@@ -63,7 +63,7 @@ worktree:
 
 ```powershell
 .\native\verify-release.ps1 `
-  -Version 0.6.0-native-rc.16 `
+  -Version 0.6.0-native-rc.17 `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```
@@ -79,7 +79,7 @@ After the release gate passes and the evidence is committed, create a local
 review-only bundle:
 
 ```powershell
-.\native\prepare-release-review.ps1 -Version 0.6.0-native-rc.16
+.\native\prepare-release-review.ps1 -Version 0.6.0-native-rc.17
 ```
 
 The command writes the ZIP, release gate, policy/shell evidence, notices,
@@ -115,13 +115,13 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 Current internal native release candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.16-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.17-win-x64-native-preview.zip
 ```
 
-- Size: `535,408` bytes.
+- Size: `535,407` bytes.
 - SHA256:
-  `0bfaa7ba608a73b89660a9c0a36ac741e4b1cd9ac66b50970ecb360aef479263`.
-- Source commit: `20c570cd7287faa9379a4997cd37bbac14bd95ed`.
+  `79e1e48505d9d00802a3d5b724da7b5232d9ff3f2d98c20d7776722f4142b35c`.
+- Source commit: `3323f25a5072c2f6a09eaa630c46b02bccce3b52`.
 - Working tree at build time: clean.
 - Runtime verification: hardware read-only/write-guard, clean-room native GUI
   lifecycle with three Win32 minimize/restore cycles, extracted read-only
@@ -135,6 +135,9 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.16-win-x64-native-pr
   tray restore, single-instance wake, `taskbarIconAvailable=true`,
   `trayIconId=1`, and `simple` to `advanced` mode synchronization with the
   packaged GUI/worker hashes.
+- The separate controlled policy probe requested the live AC limits
+  `25/45/25 W`, confirmed the worker's read-back, disabled the policy, and
+  shut down cleanly. No preset or preconfigured value was substituted.
 - `导出诊断` works in read-only and write-enabled modes, writing schema-1 JSON
   with an explicit privacy block and no paths, process IDs, logs, pipe names,
   or upload path.
@@ -142,19 +145,20 @@ artifacts/native-packages/amd-mobile-power-v0.6.0-native-rc.16-win-x64-native-pr
   staged rollback switching, uninstall, and refusal to overwrite an unmarked
   non-empty directory.
 - Aggregate evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.16-release-gate-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.17-release-gate-2026-11-11.json`.
 - Package evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.16-clean-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.17-clean-2026-11-11.json`.
 - Shell evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.16-shell-integration-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.17-shell-integration-2026-11-11.json`.
 - Install upgrade evidence:
-  `docs/evidence/packaging/v0.6.0-native-rc.16-cross-version-upgrade-2026-11-11.json`.
+  `docs/evidence/packaging/v0.6.0-native-rc.17-cross-version-upgrade-2026-11-11.json`.
+- Policy no-change evidence:
+  `docs/evidence/hardware/v0.6.0-native-rc.17-power-policy-no-change-2026-11-11.json`.
 
 This RC is not yet the public stable release. The `.NET` GUI remains the
-deployed product, and the native preview still needs a supervised rc.16
-no-change write plus read-only compatibility evidence from a second physical
-AMD laptop before any promotion
-discussion.
+deployed product, and the native preview still needs 100%/150% DPI sessions,
+broader AMD generation evidence, and final human review before any public
+promotion discussion.
 Track the candidate's open gates in `docs/NATIVE_RC_STATUS.md`.
 
 ## Portable ZIP

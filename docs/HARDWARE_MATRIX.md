@@ -115,6 +115,10 @@ Verified on 2026-11-09:
   AC power, `25.24/45/25 W`, the native write gate still rejected writes, the
   Rust GUI connected read-only, and the dry-run guard passed. Evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.16-release-gate-2026-11-11.json`.
+- `0.6.0-native-rc.17` passed the controlled current-value policy gate after
+  the package and UI gates: AC power, requested/read-back `25/45/25 W`, policy
+  disabled, worker shutdown clean, and live limits unchanged. Evidence:
+  `docs/evidence/hardware/v0.6.0-native-rc.17-power-policy-no-change-2026-11-11.json`.
 
 ## Required Capture
 

@@ -201,7 +201,7 @@ Evidence and screenshots:
 - `docs/evidence/ui/native-high-contrast-2026-11-11.json`
 - `assets/native-high-contrast-simple-2026-11-11.png`
 - `assets/native-high-contrast-advanced-2026-11-11.png`
-- `docs/evidence/ui/native-packaged-rc16-ui-2026-11-11.json`
+- `docs/evidence/ui/native-packaged-rc17-ui-2026-11-11.json`
 
 Reproduction:
 
@@ -215,7 +215,6 @@ pwsh -NoProfile -ExecutionPolicy Bypass `
 
 - Repeat the redesigned shell at 100% and 150% Windows scaling on machines or
   sessions configured for those scales.
-- Run one supervised packaged write/read-back smoke test before promotion.
 
 Public GitHub Release, Bilibili upload, and promotion to `C:\RyzenAdj` remain
 unapproved until the release gates and hardware evidence are complete.

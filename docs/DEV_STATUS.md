@@ -71,17 +71,17 @@ not authoritative.
   the full simple and advanced shells in black, white, and yellow without
   modifying system accessibility settings; diagnostics expose the active state
   as `ui.highContrast`.
-- The clean native candidate is now `0.6.0-native-rc.16`: 535,408 bytes,
+- The clean native candidate is now `0.6.0-native-rc.17`: 535,407 bytes,
   SHA256
-  `0bfaa7ba608a73b89660a9c0a36ac741e4b1cd9ac66b50970ecb360aef479263`,
-  built from clean commit `20c570cd7287faa9379a4997cd37bbac14bd95ed`.
-- The rc.16 package passed 16-entry checksum verification, extracted GUI/worker
+  `79e1e48505d9d00802a3d5b724da7b5232d9ff3f2d98c20d7776722f4142b35c`,
+  built from clean commit `3323f25a5072c2f6a09eaa630c46b02bccce3b52`.
+- The rc.17 package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user
   Start menu/Startup/uninstall-entry create-cleanup. It also carries the
-  Windows high-contrast palette and fixture gates. Policy-write verification
-  was intentionally skipped in the clean read-only gate and remains the next
-  supervised hardware gate.
+  Windows high-contrast palette and fixture gates. The separate controlled
+  policy probe wrote the current AC limits `25/45/25 W` back unchanged,
+  verified the worker read-back, disabled the policy, and shut down cleanly.
 - The native preview installer now stages the complete payload before switching
   directories, preserves a marked prior installation for rollback, refuses
   unmarked non-empty targets, and is verified through fresh install,
@@ -102,6 +102,8 @@ not authoritative.
   read-only runtime, and uninstall checks after the high-contrast work.
 - A real `rc.15` to `rc.16` upgrade passed with the same payload-hash,
   read-only runtime, and uninstall checks after the packaged UI evidence work.
+- A real `rc.16` to `rc.17` upgrade passed with the same payload-hash,
+  read-only runtime, and uninstall checks after the policy-gate separation.
 - Native simple/advanced screenshots are now reproducible through
   `native\capture-rust-gui-redesign.ps1`, which uses an isolated
   `%LocalAppData%` and unique worker pipe and does not request a power write.
@@ -1164,9 +1166,9 @@ third_party/
 - Extended the native verifier evidence schema with packaged GUI/worker hashes,
   three minimize/restore cycles, close-to-tray, tray restore, single-instance
   wake, taskbar icon availability, tray icon id, and the
-  `simple` to `advanced` mode transition. The dedicated rc.16 packaged run
+  `simple` to `advanced` mode transition. The dedicated rc.16 and rc.17 packaged runs
   passed all fields without requesting a power write:
-  `docs/evidence/ui/native-packaged-rc16-ui-2026-11-11.json`.
+  `docs/evidence/ui/native-packaged-rc17-ui-2026-11-11.json`.
 - Separated the release no-change policy gate from extracted package
   verification on 2026-11-11. `verify-release.ps1` now always runs the packaged
   GUI/worker gate read-only; `-ExecuteNoChangePolicy` is handled only by the
@@ -1197,6 +1199,18 @@ third_party/
   install/uninstall, `rc.15` to `rc.16` upgrade, and dedicated packaged
   tray/taskbar/mode evidence all passed. Evidence:
   `docs/evidence/packaging/v0.6.0-native-rc.16-release-gate-2026-11-11.json`.
+- Built and fully gated `0.6.0-native-rc.17` from clean commit
+  `3323f25a5072c2f6a09eaa630c46b02bccce3b52`. The package is 535,407 bytes
+  with SHA256
+  `79e1e48505d9d00802a3d5b724da7b5232d9ff3f2d98c20d7776722f4142b35c`.
+  The read-only package gate, shell integration, compatibility collection,
+  install/uninstall, `rc.16` to `rc.17` upgrade, dedicated packaged UI gate,
+  and controlled current-value policy write/read-back all passed. Live limits
+  remained `25/45/25 W`, the policy was disabled, and the worker shut down
+  cleanly. Evidence:
+  `docs/evidence/packaging/v0.6.0-native-rc.17-release-gate-2026-11-11.json`
+  and
+  `docs/evidence/hardware/v0.6.0-native-rc.17-power-policy-no-change-2026-11-11.json`.
 
 Development screenshot:
 
@@ -1238,16 +1252,16 @@ Historical development screenshots:
 - Broaden the packaged native worker's hardware matrix beyond the 8845HS and
   collect a second-device write/read-back smoke test; keep `1.0.4` as the
   stable fallback.
-- Run the supervised `rc.16` write-enabled no-change policy gate on the
-  8845HS before promotion. The clean package currently proves the complete
-  read-only runtime and install flow with `PolicyWriteVerification=Skipped`.
+- Repeat the native UI matrix at 100% and 150% Windows scaling. The current
+  display session is 125%.
 
 ## Next Concrete Task
 
-Repeat the native redesign at 100% and 150% Windows scaling, then run the
-supervised `rc.16` no-change policy gate on the development 8845HS. Keep
-`C:\RyzenAdj` on the verified `1.0.4` rollback point and do not promote a dirty
-or write-unverified native package.
+Repeat the native redesign at 100% and 150% Windows scaling, complete final
+human review, and decide whether the hardware-gated rc.17 line is ready for a
+local promotion while broader AMD generation evidence remains unavailable.
+Keep `C:\RyzenAdj` recoverable and never promote a dirty or write-unverified
+native package.
 
 The `.NET` GUI remains the shipped product. Native parity work continues on the
 side branch and does not gate `.NET` fixes or releases.
