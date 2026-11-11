@@ -7,6 +7,8 @@ UI and hardware access stay behind a narrow named-pipe contract.
 
 > Status: no public release yet. The current stable-local candidate is
 > `1.0.10-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
+> Local publication readiness is `PASS`; the release remains
+> `READY_FOR_HUMAN_REVIEW`.
 > Broader AMD generation support remains experimental until each device has
 > read-only and supervised write evidence.
 

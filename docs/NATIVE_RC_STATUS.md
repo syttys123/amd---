@@ -21,6 +21,9 @@ previous native `1.0.9-native` build is preserved as
 Decision (2026-11-12): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
 `1.0.10-native` package. Broader AMD generation support remains experimental.
+The current local publication readiness gate is `PASS`, with
+`PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW` and no local blockers. Evidence:
+`docs/evidence/release/native-publication-readiness-2026-11-12.json`.
 
 Note (2026-11-12): `1.0.10-native` supersedes `1.0.9-native` by keeping the
 target editor synchronized with the active preset at startup and during policy

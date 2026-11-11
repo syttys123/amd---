@@ -76,6 +76,9 @@ not authoritative.
   (571,464 bytes), source commit
   `b93dd5d53d596dba75f9ca004e0b31947b65c1d6`, and the full release gate,
   shell integration, DPI fixtures, and controlled 10 W policy probe all pass.
+  After the packaged/deployed UI lifecycle evidence and the 10 W media review
+  bundle were added, publication readiness reports `LocalReadiness=PASS`,
+  `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, and no local blockers.
 - Active native-development branch: `main`.
 - The Rust GUI now uses one continuous dark command deck shared by simple and
   advanced modes, with a double-buffered custom canvas, flat telemetry/status
