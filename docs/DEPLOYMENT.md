@@ -3,8 +3,9 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable-local native deployment (`1.0.6-native`) on the
-  development laptop. The previous `1.0.5-native` build remains at
+- `C:\RyzenAdj`: current stable-local native deployment (`1.0.7-native`) on the
+  development laptop. The previous `1.0.6-native` build remains at
+  `C:\RyzenAdj.before-20261112-023730`, `1.0.5-native` at
   `C:\RyzenAdj.before-20261112-022356`, `1.0.4-native` at
   `C:\RyzenAdj.before-20261112-015439`, `1.0.3-native` at
   `C:\RyzenAdj.before-20261112-011649`, `1.0.3-native` e26ede4 at
@@ -48,7 +49,7 @@ The native Rust GUI + C++ worker line uses the tested reversible helper:
 
 ```powershell
 .\native\promote-stable-deployment.ps1 `
-  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.6-native-win-x64-native-preview.zip `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.7-native-win-x64-native-preview.zip `
   -TargetDirectory C:\RyzenAdj `
   -GuiArguments "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10"
 ```
@@ -58,7 +59,7 @@ shortcut plan:
 
 ```powershell
 .\native\promote-stable-deployment.ps1 `
-  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.6-native-win-x64-native-preview.zip `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.7-native-win-x64-native-preview.zip `
   -TargetDirectory C:\RyzenAdj `
   -GuiArguments "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10" `
   -Apply -NoLaunch
@@ -71,18 +72,19 @@ rolls back on failure.
 
 ## Current Deployment Evidence
 
-On 2026-11-12, `1.0.6-native` replaced `1.0.5-native` at `C:\RyzenAdj`. It adds
-the package-local elevated WinRing0 bootstrap, making a fresh-Windows portable
-installation self-contained, while retaining the DPI fixture gate,
-multi-generation profile catalog, and 10 W uniform policy.
+On 2026-11-12, `1.0.7-native` replaced `1.0.6-native` at `C:\RyzenAdj`. It adds
+the safe WinRing0 uninstall helper, reuses an existing valid WinRing0 service
+instead of replacing another installation's binary path, and retains the
+package-local bootstrap, DPI fixture gate, multi-generation profile catalog,
+and 10 W uniform policy.
 
 - Package SHA256:
-  `1bb6fbb5e3ff0dd7223cd47a95211fed4b71c6d360f4343700fb2999fbb7321d`
-- Package size: `568,430` bytes
-- Package source commit: `a9c02aa1dcc7722c71ccc37a9f55ce82ae32ee6e`
-- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-022356`
+  `a018e1af1a82a5be1dc1cee4fa54cf419d35a778cd056a16a5a35a34262635c4`
+- Package size: `570,352` bytes
+- Package source commit: `01cdb506415b0b7fc4b39d7e328f8f282c9696cf`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261112-023730`
 - Recoverable D: backup:
-  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.6-native-a9c02aa-20261112-022356`
+  `artifacts\deployment-backups\C-RyzenAdj-before-1.0.7-native-01cdb50-20261112-023730`
 - Desktop shortcut:
   `<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - Shortcut target and arguments:
@@ -90,8 +92,10 @@ multi-generation profile catalog, and 10 W uniform policy.
 - Embedded icon: `RT_GROUP_ICON` 1 with 9 `RT_ICON` images; extracted 32x32
   matches `assets/amd-mobile-power.ico` pixel for pixel
 - Launch verification: `PASS` (window title `AMD Mobile Power`)
-- Deployed payload: all 17 staged files match; `install-driver-bootstrap.ps1`
-  SHA256 `1900ce44eefc4fdb5f9f212c1435f7ea0a1dd4f11999d2c1ede5e00a9393ff3a`
+- Deployed payload: all 18 staged files match; `install-driver-bootstrap.ps1`
+  SHA256 `6f76804f1312101103fed6a1f2677feab5e7576c2a2f3ce26eb8c3b6200a5438`
+  and `uninstall-driver-bootstrap.ps1` SHA256
+  `4199a8fa7e68dd2216bf0b7d61151cf066d4c8f0080abe3690cdf616af2496c6`
 - Uniform policy: `enabled=true`, battery and AC both `10/10/10 W`,
   `maxTargetWatts=10`; live AC read-back `10/10/10 W`
 - Profile catalog: 10 entries, one verified, RyzenAdj families `0-15` each
@@ -99,13 +103,15 @@ multi-generation profile catalog, and 10 W uniform policy.
 - DPI layout fixtures: 100/125/150% client sizes
   `640x392`/`780x680`, `800x490`/`975x850`, and `960x588`/`1170x1020`: PASS
 - Deployment evidence:
-  `docs/evidence/packaging/v1.0.6-native-deployment-2026-11-12.json`
+  `docs/evidence/packaging/v1.0.7-native-deployment-2026-11-12.json`
 - Deployment UI evidence:
-  `docs/evidence/ui/native-deployed-1.0.6-native-ui-2026-11-12.json`
+  `docs/evidence/ui/native-deployed-1.0.7-native-ui-2026-11-12.json`
 
-The prior `1.0.5-native` deployment remains recoverable at
-`C:\RyzenAdj.before-20261112-022356`. It introduced the test-only
-`--dpi-fixture` renderer and the 100/125/150% logical layout gate.
+The prior `1.0.6-native` deployment remains recoverable at
+`C:\RyzenAdj.before-20261112-023730`. It added the package-local driver
+bootstrap. The `1.0.5-native` deployment at
+`C:\RyzenAdj.before-20261112-022356` introduced the test-only `--dpi-fixture`
+renderer and the 100/125/150% logical layout gate.
 
 The shell icon cache is refreshed with `SHChangeNotify(SHCNE_ASSOCCHANGED)` and
 `ie4uinit.exe -show` after promotion so the new icon appears immediately.

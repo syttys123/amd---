@@ -205,14 +205,18 @@ The installer stages every file before switching directories, preserves the
 previous marked installation for rollback during the switch, and refuses to
 write into an unmarked non-empty directory. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
+The package also includes `install-driver-bootstrap.ps1` and
+`uninstall-driver-bootstrap.ps1` for the elevated WinRing0 service. The
+uninstaller removes `WinRing0_1_2_0` only when its binary path equals the
+package's ProgramData driver.
 
-The current internal release candidate is `1.0.0-native`: 535,197 bytes,
+The current stable-local candidate is `1.0.7-native`: 570,352 bytes,
 SHA256
-`f3fd6ea1d1b0292c6ec9ea7445f191adc302066f78a728528a3722923c73a0bf`.
+`a018e1af1a82a5be1dc1cee4fa54cf419d35a778cd056a16a5a35a34262635c4`.
 Its aggregate read-only gate is recorded in
-`docs/evidence/packaging/v1.0.0-native-release-gate-2026-11-11.json`.
+`docs/evidence/packaging/v1.0.7-native-release-gate-2026-11-12.json`.
 The current-value policy gate passed and is recorded in
-`docs/evidence/hardware/v1.0.0-native-power-policy-no-change-2026-11-11.json`.
+`docs/evidence/hardware/v1.0.7-native-power-policy-no-change-2026-11-12.json`.
 
 Exercise the real Start menu, Startup shortcut, and current-user uninstall
 entry without launching the GUI:
