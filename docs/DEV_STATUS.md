@@ -142,6 +142,15 @@ not authoritative.
   packaged screenshot rather than cross-process window text: target input
   `10`, one visible `10 W` preset, and live `10/10/10 W` are recorded in
   `docs\evidence\ui\native-deployed-1.0.10-capture-2026-11-12.json`.
+- Publication readiness is regenerated for `1.0.13-native`:
+  `LocalReadiness=PASS`, `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, and
+  no local blockers. The packaged GUI/tray evidence for this version
+  (`docs/evidence/ui/native-packaged-1.0.13-native-ui-2026-11-12.json`)
+  verifies the taskbar icon, tray icon id, close-to-tray, tray restore,
+  single-instance wake, and simple → advanced mode switch. The 27-file review
+  bundle is `artifacts/native-release-review/v1.0.13-native`. Open gates remain
+  the second AMD device, real 100%/150% Windows sessions, and hosted CI.
+  Evidence: `docs/evidence/release/native-publication-readiness-1.0.13-2026-11-12.json`.
 - `C:\RyzenAdj` now contains the promoted `1.0.13-native` package. Package
   SHA256 is
   `eac6fc73f47dc5912c670ca13610a4d7230ae0f15a277f4e4ddcad93fd906cd7`
