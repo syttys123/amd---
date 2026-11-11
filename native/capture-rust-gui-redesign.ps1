@@ -7,6 +7,7 @@ param(
     [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error")]
     [string]$Fixture,
     [switch]$BatteryOnly,
+    [int]$FocusControlId,
     [switch]$ReadOnly
 )
 
@@ -53,6 +54,9 @@ public static class AmdMobilePowerUiCapture {
     public static extern bool SetFocus(IntPtr hwnd);
 
     [DllImport("user32.dll")]
+    public static extern IntPtr GetFocus();
+
+    [DllImport("user32.dll")]
     public static extern bool BringWindowToTop(IntPtr hwnd);
 
     [DllImport("user32.dll")]
@@ -77,6 +81,11 @@ public static class AmdMobilePowerUiCapture {
     public static extern bool AttachThreadInput(uint attach, uint attachTo, bool value);
 
     [DllImport("user32.dll")]
+    public static extern bool GetGUIThreadInfo(
+        uint idThread,
+        ref GUITHREADINFO value);
+
+    [DllImport("user32.dll")]
     public static extern bool SetWindowPos(
         IntPtr hwnd,
         IntPtr insertAfter,
@@ -98,6 +107,18 @@ public static class AmdMobilePowerUiCapture {
         public int Top;
         public int Right;
         public int Bottom;
+    }
+
+    public struct GUITHREADINFO {
+        public uint cbSize;
+        public uint flags;
+        public IntPtr hwndActive;
+        public IntPtr hwndFocus;
+        public IntPtr hwndCapture;
+        public IntPtr hwndMenuOwner;
+        public IntPtr hwndMoveSize;
+        public IntPtr hwndCaret;
+        public RECT rcCaret;
     }
 }
 "@
@@ -213,7 +234,10 @@ function Save-WindowImage {
 }
 
 function Focus-CaptureWindow {
-    param([IntPtr]$Window)
+    param(
+        [IntPtr]$Window,
+        [int]$FocusControlId = 0
+    )
 
     $processId = [uint32]0
     $targetThread = [AmdMobilePowerUiCapture]::GetWindowThreadProcessId(
@@ -235,6 +259,34 @@ function Focus-CaptureWindow {
             [AmdMobilePowerUiCapture]::SetForegroundWindow($Window) | Out-Null
             [AmdMobilePowerUiCapture]::SetFocus($Window) | Out-Null
             if ([AmdMobilePowerUiCapture]::GetForegroundWindow() -eq $Window) {
+                if ($FocusControlId -gt 0) {
+                    $control = [AmdMobilePowerUiCapture]::GetDlgItem(
+                        $Window,
+                        $FocusControlId)
+                    if ($control -eq [IntPtr]::Zero) {
+                        throw "Focus control $FocusControlId was not found."
+                    }
+                    [AmdMobilePowerUiCapture]::SendMessage(
+                        $Window,
+                        0x0028,
+                        [UIntPtr]$control.ToInt64(),
+                        [IntPtr]1) | Out-Null
+                    [AmdMobilePowerUiCapture]::SetFocus($control) | Out-Null
+                    $threadInfo = New-Object `
+                        AmdMobilePowerUiCapture+GUITHREADINFO
+                    $threadInfo.cbSize = [uint32](
+                        [System.Runtime.InteropServices.Marshal]::SizeOf(
+                            $threadInfo))
+                    [AmdMobilePowerUiCapture]::GetGUIThreadInfo(
+                        $targetThread,
+                        [ref]$threadInfo) | Out-Null
+                    $attachedFocus =
+                        [AmdMobilePowerUiCapture]::GetFocus()
+                    if ($threadInfo.hwndFocus -ne $control -and
+                        $attachedFocus -ne $control) {
+                        throw "Focus control $FocusControlId did not receive focus."
+                    }
+                }
                 return
             }
             Start-Sleep -Milliseconds 50
@@ -376,7 +428,7 @@ try {
         throw "Rust GUI did not create the redesign window in time."
     }
 
-    [void](Focus-CaptureWindow -Window $window)
+    [void](Focus-CaptureWindow -Window $window -FocusControlId $FocusControlId)
     [AmdMobilePowerUiCapture]::SetWindowPos(
         $window,
         [IntPtr](-1),
@@ -386,7 +438,7 @@ try {
         0,
         0x0001) | Out-Null
     Start-Sleep -Seconds 1
-    [void](Focus-CaptureWindow -Window $window)
+    [void](Focus-CaptureWindow -Window $window -FocusControlId $FocusControlId)
     Start-Sleep -Milliseconds 500
     $advancedButton = [AmdMobilePowerUiCapture]::GetDlgItem($window, 109)
     if ($advancedButton -eq [IntPtr]::Zero) {
@@ -403,7 +455,7 @@ try {
         -Description "advanced layout" `
         -Condition { param($height) $height -gt $simpleSize.Height }
     Start-Sleep -Milliseconds 400
-    [void](Focus-CaptureWindow -Window $window)
+    [void](Focus-CaptureWindow -Window $window -FocusControlId $FocusControlId)
     $advancedCapture = Save-WindowImage `
         -Window $window `
         -Path (Join-Path $OutputDirectory "$FilePrefix-advanced-2026-11-11.png")
@@ -422,7 +474,7 @@ try {
         -Description "simple layout" `
         -Condition { param($height) $height -lt $advancedHeight }
     Start-Sleep -Milliseconds 400
-    [void](Focus-CaptureWindow -Window $window)
+    [void](Focus-CaptureWindow -Window $window -FocusControlId $FocusControlId)
     $simpleCapture = Save-WindowImage `
         -Window $window `
         -Path (Join-Path $OutputDirectory "$FilePrefix-simple-2026-11-11.png")
@@ -485,6 +537,7 @@ try {
             }
             Fixture = if ($Fixture) { $Fixture } else { $null }
             BatteryOnly = [bool]$BatteryOnly
+            FocusControlId = if ($FocusControlId -gt 0) { $FocusControlId } else { $null }
             ControlChecks = $controlChecks
             Simple = $simpleCapture
             Advanced = $advancedCapture
@@ -525,5 +578,6 @@ finally {
     ) -join ", "
     Fixture = if ($Fixture) { $Fixture } else { "none" }
     BatteryOnly = [bool]$BatteryOnly
+    FocusControlId = if ($FocusControlId -gt 0) { $FocusControlId } else { "none" }
     ControlChecks = if ($controlChecks) { $controlChecks | ConvertTo-Json -Compress } else { "not requested" }
 } | Format-List

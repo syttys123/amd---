@@ -1,0 +1,26 @@
+{
+  "SchemaVersion": 1,
+  "CaptureMode": "write-controls-visible-no-write-requested",
+  "Fixture": "firmware-clamp",
+  "BatteryOnly": false,
+  "FocusControlId": 316,
+  "ControlChecks": {
+    "TargetAndPresetEnabled": true,
+    "DiagnosticsEnabled": true
+  },
+  "Simple": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\native-focus-simple-2026-11-11.png",
+    "Width": 802,
+    "Height": 530,
+    "CaptureMethod": "PrintWindow(normalized-fallback)",
+    "SHA256": "5da7b7d9a26bb7375acd00cbc510ac56fca13b4c98bad1f260e6484d2b1b25dd"
+  },
+  "Advanced": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\native-focus-advanced-2026-11-11.png",
+    "Width": 977,
+    "Height": 890,
+    "CaptureMethod": "PrintWindow(normalized-fallback)",
+    "SHA256": "9986405af5c902ec9dc0484921f38ec66e56f50e8a6c8aeeb35f0516d6615aff"
+  },
+  "RecordedAt": "2026-11-11T18:24:19.2516662+08:00"
+}

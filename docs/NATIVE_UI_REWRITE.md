@@ -157,6 +157,9 @@ At 125% Windows scaling:
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWriteControls -UiFixture
   firmware-clamp`: PASS for the battery-only policy toggle through the exported
   diagnostics JSON without hardware access.
+- `native\capture-rust-gui-redesign.ps1 -Fixture firmware-clamp
+  -FocusControlId 316`: PASS with the target input verified as the actual
+  focused child and the focus ring visible in simple and advanced captures.
 - No power write was requested during UI verification.
 
 Evidence and screenshots:
@@ -173,8 +176,11 @@ Evidence and screenshots:
 - `assets/native-ui-long-error-simple-2026-11-11.png`
 - `docs/evidence/ui/native-battery-only-policy-2026-11-11.json`
 - `docs/evidence/ui/native-battery-only-capture-2026-11-11.json`
+- `docs/evidence/ui/native-focus-2026-11-11.json`
 - `assets/native-battery-only-simple-2026-11-11.png`
 - `assets/native-battery-only-advanced-2026-11-11.png`
+- `assets/native-focus-simple-2026-11-11.png`
+- `assets/native-focus-advanced-2026-11-11.png`
 
 Reproduction:
 
@@ -188,7 +194,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass `
 
 - Repeat the redesigned shell at 100% and 150% Windows scaling on machines or
   sessions configured for those scales.
-- Capture focused inputs/buttons at the system focus and high-contrast states.
+- Capture high-contrast states.
 - Verify the packaged build's tray/taskbar icon and mode synchronization.
 - Run one supervised packaged write/read-back smoke test before promotion.
 

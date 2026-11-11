@@ -1130,6 +1130,11 @@ third_party/
   write-control commands without the explicit flag, the Rust GUI connected to
   the worker in read-only mode and exported diagnostics, and the dry-run write
   guard passed without requesting a no-change write.
+- Added a focus-state capture gate on 2026-11-11. The capture tool can focus a
+  named child control through `WM_NEXTDLGCTL`, verifies the actual focused
+  handle, and refuses to save the image when focus did not land. The target
+  input focus ring is now recorded in both simple and advanced captures:
+  `docs/evidence/ui/native-focus-2026-11-11.json`.
 
 Development screenshot:
 
