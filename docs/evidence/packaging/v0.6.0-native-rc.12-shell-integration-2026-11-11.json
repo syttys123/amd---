@@ -1,0 +1,17 @@
+{
+  "Version": "0.6.0-native-rc.12",
+  "SourcePackageCommit": "29492f18272db4f3bd1b6907f9958a9af07b008c",
+  "Verification": "PASS",
+  "InstallDirectoryCreated": true,
+  "InstallMarkerCreated": true,
+  "StartMenuShortcutCreated": true,
+  "StartupShortcutCreated": true,
+  "UninstallEntryCreated": true,
+  "UninstallEntryVersion": "0.6.0-native-rc.12",
+  "Cleanup": "PASS",
+  "ResidualInstallDirectory": false,
+  "ResidualStartMenuShortcut": false,
+  "ResidualStartupShortcut": false,
+  "ResidualUninstallEntry": false,
+  "RecordedAt": "2026-11-11T08:14:11.8776095+08:00"
+}

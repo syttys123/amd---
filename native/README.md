@@ -164,7 +164,7 @@ compatibility collector without executing the policy-save write:
 
 ```powershell
 .\native\build-package.ps1 -NoBuild `
-  -Version 0.6.0-native-rc.11 `
+  -Version 0.6.0-native-rc.12 `
   -ReadOnlyRuntimeVerification
 ```
 
@@ -181,11 +181,11 @@ previous marked installation for rollback during the switch, and refuses to
 write into an unmarked non-empty directory. Install and remove the preview with
 `install-preview.ps1` and `uninstall-preview.ps1` from the extracted package.
 
-The current internal release candidate is `0.6.0-native-rc.11`: 526,293 bytes,
+The current internal release candidate is `0.6.0-native-rc.12`: 530,713 bytes,
 SHA256
-`5ed81fdb74fdcedb9c1f145eb43ca015665467aab622205067585e28e1d92a22`.
+`e312b0636e1025252e73e7349a311ba37a34fd6c6b002c1c06617ede42c70ff6`.
 Its aggregate read-only gate is recorded in
-`docs/evidence/packaging/v0.6.0-native-rc.11-release-gate-2026-11-11.json`.
+`docs/evidence/packaging/v0.6.0-native-rc.12-release-gate-2026-11-11.json`.
 The write-enabled no-change gate remains pending.
 
 Exercise the real Start menu, Startup shortcut, and current-user uninstall
@@ -198,15 +198,15 @@ entry without launching the GUI:
 The verifier refuses to overwrite an existing native-preview entry, records
 the result under `docs\evidence\packaging`, and removes every created artifact
 in a `finally` path. The current clean run is
-`docs/evidence/packaging/v0.6.0-native-rc.11-shell-integration-2026-11-11.json`.
+`docs/evidence/packaging/v0.6.0-native-rc.12-shell-integration-2026-11-11.json`.
 
 Verify a real cross-version upgrade from the previous package:
 
 ```powershell
 .\native\verify-upgrade.ps1 `
-  -OldPackage .\artifacts\native-packages\amd-mobile-power-v0.6.0-native-rc.10-win-x64-native-preview.zip `
-  -NewPackage .\artifacts\native-packages\amd-mobile-power-v0.6.0-native-rc.11-win-x64-native-preview.zip `
-  -EvidencePath .\docs\evidence\packaging\v0.6.0-native-rc.11-cross-version-upgrade-2026-11-11.json
+  -OldPackage .\artifacts\native-packages\amd-mobile-power-v0.6.0-native-rc.11-win-x64-native-preview.zip `
+  -NewPackage .\artifacts\native-packages\amd-mobile-power-v0.6.0-native-rc.12-win-x64-native-preview.zip `
+  -EvidencePath .\docs\evidence\packaging\v0.6.0-native-rc.12-cross-version-upgrade-2026-11-11.json
 ```
 
 The upgrade gate installs the old package, upgrades in place, compares every

@@ -135,10 +135,10 @@ collector that starts the bundled worker without write controls and writes a
 local JSON report. `-ReadOnlyRuntimeVerification` runs the extracted
 GUI/worker, diagnostics, compatibility collector, and install flow without
 executing the policy-save write; the default verification still includes the
-supervised policy-save path. The current clean `0.6.0-native-rc.11` package is
+supervised policy-save path. The current clean `0.6.0-native-rc.12` package is
 recorded in
-`docs/evidence/packaging/v0.6.0-native-rc.11-clean-2026-11-11.json` and
-`docs/evidence/packaging/v0.6.0-native-rc.11-release-gate-2026-11-11.json`;
+`docs/evidence/packaging/v0.6.0-native-rc.12-clean-2026-11-11.json` and
+`docs/evidence/packaging/v0.6.0-native-rc.12-release-gate-2026-11-11.json`;
 the real current-user Start menu, Startup, and uninstall-entry lifecycle is
 recorded in
-`docs/evidence/packaging/v0.6.0-native-rc.11-shell-integration-2026-11-11.json`.
+`docs/evidence/packaging/v0.6.0-native-rc.12-shell-integration-2026-11-11.json`.
