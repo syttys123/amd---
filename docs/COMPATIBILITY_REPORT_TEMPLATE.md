@@ -27,9 +27,12 @@ Maintainers import a reviewed report into the repository index with:
 
 The importer rejects reports that do not declare all privacy flags false,
 reports from a write-enabled worker, local drive paths, user-profile paths, and
-named-pipe names. It deduplicates by SHA256, archives the sanitized JSON under
-`docs/evidence/compatibility`, updates `docs/evidence/compatibility/index.json`,
-and regenerates `docs/COMPATIBILITY_REPORTS.md`. It does not upload anything.
+named-pipe names. Current reports must also carry a valid `profileCatalog`
+where every RyzenAdj family `0-15` maps to exactly one fallback and exactly one
+device profile is marked verified. The importer deduplicates by SHA256,
+archives the sanitized JSON under `docs/evidence/compatibility`, updates
+`docs/evidence/compatibility/index.json`, and regenerates
+`docs/COMPATIBILITY_REPORTS.md`. It does not upload anything.
 
 The report already carries a `host` block with manufacturer, model, BIOS
 version, Windows edition/version/build, and a `privacy` block that states no

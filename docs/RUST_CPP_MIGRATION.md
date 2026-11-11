@@ -65,11 +65,13 @@ The first migration slice adds:
   (Krackan/Strix), `14` (Strix Halo), and legacy families `0/1/4/6` to
   explicit 5-65 W ceilings. Only the development `8845HS + 4c0009` match is
   marked verified; all other family profiles are conservative and unverified.
+  The complete catalog, including each fallback family, is exposed read-only
+  through `getProfiles` and included in sanitized compatibility reports.
 - `native/rust-probe`: a dependency-light Rust named-pipe client that sends
   `getHealth` and parses the v1 response.
 - `native/cpp-worker`: a Windows named-pipe worker skeleton that implements
-  `getHealth`, read-only `getCapabilities`/`getSnapshot`, structured
-  unsupported-command responses, and `shutdown`.
+  `getHealth`, `getProfiles`, read-only `getCapabilities`/`getSnapshot`,
+  structured unsupported-command responses, and `shutdown`.
 - `native/build.ps1`: locates the Visual Studio CMake toolchain and builds both
   native components.
 - `native/verify-native.ps1`: proves the Rust probe can talk to the C++ skeleton

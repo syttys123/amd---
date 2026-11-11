@@ -1,5 +1,6 @@
 #include "profile_catalog.hpp"
 
+#include <algorithm>
 #include <array>
 
 namespace amd_mobile_power {
@@ -16,7 +17,9 @@ const std::array<PlatformProfile, 10> kProfiles{
         true,
         true,
         true,
-        true},
+        true,
+        false,
+        {10}},
     PlatformProfile{
         "ryzenadj-hawk-point",
         "Hawk Point family profile (unverified)",
@@ -26,7 +29,9 @@ const std::array<PlatformProfile, 10> kProfiles{
         true,
         true,
         true,
-        false},
+        false,
+        true,
+        {10}},
     PlatformProfile{
         "ryzenadj-phoenix",
         "Phoenix family profile (unverified)",
@@ -36,7 +41,9 @@ const std::array<PlatformProfile, 10> kProfiles{
         true,
         true,
         true,
-        false},
+        false,
+        true,
+        {9}},
     PlatformProfile{
         "ryzenadj-rembrandt",
         "Rembrandt family profile (unverified)",
@@ -46,7 +53,9 @@ const std::array<PlatformProfile, 10> kProfiles{
         true,
         true,
         true,
-        false},
+        false,
+        true,
+        {7}},
     PlatformProfile{
         "ryzenadj-renoir-cezanne",
         "Renoir/Cezanne/Lucienne family profile (unverified)",
@@ -56,7 +65,9 @@ const std::array<PlatformProfile, 10> kProfiles{
         true,
         true,
         true,
-        false},
+        false,
+        true,
+        {2, 3, 5}},
     PlatformProfile{
         "ryzenadj-krackan-strix",
         "Krackan/Strix family profile (unverified)",
@@ -66,7 +77,9 @@ const std::array<PlatformProfile, 10> kProfiles{
         true,
         true,
         true,
-        false},
+        false,
+        true,
+        {12, 13}},
     PlatformProfile{
         "ryzenadj-strix-halo",
         "Strix Halo family profile (unverified)",
@@ -76,7 +89,9 @@ const std::array<PlatformProfile, 10> kProfiles{
         true,
         true,
         true,
-        false},
+        false,
+        true,
+        {14}},
     PlatformProfile{
         "ryzenadj-dragon-fire",
         "Dragon/Fire Range family profile (unverified)",
@@ -86,7 +101,9 @@ const std::array<PlatformProfile, 10> kProfiles{
         true,
         true,
         true,
-        false},
+        false,
+        true,
+        {11, 15}},
     PlatformProfile{
         "ryzenadj-mendocino",
         "Mendocino family profile (unverified)",
@@ -96,7 +113,9 @@ const std::array<PlatformProfile, 10> kProfiles{
         true,
         true,
         true,
-        false},
+        false,
+        true,
+        {8}},
     PlatformProfile{
         "ryzenadj-legacy",
         "Legacy Ryzen mobile family profile (unverified)",
@@ -106,38 +125,23 @@ const std::array<PlatformProfile, 10> kProfiles{
         true,
         true,
         true,
-        false}};
+        false,
+        true,
+        {0, 1, 4, 6}}};
 
 const PlatformProfile* FindByFamily(int family) {
-    switch (family) {
-    case 10:
-        return &kProfiles[1];
-    case 9:
-        return &kProfiles[2];
-    case 7:
-        return &kProfiles[3];
-    case 2:
-    case 3:
-    case 5:
-        return &kProfiles[4];
-    case 12:
-    case 13:
-        return &kProfiles[5];
-    case 14:
-        return &kProfiles[6];
-    case 11:
-    case 15:
-        return &kProfiles[7];
-    case 8:
-        return &kProfiles[8];
-    case 0:
-    case 1:
-    case 4:
-    case 6:
-        return &kProfiles[9];
-    default:
-        return nullptr;
+    for (const auto& profile : kProfiles) {
+        if (!profile.family_fallback) {
+            continue;
+        }
+        if (std::find(
+                profile.families.begin(),
+                profile.families.end(),
+                family) != profile.families.end()) {
+            return &profile;
+        }
     }
+    return nullptr;
 }
 
 }  // namespace

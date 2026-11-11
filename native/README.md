@@ -72,7 +72,9 @@ stderr, which is what the shortcut launch gate checks.
 The native worker maps RyzenAdj families to conservative profiles. Only the
 development `8845HS + 4c0009` match is marked verified; other families are
 experimental and receive narrower profile ceilings until hardware evidence is
-collected.
+collected. `getProfiles` returns the complete catalog, including every
+conservative fallback family, so compatibility reports can identify missing or
+misclassified generations without enabling writes.
 
 Check the write-enabled worker without changing power state:
 

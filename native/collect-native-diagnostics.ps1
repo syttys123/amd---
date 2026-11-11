@@ -79,6 +79,7 @@ $workerProcess = Start-Process `
 $health = $null
 $capabilities = $null
 $snapshot = $null
+$profiles = $null
 $collectionError = $null
 try {
     $deadline = [DateTime]::UtcNow.AddSeconds(10)
@@ -101,6 +102,7 @@ try {
 
     $capabilities = Invoke-NativeWorkerCommand -PipeName $pipeName -Command "getCapabilities"
     $snapshot = Invoke-NativeWorkerCommand -PipeName $pipeName -Command "getSnapshot"
+    $profiles = Invoke-NativeWorkerCommand -PipeName $pipeName -Command "getProfiles"
 }
 catch {
     $collectionError = $_.Exception.Message
@@ -191,6 +193,7 @@ $report = [ordered]@{
     else {
         $null
     }
+    profileCatalog = $profiles
     telemetry = if ($null -ne $telemetry) {
         [ordered]@{
             powerLine = $telemetry.powerLine
@@ -260,6 +263,14 @@ if (-not [string]::IsNullOrWhiteSpace($MarkdownPath)) {
     else {
         "Unavailable"
     }
+    $profileCatalogSummary = if ($null -ne $profiles) {
+        $profileCount = @($profiles.profiles).Count
+        $verifiedCount = @($profiles.profiles | Where-Object { $_.isVerified }).Count
+        "$profileCount profiles, $verifiedCount verified"
+    }
+    else {
+        "Unavailable"
+    }
     $lines = @(
         "# AMD Mobile Power Compatibility Report",
         "",
@@ -275,6 +286,7 @@ if (-not [string]::IsNullOrWhiteSpace($MarkdownPath)) {
         "- SMU BIOS interface: $(if ($null -ne $platform) { $platform.cpu.smuBiosVersion } else { 'Unavailable' })",
         "- PM table: $(if ($null -ne $platform) { $platform.cpu.pmTableVersion } else { 'Unavailable' })",
         "- Matched profile: $profileName",
+        "- Profile catalog: $profileCatalogSummary",
         "- Platform supported: $(if ($null -ne $platform) { $platform.isSupported } else { $false })",
         "- Unsupported reason: $(if ($null -ne $platform -and $platform.unsupportedReason) { $platform.unsupportedReason } else { 'None' })",
         "- Limit capabilities: $limitCapabilities",
@@ -313,6 +325,7 @@ if (-not [string]::IsNullOrWhiteSpace($MarkdownPath)) {
         $null
     }
     PowerLine = if ($null -ne $telemetry) { $telemetry.powerLine } else { $null }
+    ProfileCatalogCount = if ($null -ne $profiles) { @($profiles.profiles).Count } else { $null }
     MarkdownPath = $MarkdownPath
     Error = $collectionError
 } | Format-List

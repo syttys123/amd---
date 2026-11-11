@@ -108,6 +108,35 @@ foreach ($property in @(
 if ($null -eq $report.worker -or [bool]$report.worker.writeControlsEnabled) {
     throw "Compatibility report must come from a read-only worker."
 }
+$profileCatalogCount = $null
+if ($null -ne $report.profileCatalog) {
+    if ([int]$report.profileCatalog.schemaVersion -ne 1) {
+        throw "Compatibility profile catalog has an unsupported schema."
+    }
+    $catalogProfiles = @($report.profileCatalog.profiles)
+    if ($catalogProfiles.Count -lt 10) {
+        throw "Compatibility profile catalog is missing generation profiles."
+    }
+    $catalogIds = @($catalogProfiles | ForEach-Object { [string]$_.id })
+    if (@($catalogIds | Select-Object -Unique).Count -ne $catalogIds.Count) {
+        throw "Compatibility profile catalog contains duplicate ids."
+    }
+    $verifiedProfiles = @($catalogProfiles | Where-Object { [bool]$_.isVerified })
+    if ($verifiedProfiles.Count -ne 1) {
+        throw "Compatibility profile catalog must contain exactly one verified profile."
+    }
+    foreach ($family in 0..15) {
+        $matches = @(
+            $catalogProfiles | Where-Object {
+                [bool]$_.isFamilyFallback -and
+                    @($_.families) -contains $family
+            })
+        if ($matches.Count -ne 1) {
+            throw "Compatibility profile catalog must map RyzenAdj family $family exactly once."
+        }
+    }
+    $profileCatalogCount = $catalogProfiles.Count
+}
 foreach ($pattern in @(
     '(?i)(?<![A-Za-z0-9])[A-Z]:\\',
     '(?i)(?<![A-Za-z0-9])[A-Z]:/',
@@ -227,6 +256,7 @@ $entry = [pscustomobject][ordered]@{
     else {
         $null
     }
+    profileCatalogCount = $profileCatalogCount
     stapmWatts = if ($null -ne $telemetry) {
         $telemetry.stapmLimitWatts
     }
@@ -276,6 +306,9 @@ foreach ($item in $entries) {
         "- SMU / PM table: $($item.smuBiosVersion) / $($item.pmTableVersion)")
     $lines.Add(
         "- Profile: $($item.profile) [$($item.profileRange)]")
+    if ($null -ne $item.profileCatalogCount) {
+        $lines.Add("- Profile catalog: $($item.profileCatalogCount) entries")
+    }
     $lines.Add("- Platform supported: $($item.supported)")
     if (-not [string]::IsNullOrWhiteSpace([string]$item.unsupportedReason)) {
         $lines.Add("- Unsupported reason: $($item.unsupportedReason)")

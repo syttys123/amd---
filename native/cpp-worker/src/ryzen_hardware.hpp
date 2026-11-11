@@ -33,6 +33,8 @@ struct ProfileInfo {
     int maximum_watts = 45;
     int default_watts = 15;
     bool verified = false;
+    bool family_fallback = true;
+    std::vector<int> families;
 };
 
 struct PlatformCapability {

@@ -68,6 +68,7 @@ Protocol requirements:
 Implemented commands:
 
 - `getHealth`
+- `getProfiles`
 - `getCapabilities`
 - `getSnapshot`
 - `applyTarget` when the worker write flag is enabled
@@ -90,8 +91,9 @@ Current installed and portable mode:
 %LocalAppData%\AmdMobilePower\logs\
 ```
 
-RyzenAdj profiles are read from `worker\profiles` in packaged builds. The
-current implementation has no persistent worker config or ProgramData
+The native worker compiles its profile catalog into the executable and exposes
+it read-only through `getProfiles`; the current implementation does not read an
+external `worker\profiles` directory, persistent worker config, or ProgramData
 directory. GUI and worker diagnostic logs are local rolling daily files and are
 not included in GUI or portable-collector compatibility exports. The worker's
 local diagnostic response may contain paths and recent logs for in-process

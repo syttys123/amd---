@@ -2,6 +2,7 @@
 #include "../src/profile_catalog.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <iostream>
@@ -282,7 +283,26 @@ bool ProfileCatalogSelectsVerifiedAndConservativeFamilies() {
 bool ProfileCatalogCoversEveryKnownFamily() {
     bool covered = true;
     bool sane = true;
+    bool exactly_once = true;
     std::vector<std::string> ids;
+    const std::array<std::string, 16> expected_ids{
+        "ryzenadj-legacy",
+        "ryzenadj-legacy",
+        "ryzenadj-renoir-cezanne",
+        "ryzenadj-renoir-cezanne",
+        "ryzenadj-legacy",
+        "ryzenadj-renoir-cezanne",
+        "ryzenadj-legacy",
+        "ryzenadj-rembrandt",
+        "ryzenadj-mendocino",
+        "ryzenadj-phoenix",
+        "ryzenadj-hawk-point",
+        "ryzenadj-dragon-fire",
+        "ryzenadj-krackan-strix",
+        "ryzenadj-krackan-strix",
+        "ryzenadj-strix-halo",
+        "ryzenadj-dragon-fire"};
+    const auto all_profiles = amd_mobile_power::AllPlatformProfiles();
 
     for (int family = 0; family <= 15; ++family) {
         const auto* profile = amd_mobile_power::FindPlatformProfile(
@@ -296,6 +316,25 @@ bool ProfileCatalogCoversEveryKnownFamily() {
         if (profile == nullptr) {
             continue;
         }
+
+        int family_matches = 0;
+        for (const auto* candidate : all_profiles) {
+            if (candidate->family_fallback &&
+                std::find(
+                    candidate->families.begin(),
+                    candidate->families.end(),
+                    family) != candidate->families.end()) {
+                ++family_matches;
+            }
+        }
+        exactly_once = Expect(
+                           family_matches == 1,
+                           "each RyzenAdj family must have exactly one fallback profile") &&
+            exactly_once;
+        covered = Expect(
+                      profile->id == expected_ids[static_cast<std::size_t>(family)],
+                      "family must select the documented conservative profile") &&
+            covered;
 
         sane = Expect(
                    !profile->id.empty() &&
@@ -318,9 +357,9 @@ bool ProfileCatalogCoversEveryKnownFamily() {
             "unknown") == nullptr,
         "an unlisted family must remain unsupported");
     const bool distinct = Expect(
-        ids.size() >= 8,
+        ids.size() == 9 && all_profiles.size() == 10,
         "family profiles should cover several distinct generations");
-    return covered && sane && unknown_unsupported && distinct;
+    return covered && sane && exactly_once && unknown_unsupported && distinct;
 }
 
 }  // namespace

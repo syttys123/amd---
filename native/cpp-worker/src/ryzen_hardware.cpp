@@ -336,7 +336,9 @@ PlatformCapability RyzenHardware::Probe() {
             profile->minimum_watts,
             profile->maximum_watts,
             profile->default_watts,
-            profile->verified};
+            profile->verified,
+            profile->family_fallback,
+            profile->families};
         capability.limits = LimitCapability{
             profile->supports_stapm,
             profile->supports_fast,

@@ -1,6 +1,7 @@
 #include <windows.h>
 
 #include "power_policy.hpp"
+#include "profile_catalog.hpp"
 #include "ryzen_hardware.hpp"
 
 #include <algorithm>
@@ -26,7 +27,7 @@ namespace {
 
 constexpr wchar_t kDefaultPipeName[] =
     L"\\\\.\\pipe\\AmdMobilePower.NativeWorker.v1";
-constexpr std::string_view kWorkerVersion = "0.5.0-native";
+constexpr std::string_view kWorkerVersion = "0.6.0-native";
 constexpr auto kShutdownDelay = std::chrono::milliseconds(150);
 
 struct Request {
@@ -406,7 +407,58 @@ void AppendProfile(
         << ",\"maximumWatts\":" << profile->maximum_watts
         << ",\"defaultWatts\":" << profile->default_watts
         << ",\"isVerified\":" << (profile->verified ? "true" : "false")
-        << "}";
+        << ",\"isFamilyFallback\":"
+        << (profile->family_fallback ? "true" : "false")
+        << ",\"families\":[";
+    for (std::size_t index = 0; index < profile->families.size(); ++index) {
+        if (index > 0) {
+            output << ",";
+        }
+        output << profile->families[index];
+    }
+    output << "]}";
+}
+
+void AppendCatalogProfile(
+    std::ostringstream& output,
+    const amd_mobile_power::PlatformProfile& profile) {
+    output
+        << "{\"id\":\"" << EscapeJsonString(profile.id)
+        << "\",\"displayName\":\"" << EscapeJsonString(profile.display_name)
+        << "\",\"minimumWatts\":" << profile.minimum_watts
+        << ",\"maximumWatts\":" << profile.maximum_watts
+        << ",\"defaultWatts\":" << profile.default_watts
+        << ",\"supportsStapm\":"
+        << (profile.supports_stapm ? "true" : "false")
+        << ",\"supportsFast\":"
+        << (profile.supports_fast ? "true" : "false")
+        << ",\"supportsSlow\":"
+        << (profile.supports_slow ? "true" : "false")
+        << ",\"isVerified\":" << (profile.verified ? "true" : "false")
+        << ",\"isFamilyFallback\":"
+        << (profile.family_fallback ? "true" : "false")
+        << ",\"families\":[";
+    for (std::size_t index = 0; index < profile.families.size(); ++index) {
+        if (index > 0) {
+            output << ",";
+        }
+        output << profile.families[index];
+    }
+    output << "]}";
+}
+
+std::string ProfileCatalogPayload() {
+    const auto profiles = amd_mobile_power::AllPlatformProfiles();
+    std::ostringstream output;
+    output << "{\"schemaVersion\":1,\"profiles\":[";
+    for (std::size_t index = 0; index < profiles.size(); ++index) {
+        if (index > 0) {
+            output << ",";
+        }
+        AppendCatalogProfile(output, *profiles[index]);
+    }
+    output << "]}";
+    return output.str();
 }
 
 std::string PlatformPayload(const amd_mobile_power::PlatformCapability& capability) {
@@ -881,6 +933,10 @@ int wmain(int argc, wchar_t* argv[]) {
                 response = SuccessResponse(
                     request.request_id,
                     HealthPayload(hardware && hardware->IsInitialized()));
+            } else if (request.command == "getProfiles") {
+                response = SuccessResponse(
+                    request.request_id,
+                    ProfileCatalogPayload());
             } else if (
                 request.command == "getCapabilities" ||
                 request.command == "getSnapshot") {
@@ -1049,7 +1105,7 @@ int wmain(int argc, wchar_t* argv[]) {
                 response = ErrorResponse(
                     request.request_id,
                     "unsupported_command",
-                    "Native worker implements getHealth, getCapabilities, getSnapshot, applyTarget, getPowerPolicy, setPowerPolicy, and shutdown.");
+                    "Native worker implements getHealth, getProfiles, getCapabilities, getSnapshot, applyTarget, getPowerPolicy, setPowerPolicy, and shutdown.");
             }
             if (!WriteAll(pipe.value, response)) {
                 std::wcerr << L"WriteFile failed: " << GetLastError() << L"\n";

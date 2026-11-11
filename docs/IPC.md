@@ -68,6 +68,7 @@ Failure:
 | Command | Status | Hardware access |
 |---|---|---|
 | `getHealth` | implemented | no |
+| `getProfiles` | implemented; returns the complete native profile catalog | no |
 | `getCapabilities` | implemented; requires the opt-in hardware adapter | probe only |
 | `getSnapshot` | implemented; requires the opt-in hardware adapter | read only |
 | `applyTarget` | implemented; unit-tested and supervised hardware read-back verified | read/write |

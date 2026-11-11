@@ -15,6 +15,8 @@ struct PlatformProfile {
     bool supports_fast = true;
     bool supports_slow = true;
     bool verified = false;
+    bool family_fallback = true;
+    std::vector<int> families;
 };
 
 const PlatformProfile* FindPlatformProfile(

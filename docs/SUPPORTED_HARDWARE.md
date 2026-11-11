@@ -104,7 +104,8 @@ and the result is recorded in `HARDWARE_MATRIX.md`.
    without enabling power-limit writes.
 2. Record CPU, BIOS, SMU interface, PM table, power-line state, and firmware
    limits.
-3. Add or update a conservative profile under `profiles/`.
+3. Add or update a conservative profile in
+   `native/cpp-worker/src/profile_catalog.cpp` and its family-coverage test.
 4. Run tests and verify profile matching. The test suite loads every shipped
    profile, rejects duplicate IDs, and confirms that an unknown AMD CPU reaches
    the conservative default profile.

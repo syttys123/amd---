@@ -111,6 +111,17 @@ not authoritative.
   successful deployed-shortcut launch with both value-bearing ceiling/uniform
   arguments parsed correctly. Evidence:
   `docs\evidence\release\native-publication-readiness-2026-11-12.json`.
+- The native worker profile catalog is now a single family-indexed table rather
+  than a separate switch statement. Every RyzenAdj family `0-15` is mapped
+  exactly once to a conservative fallback, the verified `8845HS + 4c0009`
+  device profile remains separate, and the read-only `getProfiles` command
+  exposes all ten entries. The compatibility collector now includes the full
+  catalog, and the report importer rejects duplicate ids, missing family
+  coverage, or a verified-profile count other than one. The worker version is
+  `0.6.0-native`. A real read-only collector run on the 8845HS returned
+  `PASS`, ten catalog entries, one verified profile, matched
+  `hawk-point-8845hs`, and live `10/10/10 W` limits; the importer accepted the
+  report and rejected a deliberately missing family mapping.
 - The 1.0.0-native package passed 16-entry checksum verification, extracted GUI/worker
   read-only verification, dialog/lifecycle checks, sanitized compatibility
   JSON/Markdown generation, isolated install/uninstall, and real current-user

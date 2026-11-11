@@ -86,6 +86,29 @@ function Invoke-NativeWorkerProbe {
             throw "$Label worker did not answer getHealth."
         }
 
+        $profilesText = & $rustProbe --pipe-name $pipePath --command getProfiles 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "$Label worker profile catalog probe failed: $profilesText"
+        }
+        $profileCatalog = ($profilesText | Out-String).Trim() | ConvertFrom-Json
+        $catalogProfiles = @($profileCatalog.profiles)
+        if ($catalogProfiles.Count -lt 10) {
+            throw "$Label worker reported an incomplete profile catalog."
+        }
+        if (@($catalogProfiles | Where-Object { $_.isVerified }).Count -ne 1) {
+            throw "$Label worker must report exactly one verified profile."
+        }
+        foreach ($family in 0..15) {
+            $matches = @(
+                $catalogProfiles | Where-Object {
+                    [bool]$_.isFamilyFallback -and
+                        @($_.families) -contains $family
+                })
+            if ($matches.Count -ne 1) {
+                throw "$Label worker must map RyzenAdj family $family exactly once."
+            }
+        }
+
         $shutdown = & $rustProbe --pipe-name $pipePath --command shutdown 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "$Label worker shutdown probe failed: $shutdown"
@@ -97,6 +120,7 @@ function Invoke-NativeWorkerProbe {
         return [pscustomobject]@{
             Label = $Label
             Health = $health
+            ProfileCatalogCount = $catalogProfiles.Count
             Shutdown = ($shutdown | Out-String).Trim()
             ExitCode = $process.ExitCode
         }
@@ -301,6 +325,7 @@ if ($VerifyWriteGuard) {
 [pscustomobject]@{
     Verification = "PASS"
     CppWorker = $cppResult.Health
+    CppProfileCatalogCount = $cppResult.ProfileCatalogCount
     CppShutdown = $cppResult.Shutdown
     ExistingWorker = if ($existingResult) {
         $existingResult.Health
