@@ -2,7 +2,7 @@
 
 ## Native Rust/C++ Preview
 
-Build a portable native preview without replacing the stable .NET deployment:
+Build the portable native preview and stable-local deployment candidate:
 
 ```powershell
 .\native\build-package.ps1
@@ -41,7 +41,7 @@ the policy-save write, use the read-only runtime gate:
 .\native\build-package.ps1 `
   -NoBuild `
   -ReadOnlyRuntimeVerification `
-  -Version 1.0.0-native
+  -Version 1.0.8-native
 ```
 
 This runs the extracted GUI/worker, write-control UI, diagnostics export,
@@ -72,7 +72,7 @@ worktree:
 
 ```powershell
 .\native\verify-release.ps1 `
-  -Version 1.0.0-native `
+  -Version 1.0.8-native `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```
@@ -88,7 +88,7 @@ After the release gate passes and the evidence is committed, create a local
 review-only bundle:
 
 ```powershell
-.\native\prepare-release-review.ps1 -Version 1.0.0-native
+.\native\prepare-release-review.ps1 -Version 1.0.8-native
 ```
 
 The command writes the ZIP, release gate, policy/shell evidence, notices,
@@ -121,21 +121,25 @@ paths and registry state were removed with zero residual artifacts. Evidence:
 
 ### Native Release Candidate
 
-Current internal native release candidate:
+Current stable-local native candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.8-native-win-x64-native-preview.zip
 ```
 
-- Size: `535,197` bytes.
+- Size: `570,836` bytes.
 - SHA256:
-  `f3fd6ea1d1b0292c6ec9ea7445f191adc302066f78a728528a3722923c73a0bf`.
-- Source commit: `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
+  `8ce1fc66ca5fb9c087f4777cc79a9e93bfc9a3ddbf01ced4e24578b361f1e768`.
+- Source commit: `36287f78b286c68dd44d6f45dd59ce2b9dfa0e00`.
 - Working tree at build time: clean.
+- Payload checksum entries: 18.
 - Runtime verification: hardware read-only/write-guard, clean-room native GUI
   lifecycle with three Win32 minimize/restore cycles, extracted read-only
   worker, compatibility collector, staged install/overwrite/uninstall, and
   real shell integration passed. `PolicyWriteVerification=Skipped`.
+- App-owned driver updates stop and wait for `Stopped` before replacing the
+  `.sys` file. The package includes elevated WinRing0 install and safe
+  uninstall helpers.
 - The clean-room native UI was verified in simple and advanced modes at 125%
   scaling with no structural overlap. The test-only high-contrast fixture
   verifies a complete black/white/yellow palette without changing Windows
@@ -145,8 +149,8 @@ artifacts/native-packages/amd-mobile-power-v1.0.0-native-win-x64-native-preview.
   `trayIconId=1`, and `simple` to `advanced` mode synchronization with the
   packaged GUI/worker hashes.
 - The separate controlled policy probe requested the live AC limits
-  `25/45/25 W`, confirmed the worker's read-back, disabled the policy, and
-  shut down cleanly. No preset or preconfigured value was substituted.
+  `10/10/10 W`, confirmed the worker's read-back, disabled the policy, and
+  shut down cleanly.
 - `导出诊断` works in read-only and write-enabled modes, writing schema-1 JSON
   with an explicit privacy block and no paths, process IDs, logs, pipe names,
   or upload path.
@@ -154,24 +158,28 @@ artifacts/native-packages/amd-mobile-power-v1.0.0-native-win-x64-native-preview.
   staged rollback switching, uninstall, and refusal to overwrite an unmarked
   non-empty directory.
 - Aggregate evidence:
-  `docs/evidence/packaging/v1.0.0-native-release-gate-2026-11-11.json`.
+  `docs/evidence/packaging/v1.0.8-native-release-gate-2026-11-12.json`.
 - Package evidence:
-  `docs/evidence/packaging/v1.0.0-native-clean-2026-11-11.json`.
+  `docs/evidence/packaging/v1.0.8-native-clean-2026-11-12.json`.
 - Shell evidence:
-  `docs/evidence/packaging/v1.0.0-native-shell-integration-2026-11-11.json`.
-- Install upgrade evidence:
-  `docs/evidence/packaging/v1.0.0-native-cross-version-upgrade-2026-11-11.json`.
+  `docs/evidence/packaging/v1.0.8-native-shell-integration-2026-11-12.json`.
+- Deployment evidence:
+  `docs/evidence/packaging/v1.0.8-native-deployment-2026-11-12.json`.
 - Policy no-change evidence:
-  `docs/evidence/hardware/v1.0.0-native-power-policy-no-change-2026-11-11.json`.
+  `docs/evidence/hardware/v1.0.8-native-power-policy-no-change-2026-11-12.json`.
 
-This RC is not yet the public stable release. `C:\RyzenAdj` now contains this
+This candidate is not yet a public stable release. `C:\RyzenAdj` contains this
 hardware-gated native package for the verified 8845HS platform, with the
-previous .NET `1.0.4` deployment preserved as a recoverable backup. The native
-preview still needs 100%/150% DPI sessions, broader AMD generation evidence,
-and final human review before any public promotion discussion.
+previous `1.0.7-native` deployment preserved as a rollback. It still needs
+real 100%/150% system sessions, broader AMD generation evidence, clean-Windows
+driver validation, and final human review before public promotion.
 Track the candidate's open gates in `docs/NATIVE_RC_STATUS.md`.
 
 ## Portable ZIP
+
+The following .NET package material is retained as historical evidence for the
+legacy self-contained build. The current stable-local release is the native
+`1.0.8-native` package documented above.
 
 Build a self-contained Windows x64 portable package from a clean source tree:
 

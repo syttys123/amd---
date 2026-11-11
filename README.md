@@ -1,142 +1,159 @@
 # AMD Mobile Power
 
-AMD Mobile Power is an early-development Windows utility for monitoring and,
-after supervised validation, controlling firmware power limits on supported AMD
-thin-and-light laptops.
+AMD Mobile Power is a native Windows utility for monitoring and, after
+supervised validation, controlling firmware package-power limits on supported
+AMD thin-and-light laptops. It uses a Rust GUI and a separate C++ worker so the
+UI and hardware access stay behind a narrow named-pipe contract.
 
-> Status: no public release yet. A local `1.0.4` stable deployment is validated on
-> one AMD laptop. The normal GUI and packaged build are read-only unless launched
-> with the reviewed local write-control flag. Controlled 10 W and 12 W writes,
-> a packaged no-change write gate, and a supervised AC-to-battery-to-AC policy
-> transition passed on 2026-11-10. The `1.0.4` build fixes the remaining
-> taskbar/tray lifecycle crash, keeps orphan-worker cleanup, and preserves the
-> compact-mode title/status layout.
-> Public support still requires a second physical
-> AMD laptop and the remaining publication gates.
+> Status: no public release yet. The current stable-local candidate is
+> `1.0.8-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
+> Broader AMD generation support remains experimental until each device has
+> read-only and supervised write evidence.
 
-![AMD Mobile Power status-bar dashboard](docs/assets/main-dashboard-v1.0.1-status-2026-11-10.png)
+![Native simple mode](assets/native-gui-redesign-simple-2026-11-11.png)
 
-## Current Features
+![Native advanced mode](assets/native-gui-redesign-advanced-2026-11-11.png)
 
-- Native WinForms app with a compact tag-style simple view, a two-column
-  advanced view, a four-column telemetry matrix, persistent always-on-top
-  control, and taskbar/notification-area integration.
-- Hidden named-pipe worker process isolated from the GUI.
-- One-second STAPM, Fast, Slow, temperature, and power-line refresh.
-- Automatic CPU family, SMU interface, PM table, and profile detection.
-- Editable 12 W, 25 W, and 45 W quick presets.
-- Optional battery/AC policy controls, disabled in read-only mode.
-- Read-back verification, firmware-clamp reporting, and write restoration.
-- Sanitized diagnostics export with platform, telemetry, process architecture,
-  runtime-file hashes, and no local paths, process IDs, log directories, or
-  recent log excerpts.
-- Packaged read-only diagnostics collector for compatibility reports; it uses a
-  sanitized field whitelist, never enables write controls, and never uploads.
-- Lightweight daily GUI and worker logs with seven-day retention.
-- Self-contained Windows x64 portable ZIP and current-user install/uninstall
-  scripts.
-- GitHub Actions build, test, RyzenAdj build, and package-artifact workflow.
+## Current Capabilities
+
+- Native Rust GUI with simple and advanced modes, persistent always-on-top,
+  taskbar integration, notification-area controls, and a custom double-buffered
+  canvas.
+- C++ worker with STAPM, PPT Fast, PPT Slow, temperature, power-line, and
+  read-back telemetry.
+- Automatic RyzenAdj family detection and a catalog of conservative fallbacks
+  for every family `0-15`. Only `8845HS + PM table 4c0009` is currently marked
+  verified.
+- Read-only by default. Hardware writes require the explicit
+  `--enable-write-controls` launch flag, and every write is followed by a
+  read-back.
+- Battery and AC policy automation, editable presets, firmware-clamp reporting,
+  and restore attempts on partial Fast/Slow failure.
+- Packaged WinRing0 install and uninstall helpers. The installer reuses an
+  existing valid WinRing0 service instead of taking over another
+  installation's driver path.
+- Sanitized compatibility reports that contain no local paths, process IDs,
+  account names, serial numbers, recent logs, or upload behavior.
+- Portable ZIP, isolated install/overwrite/uninstall helpers, checksums,
+  diagnostics export, and reproducible native release gates.
 
 ## Safety
 
 Changing firmware power limits can cause instability, overheating, battery
-wear, data loss, or hardware damage. Use conservative values. This project is
-not affiliated with AMD or laptop manufacturers.
+wear, data loss, or hardware damage. Use conservative values and keep a
+recovery path.
 
-Some platforms lock sustained limits in BIOS or the embedded controller. A
+Some laptops lock sustained limits in the BIOS or embedded controller. A
 successful RyzenAdj call does not guarantee that the requested value survives
-read-back.
+read-back. The GUI treats PPT Fast/Slow as the required package caps and shows
+STAPM separately because firmware may manage or clamp it dynamically.
 
-Do not run AMD Mobile Power alongside the legacy `RyzenPower`, `ryzenadj`, or
-AMD Ryzen Master processes. The application intentionally refuses to become a
+Do not run AMD Mobile Power alongside legacy `RyzenPower`, `ryzenadj`, or AMD
+Ryzen Master processes. The application intentionally refuses to become a
 second hardware owner.
 
-## Quick Start
+The local stable deployment on this development laptop is fixed to a
+`10/10/10 W` battery and AC policy. That local choice does not change the
+portable package's read-only default.
 
-The current local stable package is located at:
+## Portable Quick Start
 
-```text
-artifacts/packages/amd-mobile-power-v1.0.4-win-x64-lite.zip
-```
-
-Extract the ZIP and run `AmdMobilePower.exe`. This starts in read-only mode by
-default. The locally validated write-control deployment is documented in
-`docs/DEPLOYMENT.md`; the current laptop deployment is `C:\RyzenAdj` version
-`1.0.4`.
-See `docs/INSTALLATION.md` before using `install.ps1`.
-
-The earlier self-contained development package remains available:
+Current review candidate:
 
 ```text
-artifacts/packages/amd-mobile-power-v0.1.0-win-x64.zip
+artifacts/native-packages/amd-mobile-power-v1.0.8-native-win-x64-native-preview.zip
 ```
 
-The lite package is roughly 581 KB without the .NET runtime and requires the
-Microsoft .NET 8 Desktop Runtime x64. See `docs/PACKAGING.md` for build and
-runtime details.
+- Size: `570,836` bytes
+- SHA256:
+  `8ce1fc66ca5fb9c087f4777cc79a9e93bfc9a3ddbf01ced4e24578b361f1e768`
 
-## Native Preview
+1. Extract the complete ZIP to a writable directory.
+2. On a fresh Windows host, open an elevated PowerShell in the extracted
+   directory and initialize the bundled driver once:
 
-The `main` line now includes a clean-room Rust GUI with a
-C++ worker. The current stable-local candidate is `1.0.0-native`:
-
-```text
-artifacts/native-packages/amd-mobile-power-v1.0.0-native-win-x64-native-preview.zip
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install-driver-bootstrap.ps1
 ```
 
-It is now deployed at `C:\RyzenAdj` as the stable-local candidate for the
-verified 8845HS platform. The previous .NET `1.0.4` deployment is preserved as
-`C:\RyzenAdj.before-20261111-223017` and in
-`artifacts/deployment-backups/C-RyzenAdj-before-1.0.0-native-20261111-223017`.
-Its clean package gate passed extracted GUI/worker read-only
-verification, sanitized diagnostics, checksums, isolated install/uninstall,
-current-user shell integration, Windows high-contrast rendering, packaged
-tray/taskbar and mode evidence, the `rc.17` to `1.0.0-native` upgrade, and a
-controlled current-value write-back/read-back policy gate on the development
-8845HS, and the deployed C-drive copy passed lifecycle, worker, tray,
-single-instance, mode, preset, and diagnostics verification. Broader AMD
-generation evidence and 100%/150% DPI sessions remain open.
+3. Start the GUI:
 
-![Native simple redesign](assets/native-gui-redesign-simple-2026-11-11.png)
+```powershell
+.\amd-mobile-power-gui.exe
+```
 
-![Native advanced redesign](assets/native-gui-redesign-advanced-2026-11-11.png)
+The default launch is read-only. A deliberate write-control session can be
+started with:
 
-## Documentation
+```powershell
+.\amd-mobile-power-gui.exe --enable-write-controls --simple-mode
+```
 
-- `docs/README.md` is the documentation index and authority order.
-- `docs/DEV_STATUS.md` records the current implementation and next task.
-- `docs/NATIVE_RC_STATUS.md` tracks the native candidate and release gates.
-- `docs/NATIVE_UI_REWRITE.md` records the clean-room native UI architecture.
-- `docs/UI_DESIGN_DATABASE.md` records the local design-system evidence and
-  compact-window UI contracts.
-- `docs/SUPPORTED_HARDWARE.md` explains current compatibility evidence.
-- `docs/COMPATIBILITY_REPORTS.md` indexes sanitized read-only device reports.
-- `docs/SECURITY.md` documents hardware and driver safety boundaries.
-- `docs/BUILDING.md` covers application and RyzenAdj builds.
-- `docs/PACKAGING.md` covers portable and installed packaging.
-- `docs/HARDWARE_TEST_PROCEDURE.md` defines the supervised write-test gate.
-- `docs/LAUNCH_COPY_ZH.md` contains the review-only GitHub and Bilibili launch
-  copy. It is not approval to publish.
-- `docs/NATIVE_LAUNCH_COPY_ZH.md` contains the native 1.0.0 review-only launch
-  copy. It is not approval to publish.
-- `docs/RELEASE_CANDIDATE_ZH.md` consolidates the current package, evidence,
-  media, launch copy, and remaining publication gates.
-- `docs/NATIVE_RELEASE_CANDIDATE_ZH.md` consolidates the native 1.0.0 package,
-  hardware gate, UI evidence, and remaining publication gates.
+For an isolated current-user install, use `install-preview.ps1`. For driver
+cleanup, run `uninstall-driver-bootstrap.ps1` from an elevated PowerShell; it
+removes the service only when its binary path equals this package's
+`%ProgramData%\AmdMobilePower\driver\WinRing0x64.sys`.
+
+See [docs/INSTALLATION.md](docs/INSTALLATION.md) and
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) before enabling writes.
+
+## Compatibility Scope
+
+Verified device:
+
+- MECHREVO WUJIE15 PRO
+- AMD Ryzen 7 8845HS with Radeon 780M Graphics
+- BIOS `T153_HPT_V05`, Windows 11 build `26300`
+- SMU `15`, PM table `4c0009`
+
+Conservative family profiles exist for Renoir/Cezanne/Lucienne,
+Rembrandt/Phoenix, Mendocino, Dragon/Fire Range, Krackan/Strix Point,
+Strix Halo, and older Vega-based mobile families. These profiles improve
+bounds and diagnostics, but remain unverified until real device evidence is
+recorded.
+
+The operating system reports many USB-C power banks as external/AC power. A
+power bank therefore triggers AC behavior and cannot currently be distinguished
+from a wall adapter by the application.
+
+See [docs/SUPPORTED_HARDWARE.md](docs/SUPPORTED_HARDWARE.md),
+[docs/HARDWARE_MATRIX.md](docs/HARDWARE_MATRIX.md), and
+[docs/COMPATIBILITY_REPORTS.md](docs/COMPATIBILITY_REPORTS.md).
 
 ## Development
 
 ```powershell
 git submodule update --init --recursive
-dotnet build AmdMobilePower.sln -c Release
-dotnet test --solution AmdMobilePower.sln -c Release
-.\build-package.ps1 -Version 0.1.0
+.\native\build.ps1 -Offline
+.\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui `
+  -VerifyRustWorker -VerifyWriteGuard
+.\native\verify-release.ps1 `
+  -Version 1.0.8-native `
+  -VerifyShellIntegration `
+  -ExecuteNoChangePolicy
 ```
+
+The release gate writes package, shell, DPI, hardware-policy, deployment, and
+review evidence under `docs/evidence/` and `artifacts/`. Hardware tests use
+conservative values and restore the previous state.
+
+## Documentation
+
+- [docs/README.md](docs/README.md): documentation index and authority order.
+- [docs/DEV_STATUS.md](docs/DEV_STATUS.md): current implementation and next task.
+- [docs/NATIVE_RC_STATUS.md](docs/NATIVE_RC_STATUS.md): native release gates.
+- [docs/NATIVE_UI_REWRITE.md](docs/NATIVE_UI_REWRITE.md): native UI architecture.
+- [docs/PACKAGING.md](docs/PACKAGING.md): package, driver, install, and uninstall.
+- [docs/BUILDING.md](docs/BUILDING.md): build and verification commands.
+- [docs/SECURITY.md](docs/SECURITY.md): hardware and driver safety boundaries.
+- [docs/NATIVE_RELEASE_CANDIDATE_ZH.md](docs/NATIVE_RELEASE_CANDIDATE_ZH.md):
+  Chinese review dossier.
+- [docs/NATIVE_LAUNCH_COPY_ZH.md](docs/NATIVE_LAUNCH_COPY_ZH.md): review-only
+  GitHub and Bilibili launch copy. It is not publication approval.
 
 ## License
 
 Original project code is licensed under the MIT License. Third-party components
-retain their own licenses. Development packages include the reviewed RyzenAdj,
-InpOut32, and WinRing0 license texts. See `docs/THIRD_PARTY_NOTICES.md` and
-`docs/LICENSING_REVIEW.md`.
-
+retain their own licenses. Packages include the reviewed RyzenAdj, InpOut32, and
+WinRing0 license texts. See [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md)
+and [docs/LICENSING_REVIEW.md](docs/LICENSING_REVIEW.md).

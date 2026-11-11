@@ -51,20 +51,20 @@ Markdown document records the decisions that apply to AMD Mobile Power.
 
 | Document | Purpose |
 |---|---|
-| `BUILDING.md` | .NET and RyzenAdj build prerequisites |
-| `PACKAGING.md` | Portable ZIP and install-script packaging |
+| `BUILDING.md` | Native Rust/C++ build, legacy .NET build, and RyzenAdj prerequisites |
+| `PACKAGING.md` | Native portable ZIP, driver scripts, and install/uninstall packaging |
 | `DEPLOYMENT.md` | Promotion from development source to stable deployment |
 | `THIRD_PARTY_NOTICES.md` | Third-party source and binary obligations |
 | `LICENSING_REVIEW.md` | Engineering redistribution review and release license gates |
 | `ROADMAP.md` | Milestones and release gates |
 | `RELEASE_CHECKLIST.md` | Final publication checklist |
-| `RELEASE_CANDIDATE_ZH.md` | Consolidated package, evidence, media, and open-gate review |
-| `NATIVE_RELEASE_CANDIDATE_ZH.md` | Native 1.0.0 package, evidence, and open-gate review |
+| `RELEASE_CANDIDATE_ZH.md` | Legacy .NET 1.0.4 package and historical review |
+| `NATIVE_RELEASE_CANDIDATE_ZH.md` | Native 1.0.8 package, evidence, and open-gate review |
 | `INTRODUCTION_ZH.md` | Chinese project introduction draft |
 | `MEDIA_PLAN.md` | Screenshot, video, and Bilibili preparation plan |
 | `PROMO_VIDEO.md` | Current video draft, render command, hashes, and media verification |
 | `LAUNCH_COPY_ZH.md` | Review-only GitHub release and Bilibili publication copy |
-| `NATIVE_LAUNCH_COPY_ZH.md` | Review-only native 1.0.0 GitHub and Bilibili copy |
+| `NATIVE_LAUNCH_COPY_ZH.md` | Review-only native 1.0.8 GitHub and Bilibili copy |
 
 ## Status Rules
 

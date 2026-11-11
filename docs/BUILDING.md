@@ -1,13 +1,13 @@
 # Building
 
-## Prerequisites
+## Native Prerequisites
 
 - Windows x64.
-- .NET 10 SDK. CI and the release gate are verified with SDK `10.0.400`.
-  Projects continue to target .NET 8 runtime APIs.
+- Rust toolchain with the MSVC target.
 - Visual Studio with the MSVC C++ toolchain.
 - CMake, either on `PATH` or from the Visual Studio CMake component.
 - Git with submodule support.
+- .NET 10 SDK only for the historical .NET implementation and its tests.
 
 ## Restore Submodules
 
@@ -15,7 +15,21 @@
 git submodule update --init --recursive
 ```
 
-## Build the .NET Application
+## Native Release Build
+
+The current release line is the Rust GUI + C++ worker package:
+
+```powershell
+.\native\build.ps1 -Offline
+.\native\verify-release.ps1 `
+  -Version 1.0.8-native `
+  -ExecuteNoChangePolicy `
+  -VerifyShellIntegration
+```
+
+See `PACKAGING.md` and `DEPLOYMENT.md` for package promotion and rollback.
+
+## Legacy .NET Application
 
 ```powershell
 dotnet build AmdMobilePower.sln -c Release
@@ -165,7 +179,7 @@ version:
 
 ```powershell
 .\native\verify-release.ps1 `
-  -Version 1.0.0-native `
+  -Version 1.0.8-native `
   -ExecuteNoChangePolicy `
   -VerifyShellIntegration
 ```

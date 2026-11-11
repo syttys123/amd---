@@ -2,12 +2,12 @@
 
 ## Current Scope
 
-AMD Mobile Power does not yet support "all AMD laptops." It has one
-experimental development platform and conservative detection profiles:
+AMD Mobile Power does not yet support "all AMD laptops." It has one verified
+device profile and conservative detection profiles for other families:
 
 | CPU | Profile | Evidence | Status |
 |---|---|---|---|
-| AMD Ryzen 7 8845HS | `hawk-point-8845hs` | Read-only capability and telemetry probe passed | Experimental |
+| AMD Ryzen 7 8845HS | `hawk-point-8845hs` | Read-only telemetry and supervised write/read-back/restore passed | Verified device |
 | Unknown AMD mobile CPU | `default` | Capability-dependent detection only | Unverified |
 
 Conservative family profiles now exist for Renoir/Cezanne/Lucienne,
@@ -48,7 +48,9 @@ firmware-managed diagnostic/control value.
 
 A real battery read-only baseline on 2026-11-10 reported STAPM/Fast/Slow limits
 of `25/25/20 W`, live package power below those caps, and no firmware-clamp
-flag. The supervised AC/battery automatic-policy transition remains pending.
+flag. A supervised AC/battery/AC policy transition passed the same day. The
+current local deployment intentionally uses a uniform `10/10/10 W` saved
+policy; re-run the hardware procedure after changing BIOS mode or package.
 
 This distinction is recorded in `HARDWARE_MATRIX.md`: a lower STAPM read-back
 is a firmware clamp/dynamic-management observation, while a Fast/Slow value
@@ -99,7 +101,7 @@ and the result is recorded in `HARDWARE_MATRIX.md`.
 ## Adding A Platform
 
 1. From the extracted portable package, run
-   `powershell -ExecutionPolicy Bypass -File .\collect-diagnostics.ps1`.
+   `powershell -ExecutionPolicy Bypass -File .\collect-native-diagnostics.ps1`.
    This starts a hidden read-only worker and writes a sanitized JSON report
    without enabling power-limit writes.
 2. Record CPU, BIOS, SMU interface, PM table, power-line state, and firmware
