@@ -1,6 +1,7 @@
-// Embeds the shared application icon as a Windows PE resource so Explorer,
-// the taskbar, Alt+Tab, and shortcuts (`exe,0`) show the real icon instead of
-// a generic placeholder. The runtime-drawn tray icon uses the same .ico bytes.
+// Embeds the shared application icon and the PerMonitorV2 DPI manifest as
+// Windows PE resources. Without the icon, Explorer, the taskbar, Alt+Tab, and
+// shortcuts (`exe,0`) fall back to a generic placeholder; without the manifest,
+// Windows bitmap-stretches the whole window above 100% scaling.
 
 use std::env;
 use std::fs;
@@ -33,8 +34,21 @@ fn main() {
     let rc_source = out_dir.join("app-icon.rc");
     let res_file = out_dir.join("app-icon.res");
     let escaped_icon = icon_path.display().to_string().replace('\\', "\\\\");
-    fs::write(&rc_source, format!("1 ICON \"{escaped_icon}\"\n"))
-        .expect("write generated resource script");
+
+    let manifest_path = manifest_dir.join("app.manifest");
+    println!("cargo:rerun-if-changed={}", manifest_path.display());
+    assert!(
+        manifest_path.is_file(),
+        "application manifest is missing: {}",
+        manifest_path.display()
+    );
+    let escaped_manifest = manifest_path.display().to_string().replace('\\', "\\\\");
+
+    fs::write(
+        &rc_source,
+        format!("1 ICON \"{escaped_icon}\"\n1 24 \"{escaped_manifest}\"\n"),
+    )
+    .expect("write generated resource script");
 
     let rc = find_rc().unwrap_or_else(|| {
         panic!(

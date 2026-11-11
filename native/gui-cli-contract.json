@@ -29,6 +29,10 @@
     "--ui-fixture": {
       "takesValue": true,
       "summary": "测试夹具：worker-offline、firmware-clamp、unsupported-platform、long-error、high-contrast。"
+    },
+    "--max-target-watts": {
+      "takesValue": true,
+      "summary": "本机硬上限：任何目标/预设/策略都不得高于该瓦数，并写入本机 UI 状态。"
     }
   }
 }

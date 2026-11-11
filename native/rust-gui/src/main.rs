@@ -13,7 +13,7 @@ use std::mem::size_of;
 use std::os::windows::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -44,25 +44,31 @@ use windows_sys::Win32::System::SystemServices::SS_LEFT;
 use windows_sys::Win32::System::Threading::CreateMutexW;
 use windows_sys::Win32::UI::Accessibility::{HCF_HIGHCONTRASTON, HIGHCONTRASTW};
 use windows_sys::Win32::UI::Controls::{DRAWITEMSTRUCT, ODS_DISABLED, ODS_SELECTED, ODT_BUTTON};
+use windows_sys::Win32::UI::HiDpi::{
+    AdjustWindowRectExForDpi, GetDpiForSystem, GetDpiForWindow, SetProcessDpiAwarenessContext,
+    DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
+};
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{EnableWindow, SetFocus};
 use windows_sys::Win32::UI::Shell::{
     Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE, NOTIFYICONDATAW,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    AdjustWindowRectEx, AppendMenuW, CheckMenuItem, CreateIconFromResourceEx, CreatePopupMenu,
-    CreateWindowExW, DefWindowProcW, DestroyIcon, DestroyMenu, DestroyWindow, DispatchMessageW,
-    FindWindowW, GetClientRect, GetCursorPos, GetDlgCtrlID, GetDlgItem, GetMessageW, GetParent,
+    AppendMenuW, CheckMenuItem, CreateIconFromResourceEx, CreatePopupMenu, CreateWindowExW,
+    DefWindowProcW, DestroyIcon, DestroyMenu, DestroyWindow, DispatchMessageW, FindWindowW,
+    GetClientRect, GetCursorPos, GetDlgCtrlID, GetDlgItem, GetMessageW, GetParent,
     GetWindowLongPtrW, IsDialogMessageW, LoadCursorW, LoadIconW, PostMessageW, PostQuitMessage,
-    RegisterClassExW, SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, SetWindowTextW,
-    ShowWindow, SystemParametersInfoW, TrackPopupMenu, TranslateMessage, CS_HREDRAW, CS_VREDRAW,
-    CW_USEDEFAULT, GWLP_USERDATA, HICON, HMENU, HWND_NOTOPMOST, HWND_TOPMOST, ICON_BIG, ICON_SMALL,
-    IDC_ARROW, IDI_APPLICATION, LR_DEFAULTCOLOR, MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED,
-    MSG, SIZE_MINIMIZED, SIZE_RESTORED, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE,
-    SWP_NOSIZE, SWP_NOZORDER, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON,
-    WM_APP, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION, WM_GETICON,
-    WM_LBUTTONUP, WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW,
-    WM_SIZE, WM_SYSCOLORCHANGE, WM_SYSCOMMAND, WNDCLASSEXW, WS_CAPTION, WS_CHILD, WS_CLIPCHILDREN,
-    WS_EX_APPWINDOW, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_SYSMENU, WS_VISIBLE,
+    RegisterClassExW, SetClassLongPtrW, SetForegroundWindow, SetWindowLongPtrW, SetWindowPos,
+    SetWindowTextW, ShowWindow, SystemParametersInfoW, TrackPopupMenu, TranslateMessage,
+    CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GCLP_HCURSOR, GWLP_USERDATA, HICON, HMENU,
+    HWND_NOTOPMOST, HWND_TOPMOST, ICON_BIG, ICON_SMALL, IDC_ARROW, IDC_HAND, IDI_APPLICATION,
+    LR_DEFAULTCOLOR, MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED, MINMAXINFO, MSG,
+    SIZE_MINIMIZED, SIZE_RESTORED, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
+    SWP_NOZORDER, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP,
+    WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_GETICON,
+    WM_GETMINMAXINFO, WM_LBUTTONUP, WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SETICON, WM_SETTINGCHANGE,
+    WM_SHOWWINDOW, WM_SIZE, WM_SYSCOLORCHANGE, WM_SYSCOMMAND, WNDCLASSEXW, WS_CAPTION, WS_CHILD,
+    WS_CLIPCHILDREN, WS_EX_APPWINDOW, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_SYSMENU, WS_THICKFRAME,
+    WS_VISIBLE,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_SETCHECK, BS_OWNERDRAW, ES_CENTER,
@@ -250,8 +256,33 @@ fn surface_brush() -> HBRUSH {
 }
 const SIMPLE_CLIENT_SIZE: (i32, i32) = (640, 392);
 const ADVANCED_CLIENT_SIZE: (i32, i32) = (780, 680);
+
+/// All layout constants in this file are expressed in 96-DPI logical units.
+const BASE_DPI: i32 = 96;
+
+fn dpi_percent(dpi: u32) -> i32 {
+    let dpi = if dpi == 0 { BASE_DPI as u32 } else { dpi } as i32;
+    (dpi * 100 + BASE_DPI / 2) / BASE_DPI
+}
+
+/// Logical units to device pixels.
+fn scaled(value: i32, percent: i32) -> i32 {
+    let product = value * percent;
+    if product >= 0 {
+        (product + 50) / 100
+    } else {
+        (product - 50) / 100
+    }
+}
+
+/// Device pixels to logical units.
+fn unscaled(value: i32, percent: i32) -> i32 {
+    let percent = percent.max(1);
+    (value * 100 + percent / 2) / percent
+}
+
 const APP_WINDOW_STYLE: u32 =
-    WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN;
+    WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_THICKFRAME | WS_CLIPCHILDREN;
 
 const fn rgb(red: u8, green: u8, blue: u8) -> u32 {
     red as u32 | ((green as u32) << 8) | ((blue as u32) << 16)
@@ -274,6 +305,7 @@ struct UiDiagnostics {
     high_contrast: bool,
     taskbar_icon_available: bool,
     tray_icon_id: u32,
+    dpi_percent: i32,
 }
 
 #[derive(Clone, Copy)]
@@ -362,11 +394,14 @@ struct GuiApp {
     header_controls: Option<HeaderControls>,
     simple_controls: Option<SimpleViewControls>,
     fonts: Option<UiFonts>,
+    dpi_percent: i32,
+    max_target_watts: Option<i32>,
 }
 
 impl GuiApp {
     fn new(mutex: HANDLE, mode_override: Option<state::UiMode>) -> Self {
-        let preset_watts = state::load_presets();
+        let max_target_watts = state::load_max_target_watts();
+        let preset_watts = clamp_to_ceiling(state::load_presets(), max_target_watts);
         let mut window_preferences = state::load_window_preferences();
         if let Some(mode) = mode_override {
             window_preferences.mode = mode;
@@ -407,6 +442,8 @@ impl GuiApp {
             header_controls: None,
             simple_controls: None,
             fonts: None,
+            dpi_percent: 100,
+            max_target_watts,
         }
     }
 }
@@ -454,6 +491,7 @@ struct Options {
     enable_write_controls: bool,
     ui_fixture: Option<UiFixture>,
     mode_override: Option<state::UiMode>,
+    max_target_watts: Option<i32>,
 }
 
 impl Default for Options {
@@ -465,6 +503,7 @@ impl Default for Options {
             enable_write_controls: false,
             ui_fixture: None,
             mode_override: None,
+            max_target_watts: None,
         }
     }
 }
@@ -567,22 +606,47 @@ unsafe fn create_ui_font(face_name: &str, pixel_height: i32, weight: i32) -> HGD
     )
 }
 
-unsafe fn create_ui_fonts() -> UiFonts {
+/// `percent` is the DPI scale in hundredths: 100 = 96 DPI, 125 = 120 DPI.
+///
+/// Custom painting selects these into a DC whose mapping mode already scales
+/// logical units, so that path uses percent 100. Native child controls have
+/// MM_TEXT DCs and need device-sized fonts, so they use the window DPI.
+unsafe fn create_ui_fonts(percent: i32) -> UiFonts {
     UiFonts {
-        display: create_ui_font("Microsoft YaHei UI", 31, FW_BOLD as i32),
-        number_display: create_ui_font("Consolas", 42, FW_BOLD as i32),
-        metric: create_ui_font("Microsoft YaHei UI", 16, FW_BOLD as i32),
-        number_metric: create_ui_font("Consolas", 18, FW_BOLD as i32),
-        body: create_ui_font("Microsoft YaHei UI", 14, FW_NORMAL as i32),
-        caption: create_ui_font("Microsoft YaHei UI", 12, FW_NORMAL as i32),
-        title: create_ui_font("Microsoft YaHei UI", 18, FW_BOLD as i32),
+        display: create_ui_font("Microsoft YaHei UI", scaled(31, percent), FW_BOLD as i32),
+        number_display: create_ui_font("Consolas", scaled(42, percent), FW_BOLD as i32),
+        metric: create_ui_font("Microsoft YaHei UI", scaled(16, percent), FW_BOLD as i32),
+        number_metric: create_ui_font("Consolas", scaled(18, percent), FW_BOLD as i32),
+        body: create_ui_font("Microsoft YaHei UI", scaled(14, percent), FW_NORMAL as i32),
+        caption: create_ui_font("Microsoft YaHei UI", scaled(12, percent), FW_NORMAL as i32),
+        title: create_ui_font("Microsoft YaHei UI", scaled(18, percent), FW_BOLD as i32),
+    }
+}
+
+/// Drawing code keeps using 96-DPI logical coordinates. These primitives turn
+/// them into device pixels at the window DPI, which keeps glyphs rendered by
+/// GDI at their real size instead of being stretched with the whole window.
+static PAINT_PERCENT: AtomicI32 = AtomicI32::new(100);
+
+fn paint_percent() -> i32 {
+    PAINT_PERCENT.load(Ordering::Relaxed).max(1)
+}
+
+fn scale_rect(rect: &RECT) -> RECT {
+    let percent = paint_percent();
+    RECT {
+        left: scaled(rect.left, percent),
+        top: scaled(rect.top, percent),
+        right: scaled(rect.right, percent),
+        bottom: scaled(rect.bottom, percent),
     }
 }
 
 unsafe fn fill_rect_color(hdc: windows_sys::Win32::Graphics::Gdi::HDC, rect: &RECT, color: u32) {
+    let device_rect = scale_rect(rect);
     let brush = CreateSolidBrush(color);
     if !brush.is_null() {
-        FillRect(hdc, rect, brush);
+        FillRect(hdc, &device_rect, brush);
         DeleteObject(brush);
     }
 }
@@ -594,8 +658,10 @@ unsafe fn paint_surface(
     fill: u32,
     border: u32,
 ) {
+    let rect = scale_rect(&rect);
+    let radius = scaled(radius, paint_percent());
     let brush = CreateSolidBrush(fill);
-    let pen = CreatePen(PS_SOLID, 1, border);
+    let pen = CreatePen(PS_SOLID, scaled(1, paint_percent()).max(1), border);
     if brush.is_null() || pen.is_null() {
         if !brush.is_null() {
             DeleteObject(brush);
@@ -641,7 +707,7 @@ unsafe fn draw_text_in(
     };
     SetBkMode(hdc, TRANSPARENT as i32);
     SetTextColor(hdc, color);
-    let mut draw_rect = rect;
+    let mut draw_rect = scale_rect(&rect);
     DrawTextW(
         hdc,
         value.as_ptr(),
@@ -945,11 +1011,7 @@ unsafe fn paint_target_region(
     edit_left: i32,
     edit_width: i32,
 ) {
-    let (minimum, maximum) = app
-        .profile
-        .as_ref()
-        .map(|profile| (profile.minimum_watts, profile.maximum_watts))
-        .unwrap_or((5, 60));
+    let (minimum, maximum) = profile_limits(app);
     draw_text_in(
         hdc,
         "目标功耗",
@@ -1133,9 +1195,12 @@ unsafe fn paint_metric(
         palette().text_muted,
         RECT {
             left,
-            top: top + 53,
+            // Keep the caption inside the metric band: the band ends at
+            // top + 66 (240..320 with top = 254), so ending here avoids
+            // drawing the text across the band's bottom rule.
+            top: top + 50,
             right: left + 150,
-            bottom: top + 74,
+            bottom: top + 66,
         },
         DT_LEFT,
     );
@@ -1788,10 +1853,17 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
     }
     let mut client = RECT::default();
     GetClientRect(hwnd, &mut client);
-    let width = client.right.max(1);
-    let height = client.bottom.max(1);
+    let dpi = window_dpi(hwnd) as i32;
+    let percent = dpi_percent(dpi as u32);
+    PAINT_PERCENT.store(percent, Ordering::Relaxed);
+    let physical_width = client.right.max(1);
+    let physical_height = client.bottom.max(1);
+    // The paint code below keeps working in 96-DPI logical units; the drawing
+    // helpers convert those to device pixels.
+    let width = unscaled(physical_width, percent).max(1);
+    let height = unscaled(physical_height, percent).max(1);
     let memory_dc = CreateCompatibleDC(hdc);
-    let bitmap = CreateCompatibleBitmap(hdc, width, height);
+    let bitmap = CreateCompatibleBitmap(hdc, physical_width, physical_height);
     let old_bitmap = if !memory_dc.is_null() && !bitmap.is_null() {
         SelectObject(memory_dc, bitmap)
     } else {
@@ -1818,7 +1890,17 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
     }
 
     if !memory_dc.is_null() && !bitmap.is_null() {
-        BitBlt(hdc, 0, 0, width, height, memory_dc, 0, 0, SRCCOPY);
+        BitBlt(
+            hdc,
+            0,
+            0,
+            physical_width,
+            physical_height,
+            memory_dc,
+            0,
+            0,
+            SRCCOPY,
+        );
         SelectObject(memory_dc, old_bitmap);
         DeleteObject(bitmap);
         DeleteDC(memory_dc);
@@ -1833,6 +1915,17 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
     let id = draw.CtlID as usize;
     let disabled = draw.itemState & ODS_DISABLED != 0;
     let pressed = draw.itemState & ODS_SELECTED != 0;
+    // Match paint_window: keep drawing in 96-DPI logical units and let the
+    // drawing helpers scale to the real DPI.
+    let dpi = window_dpi(draw.hwndItem) as i32;
+    let percent = dpi_percent(dpi as u32);
+    PAINT_PERCENT.store(percent, Ordering::Relaxed);
+    let rc = RECT {
+        left: unscaled(draw.rcItem.left, percent),
+        top: unscaled(draw.rcItem.top, percent),
+        right: unscaled(draw.rcItem.right, percent),
+        bottom: unscaled(draw.rcItem.bottom, percent),
+    };
     let selected = match id {
         SIMPLE_MODE => app.view_mode == state::UiMode::Simple,
         ADVANCED_MODE => app.view_mode == state::UiMode::Advanced,
@@ -1898,22 +1991,22 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
     };
     fill_rect_color(
         draw.hDC,
-        &draw.rcItem,
+        &rc,
         if hero_button || header_button || primary {
             palette().header
         } else {
             palette().surface
         },
     );
-    paint_surface(draw.hDC, draw.rcItem, 6, fill, border);
+    paint_surface(draw.hDC, rc, 6, fill, border);
     if app.focused_control == Some(id) {
         paint_surface(
             draw.hDC,
             RECT {
-                left: draw.rcItem.left + 2,
-                top: draw.rcItem.top + 2,
-                right: draw.rcItem.right - 2,
-                bottom: draw.rcItem.bottom - 2,
+                left: rc.left + 2,
+                top: rc.top + 2,
+                right: rc.right - 2,
+                bottom: rc.bottom - 2,
             },
             5,
             fill,
@@ -1939,7 +2032,7 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
     };
     SetBkMode(draw.hDC, TRANSPARENT as i32);
     SetTextColor(draw.hDC, text_color);
-    let mut rect = draw.rcItem;
+    let mut rect = scale_rect(&rc);
     DrawTextW(
         draw.hDC,
         value.as_ptr(),
@@ -2180,7 +2273,8 @@ fn diagnostics_document(
             "batteryOnly": ui_state.battery_only,
             "highContrast": ui_state.high_contrast,
             "taskbarIconAvailable": ui_state.taskbar_icon_available,
-            "trayIconId": ui_state.tray_icon_id
+            "trayIconId": ui_state.tray_icon_id,
+            "dpiPercent": ui_state.dpi_percent
         },
         "powerPolicy": policy,
         "snapshot": snapshot,
@@ -2226,6 +2320,7 @@ fn export_diagnostics(app: &GuiApp) -> Result<PathBuf, String> {
             high_contrast: ACTIVE_HIGH_CONTRAST.load(Ordering::Relaxed),
             taskbar_icon_available: !app.icon_large.is_null(),
             tray_icon_id: TRAY_ICON_ID,
+            dpi_percent: app.dpi_percent,
         },
     );
     let contents = serde_json::to_vec_pretty(&document)
@@ -2253,6 +2348,18 @@ where
             "--tray" => options.start_hidden = true,
             "--simple-mode" => options.mode_override = Some(state::UiMode::Simple),
             "--advanced-mode" => options.mode_override = Some(state::UiMode::Advanced),
+            "--max-target-watts" => {
+                let value = arguments
+                    .next()
+                    .ok_or_else(|| "--max-target-watts requires a value".to_owned())?;
+                let watts = value
+                    .parse::<i32>()
+                    .map_err(|_| format!("--max-target-watts needs a number, got {value}"))?;
+                if !(1..=250).contains(&watts) {
+                    return Err(format!("--max-target-watts out of range: {watts}"));
+                }
+                options.max_target_watts = Some(watts);
+            }
             "--pipe-name" => {
                 options.pipe_name = arguments
                     .next()
@@ -2954,8 +3061,49 @@ fn clamp_preset_values(presets: [i32; 3], minimum: i32, maximum: i32) -> [i32; 3
     presets.map(|watts| watts.clamp(minimum, maximum))
 }
 
+fn clamp_to_ceiling(presets: [i32; 3], ceiling: Option<i32>) -> [i32; 3] {
+    match ceiling {
+        Some(cap) => presets.map(|watts| watts.min(cap).max(1)),
+        None => presets,
+    }
+}
+
+/// Effective upper bound for any target, combining the platform profile with
+/// the optional per-installation ceiling.
+fn target_ceiling(app: &GuiApp) -> Option<i32> {
+    let profile_maximum = app.profile.as_ref().map(|profile| profile.maximum_watts);
+    match (app.max_target_watts, profile_maximum) {
+        (Some(cap), Some(profile)) => Some(cap.min(profile)),
+        (Some(cap), None) => Some(cap),
+        (None, Some(profile)) => Some(profile),
+        (None, None) => None,
+    }
+}
+
+fn profile_limits(app: &GuiApp) -> (i32, i32) {
+    let minimum = app
+        .profile
+        .as_ref()
+        .map(|profile| profile.minimum_watts)
+        .unwrap_or(5);
+    let maximum = target_ceiling(app).unwrap_or(60);
+    (minimum, maximum)
+}
+
 fn preset_menu_label(index: usize, watts: i32) -> String {
     format!("应用预设 {}：{} W", index + 1, watts)
+}
+
+/// Presets that duplicate the previous value are hidden so a capped
+/// installation shows only its distinct choices.
+fn preset_is_visible(app: &GuiApp, index: usize) -> bool {
+    index == 0 || app.preset_watts[index] != app.preset_watts[index - 1]
+}
+
+unsafe fn apply_preset_visibility(app: &GuiApp, hwnd: HWND) {
+    for (index, id) in [PRESET_12, PRESET_25, PRESET_45].into_iter().enumerate() {
+        set_control_visible(hwnd, id, preset_is_visible(app, index));
+    }
 }
 
 unsafe fn refresh_preset_controls(app: &GuiApp) {
@@ -3181,11 +3329,7 @@ unsafe fn update_simple_view(app: &GuiApp) {
         return;
     };
     update_write_availability(app, GetParent(controls.target_edit));
-    let (range_minimum, range_maximum) = app
-        .profile
-        .as_ref()
-        .map(|profile| (profile.minimum_watts, profile.maximum_watts))
-        .unwrap_or((5, 60));
+    let (range_minimum, range_maximum) = profile_limits(app);
     let target_label = wide(&format!(
         "目标功耗 · 范围 {range_minimum}-{range_maximum} W"
     ));
@@ -3319,14 +3463,23 @@ unsafe fn apply_topmost_style(hwnd: HWND, enabled: bool) {
     );
 }
 
-unsafe fn outer_window_size(client_width: i32, client_height: i32) -> (i32, i32) {
+unsafe fn window_dpi(hwnd: HWND) -> u32 {
+    let dpi = GetDpiForWindow(hwnd);
+    if dpi == 0 {
+        BASE_DPI as u32
+    } else {
+        dpi
+    }
+}
+
+unsafe fn outer_window_size(client_width: i32, client_height: i32, dpi: u32) -> (i32, i32) {
     let mut rect = RECT {
         left: 0,
         top: 0,
         right: client_width,
         bottom: client_height,
     };
-    AdjustWindowRectEx(&mut rect, APP_WINDOW_STYLE, 0, WS_EX_APPWINDOW);
+    AdjustWindowRectExForDpi(&mut rect, APP_WINDOW_STYLE, 0, WS_EX_APPWINDOW, dpi);
     (rect.right - rect.left, rect.bottom - rect.top)
 }
 
@@ -3347,12 +3500,16 @@ unsafe fn move_control(hwnd: HWND, id: usize, x: i32, y: i32, width: i32, height
 
 unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
     app.view_mode = mode;
-    let advanced = mode == state::UiMode::Advanced;
+    let percent = app.dpi_percent.max(1);
     let (width, height) = match mode {
         state::UiMode::Simple => SIMPLE_CLIENT_SIZE,
         state::UiMode::Advanced => ADVANCED_CLIENT_SIZE,
     };
-    let (outer_width, outer_height) = outer_window_size(width, height);
+    let (outer_width, outer_height) = outer_window_size(
+        scaled(width, percent),
+        scaled(height, percent),
+        window_dpi(hwnd),
+    );
     SetWindowPos(
         hwnd,
         std::ptr::null_mut(),
@@ -3362,6 +3519,35 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
         outer_height,
         SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE,
     );
+    layout_mode_controls(app, hwnd);
+
+    let preferences = state::WindowPreferences {
+        mode,
+        top_most: app.top_most,
+    };
+    if let Err(error) = state::save_window_preferences(preferences) {
+        if !app.status_label.is_null() {
+            hold_status(app);
+            let text = wide(&format!("窗口设置保存失败。\n{error}"));
+            SetWindowTextW(app.status_label, text.as_ptr());
+        }
+    }
+}
+
+/// Places the child controls for the current mode using the live client width,
+/// so a user-resized window keeps its right-aligned controls in place.
+unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
+    let mode = app.view_mode;
+    let advanced = mode == state::UiMode::Advanced;
+    let percent = app.dpi_percent.max(1);
+    let s = |value: i32| scaled(value, percent);
+    let design_width = match mode {
+        state::UiMode::Simple => SIMPLE_CLIENT_SIZE.0,
+        state::UiMode::Advanced => ADVANCED_CLIENT_SIZE.0,
+    };
+    let mut client = RECT::default();
+    GetClientRect(hwnd, &mut client);
+    let width = design_width.max(unscaled(client.right.max(1), percent));
 
     if let Some(controls) = app.header_controls {
         let topmost_left = width - 74;
@@ -3375,10 +3561,10 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
             SetWindowPos(
                 control,
                 std::ptr::null_mut(),
-                left,
-                12,
-                56,
-                32,
+                s(left),
+                s(12),
+                s(56),
+                s(32),
                 SWP_NOZORDER | SWP_NOACTIVATE,
             );
             SendMessageW(control, BM_SETCHECK, usize::from(checked), 0);
@@ -3386,9 +3572,7 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
         }
     }
 
-    for id in [PRESET_12, PRESET_25, PRESET_45] {
-        set_control_visible(hwnd, id, true);
-    }
+    apply_preset_visibility(app, hwnd);
     set_control_visible(hwnd, PRESET_EDIT_OPEN, !advanced);
     set_control_visible(hwnd, APPLY_TARGET, false);
     set_control_visible(hwnd, EXPORT_DIAGNOSTICS, true);
@@ -3439,10 +3623,14 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
     set_control_visible(hwnd, TITLE_LABEL, false);
 
     if advanced {
-        move_control(hwnd, SIMPLE_TARGET_EDIT, 444, 106, 86, 38);
-        move_control(hwnd, SIMPLE_APPLY, 566, 104, 178, 40);
-        for (id, x) in [(PRESET_12, 112), (PRESET_25, 244), (PRESET_45, 376)] {
-            move_control(hwnd, id, x, 181, 112, 34);
+        move_control(hwnd, SIMPLE_TARGET_EDIT, s(444), s(106), s(86), s(38));
+        move_control(hwnd, SIMPLE_APPLY, s(566), s(104), s(178), s(40));
+        let mut slot = 0;
+        for (index, id) in [PRESET_12, PRESET_25, PRESET_45].into_iter().enumerate() {
+            if preset_is_visible(app, index) {
+                move_control(hwnd, id, s(112 + slot * 132), s(181), s(112), s(34));
+                slot += 1;
+            }
         }
         for (index, id) in [
             PRESET_EDIT_START,
@@ -3452,15 +3640,22 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
         .into_iter()
         .enumerate()
         {
-            move_control(hwnd, id, 112 + index as i32 * 76, 288, 58, 28);
+            move_control(hwnd, id, s(112 + index as i32 * 76), s(288), s(58), s(28));
         }
-        move_control(hwnd, PRESET_SAVE, 112, 330, 100, 30);
-        move_control(hwnd, POLICY_BATTERY_EDIT, 92, 418, 60, 28);
-        move_control(hwnd, POLICY_AC_EDIT, 224, 418, 60, 28);
-        move_control(hwnd, POLICY_ENABLED, 300, 414, 78, 34);
-        move_control(hwnd, POLICY_BATTERY_ONLY, 166, 480, 112, 32);
-        move_control(hwnd, POLICY_SAVE, 36, 480, 112, 32);
-        move_control(hwnd, EXPORT_DIAGNOSTICS, 640, 612, 104, 30);
+        move_control(hwnd, PRESET_SAVE, s(112), s(330), s(100), s(30));
+        move_control(hwnd, POLICY_BATTERY_EDIT, s(92), s(418), s(60), s(28));
+        move_control(hwnd, POLICY_AC_EDIT, s(224), s(418), s(60), s(28));
+        move_control(hwnd, POLICY_ENABLED, s(300), s(414), s(78), s(34));
+        move_control(hwnd, POLICY_BATTERY_ONLY, s(166), s(480), s(112), s(32));
+        move_control(hwnd, POLICY_SAVE, s(36), s(480), s(112), s(32));
+        move_control(
+            hwnd,
+            EXPORT_DIAGNOSTICS,
+            s(width - 140),
+            s(612),
+            s(104),
+            s(30),
+        );
         for id in [
             PRESET_LABEL,
             POLICY_BATTERY_LABEL,
@@ -3470,13 +3665,31 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
             move_control(hwnd, id, -10000, -10000, 220, 24);
         }
     } else {
-        move_control(hwnd, SIMPLE_TARGET_EDIT, 336, 106, 84, 38);
-        move_control(hwnd, SIMPLE_APPLY, 460, 104, 140, 40);
-        for (id, x) in [(PRESET_12, 112), (PRESET_25, 244), (PRESET_45, 376)] {
-            move_control(hwnd, id, x, 181, 112, 34);
+        move_control(hwnd, SIMPLE_TARGET_EDIT, s(336), s(106), s(84), s(38));
+        move_control(hwnd, SIMPLE_APPLY, s(460), s(104), s(140), s(40));
+        let mut slot = 0;
+        for (index, id) in [PRESET_12, PRESET_25, PRESET_45].into_iter().enumerate() {
+            if preset_is_visible(app, index) {
+                move_control(hwnd, id, s(112 + slot * 132), s(181), s(112), s(34));
+                slot += 1;
+            }
         }
-        move_control(hwnd, PRESET_EDIT_OPEN, 508, 181, 96, 34);
-        move_control(hwnd, EXPORT_DIAGNOSTICS, 520, 337, 96, 28);
+        move_control(
+            hwnd,
+            PRESET_EDIT_OPEN,
+            s(112 + slot * 132 + 20),
+            s(181),
+            s(96),
+            s(34),
+        );
+        move_control(
+            hwnd,
+            EXPORT_DIAGNOSTICS,
+            s(width - 120),
+            s(337),
+            s(96),
+            s(28),
+        );
     }
 
     update_write_availability(app, hwnd);
@@ -3505,18 +3718,39 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
     InvalidateRect(hwnd, std::ptr::null(), 1);
     UpdateWindow(hwnd);
     update_simple_view(app);
+}
 
-    let preferences = state::WindowPreferences {
-        mode,
-        top_most: app.top_most,
-    };
-    if let Err(error) = state::save_window_preferences(preferences) {
-        if !app.status_label.is_null() {
-            hold_status(app);
-            let text = wide(&format!("窗口设置保存失败。\n{error}"));
-            SetWindowTextW(app.status_label, text.as_ptr());
+/// Rebuilds the device-sized fonts used by native child controls after a DPI
+/// change. Custom painting keeps its logical font set.
+unsafe fn refresh_control_fonts(app: &mut GuiApp) {
+    let fonts = create_ui_fonts(app.dpi_percent.max(1));
+    if let Some(controls) = app.simple_controls {
+        set_control_font(controls.power_value, fonts.display);
+        set_control_font(controls.power_source, fonts.caption);
+        set_control_font(controls.target_label, fonts.body);
+        set_control_font(controls.status, fonts.body);
+        set_control_font(controls.advanced_device, fonts.body);
+        set_control_font(controls.target_edit, fonts.metric);
+        set_control_font(controls.apply, fonts.body);
+        for index in 0..4 {
+            set_control_font(controls.metric_titles[index], fonts.caption);
+            set_control_font(controls.metric_values[index], fonts.metric);
+            set_control_font(controls.metric_limits[index], fonts.caption);
         }
     }
+    if !app.status_label.is_null() {
+        set_control_font(app.status_label, fonts.body);
+    }
+    if let Some(edits) = app.preset_edits {
+        for edit in edits {
+            set_control_font(edit, fonts.metric);
+        }
+    }
+    if let Some(controls) = app.policy_controls {
+        set_control_font(controls.battery_target, fonts.metric);
+        set_control_font(controls.ac_target, fonts.metric);
+    }
+    app.fonts = Some(fonts);
 }
 
 unsafe fn toggle_topmost(app: &mut GuiApp, hwnd: HWND) {
@@ -3543,11 +3777,7 @@ unsafe fn save_preset_edits(app: &mut GuiApp) -> Result<(), String> {
     let Some(edits) = app.preset_edits else {
         return Err("预设编辑框尚未创建。".to_owned());
     };
-    let (minimum, maximum) = app
-        .profile
-        .as_ref()
-        .map(|profile| (profile.minimum_watts, profile.maximum_watts))
-        .unwrap_or((5, 60));
+    let (minimum, maximum) = profile_limits(app);
     let mut presets = app.preset_watts;
     for (index, edit) in edits.into_iter().enumerate() {
         presets[index] = read_edit_watts(edit, presets[index], minimum, maximum);
@@ -3674,7 +3904,10 @@ unsafe fn start_preset_apply(app: &mut GuiApp, hwnd: HWND, index: usize) {
 
 unsafe fn apply_profile_to_presets(app: &mut GuiApp, hwnd: HWND, profile: &ProfilePayload) {
     let minimum = profile.minimum_watts;
-    let maximum = profile.maximum_watts;
+    let maximum = app
+        .max_target_watts
+        .map(|cap| cap.min(profile.maximum_watts))
+        .unwrap_or(profile.maximum_watts);
     if minimum > maximum {
         return;
     }
@@ -3896,6 +4129,25 @@ unsafe extern "system" fn window_proc(
             dispatch(app, hwnd, LifecycleEvent::CloseRequested);
             0
         }
+        WM_GETMINMAXINFO => {
+            let info = &mut *(lparam as *mut MINMAXINFO);
+            let percent = app.dpi_percent.max(1);
+            let (minimum_width, minimum_height) = match app.view_mode {
+                state::UiMode::Simple => (520, 340),
+                state::UiMode::Advanced => (780, 640),
+            };
+            info.ptMinTrackSize.x = scaled(minimum_width, percent);
+            info.ptMinTrackSize.y = scaled(minimum_height, percent);
+            0
+        }
+        WM_DPICHANGED => {
+            let new_dpi = (wparam & 0xFFFF) as u32;
+            app.dpi_percent = dpi_percent(new_dpi);
+            refresh_control_fonts(app);
+            let mode = app.view_mode;
+            apply_view_mode(app, hwnd, mode);
+            0
+        }
         WM_SIZE => {
             match wparam as u32 {
                 SIZE_MINIMIZED => {
@@ -3903,6 +4155,9 @@ unsafe extern "system" fn window_proc(
                 }
                 SIZE_RESTORED => {
                     dispatch(app, hwnd, LifecycleEvent::WindowShown);
+                    if app.fonts.is_some() {
+                        layout_mode_controls(app, hwnd);
+                    }
                 }
                 _ => {}
             }
@@ -4048,11 +4303,7 @@ unsafe extern "system" fn window_proc(
                 }
                 SIMPLE_APPLY if app.write_enabled && !app.apply_in_flight => {
                     if let Some(controls) = app.simple_controls {
-                        let (minimum, maximum) = app
-                            .profile
-                            .as_ref()
-                            .map(|profile| (profile.minimum_watts, profile.maximum_watts))
-                            .unwrap_or((5, 60));
+                        let (minimum, maximum) = profile_limits(app);
                         let target = read_edit_watts(
                             controls.target_edit,
                             app.selected_target.stapm_watts,
@@ -4138,11 +4389,7 @@ unsafe extern "system" fn window_proc(
                 }
                 POLICY_SAVE if app.write_enabled && !app.policy_in_flight => {
                     if let Some(controls) = app.policy_controls {
-                        let (minimum, maximum) = app
-                            .profile
-                            .as_ref()
-                            .map(|profile| (profile.minimum_watts, profile.maximum_watts))
-                            .unwrap_or((5, 60));
+                        let (minimum, maximum) = profile_limits(app);
                         let battery_target =
                             read_edit_watts(controls.battery_target, 12, minimum, maximum);
                         let ac_target = read_edit_watts(controls.ac_target, 45, minimum, maximum);
@@ -4196,6 +4443,11 @@ fn main() {
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let options = parse_options()?;
+    // The manifest declares PerMonitorV2, but setting it explicitly also covers
+    // launches whose manifest could not be applied and keeps DPI awareness on.
+    unsafe {
+        SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    }
     refresh_high_contrast(options.ui_fixture == Some(UiFixture::HighContrast));
     let instance = unsafe { GetModuleHandleW(std::ptr::null()) };
     if instance.is_null() {
@@ -4244,7 +4496,22 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         state::UiMode::Simple => SIMPLE_CLIENT_SIZE,
         state::UiMode::Advanced => ADVANCED_CLIENT_SIZE,
     };
-    let (outer_width, outer_height) = unsafe { outer_window_size(client_size.0, client_size.1) };
+    let system_dpi = unsafe {
+        let dpi = GetDpiForSystem();
+        if dpi == 0 {
+            BASE_DPI as u32
+        } else {
+            dpi
+        }
+    };
+    let system_percent = dpi_percent(system_dpi);
+    let (outer_width, outer_height) = unsafe {
+        outer_window_size(
+            scaled(client_size.0, system_percent),
+            scaled(client_size.1, system_percent),
+            system_dpi,
+        )
+    };
     let hwnd = unsafe {
         CreateWindowExW(
             WS_EX_APPWINDOW,
@@ -4281,8 +4548,19 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     unsafe {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, app as isize);
         (*app).write_enabled = options.enable_write_controls;
-        let icon_large = create_icon_for_size(32);
-        let icon_small = create_icon_for_size(16);
+        if let Some(cap) = options.max_target_watts {
+            (*app).max_target_watts = Some(cap);
+            let _ = state::save_max_target_watts(cap);
+            if (*app).preset_watts.iter().any(|watts| *watts > cap) {
+                let lower = cap.saturating_sub(2).max(1);
+                (*app).preset_watts = [lower, cap, cap];
+                let _ = state::save_presets((*app).preset_watts);
+            }
+        }
+        let window_percent = dpi_percent(window_dpi(hwnd));
+        (*app).dpi_percent = window_percent;
+        let icon_large = create_icon_for_size(scaled(32, window_percent));
+        let icon_small = create_icon_for_size(scaled(16, window_percent));
         (*app).icon_large = if icon_large.is_null() {
             LoadIconW(std::ptr::null_mut(), IDI_APPLICATION)
         } else {
@@ -4305,7 +4583,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             ICON_SMALL as usize,
             (*app).icon_small as isize,
         );
-        let fonts = create_ui_fonts();
+        let fonts = create_ui_fonts(window_percent);
         let title = create_title_label(hwnd, instance);
         set_control_font(title, fonts.title);
         (*app).header_controls = Some(create_header_controls(
@@ -4326,6 +4604,16 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         (*app).preset_edits = Some(create_preset_controls(hwnd, instance, (*app).preset_watts));
         let _ = create_export_button(hwnd, instance, 528, 384, 88);
         (*app).policy_controls = Some(create_policy_controls(hwnd, instance));
+        // Every clickable control belongs to the shared BUTTON class, so one
+        // class-cursor update gives the whole dark UI a hand cursor.
+        let hand_cursor = LoadCursorW(std::ptr::null_mut(), IDC_HAND);
+        if !hand_cursor.is_null() {
+            if let Some(controls) = (*app).simple_controls {
+                if !controls.apply.is_null() {
+                    SetClassLongPtrW(controls.apply, GCLP_HCURSOR, hand_cursor as isize);
+                }
+            }
+        }
         if let Some(edits) = (*app).preset_edits {
             for edit in edits {
                 set_control_font(edit, fonts.metric);
@@ -4412,9 +4700,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::{
-        clamp_preset_values, diagnostics_document, fixture_snapshot, fixture_worker_error,
-        format_policy_state, format_snapshot, format_snapshot_simple, parse_arguments,
-        parse_ui_fixture, preset_menu_label, rgb, state, UiDiagnostics, UiFixture,
+        clamp_preset_values, clamp_to_ceiling, diagnostics_document, fixture_snapshot,
+        fixture_worker_error, format_policy_state, format_snapshot, format_snapshot_simple,
+        parse_arguments, parse_ui_fixture, preset_menu_label, rgb, state, UiDiagnostics, UiFixture,
         HIGH_CONTRAST_PALETTE,
     };
     use amd_mobile_power_gui::worker::{
@@ -4610,6 +4898,7 @@ mod tests {
                 high_contrast: false,
                 taskbar_icon_available: true,
                 tray_icon_id: 1,
+                dpi_percent: 125,
             },
         );
         let text = serde_json::to_string_pretty(&document).unwrap();
@@ -4623,6 +4912,7 @@ mod tests {
         assert_eq!(document["ui"]["highContrast"], false);
         assert_eq!(document["ui"]["taskbarIconAvailable"], true);
         assert_eq!(document["ui"]["trayIconId"], 1);
+        assert_eq!(document["ui"]["dpiPercent"], 125);
         assert_eq!(
             document["snapshot"]["platform"]["cpu"]["processorName"],
             "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics"
@@ -4713,6 +5003,23 @@ mod tests {
     }
 
     #[test]
+    fn max_target_watts_argument_is_accepted_and_bounded() {
+        let options = parse_arguments(to_arguments(&["--max-target-watts", "12"]))
+            .expect("上限参数必须被接受");
+        assert_eq!(options.max_target_watts, Some(12));
+        assert!(parse_arguments(to_arguments(&["--max-target-watts", "0"])).is_err());
+        assert!(parse_arguments(to_arguments(&["--max-target-watts", "abc"])).is_err());
+        assert!(parse_arguments(to_arguments(&["--max-target-watts"])).is_err());
+    }
+
+    #[test]
+    fn ceiling_clamps_every_preset_without_raising_values() {
+        assert_eq!(clamp_to_ceiling([10, 12, 45], Some(12)), [10, 12, 12]);
+        assert_eq!(clamp_to_ceiling([5, 6, 7], Some(12)), [5, 6, 7]);
+        assert_eq!(clamp_to_ceiling([10, 12, 45], None), [10, 12, 45]);
+    }
+
+    #[test]
     fn cli_contract_matches_parser() {
         let contract_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
@@ -4733,10 +5040,10 @@ mod tests {
                 .unwrap_or_else(|| panic!("{name} 缺少 takesValue 布尔值"));
             let mut argv = vec![name.clone()];
             if takes_value {
-                let sample = if name == "--ui-fixture" {
-                    "high-contrast"
-                } else {
-                    "sample-value"
+                let sample = match name.as_str() {
+                    "--ui-fixture" => "high-contrast",
+                    "--max-target-watts" => "12",
+                    _ => "sample-value",
                 };
                 argv.push(sample.to_owned());
             }

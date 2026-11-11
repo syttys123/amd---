@@ -13,6 +13,8 @@ struct PersistedUiState {
     mode: UiMode,
     #[serde(default)]
     top_most: bool,
+    #[serde(default)]
+    max_target_watts: Option<i32>,
 }
 
 impl Default for PersistedUiState {
@@ -22,6 +24,7 @@ impl Default for PersistedUiState {
             presets: default_presets(),
             mode: UiMode::default(),
             top_most: false,
+            max_target_watts: None,
         }
     }
 }
@@ -91,6 +94,17 @@ pub fn load_window_preferences() -> WindowPreferences {
         })
 }
 
+/// Optional per-installation hard ceiling for the target power. The GUI and the
+/// worker target are clamped to it, so a user who pins the ceiling to 12 W
+/// cannot raise the package limit any higher from the UI.
+pub fn load_max_target_watts() -> Option<i32> {
+    load_state()?.max_target_watts.filter(|watts| *watts > 0)
+}
+
+pub fn save_max_target_watts(watts: i32) -> Result<(), String> {
+    update_state(|state| state.max_target_watts = Some(watts.max(1)))
+}
+
 pub fn save_power_policy(settings: PowerPolicySettings) -> Result<(), String> {
     update_state(|state| state.power_policy = Some(settings))
 }
@@ -142,6 +156,7 @@ mod tests {
             presets: [10, 20, 40],
             mode: UiMode::Simple,
             top_most: true,
+            max_target_watts: None,
         })
         .unwrap();
         let decoded: PersistedUiState = serde_json::from_str(&encoded).unwrap();
@@ -194,6 +209,7 @@ mod tests {
             presets: [12, 25, 45],
             mode: preferences.mode,
             top_most: preferences.top_most,
+            max_target_watts: None,
         })
         .unwrap();
         let decoded: PersistedUiState = serde_json::from_str(&encoded).unwrap();
