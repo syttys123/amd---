@@ -20,6 +20,28 @@ The implementation takes principles from Apple HIG, Atlassian, Ant Design,
 Primer, Fluent, Carbon, Spectrum, Paste, and React Aria. It does not copy
 third-party brand assets or component code.
 
+The current audit also applies
+`D:\tong\docs\design\DESIGN_UI_PERCEPTION_AND_PATTERNS_2026-11-11.md`
+(A2, frontend scope). The applicable contracts are:
+
+- Read top-to-bottom and start-side first: identity, live power, target, then
+  the single primary action. Mode controls stay secondary on the end side.
+- Use one primary action per view. Presets use a neutral selected surface, not
+  a saturated fill or a left color strip.
+- Keep related labels and values within 4-8 px, fields within 16 px, and
+  sections at 24 px or more. Structural rules are limited to ledgers, inputs,
+  and focus boundaries.
+- Keep the type ladder at five roles or fewer: 12-14 px labels/body, 18 px
+  telemetry, 42 px live power, and one title role. Use normal and bold only;
+  no light or thin weights.
+- Status always pairs semantic color with text. Numbers use tabular figures
+  and aligned units. Selected, focused, pressed, and disabled states remain
+  visually distinct.
+- Do not nest cards, add decorative side bars, or hide required actions behind
+  hover. Keep button hit areas at 32-40 px.
+- High contrast replaces the palette without changing geometry. It uses
+  black/white/yellow rather than reusing normal-theme colors.
+
 ## Shell
 
 The top of both modes is one continuous dark command deck:
