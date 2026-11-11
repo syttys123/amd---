@@ -27,8 +27,16 @@ pub enum PowerLineState {
 #[serde(rename_all = "camelCase")]
 pub struct PowerPolicySettings {
     pub enabled: bool,
+    #[serde(default = "default_true")]
+    pub battery_enabled: bool,
+    #[serde(default = "default_true")]
+    pub ac_enabled: bool,
     pub battery_target: PowerLimitTarget,
     pub ac_target: PowerLimitTarget,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -321,6 +329,8 @@ mod tests {
     fn power_policy_payload_uses_the_v1_camel_case_contract() {
         let value = serde_json::to_value(PowerPolicySettings {
             enabled: true,
+            battery_enabled: true,
+            ac_enabled: false,
             battery_target: PowerLimitTarget::uniform(12),
             ac_target: PowerLimitTarget::uniform(45),
         })
@@ -329,6 +339,8 @@ mod tests {
             value,
             serde_json::json!({
                 "enabled": true,
+                "batteryEnabled": true,
+                "acEnabled": false,
                 "batteryTarget": {
                     "stapmWatts": 12,
                     "fastWatts": 12,
@@ -341,5 +353,26 @@ mod tests {
                 }
             })
         );
+    }
+
+    #[test]
+    fn legacy_power_policy_defaults_both_power_lines_to_enabled() {
+        let settings: PowerPolicySettings = serde_json::from_value(serde_json::json!({
+            "enabled": true,
+            "batteryTarget": {
+                "stapmWatts": 10,
+                "fastWatts": 10,
+                "slowWatts": 10
+            },
+            "acTarget": {
+                "stapmWatts": 45,
+                "fastWatts": 45,
+                "slowWatts": 45
+            }
+        }))
+        .unwrap();
+
+        assert!(settings.battery_enabled);
+        assert!(settings.ac_enabled);
     }
 }

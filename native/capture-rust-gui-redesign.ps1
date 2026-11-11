@@ -6,6 +6,7 @@ param(
     [string]$FilePrefix = "native-redesign",
     [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error")]
     [string]$Fixture,
+    [switch]$BatteryOnly,
     [switch]$ReadOnly
 )
 
@@ -307,6 +308,32 @@ New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $stateDirectory = [System.IO.Path]::GetFullPath(
     (Join-Path $artifactsRoot "native-build\capture-state-$([Guid]::NewGuid().ToString('N'))"))
 New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
+if ($BatteryOnly) {
+    $stateFileDirectory = Join-Path $stateDirectory "AmdMobilePower"
+    New-Item -ItemType Directory -Path $stateFileDirectory -Force | Out-Null
+    [ordered]@{
+        powerPolicy = [ordered]@{
+            enabled = $true
+            batteryEnabled = $true
+            acEnabled = $false
+            batteryTarget = [ordered]@{
+                stapmWatts = 10
+                fastWatts = 10
+                slowWatts = 10
+            }
+            acTarget = [ordered]@{
+                stapmWatts = 45
+                fastWatts = 45
+                slowWatts = 45
+            }
+        }
+        presets = @(12, 25, 45)
+        mode = "simple"
+        topMost = $false
+    } |
+        ConvertTo-Json -Depth 8 |
+        Set-Content -LiteralPath (Join-Path $stateFileDirectory "rust-ui-state.json") -Encoding UTF8
+}
 $previousLocalAppData = $env:LOCALAPPDATA
 $env:LOCALAPPDATA = $stateDirectory
 $pipeName = "AmdMobilePower.RedesignCapture.$([Guid]::NewGuid().ToString('N'))"
@@ -433,6 +460,14 @@ try {
             TargetAndPresetEnabled = $actualWritesEnabled
             DiagnosticsEnabled = $diagnosticsEnabled
         }
+        if ($BatteryOnly) {
+            $batteryOnlyButton = [AmdMobilePowerUiCapture]::GetDlgItem($window, 318)
+            if ($batteryOnlyButton -eq [IntPtr]::Zero -or
+                -not [AmdMobilePowerUiCapture]::IsWindowEnabled($batteryOnlyButton)) {
+                throw "Battery-only policy control is not available for capture."
+            }
+            $controlChecks.BatteryOnlyVisible = $true
+        }
     }
 
     if ($EvidencePath) {
@@ -449,6 +484,7 @@ try {
                 "write-controls-visible-no-write-requested"
             }
             Fixture = if ($Fixture) { $Fixture } else { $null }
+            BatteryOnly = [bool]$BatteryOnly
             ControlChecks = $controlChecks
             Simple = $simpleCapture
             Advanced = $advancedCapture
@@ -483,7 +519,11 @@ finally {
     SimpleSize = "$($simpleCapture.Width)x$($simpleCapture.Height)"
     Advanced = $advancedCapture.Path
     AdvancedSize = "$($advancedCapture.Width)x$($advancedCapture.Height)"
-    CaptureMethod = "CopyFromScreen(foreground-verified)"
+    CaptureMethod = @(
+        $simpleCapture.CaptureMethod,
+        $advancedCapture.CaptureMethod
+    ) -join ", "
     Fixture = if ($Fixture) { $Fixture } else { "none" }
+    BatteryOnly = [bool]$BatteryOnly
     ControlChecks = if ($controlChecks) { $controlChecks | ConvertTo-Json -Compress } else { "not requested" }
 } | Format-List

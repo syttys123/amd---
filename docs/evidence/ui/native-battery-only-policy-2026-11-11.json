@@ -1,0 +1,17 @@
+{
+  "SourceCommit": "cb3101092bf665adbc023dbd719eba357b652827",
+  "Verification": "PASS",
+  "Path": "Rust GUI -> C++ worker -> RyzenAdj",
+  "Processor": null,
+  "WorkerStatus": "",
+  "DiagnosticsExport": "Not requested",
+  "ViewModes": "PASS",
+  "TopMost": "PASS",
+  "TargetWatts": null,
+  "WriteControls": "PASS",
+  "PresetEditing": "PASS",
+  "BatteryOnlyToggle": "PASS",
+  "WritePreset": "Not requested",
+  "PolicySave": "Not requested",
+  "RecordedAt": "2026-11-11T18:06:52.2740968+08:00"
+}

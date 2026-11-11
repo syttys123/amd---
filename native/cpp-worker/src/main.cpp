@@ -240,9 +240,16 @@ std::optional<SetPowerPolicyPayload> ParseSetPowerPolicyPayload(
         return std::nullopt;
     }
     const auto enabled = ExtractJsonBool(*settings_json, "enabled");
+    const bool battery_enabled =
+        ExtractJsonBool(*settings_json, "batteryEnabled").value_or(true);
+    const bool ac_enabled =
+        ExtractJsonBool(*settings_json, "acEnabled").value_or(true);
     const auto battery_json = ExtractJsonObject(*settings_json, "batteryTarget");
     const auto ac_json = ExtractJsonObject(*settings_json, "acTarget");
     if (!enabled || !battery_json || !ac_json) {
+        return std::nullopt;
+    }
+    if (*enabled && !battery_enabled && !ac_enabled) {
         return std::nullopt;
     }
 
@@ -265,7 +272,9 @@ std::optional<SetPowerPolicyPayload> ParseSetPowerPolicyPayload(
         amd_mobile_power::PowerPolicySettings{
             *enabled,
             *battery,
-            *ac}};
+            *ac,
+            battery_enabled,
+            ac_enabled}};
 }
 
 amd_mobile_power::PowerLineState ParsePowerLineState(std::string_view value) {
@@ -565,6 +574,8 @@ std::string PowerPolicySettingsPayload(
     std::ostringstream output;
     output
         << "{\"enabled\":" << (settings.enabled ? "true" : "false")
+        << ",\"batteryEnabled\":" << (settings.battery_enabled ? "true" : "false")
+        << ",\"acEnabled\":" << (settings.ac_enabled ? "true" : "false")
         << ",\"batteryTarget\":" << PowerLimitTargetPayload(settings.battery_target)
         << ",\"acTarget\":" << PowerLimitTargetPayload(settings.ac_target)
         << "}";

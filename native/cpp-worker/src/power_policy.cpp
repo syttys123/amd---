@@ -76,6 +76,10 @@ void PowerPolicyController::Tick(
             timestamp);
         return;
     }
+    if ((observation.power_line == PowerLineState::Ac && !settings_->ac_enabled) ||
+        (observation.power_line == PowerLineState::Battery && !settings_->battery_enabled)) {
+        return;
+    }
 
     const PowerLimitTarget target =
         observation.power_line == PowerLineState::Ac

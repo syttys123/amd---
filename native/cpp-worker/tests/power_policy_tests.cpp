@@ -191,6 +191,44 @@ bool UnknownPowerLineIsRejected() {
             "unknown power line should be surfaced as a policy failure");
 }
 
+bool BatteryOnlyPolicySkipsAcAndAppliesOnBattery() {
+    FakePolicyBackend backend;
+    backend.capability = SupportedCapability();
+    backend.power_line = PowerLineState::Ac;
+    PowerPolicyController controller;
+    PowerPolicySettings settings;
+    settings.enabled = true;
+    settings.battery_target = PowerLimitTarget::uniform(10);
+    settings.ac_target = PowerLimitTarget::uniform(45);
+    settings.battery_enabled = true;
+    settings.ac_enabled = false;
+    controller.SetSettings(settings);
+
+    const auto start = std::chrono::steady_clock::now();
+    controller.Tick(backend, start, "2026-11-11T00:00:00Z");
+    const bool ac_skipped =
+        backend.apply_count == 0 &&
+        controller.state().last_observed_power_line ==
+            std::optional<PowerLineState>(PowerLineState::Ac) &&
+        !controller.state().last_attempt_succeeded.has_value();
+
+    backend.power_line = PowerLineState::Battery;
+    controller.Tick(
+        backend,
+        start + std::chrono::seconds(1),
+        "2026-11-11T00:00:01Z");
+    const bool battery_applied =
+        backend.apply_count == 1 &&
+        backend.last_target == std::optional<PowerLimitTarget>(
+            PowerLimitTarget::uniform(10)) &&
+        controller.state().last_attempt_succeeded == std::optional<bool>(true);
+
+    return Expect(ac_skipped, "battery-only policy should not touch AC") &&
+        Expect(
+            battery_applied,
+            "battery-only policy should still apply on battery");
+}
+
 }  // namespace
 
 int main() {
@@ -198,7 +236,8 @@ int main() {
         AppliesBatteryThenAcWhenPowerLineChanges() &&
         RetriesFailedPolicyAfterBackoff() &&
         DisabledPolicyDoesNotTouchHardware() &&
-        UnknownPowerLineIsRejected();
+        UnknownPowerLineIsRejected() &&
+        BatteryOnlyPolicySkipsAcAndAppliesOnBattery();
     if (!passed) {
         return 1;
     }

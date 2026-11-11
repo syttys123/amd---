@@ -1,0 +1,26 @@
+{
+  "SchemaVersion": 1,
+  "CaptureMode": "write-controls-visible-no-write-requested",
+  "Fixture": "firmware-clamp",
+  "BatteryOnly": true,
+  "ControlChecks": {
+    "TargetAndPresetEnabled": true,
+    "DiagnosticsEnabled": true,
+    "BatteryOnlyVisible": true
+  },
+  "Simple": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\native-battery-only-simple-2026-11-11.png",
+    "Width": 802,
+    "Height": 530,
+    "CaptureMethod": "PrintWindow(normalized-fallback)",
+    "SHA256": "b13bbf91862f813758735d72b6fdde35206db318f2593f24dd3fd507f99130ef"
+  },
+  "Advanced": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\native-battery-only-advanced-2026-11-11.png",
+    "Width": 977,
+    "Height": 890,
+    "CaptureMethod": "PrintWindow(normalized-fallback)",
+    "SHA256": "25dd80721f827fc616d2d84593829bf610f3db639d3864e3c108bce2b6fde304"
+  },
+  "RecordedAt": "2026-11-11T18:06:37.6208796+08:00"
+}

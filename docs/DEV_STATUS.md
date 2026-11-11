@@ -55,10 +55,11 @@ not authoritative.
   bands, a split advanced workspace, native text fields, owner-drawn controls,
   dialog keyboard navigation, focus rings, and the embedded AMD Mobile Power
   taskbar/tray icon. The default for a fresh UI state is simple mode.
-- The native Rust GUI test suite now passes 27/27 tests. The runtime verifier
+- The native Rust GUI test suite now passes 29/29 tests. The runtime verifier
   passes worker connection, diagnostics export, mode switching, topmost,
   minimize/restore, close-to-tray, tray restore, single-instance wake, and
-  preset editing.
+  preset editing. The fixture path also verifies the battery-only policy toggle
+  without starting a hardware worker.
 - Current redesign evidence is recorded in `docs/NATIVE_UI_REWRITE.md` with
   simple/advanced and read-only screenshots at 125% scaling. The capture gate
   now verifies foreground ownership before copying the DWM frame, preventing
@@ -1101,6 +1102,21 @@ third_party/
   and real shell integration. The `rc.11` to `rc.12` upgrade passed payload
   matching, upgraded read-only runtime, and uninstall cleanup. Review bundle:
   `artifacts/native-release-review/v0.6.0-native-rc.12`.
+- Added the native battery-only policy path on 2026-11-11. `PowerPolicySettings`
+  now carries `batteryEnabled` and `acEnabled`; legacy payloads and persisted
+  state default both to enabled. The controller skips hardware writes for the
+  disabled power line, so a `仅电池` policy leaves AC/external power untouched.
+  The advanced Rust GUI exposes the toggle, the diagnostics report includes the
+  current mode/topmost/policy/battery-only flags plus tray-icon availability,
+  and the verifier can exercise the toggles through `--ui-fixture` without
+  hardware access. Rust tests are now 29/29 (`19` library + `10` GUI), both C++
+  suites pass, and Clippy remains clean with `-D warnings`.
+- Re-ran the native read-only hardware gate after the battery-only change on
+  the 8845HS: AC power, Hawk Point family `10`, PM table `4c0009`, profile
+  `hawk-point-8845hs [5-60 W]`, limits `25/45/25 W`. The worker rejected
+  write-control commands without the explicit flag, the Rust GUI connected to
+  the worker in read-only mode and exported diagnostics, and the dry-run write
+  guard passed without requesting a no-change write.
 
 Development screenshot:
 

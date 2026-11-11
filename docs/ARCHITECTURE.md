@@ -28,8 +28,9 @@ This document separates the current implementation from the longer-term target.
 - Applies validated STAPM, PPT Fast, and PPT Slow targets when both hardware and
   write-control flags are enabled.
 - Monitors the battery/AC power line when a policy is enabled and applies the
-  validated target for that line, with duplicate-write suppression and a
-  five-second failure backoff.
+  validated target for that line when the line is enabled, with duplicate-write
+  suppression and a five-second failure backoff. Battery-only policy leaves the
+  AC/external line untouched.
 - Publishes telemetry snapshots to the GUI.
 - Rejects invalid or unsupported commands.
 - Detects known hardware owners and holds

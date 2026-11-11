@@ -21,6 +21,8 @@ struct PowerPolicySettings {
     bool enabled = false;
     PowerLimitTarget battery_target;
     PowerLimitTarget ac_target;
+    bool battery_enabled = true;
+    bool ac_enabled = true;
 };
 
 struct PowerPolicyState {

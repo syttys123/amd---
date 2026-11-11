@@ -60,7 +60,8 @@ Advanced mode uses the same command deck, followed by one split workspace:
 
 - Left column:
   - editable three-preset grid and save action,
-  - battery/external power policy and save action,
+  - battery/external power policy, a `仅电池` mode that leaves AC/external
+    writes untouched, and save action,
   - live STAPM/Fast/Slow read-back ledger.
 - Right column:
   - processor, family, SMU, PM table, and matched profile,
@@ -123,6 +124,10 @@ semantic.
 - Worker-offline, unsupported-platform, firmware-clamp, and long-error states can
   be rendered through the test-only `--ui-fixture` flag without starting a
   hardware worker or requesting a power write.
+- The `仅电池` policy toggle is verified through the same fixture path. The
+  diagnostics JSON now includes the current UI mode, topmost state, policy
+  enabled/battery-only flags, and tray/taskbar icon availability, all without
+  paths or process IDs.
 - Switching modes preserves worker connection, presets, policy, target,
   topmost state, and diagnostics availability.
 
@@ -142,13 +147,16 @@ semantic.
 At 125% Windows scaling:
 
 - `cargo test --manifest-path native\rust-gui\Cargo.toml --locked --offline`:
-  27/27 passed.
+  29/29 passed.
 - `cargo clippy --manifest-path native\rust-gui\Cargo.toml --locked --offline
   -- -D warnings`: PASS.
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls`:
   PASS for view modes, topmost, read-only worker status, diagnostics, preset
   editing, minimize/restore, close-to-tray, tray restore, and single-instance
   wake.
+- `native\verify-rust-gui.ps1 -NoBuild -VerifyWriteControls -UiFixture
+  firmware-clamp`: PASS for the battery-only policy toggle through the exported
+  diagnostics JSON without hardware access.
 - No power write was requested during UI verification.
 
 Evidence and screenshots:
@@ -163,6 +171,10 @@ Evidence and screenshots:
 - `assets/native-ui-firmware-clamp-simple-2026-11-11.png`
 - `assets/native-ui-unsupported-platform-simple-2026-11-11.png`
 - `assets/native-ui-long-error-simple-2026-11-11.png`
+- `docs/evidence/ui/native-battery-only-policy-2026-11-11.json`
+- `docs/evidence/ui/native-battery-only-capture-2026-11-11.json`
+- `assets/native-battery-only-simple-2026-11-11.png`
+- `assets/native-battery-only-advanced-2026-11-11.png`
 
 Reproduction:
 

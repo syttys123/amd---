@@ -73,6 +73,7 @@ previous stack of independent white cards:
 | Native read-only states | `assets/native-gui-redesign-readonly-simple-2026-11-11.png`, `assets/native-gui-redesign-readonly-advanced-2026-11-11.png` | `802x530`, `977x890` | Write controls retain their geometry while disabled; the simple status explains `只读`, and diagnostics remains available in both modes |
 | Worker offline | `assets/native-ui-worker-offline-simple-2026-11-11.png`, `assets/native-ui-worker-offline-advanced-2026-11-11.png` | `802x530`, `977x890` | `连接异常`, a restart/check-worker action, disabled target/preset controls, and enabled diagnostics export |
 | Firmware clamp | `assets/native-ui-firmware-clamp-simple-2026-11-11.png`, `assets/native-ui-firmware-clamp-advanced-2026-11-11.png` | `802x530`, `977x890` | Requested 12 W with STAPM clamped to 10 W while Fast/Slow read back 12 W; the amber status remains distinct from transport failure |
+| Battery-only policy fixture | `assets/native-battery-only-simple-2026-11-11.png`, `assets/native-battery-only-advanced-2026-11-11.png` | `802x530`, `977x890` | Advanced mode shows the selected `仅电池` toggle and `外接不控制` copy; the fixture confirms the control is visible/enabled without starting a hardware worker |
 | Unsupported platform | `assets/native-ui-unsupported-platform-simple-2026-11-11.png`, `assets/native-ui-unsupported-platform-advanced-2026-11-11.png` | `802x530`, `977x890` | Read-only monitoring remains visible while target, presets, and policy controls are disabled with a visible platform reason |
 | Long error | `assets/native-ui-long-error-simple-2026-11-11.png`, `assets/native-ui-long-error-advanced-2026-11-11.png` | `802x530`, `977x890` | First line states the action (`关闭其他 RyzenAdj 后重启 Windows`) and later details remain in the accessibility text without breaking the layout |
 
@@ -89,16 +90,21 @@ record unrelated desktop content when foreground activation failed.
 
 Runtime verification:
 
-- Native Rust tests: 27/27 passed.
+- Native Rust tests: 29/29 passed.
 - `native\verify-rust-gui.ps1 -NoBuild -VerifyWorker -VerifyWriteControls`:
   PASS for simple/advanced switching, topmost, preset editing, diagnostics,
   minimize/restore, tray restore, close-to-tray, and single-instance wake.
+- `native\verify-rust-gui.ps1 -NoBuild -VerifyWriteControls -UiFixture
+  firmware-clamp`: PASS for the battery-only policy toggle via diagnostics.
 - No power write was requested during screenshot capture.
 
 Machine-readable evidence:
 `docs/evidence/ui/native-redesign-2026-11-11.json`.
 Failure-state evidence:
 `docs/evidence/ui/native-ui-failure-states-2026-11-11.json`.
+Battery-only fixture evidence:
+`docs/evidence/ui/native-battery-only-policy-2026-11-11.json` and
+`docs/evidence/ui/native-battery-only-capture-2026-11-11.json`.
 
 Remaining gates: 100%/150% DPI sessions, focused-input and high-contrast
 screenshots, packaged tray/taskbar verification, and a supervised packaged

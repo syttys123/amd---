@@ -132,6 +132,8 @@ mod tests {
     fn persisted_state_round_trips_policy_settings() {
         let settings = PowerPolicySettings {
             enabled: true,
+            battery_enabled: true,
+            ac_enabled: false,
             battery_target: PowerLimitTarget::uniform(12),
             ac_target: PowerLimitTarget::uniform(45),
         };
@@ -147,6 +149,8 @@ mod tests {
         assert_eq!(decoded.presets, [10, 20, 40]);
         assert_eq!(decoded.mode, UiMode::Simple);
         assert!(decoded.top_most);
+        assert!(decoded.power_policy.unwrap().battery_enabled);
+        assert!(!decoded.power_policy.unwrap().ac_enabled);
     }
 
     #[test]

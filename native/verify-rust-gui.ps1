@@ -4,6 +4,8 @@ param(
     [switch]$VerifyWriteControls,
     [switch]$ExecuteNoChangePreset,
     [switch]$ExecutePolicySave,
+    [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error")]
+    [string]$UiFixture,
     [string]$GuiExecutable,
     [string]$WorkerExecutable,
     [string]$PipeName,
@@ -67,6 +69,9 @@ public static class AmdMobilePowerRustGuiNative {
 
     [DllImport("user32.dll")]
     public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowEnabled(IntPtr hWnd);
 
     [DllImport("user32.dll")]
     public static extern bool IsIconic(IntPtr hWnd);
@@ -261,6 +266,48 @@ function Get-ControlText {
     return $text.ToString()
 }
 
+function Export-GuiDiagnostics {
+    param(
+        [IntPtr]$Window,
+        [string]$LocalAppDataRoot
+    )
+
+    $exportButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+        $Window,
+        107)
+    if ($exportButton -eq [IntPtr]::Zero -or
+        -not [AmdMobilePowerRustGuiNative]::IsWindowEnabled($exportButton)) {
+        throw "Rust GUI diagnostics export button is not usable."
+    }
+    [AmdMobilePowerRustGuiNative]::SendMessage(
+        $exportButton,
+        0x00F5,
+        [UIntPtr]107,
+        [IntPtr]::Zero) | Out-Null
+
+    $diagnosticsDirectory = Join-Path `
+        $LocalAppDataRoot `
+        "AmdMobilePower\diagnostics"
+    $diagnosticsPath = $null
+    Wait-Until `
+        -Description "diagnostics export" `
+        -Condition {
+            $script:diagnosticsPath = Get-ChildItem `
+                -LiteralPath $diagnosticsDirectory `
+                -Filter "native-gui-diagnostics-*.json" `
+                -ErrorAction SilentlyContinue |
+                Sort-Object LastWriteTimeUtc -Descending |
+                Select-Object -First 1 -ExpandProperty FullName
+            [bool]$script:diagnosticsPath
+        }
+    $diagnosticsPath = $script:diagnosticsPath
+    return [pscustomobject]@{
+        Path = $diagnosticsPath
+        Document = Get-Content -LiteralPath $diagnosticsPath -Raw |
+            ConvertFrom-Json
+    }
+}
+
 $firstProcess = $null
 $secondProcess = $null
 $existingWorkerIds = @(
@@ -297,6 +344,9 @@ try {
     }
     if ($VerifyWriteControls) {
         $startArguments += "--enable-write-controls"
+    }
+    if ($UiFixture) {
+        $startArguments += @("--ui-fixture", $UiFixture)
     }
 
     $firstProcess = Start-Process `
@@ -463,6 +513,7 @@ try {
                 313,
                 314,
                 315,
+                318,
                 370
             )) {
                 $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
@@ -538,6 +589,7 @@ try {
                 313,
                 314,
                 315,
+                318,
                 370
             )) {
                 $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
@@ -563,6 +615,7 @@ try {
 
     $writePresetResult = "Not requested"
     $presetEditingResult = "Not requested"
+    $batteryOnlyToggleResult = "Not requested"
     if ($VerifyWriteControls) {
         $childTexts = @(Get-GuiChildTexts -Window $window)
         foreach ($required in @(
@@ -575,12 +628,80 @@ try {
             "电池目标",
             "外接目标",
             "启用",
+            "仅电池",
             "保存策略"
         )) {
             if ($childTexts -notcontains $required) {
                 throw "Rust GUI write controls are missing '$required': $childTexts"
             }
         }
+
+        $batteryOnlyButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+            $window,
+            318)
+        if ($batteryOnlyButton -eq [IntPtr]::Zero -or
+            -not [AmdMobilePowerRustGuiNative]::IsWindowVisible($batteryOnlyButton)) {
+            throw "Rust GUI battery-only policy toggle is missing."
+        }
+        $batteryOnlyText = Get-ControlText -Window $window -ControlId 318
+        if ($batteryOnlyText -ne "仅电池" -or
+            -not [AmdMobilePowerRustGuiNative]::IsWindowEnabled($batteryOnlyButton)) {
+            throw "Rust GUI battery-only policy toggle is not usable: '$batteryOnlyText'."
+        }
+        $policyEnabledButton = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, 315)
+        if ($policyEnabledButton -eq [IntPtr]::Zero -or
+            -not [AmdMobilePowerRustGuiNative]::IsWindowEnabled($policyEnabledButton)) {
+            throw "Rust GUI policy enable toggle is not usable."
+        }
+
+        $before = Export-GuiDiagnostics `
+            -Window $window `
+            -LocalAppDataRoot $isolatedLocalAppData
+        if ([bool]$before.Document.ui.batteryOnly -or
+            [bool]$before.Document.ui.policyEnabled) {
+            throw "Unexpected initial native UI policy state."
+        }
+
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $batteryOnlyButton,
+            0x00F5,
+            [UIntPtr]318,
+            [IntPtr]::Zero) | Out-Null
+        Start-Sleep -Milliseconds 150
+        $batteryOnlyOn = Export-GuiDiagnostics `
+            -Window $window `
+            -LocalAppDataRoot $isolatedLocalAppData
+        if (-not [bool]$batteryOnlyOn.Document.ui.batteryOnly) {
+            throw "Battery-only toggle was not reflected in diagnostics."
+        }
+
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $policyEnabledButton,
+            0x00F5,
+            [UIntPtr]315,
+            [IntPtr]::Zero) | Out-Null
+        Start-Sleep -Milliseconds 150
+        $policyEnabled = Export-GuiDiagnostics `
+            -Window $window `
+            -LocalAppDataRoot $isolatedLocalAppData
+        if (-not [bool]$policyEnabled.Document.ui.batteryOnly -or
+            -not [bool]$policyEnabled.Document.ui.policyEnabled) {
+            throw "Policy toggles were not reflected together in diagnostics."
+        }
+
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $batteryOnlyButton, 0x00F5, [UIntPtr]318, [IntPtr]::Zero) | Out-Null
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $policyEnabledButton, 0x00F5, [UIntPtr]315, [IntPtr]::Zero) | Out-Null
+        Start-Sleep -Milliseconds 150
+        $restored = Export-GuiDiagnostics `
+            -Window $window `
+            -LocalAppDataRoot $isolatedLocalAppData
+        if ([bool]$restored.Document.ui.batteryOnly -or
+            [bool]$restored.Document.ui.policyEnabled) {
+            throw "Native UI policy toggles did not return to the default state."
+        }
+        $batteryOnlyToggleResult = "PASS"
 
         if (-not $ExecuteNoChangePreset) {
             $editedPresets = @("11", "24", "43")
@@ -807,6 +928,7 @@ try {
             TargetWatts = if ($ExecuteNoChangePreset) { "45/45/45" } else { $null }
             WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
             PresetEditing = $presetEditingResult
+            BatteryOnlyToggle = $batteryOnlyToggleResult
             WritePreset = $writePresetResult
             PolicySave = if ($ExecutePolicySave) { "PASS" } else { "Not requested" }
             RecordedAt = (Get-Date).ToString("o")
@@ -829,6 +951,7 @@ try {
         TopMost = $topMostResult
         WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
         PresetEditing = $presetEditingResult
+        BatteryOnlyToggle = $batteryOnlyToggleResult
         WritePreset = $writePresetResult
         PolicySave = if ($ExecutePolicySave) { "PASS" } else { "Not requested" }
         Evidence = if ($EvidencePath) { $EvidencePath } else { $null }

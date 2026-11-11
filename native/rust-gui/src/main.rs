@@ -64,9 +64,8 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     WS_VISIBLE,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_GETCHECK, BM_SETCHECK, BS_OWNERDRAW,
-    ES_CENTER, ES_NUMBER, SC_MINIMIZE, WM_CTLCOLOREDIT, WM_CTLCOLORSTATIC, WM_DRAWITEM, WM_PAINT,
-    WS_TABSTOP,
+    GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_SETCHECK, BS_OWNERDRAW, ES_CENTER,
+    ES_NUMBER, SC_MINIMIZE, WM_CTLCOLOREDIT, WM_CTLCOLORSTATIC, WM_DRAWITEM, WM_PAINT, WS_TABSTOP,
 };
 
 const APP_TITLE: &str = "AMD Mobile Power";
@@ -103,6 +102,7 @@ const POLICY_AC_EDIT: usize = 314;
 const POLICY_ENABLED: usize = 315;
 const SIMPLE_TARGET_EDIT: usize = 316;
 const SIMPLE_APPLY: usize = 317;
+const POLICY_BATTERY_ONLY: usize = 318;
 const POWER_VALUE_LABEL: usize = 320;
 const POWER_SOURCE_LABEL: usize = 321;
 const TARGET_LABEL: usize = 322;
@@ -151,6 +151,17 @@ struct PolicyControls {
     enabled: HWND,
     battery_target: HWND,
     ac_target: HWND,
+    battery_only: HWND,
+}
+
+#[derive(Clone, Copy)]
+struct UiDiagnostics {
+    mode: state::UiMode,
+    top_most: bool,
+    policy_enabled: bool,
+    battery_only: bool,
+    taskbar_icon_available: bool,
+    tray_icon_id: u32,
 }
 
 #[derive(Clone, Copy)]
@@ -230,6 +241,8 @@ struct GuiApp {
     status_hold_until: Instant,
     view_mode: state::UiMode,
     top_most: bool,
+    policy_enabled: bool,
+    battery_only: bool,
     ui_fixture: Option<UiFixture>,
     focused_control: Option<usize>,
     icon_large: HICON,
@@ -269,6 +282,8 @@ impl GuiApp {
             status_hold_until: Instant::now(),
             view_mode: window_preferences.mode,
             top_most: window_preferences.top_most,
+            policy_enabled: false,
+            battery_only: false,
             ui_fixture: None,
             focused_control: None,
             icon_large: std::ptr::null_mut(),
@@ -1333,6 +1348,19 @@ unsafe fn paint_advanced_window(
             COLOR_BORDER
         },
     );
+    draw_text_in(
+        hdc,
+        "仅电池时不对外接电源写入",
+        fonts.caption,
+        COLOR_TEXT_MUTED,
+        RECT {
+            left: 166,
+            top: 454,
+            right: 480,
+            bottom: 476,
+        },
+        DT_LEFT,
+    );
 
     draw_text_in(
         hdc,
@@ -1512,16 +1540,31 @@ unsafe fn paint_advanced_window(
         DT_LEFT,
     );
     let policy = match app.saved_policy {
-        Some(settings) => format!(
-            "策略 {} · {} W / {} W",
-            if settings.enabled {
+        Some(settings) => {
+            let status = if settings.enabled {
                 "已启用"
             } else {
                 "已停用"
-            },
-            settings.battery_target.stapm_watts,
-            settings.ac_target.stapm_watts
-        ),
+            };
+            if settings.battery_enabled && settings.ac_enabled {
+                format!(
+                    "策略 {} · 电池/外接 · {} W / {} W",
+                    status, settings.battery_target.stapm_watts, settings.ac_target.stapm_watts
+                )
+            } else if settings.battery_enabled {
+                format!(
+                    "策略 {} · 仅电池 · {} W",
+                    status, settings.battery_target.stapm_watts
+                )
+            } else if settings.ac_enabled {
+                format!(
+                    "策略 {} · 仅外接 · {} W",
+                    status, settings.ac_target.stapm_watts
+                )
+            } else {
+                format!("策略 {status} · 未选择供电路径")
+            }
+        }
         None => "自动策略 · 尚未配置".to_owned(),
     };
     draw_text_in(
@@ -1674,14 +1717,8 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
         PRESET_12 => app.selected_preset == Some(0),
         PRESET_25 => app.selected_preset == Some(1),
         PRESET_45 => app.selected_preset == Some(2),
-        POLICY_ENABLED => app
-            .policy_controls
-            .map(|controls| SendMessageW(controls.enabled, BM_GETCHECK, 0, 0) != 0)
-            .unwrap_or_else(|| {
-                app.saved_policy
-                    .map(|settings| settings.enabled)
-                    .unwrap_or(false)
-            }),
+        POLICY_ENABLED => app.policy_enabled,
+        POLICY_BATTERY_ONLY => app.battery_only,
         _ => false,
     };
     let primary = matches!(id, SIMPLE_APPLY | APPLY_TARGET);
@@ -1854,10 +1891,22 @@ fn format_policy_state(state: Option<&PowerPolicyState>) -> String {
         .as_deref()
         .map(|error| format!("\n策略错误：{error}"))
         .unwrap_or_default();
-    format!(
-        "自动策略：{}（电池 {} W / 外接 {} W）\n{}{}",
-        status, settings.battery_target.stapm_watts, settings.ac_target.stapm_watts, last, error
-    )
+    let scope = if settings.battery_enabled && settings.ac_enabled {
+        format!(
+            "电池 {} W / 外接 {} W",
+            settings.battery_target.stapm_watts, settings.ac_target.stapm_watts
+        )
+    } else if settings.battery_enabled {
+        format!(
+            "仅电池 {} W（外接不控制）",
+            settings.battery_target.stapm_watts
+        )
+    } else if settings.ac_enabled {
+        format!("仅外接 {} W（电池不控制）", settings.ac_target.stapm_watts)
+    } else {
+        "未选择供电路径".to_owned()
+    };
+    format!("自动策略：{}（{}）\n{}{}", status, scope, last, error)
 }
 
 fn format_snapshot(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>) -> String {
@@ -1976,6 +2025,7 @@ fn diagnostics_document(
     write_controls_enabled: bool,
     package_version: Option<&str>,
     captured_at_unix_ms: u128,
+    ui_state: UiDiagnostics,
 ) -> serde_json::Value {
     serde_json::json!({
         "schemaVersion": 1,
@@ -1984,6 +2034,14 @@ fn diagnostics_document(
         "packageVersion": package_version,
         "capturedAtUnixMs": captured_at_unix_ms,
         "writeControlsEnabled": write_controls_enabled,
+        "ui": {
+            "mode": ui_state.mode,
+            "topMost": ui_state.top_most,
+            "policyEnabled": ui_state.policy_enabled,
+            "batteryOnly": ui_state.battery_only,
+            "taskbarIconAvailable": ui_state.taskbar_icon_available,
+            "trayIconId": ui_state.tray_icon_id
+        },
         "powerPolicy": policy,
         "snapshot": snapshot,
         "privacy": {
@@ -2020,6 +2078,14 @@ fn export_diagnostics(app: &GuiApp) -> Result<PathBuf, String> {
         app.write_enabled,
         package_version.as_deref(),
         captured_at_unix_ms,
+        UiDiagnostics {
+            mode: app.view_mode,
+            top_most: app.top_most,
+            policy_enabled: app.policy_enabled,
+            battery_only: app.battery_only,
+            taskbar_icon_available: !app.icon_large.is_null(),
+            tray_icon_id: TRAY_ICON_ID,
+        },
     );
     let contents = serde_json::to_vec_pretty(&document)
         .map_err(|error| format!("无法序列化诊断报告：{error}"))?;
@@ -2730,6 +2796,7 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
     let ac_label = wide("外接目标");
     let enabled_label = wide("启用");
     let save_label = wide("保存策略");
+    let battery_only_label = wide("仅电池");
     let edit_style = WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_NUMBER as u32 | ES_CENTER as u32;
 
     CreateWindowExW(
@@ -2816,26 +2883,57 @@ unsafe fn create_policy_controls(hwnd: HWND, instance: HINSTANCE) -> PolicyContr
         instance,
         std::ptr::null(),
     );
+    let battery_only = CreateWindowExW(
+        0,
+        button_class.as_ptr(),
+        battery_only_label.as_ptr(),
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW as u32,
+        166,
+        480,
+        112,
+        32,
+        hwnd,
+        POLICY_BATTERY_ONLY as HMENU,
+        instance,
+        std::ptr::null(),
+    );
 
     PolicyControls {
         enabled,
         battery_target,
         ac_target,
+        battery_only,
     }
 }
 
 fn format_policy_result(settings: PowerPolicySettings, result: Result<(), String>) -> String {
     match result {
-        Ok(()) => format!(
-            "自动策略已保存。\n电池 {} W / 外接 {} W。\n{}",
-            settings.battery_target.stapm_watts,
-            settings.ac_target.stapm_watts,
-            if settings.enabled {
-                "已启用。"
+        Ok(()) => {
+            let scope = if settings.battery_enabled && settings.ac_enabled {
+                format!(
+                    "电池 {} W / 外接 {} W。",
+                    settings.battery_target.stapm_watts, settings.ac_target.stapm_watts
+                )
+            } else if settings.battery_enabled {
+                format!(
+                    "仅电池 {} W，外接不控制。",
+                    settings.battery_target.stapm_watts
+                )
+            } else if settings.ac_enabled {
+                format!("仅外接 {} W，电池不控制。", settings.ac_target.stapm_watts)
             } else {
-                "已停用。"
-            }
-        ),
+                "未选择供电路径。".to_owned()
+            };
+            format!(
+                "自动策略已保存。\n{}\n{}",
+                scope,
+                if settings.enabled {
+                    "已启用。"
+                } else {
+                    "已停用。"
+                }
+            )
+        }
         Err(error) => format!("策略保存失败。\n{error}"),
     }
 }
@@ -2879,6 +2977,7 @@ unsafe fn update_write_availability(app: &GuiApp, hwnd: HWND) {
             controls.battery_target,
             controls.ac_target,
             controls.enabled,
+            controls.battery_only,
         ] {
             EnableWindow(control, i32::from(available));
         }
@@ -3116,6 +3215,7 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
         POLICY_BATTERY_EDIT,
         POLICY_AC_EDIT,
         POLICY_ENABLED,
+        POLICY_BATTERY_ONLY,
         POLICY_SAVE,
     ] {
         set_control_visible(hwnd, id, advanced);
@@ -3172,6 +3272,7 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
         move_control(hwnd, POLICY_BATTERY_EDIT, 92, 418, 60, 28);
         move_control(hwnd, POLICY_AC_EDIT, 224, 418, 60, 28);
         move_control(hwnd, POLICY_ENABLED, 300, 414, 78, 34);
+        move_control(hwnd, POLICY_BATTERY_ONLY, 166, 480, 112, 32);
         move_control(hwnd, POLICY_SAVE, 36, 480, 112, 32);
         move_control(hwnd, EXPORT_DIAGNOSTICS, 640, 612, 104, 30);
         for id in [
@@ -3204,6 +3305,7 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
         PRESET_EDIT_OPEN,
         PRESET_SAVE,
         POLICY_ENABLED,
+        POLICY_BATTERY_ONLY,
         POLICY_SAVE,
         SIMPLE_APPLY,
         EXPORT_DIAGNOSTICS,
@@ -3742,11 +3844,15 @@ unsafe extern "system" fn window_proc(
                     toggle_topmost(app, hwnd);
                 }
                 POLICY_ENABLED if app.write_enabled => {
+                    app.policy_enabled = !app.policy_enabled;
                     if let Some(controls) = app.policy_controls {
-                        let next =
-                            i32::from(SendMessageW(controls.enabled, BM_GETCHECK, 0, 0) == 0);
-                        SendMessageW(controls.enabled, BM_SETCHECK, next as usize, 0);
                         InvalidateRect(controls.enabled, std::ptr::null(), 1);
+                    }
+                }
+                POLICY_BATTERY_ONLY if app.write_enabled => {
+                    app.battery_only = !app.battery_only;
+                    if let Some(controls) = app.policy_controls {
+                        InvalidateRect(controls.battery_only, std::ptr::null(), 1);
                     }
                 }
                 SIMPLE_APPLY if app.write_enabled && !app.apply_in_flight => {
@@ -3852,7 +3958,9 @@ unsafe extern "system" fn window_proc(
                         set_edit_watts(controls.battery_target, battery_target);
                         set_edit_watts(controls.ac_target, ac_target);
                         let settings = PowerPolicySettings {
-                            enabled: SendMessageW(controls.enabled, BM_GETCHECK, 0, 0) != 0,
+                            enabled: app.policy_enabled,
+                            battery_enabled: true,
+                            ac_enabled: !app.battery_only,
                             battery_target: PowerLimitTarget::uniform(battery_target),
                             ac_target: PowerLimitTarget::uniform(ac_target),
                         };
@@ -4035,15 +4143,11 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
         (*app).saved_policy = state::load_power_policy();
         if let Some(saved) = (*app).saved_policy {
+            (*app).policy_enabled = saved.enabled;
+            (*app).battery_only = saved.battery_enabled && !saved.ac_enabled;
             if let Some(controls) = (*app).policy_controls {
                 set_edit_watts(controls.battery_target, saved.battery_target.stapm_watts);
                 set_edit_watts(controls.ac_target, saved.ac_target.stapm_watts);
-                SendMessageW(
-                    controls.enabled,
-                    BM_SETCHECK,
-                    if saved.enabled { 1 } else { 0 },
-                    0,
-                );
             }
         }
         (*app).fonts = Some(fonts);
@@ -4116,7 +4220,7 @@ mod tests {
     use super::{
         clamp_preset_values, diagnostics_document, fixture_snapshot, fixture_worker_error,
         format_policy_state, format_snapshot, format_snapshot_simple, parse_ui_fixture,
-        preset_menu_label, UiFixture,
+        preset_menu_label, state, UiDiagnostics, UiFixture,
     };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
@@ -4210,6 +4314,8 @@ mod tests {
         let state = PowerPolicyState {
             settings: Some(PowerPolicySettings {
                 enabled: true,
+                battery_enabled: true,
+                ac_enabled: true,
                 battery_target: PowerLimitTarget::uniform(10),
                 ac_target: PowerLimitTarget::uniform(12),
             }),
@@ -4235,6 +4341,31 @@ mod tests {
     }
 
     #[test]
+    fn battery_only_policy_is_explicit_in_the_dashboard() {
+        let state = PowerPolicyState {
+            settings: Some(PowerPolicySettings {
+                enabled: true,
+                battery_enabled: true,
+                ac_enabled: false,
+                battery_target: PowerLimitTarget::uniform(10),
+                ac_target: PowerLimitTarget::uniform(45),
+            }),
+            last_observed_power_line: Some(PowerLineState::Battery),
+            last_applied_target: Some(PowerLimitTarget::uniform(10)),
+            last_attempt_at: None,
+            last_attempt_succeeded: Some(true),
+            last_error: None,
+        };
+
+        let text = format_policy_state(Some(&state));
+
+        assert!(
+            text.contains("自动策略：已启用（仅电池 10 W（外接不控制））"),
+            "{text}"
+        );
+    }
+
+    #[test]
     fn presets_are_clamped_to_the_active_profile() {
         assert_eq!(clamp_preset_values([2, 25, 80], 5, 60), [5, 25, 60]);
     }
@@ -4251,6 +4382,8 @@ mod tests {
         let policy = PowerPolicyState {
             settings: Some(PowerPolicySettings {
                 enabled: true,
+                battery_enabled: true,
+                ac_enabled: true,
                 battery_target: PowerLimitTarget::uniform(10),
                 ac_target: PowerLimitTarget::uniform(12),
             }),
@@ -4266,11 +4399,25 @@ mod tests {
             false,
             Some("0.6.0-native-test"),
             1_762_819_200_000,
+            UiDiagnostics {
+                mode: state::UiMode::Advanced,
+                top_most: true,
+                policy_enabled: true,
+                battery_only: false,
+                taskbar_icon_available: true,
+                tray_icon_id: 1,
+            },
         );
         let text = serde_json::to_string_pretty(&document).unwrap();
 
         assert_eq!(document["schemaVersion"], 1);
         assert_eq!(document["packageVersion"], "0.6.0-native-test");
+        assert_eq!(document["ui"]["mode"], "advanced");
+        assert_eq!(document["ui"]["topMost"], true);
+        assert_eq!(document["ui"]["policyEnabled"], true);
+        assert_eq!(document["ui"]["batteryOnly"], false);
+        assert_eq!(document["ui"]["taskbarIconAvailable"], true);
+        assert_eq!(document["ui"]["trayIconId"], 1);
         assert_eq!(
             document["snapshot"]["platform"]["cpu"]["processorName"],
             "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics"
