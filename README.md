@@ -6,7 +6,7 @@ AMD thin-and-light laptops. It uses a Rust GUI and a separate C++ worker so the
 UI and hardware access stay behind a narrow named-pipe contract.
 
 > Status: no public release yet. The current stable-local candidate is
-> `1.0.22-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
+> `1.0.23-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
 > Its GUI, probe, worker, and portable ZIP rebuild byte-identically from the
 > same commit. Local publication readiness is `PASS`; the release remains
 > `READY_FOR_HUMAN_REVIEW`.
@@ -63,8 +63,8 @@ Ryzen Master processes. The application intentionally refuses to become a
 second hardware owner.
 
 The local stable deployment on this development laptop exposes editable
-presets `10 / 25 / 45 W` with a `45 W` ceiling and the automatic battery/AC
-policy disabled. `10 W` is the manual night preset; daytime switching is one
+presets `10 / 25 / 45 W` with a `45 W` ceiling and a `10 W` target on both
+power lines. `10 W` is the manual night preset; daytime switching is one
 click. That local choice does not change the portable package's read-only
 default.
 
@@ -73,12 +73,12 @@ default.
 Current review candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.22-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip
 ```
 
-- Size: `760,654` bytes
+- Size: `760,850` bytes
 - SHA256:
-  `500224c715e834e14a0134af681cf17171d24fb747d57515175688317fab3e76`
+  `42f6cf9172f3db6d0a2ac81bfffbab4b38b1f5a1423ff64b7b020855fce29f79`
 
 1. Extract the complete ZIP to a writable directory.
 2. On a fresh Windows host, open an elevated PowerShell in the extracted
@@ -150,7 +150,7 @@ git submodule update --init --recursive
 .\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui `
   -VerifyRustWorker -VerifyWriteGuard
 .\native\verify-release.ps1 `
-  -Version 1.0.22-native `
+  -Version 1.0.23-native `
   -VerifyReproducibility `
   -VerifyShellIntegration `
   -ExecuteNoChangePolicy `

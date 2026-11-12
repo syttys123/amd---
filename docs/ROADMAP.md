@@ -48,7 +48,8 @@
 
 ## M4: Compatibility
 
-- [ ] Add detection profiles for supported AMD mobile generations.
+- [x] Add detection profiles for AMD mobile generation families `0-15`
+  (conservative fallbacks; per-device verification still required).
 - [x] Add conservative RyzenAdj-family profiles and matching tests for
   additional generations pending physical-device evidence.
 - [x] Create a hardware matrix with verified, experimental, and unsupported
