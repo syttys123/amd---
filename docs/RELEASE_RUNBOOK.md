@@ -37,13 +37,13 @@ gh release create v1.0.23-native `
   "D:\amd-mobile-power\artifacts\native-packages\amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip" `
   "D:\amd-mobile-power\artifacts\native-packages\amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip.sha256" `
   --title "1.0.23-native - AMD Mobile Power 原生稳定本地候选" `
-  --notes-file D:\amd-mobile-power\docs\NATIVE_LAUNCH_COPY_ZH.md `
+  --notes-file D:\amd-mobile-power\docs\release-notes-1.0.23-zh.md `
   --draft
 ```
 
 - 先建草稿，网页端复核渲染与附件后再手动发布。
-- 正文使用 `docs/NATIVE_LAUNCH_COPY_ZH.md` 中 “GitHub Release 草稿” 段落，
-  不要把整份内部说明贴进 Release。
+- 正文使用 `docs/release-notes-1.0.23-zh.md`；`docs/NATIVE_LAUNCH_COPY_ZH.md`
+  是内部口径，不要把整份说明贴进 Release。
 - 附件只放 ZIP 与 `.sha256`；视频和封面属于 B 站物料。
 
 网页端等价步骤：Draft a new release → 选择 tag `v1.0.23-native` → 上传两个

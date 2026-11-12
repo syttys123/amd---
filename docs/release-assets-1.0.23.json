@@ -43,6 +43,7 @@
     "note": "The 1.0.22 capture set is reused because 1.0.23 changes scroll behaviour only; no visible UI surface changed."
   },
   "copy": {
+    "releaseNotes": "docs/release-notes-1.0.23-zh.md",
     "launchCopy": "docs/NATIVE_LAUNCH_COPY_ZH.md",
     "runbook": "docs/RELEASE_RUNBOOK.md"
   }
