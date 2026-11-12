@@ -3,8 +3,15 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable-local native deployment (`1.0.10-native`) on
-  the development laptop. The previous `1.0.9-native` build remains at
+- `C:\RyzenAdj`: current stable-local native deployment (`1.0.20-native`,
+  commit `d9129b0`, compact UI polish plus advanced work-area scrolling).
+  `1.0.19-native` remains at `C:\RyzenAdj.before-v1.0.20-native-20261112-ui`
+  and under
+  `artifacts/deployment-backups/C-RyzenAdj-before-1.0.20-native-d9129b0-20261112-ui`;
+  `1.0.18-native` at `C:\RyzenAdj.before-v1.0.19-native-20261112-ui`.
+  Older native and .NET backups follow
+  the same `C:\RyzenAdj.before-*` naming. The previous `1.0.9-native` build
+  remains at
   `C:\RyzenAdj.before-20261112-041014`, `1.0.8-native` at
   `C:\RyzenAdj.before-20261112-033749`, and `1.0.7-native` at
   `C:\RyzenAdj.before-20261112-025316`, `1.0.6-native` at
@@ -74,6 +81,28 @@ shortcuts while preserving their arguments, writes deployment evidence, and
 rolls back on failure.
 
 ## Current Deployment Evidence
+
+On 2026-11-12, `1.0.20-native` replaced `1.0.19-native` at `C:\RyzenAdj`.
+It ships the compact 600x360 UI polish, input-draft retention, hover/focus
+and tooltip wiring, and the advanced work-area fit with full-content
+scrolling (fixing the 1080p/150% taskbar occlusion found in review).
+
+- Package SHA256:
+  `4285011dee71e3fbdc9c36869079e54430bccaee168d8d5f0f99b9524d88adf0`
+- Package size: `758,548` bytes, 19 checksum entries
+- Package source commit: `d9129b01f4039ebd4db547070612589a1d834936`
+- Previous stable rollback directory: `C:\RyzenAdj.before-v1.0.20-native-20261112-ui`
+- Release gate:
+  `docs\evidence\packaging\v1.0.20-native-release-gate-2026-11-12.json`
+- Deployment evidence:
+  `docs\evidence\packaging\v1.0.20-native-deployment-2026-11-12.json`
+- Deployed UI evidence:
+  `docs\evidence\ui\native-deployed-1.0.20-native-ui-2026-11-12.json`
+- Live state after restart: editable presets `10 / 25 / 45 W`, ceiling
+  `45 W`, automatic policy disabled; battery read-back `25/25/20 W`
+  (firmware dynamic Slow limit) after a same-value policy probe on battery.
+- Desktop shortcut:
+  `--enable-write-controls --simple-mode --max-target-watts 45`.
 
 On 2026-11-12, `1.0.18-native` replaced `1.0.17-native` at `C:\RyzenAdj`. It
 is the first package gated with `-VerifyWorkerHang`: the gate suspends the

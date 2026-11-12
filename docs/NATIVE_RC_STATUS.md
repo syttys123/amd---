@@ -3,7 +3,11 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.18-native`. The
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.20-native`
+(commit `d9129b0`, compact 600x360 UI polish, input-draft retention, and
+advanced work-area scrolling). `1.0.19-native` is preserved as
+`C:\RyzenAdj.before-v1.0.20-native-20261112-ui`, `1.0.18-native` as
+`C:\RyzenAdj.before-v1.0.19-native-20261112-ui`. The
 previous native `1.0.17-native` build is preserved as
 `C:\RyzenAdj.before-20261112-074413`, `1.0.16-native` as
 `C:\RyzenAdj.before-20261112-070824`, `1.0.15-native` as

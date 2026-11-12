@@ -1,12 +1,12 @@
 {
   "Verification": "PASS",
-  "RecordedAt": "2026-11-12T07:42:40.7003175+08:00",
+  "RecordedAt": "2026-11-12T12:40:27.0907644+08:00",
   "Results": {
     "Gui": {
-      "First": "63193c17a1bf67a6a4638fe4f42a8f07301ad67ab6131be550f18cef774db24b",
-      "Second": "63193c17a1bf67a6a4638fe4f42a8f07301ad67ab6131be550f18cef774db24b",
+      "First": "72b228320a7202dcdf2b87124c92cf04f560fd009da17aa0ba19e44bb1fd3d5c",
+      "Second": "72b228320a7202dcdf2b87124c92cf04f560fd009da17aa0ba19e44bb1fd3d5c",
       "Reproducible": true,
-      "Size": 828416
+      "Size": 841728
     },
     "Probe": {
       "First": "9750418f15ebce2d70e750e845cfa5408751a96b178d60bbaa168155322a615e",
@@ -21,11 +21,11 @@
       "Size": 140800
     },
     "Package": {
-      "Version": "1.0.18-native",
-      "First": "fd7bf191ac557fb9bc1038cb725907ba67e5f819b8eeee6136f5cbe2721d6ef1",
-      "Second": "fd7bf191ac557fb9bc1038cb725907ba67e5f819b8eeee6136f5cbe2721d6ef1",
+      "Version": "1.0.20-native",
+      "First": "4285011dee71e3fbdc9c36869079e54430bccaee168d8d5f0f99b9524d88adf0",
+      "Second": "4285011dee71e3fbdc9c36869079e54430bccaee168d8d5f0f99b9524d88adf0",
       "Reproducible": true,
-      "Size": 751600
+      "Size": 758548
     }
   },
   "Failures": []

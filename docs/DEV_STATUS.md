@@ -21,10 +21,12 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
-2026-11-12: compact native UI polish is implemented and verified in development;
-clean-package verification and promotion are the next step. The current C-drive
-deployment remains `1.0.18-native` until that gate completes. Older version
-statements below are chronological records, not the current deployment pointer.
+2026-11-12: compact native UI polish is deployed as `1.0.20-native`
+(`d9129b0`, package SHA256
+`4285011dee71e3fbdc9c36869079e54430bccaee168d8d5f0f99b9524d88adf0`,
+758,548 bytes). It supersedes `1.0.19-native` (`18dbec1`), which was deployed
+briefly before the advanced-window work-area fix. Older version statements
+below are chronological records, not the current deployment pointer.
 
 - Simple mode now defaults to a `600x360` client and resizes down to `560x360`;
   advanced mode stays `780x680`. One layout model aligns the target field,
@@ -55,10 +57,22 @@ statements below are chronological records, not the current deployment pointer.
 2026-11-12 (follow-up): independent source review caught a 1080p/150%
 regression where the advanced minimum height exceeded the work area. Fixed:
 the advanced window fits the monitor work area on open, its full content
-scrolls (wheel, scrollbar, keyboard reveal), the minimum advanced client is
-`760x420`, and the harness now checks scroll range, bottom-button bounds, and
-focus reveal at native scale and the 150% fixture. Verified read-only while
-the machine was on battery (`25/25/20 W` live firmware limits; no writes).
+scrolls (wheel, scrollbar, keyboard reveal), the layout minimum advanced
+client is `760x420` (window minimum `780x420` so the scrollbar never eats
+into content), and the harness now checks scroll range, bottom-button bounds,
+and focus reveal at native scale and the 150% fixture. A +1 px minimum-width
+clamping artifact was also fixed. Verified read-only while the machine was on
+battery (`25/25/20 W` live firmware limits); the release gate's policy probe
+wrote and read back the same `25/25/20 W` on battery.
+
+Release evidence for `1.0.20-native`:
+`docs/evidence/packaging/v1.0.20-native-release-gate-2026-11-12.json`,
+`...-clean-...`, `...-shell-integration-...`, `...-deployment-...`,
+`docs/evidence/hardware/v1.0.20-native-power-policy-no-change-2026-11-12.json`,
+`docs/evidence/ui/native-packaged-1.0.20-native-ui-2026-11-12.json`, and
+`docs/evidence/ui/native-deployed-1.0.20-native-ui-2026-11-12.json`.
+Rollback: `C:\RyzenAdj.before-v1.0.20-native-20261112-ui` plus
+`artifacts/deployment-backups/C-RyzenAdj-before-1.0.20-native-d9129b0-20261112-ui`.
 
 ## Current Repo State
 
