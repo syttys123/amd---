@@ -1891,27 +1891,27 @@ hardware telemetry):
 
 Earlier rewrite screenshots:
 
-![Native simple mode](assets/native-gui-redesign-simple-2026-11-11.png)
+![Native simple mode](../assets/native-gui-redesign-simple-2026-11-11.png)
 
-![Native advanced mode](assets/native-gui-redesign-advanced-2026-11-11.png)
+![Native advanced mode](../assets/native-gui-redesign-advanced-2026-11-11.png)
 
-![Native read-only simple mode](assets/native-gui-redesign-readonly-simple-2026-11-11.png)
+![Native read-only simple mode](../assets/native-gui-redesign-readonly-simple-2026-11-11.png)
 
-![Native read-only advanced mode](assets/native-gui-redesign-readonly-advanced-2026-11-11.png)
+![Native read-only advanced mode](../assets/native-gui-redesign-readonly-advanced-2026-11-11.png)
 
 Historical development screenshots:
 
 ![Compact mode at 12 W](assets/gui-simple-12w-2026-11-10.png)
 
-![Native preview editable presets](assets/native-gui-editable-presets-2026-11-11.png)
+![Native preview editable presets](../assets/native-gui-editable-presets-2026-11-11.png)
 
-![Native preview read-only diagnostics](assets/native-gui-readonly-diagnostics-2026-11-11.png)
+![Native preview read-only diagnostics](../assets/native-gui-readonly-diagnostics-2026-11-11.png)
 
-![Native preview write diagnostics](assets/native-gui-write-diagnostics-2026-11-11.png)
+![Native preview write diagnostics](../assets/native-gui-write-diagnostics-2026-11-11.png)
 
-![Native preview simple mode](assets/native-gui-simple-mode-2026-11-11.png)
+![Native preview simple mode](../assets/native-gui-simple-mode-2026-11-11.png)
 
-![Native preview advanced mode](assets/native-gui-advanced-mode-2026-11-11.png)
+![Native preview advanced mode](../assets/native-gui-advanced-mode-2026-11-11.png)
 
 ## In Progress
 
