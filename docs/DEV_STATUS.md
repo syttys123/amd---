@@ -21,6 +21,16 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-13 (media 1.0.23): re-rendered the promo draft so the closing
+narration matches the shipped build: `1.0.23`, 46 GUI tests, and the maximize
+scroll regression. The video is `109.2 s` at 1920x1080 with seven non-repeating
+scenes, SAPI Chinese narration, the original seeded music bed at `-26 dB`, and
+refreshed SRT captions. Contact sheet and Bilibili cover were regenerated;
+`verify-media.ps1` PASS covers full decode, scene count, volume, evidence
+hashes, review assets, and cover. Evidence:
+`docs/evidence/media/native-promo-1.0.23-draft-2026-11-13.json`. Status stays
+`DRAFT_FOR_HUMAN_REVIEW`; no upload or publication was performed.
+
 2026-11-13 (`1.0.23-native`): deployed to `C:\RyzenAdj`, superseding
 `1.0.22-native`. It fixes the advanced-mode maximize/snap regression inherited
 from `1.0.22-native`: after shrinking the window, scrolling, and maximizing,

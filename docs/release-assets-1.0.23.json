@@ -19,26 +19,26 @@
   },
   "bilibili": {
     "video": {
-      "path": "artifacts/media/amd-mobile-power-promo-1.0.22-2026-11-13/amd-mobile-power-intro-1.0.22-2026-11-13.mp4",
-      "durationSeconds": 107.7,
+      "path": "artifacts/media/amd-mobile-power-promo-1.0.23-2026-11-13/amd-mobile-power-intro-1.0.23-2026-11-13.mp4",
+      "durationSeconds": 109.2,
       "width": 1920,
       "height": 1080,
-      "sizeBytes": 25951043,
-      "sha256": "388fba8ead1e82211bd9790ea28defb20c28b53bc959c0f1fae9afc5189e4646"
+      "sizeBytes": 26058446,
+      "sha256": "e1480a19841e6fc2dd713f34866c9ce17459b56b9915786461906277a3c804c1"
     },
     "cover": {
-      "path": "docs/assets/bilibili-cover-1.0.22-2026-11-13.png",
+      "path": "docs/assets/bilibili-cover-1.0.23-2026-11-13.png",
       "width": 1146,
       "height": 717,
-      "sizeBytes": 150400,
-      "sha256": "8d2520125145c6bcc7302177865c21a88c5ffe0108f97d1862b42185a04d239d"
+      "sizeBytes": 150427,
+      "sha256": "0fd1a397415860578ba12fdfa1a43f393b4925cfb53f97a9020d2250f9ddb1fd"
     },
     "contactSheet": {
-      "path": "docs/assets/native-promo-1.0.22-contact-sheet-2026-11-13.png",
+      "path": "docs/assets/native-promo-1.0.23-contact-sheet-2026-11-13.png",
       "width": 1920,
       "height": 640,
-      "sizeBytes": 463516,
-      "sha256": "902153580b97e88c2f48c081df0a5b813541a8330d8a3dd6c3ceadcb7bc6825d"
+      "sizeBytes": 463695,
+      "sha256": "1d2e0075b112ac35b7acdabbbe21d25be08fe1071230b1911c6ef36dace8a6e9"
     },
     "note": "The 1.0.22 capture set is reused because 1.0.23 changes scroll behaviour only; no visible UI surface changed."
   },

@@ -62,7 +62,7 @@ Release under review: `1.0.23-native`
 
 ## Release Media
 
-- [x] Seven-scene promo draft rendered at 1920x1080, 107.7 s, with voice,
+- [x] Seven-scene promo draft rendered at 1920x1080, 109.2 s, with voice,
       original seeded music, captions, and contact sheet.
 - [x] `verify-media.ps1` passes (full decode, volume, evidence hashes, review
       assets, and Bilibili cover).

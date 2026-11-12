@@ -6,45 +6,45 @@ process and performs no hardware write.
 
 ## Current Draft
 
-The current draft is 107.7 seconds at 1920x1080, 25 fps, with H.264 video, AAC
+The current draft is 109.2 seconds at 1920x1080, 25 fps, with H.264 video, AAC
 stereo audio, Chinese narration, and simplified-Chinese captions. It uses the
-final `1.0.22-native` GUI captures together with the high-contrast,
-worker-offline, and device-panel states. It is marked
+`1.0.22-native` capture set (layout identical to `1.0.23`) together with the
+high-contrast, worker-offline, and device-panel states. It is marked
 `DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
 
-![Promo draft cover](assets/native-promo-1.0.22-cover-2026-11-13.png)
+![Promo draft cover](assets/native-promo-1.0.23-cover-2026-11-13.png)
 
-![Seven-scene review contact sheet](assets/native-promo-1.0.22-contact-sheet-2026-11-13.png)
+![Seven-scene review contact sheet](assets/native-promo-1.0.23-contact-sheet-2026-11-13.png)
 
 Bilibili 1146x717 cover:
 
-![Bilibili launch cover](assets/bilibili-cover-1.0.22-2026-11-13.png)
+![Bilibili launch cover](assets/bilibili-cover-1.0.23-2026-11-13.png)
 
 Local render:
 
 ```text
-artifacts/media/amd-mobile-power-promo-1.0.22-2026-11-13/
-  amd-mobile-power-intro-1.0.22-2026-11-13.mp4
+artifacts/media/amd-mobile-power-promo-1.0.23-2026-11-13/
+  amd-mobile-power-intro-1.0.23-2026-11-13.mp4
 ```
 
-- Size: 25,951,043 bytes.
+- Size: 26,058,446 bytes.
 - SHA256:
-  `388fba8ead1e82211bd9790ea28defb20c28b53bc959c0f1fae9afc5189e4646`.
+  `e1480a19841e6fc2dd713f34866c9ce17459b56b9915786461906277a3c804c1`.
 - Full-file FFmpeg decode: PASS.
-- Audio level: mean `-20.8 dB`, peak `-1.2 dB`.
+- Audio level: mean `-20.7 dB`, peak `-1.2 dB`.
 - Title, caption, and bullet safe-width checks: PASS.
 - Scene count: 7.
 
 Machine-readable evidence:
-`docs/evidence/media/native-promo-1.0.22-draft-2026-11-13.json`.
+`docs/evidence/media/native-promo-1.0.23-draft-2026-11-13.json`.
 
 Verify the local MP4 and every committed review/source hash without rerendering:
 
 ```powershell
 .\verify-media.ps1 `
-  -VideoPath .\artifacts\media\amd-mobile-power-promo-1.0.22-2026-11-13\amd-mobile-power-intro-1.0.22-2026-11-13.mp4 `
-  -ManifestPath .\artifacts\media\amd-mobile-power-promo-1.0.22-2026-11-13\promo-manifest.json `
-  -EvidencePath .\docs\evidence\media\native-promo-1.0.22-draft-2026-11-13.json
+  -VideoPath .\artifacts\media\amd-mobile-power-promo-1.0.23-2026-11-13\amd-mobile-power-intro-1.0.23-2026-11-13.mp4 `
+  -ManifestPath .\artifacts\media\amd-mobile-power-promo-1.0.23-2026-11-13\promo-manifest.json `
+  -EvidencePath .\docs\evidence\media\native-promo-1.0.23-draft-2026-11-13.json
 ```
 
 The verifier checks the manifest, evidence, SHA256, codecs, dimensions, frame
@@ -55,17 +55,17 @@ renderer, video cover, contact sheet, and the 1146x717 Bilibili cover.
 
 ```powershell
 .\render-promo.ps1 `
-  -Storyboard .\media\promo-native\storyboard-1.0.22.json `
-  -OutputDirectory .\artifacts\media\amd-mobile-power-promo-1.0.22-2026-11-13 `
-  -OutputName amd-mobile-power-intro-1.0.22-2026-11-13.mp4 `
+  -Storyboard .\media\promo-native\storyboard-1.0.23.json `
+  -OutputDirectory .\artifacts\media\amd-mobile-power-promo-1.0.23-2026-11-13 `
+  -OutputName amd-mobile-power-intro-1.0.23-2026-11-13.mp4 `
   -MusicPath .\artifacts\media\promo-music-bed-2026-11-12.wav
 ```
 
 The default output is written under the ignored `artifacts/media` directory:
 
 ```text
-artifacts/media/amd-mobile-power-promo-1.0.22-2026-11-13/
-  amd-mobile-power-intro-1.0.22-2026-11-13.mp4
+artifacts/media/amd-mobile-power-promo-1.0.23-2026-11-13/
+  amd-mobile-power-intro-1.0.23-2026-11-13.mp4
   captions-zh.srt
   cover-draft.png
   promo-manifest.json
