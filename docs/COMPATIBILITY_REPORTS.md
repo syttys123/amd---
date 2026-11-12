@@ -5,23 +5,7 @@ Only sanitized, read-only reports with false privacy flags are indexed.
 
 ## MECHREVO WUJIE15 PRO
 
-- Collected: 11/12/2026 01:16:17
-- Status: `PASS`
-- CPU: AMD Ryzen 7 8845HS w/ Radeon 780M Graphics
-- Family: 10 Hawk Point
-- SMU / PM table: 15 / 4c0009
-- Profile: hawk-point-8845hs [5-60 W]
-- Profile catalog: 10 entries
-- Platform supported: True
-- Power line: ac
-- Limits: STAPM 10 / Fast 10 / Slow 10 W
-- Package: 1.0.4-native
-- Worker: 0.6.0-native
-- Evidence: `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
-
-## MECHREVO WUJIE15 PRO
-
-- Collected: 2026-11-11T23:54:35.0000000+08:00
+- Collected: 2026-11-12 07:54:35 +08:00
 - Status: `PASS`
 - CPU: AMD Ryzen 7 8845HS w/ Radeon 780M Graphics
 - Family: 10 Hawk Point
@@ -37,7 +21,23 @@ Only sanitized, read-only reports with false privacy flags are indexed.
 
 ## MECHREVO WUJIE15 PRO
 
-- Collected: 11/11/2026 19:27:54
+- Collected: 2026-11-12 01:16:17 +08:00
+- Status: `PASS`
+- CPU: AMD Ryzen 7 8845HS w/ Radeon 780M Graphics
+- Family: 10 Hawk Point
+- SMU / PM table: 15 / 4c0009
+- Profile: hawk-point-8845hs [5-60 W]
+- Profile catalog: 10 entries
+- Platform supported: True
+- Power line: ac
+- Limits: STAPM 10 / Fast 10 / Slow 10 W
+- Package: 1.0.4-native
+- Worker: 0.6.0-native
+- Evidence: `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
+
+## MECHREVO WUJIE15 PRO
+
+- Collected: 2026-11-11 19:27:54 +08:00
 - Status: `PASS`
 - CPU: AMD Ryzen 7 8845HS w/ Radeon 780M Graphics
 - Family: 10 Hawk Point

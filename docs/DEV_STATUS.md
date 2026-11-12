@@ -240,6 +240,11 @@ not authoritative.
   `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`, and no local blockers.
   Evidence:
   `docs/evidence/release/native-publication-readiness-1.0.18-2026-11-12.json`.
+  The compatibility importer now preserves UTC/local `DateTime` kind while
+  normalizing `collectedAt`, sorts by the parsed instant instead of the raw
+  string, and exposes `-Reindex` to repair an existing index without adding a
+  report. The current index is UTC-normalized and lists the 1.0.18 report
+  first; duplicate rejection still passes.
 - `C:\RyzenAdj` previously contained the promoted `1.0.17-native` package, which adds
   hung-worker replacement on top of the 1.0.16 supervision path. Package
   SHA256 is

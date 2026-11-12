@@ -34,6 +34,14 @@ archives the sanitized JSON under `docs/evidence/compatibility`, updates
 `docs/evidence/compatibility/index.json`, and regenerates
 `docs/COMPATIBILITY_REPORTS.md`. It does not upload anything.
 
+Index timestamps are normalized to UTC and sorted by the actual instant rather
+than string order, so a `Z` report and a `+08:00` report land in the right
+place. To normalize or regenerate an existing index without adding a report:
+
+```powershell
+.\native\import-compatibility-report.ps1 -Reindex
+```
+
 The report already carries a `host` block with manufacturer, model, BIOS
 version, Windows edition/version/build, and a `privacy` block that states no
 paths, process IDs, account names, serial numbers, logs, or upload were
