@@ -1,0 +1,14 @@
+﻿{
+    "SchemaVersion":  1,
+    "Verification":  "PASS",
+    "Expectation":  "REGRESSION_PRESENT",
+    "GuiExecutable":  "C:\\RyzenAdj\\amd-mobile-power-gui.exe",
+    "ShortClient":  "763x437",
+    "ScrolledPosition":  243,
+    "MaximizedClient":  "1903x1057",
+    "PositionAfterMaximize":  243,
+    "HeaderTopAfterMaximize":  -231,
+    "ShortImage":  "D:\\amd-mobile-power\\artifacts\\verify\\maximize-scroll-baseline\\advanced-scrolled-short.png",
+    "MaximizedImage":  "D:\\amd-mobile-power\\artifacts\\verify\\maximize-scroll-baseline\\advanced-maximized.png",
+    "RecordedAt":  "2026-11-13T02:28:41.1368141+08:00"
+}

@@ -25,6 +25,17 @@ pub fn scroll_position(position: i32, content_height: i32, viewport_height: i32)
     position.clamp(0, (content_height - viewport_height).max(0))
 }
 
+/// One scrollbar page equals one viewport. Kept in logical pixels so both
+/// axes and the scrollbar's `SIF_PAGE` value stay in sync.
+pub fn page_scroll(position: i32, viewport: i32, forward: bool) -> i32 {
+    let viewport = viewport.max(1);
+    if forward {
+        position.saturating_add(viewport)
+    } else {
+        position.saturating_sub(viewport)
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct CommandLayout {
     pub width: i32,
@@ -95,5 +106,21 @@ mod tests {
         assert_eq!(scroll_position(20, 360, 300), 20);
         assert_eq!(scroll_position(1000, 360, 300), 60);
         assert_eq!(scroll_position(50, 360, 360), 0);
+    }
+
+    #[test]
+    fn page_scroll_moves_exactly_one_viewport() {
+        assert_eq!(page_scroll(0, 420, true), 420);
+        assert_eq!(page_scroll(420, 420, false), 0);
+        assert_eq!(page_scroll(0, 0, true), 1);
+        assert_eq!(scroll_position(page_scroll(0, 420, true), 680, 420), 260);
+    }
+
+    #[test]
+    fn maximizing_clamps_a_previously_scrolled_offset() {
+        // Advancing from a 420 px viewport to the full 680 px content height
+        // makes the old 260 px offset invalid; the maximize path must re-clamp.
+        assert_eq!(scroll_position(260, 680, 420), 260);
+        assert_eq!(scroll_position(260, 680, 680), 0);
     }
 }

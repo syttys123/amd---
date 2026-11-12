@@ -1,0 +1,14 @@
+﻿{
+    "SchemaVersion":  1,
+    "Verification":  "PASS",
+    "Expectation":  "FIX_APPLIED",
+    "GuiExecutable":  "D:\\amd-mobile-power\\native\\rust-gui\\target\\release\\amd-mobile-power-gui.exe",
+    "ShortClient":  "763x437",
+    "ScrolledPosition":  243,
+    "MaximizedClient":  "1920x1057",
+    "PositionAfterMaximize":  0,
+    "HeaderTopAfterMaximize":  12,
+    "ShortImage":  "D:\\amd-mobile-power\\artifacts\\verify\\maximize-scroll\\advanced-scrolled-short.png",
+    "MaximizedImage":  "D:\\amd-mobile-power\\artifacts\\verify\\maximize-scroll\\advanced-maximized.png",
+    "RecordedAt":  "2026-11-13T02:28:02.2666745+08:00"
+}

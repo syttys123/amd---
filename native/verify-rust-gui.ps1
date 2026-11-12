@@ -1106,7 +1106,8 @@ try {
                 Start-Sleep -Milliseconds 50
             }
             if (-not $policySaved) {
-                throw "Rust GUI did not report a successful policy save."
+                $lastStatus = Get-GuiStatusText -Window $window
+                throw "Rust GUI did not report a successful policy save. Status: $lastStatus"
             }
             if ($presetEditingResult -eq "PASS") {
                 $statePath = Join-Path `

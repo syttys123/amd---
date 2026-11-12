@@ -1,7 +1,7 @@
 #![windows_subsystem = "windows"]
 
 use amd_mobile_power_gui::layout::{
-    minimum_client_size, minimum_window_client_size, scroll_position, CommandLayout,
+    minimum_client_size, minimum_window_client_size, page_scroll, scroll_position, CommandLayout,
     ADVANCED_CLIENT_SIZE, ADVANCED_CONTENT_WIDTH, SIMPLE_CLIENT_SIZE,
 };
 use amd_mobile_power_gui::lifecycle::{
@@ -80,7 +80,8 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     LR_DEFAULTCOLOR, MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED, MINMAXINFO, MSG, SB_BOTTOM,
     SB_HORZ, SB_LEFT, SB_LINEDOWN, SB_LINELEFT, SB_LINERIGHT, SB_LINEUP, SB_PAGEDOWN, SB_PAGELEFT,
     SB_PAGERIGHT, SB_PAGEUP, SB_RIGHT, SB_THUMBPOSITION, SB_THUMBTRACK, SB_TOP, SB_VERT,
-    SCROLLINFO, SIF_PAGE, SIF_POS, SIF_RANGE, SIF_TRACKPOS, SIZE_MINIMIZED, SIZE_RESTORED,
+    SCROLLINFO, SIF_PAGE, SIF_POS, SIF_RANGE, SIF_TRACKPOS, SIZE_MAXIMIZED, SIZE_MINIMIZED,
+    SIZE_RESTORED,
     SM_CXVSCROLL, SM_CYHSCROLL, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
     SWP_NOZORDER, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP,
     WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_GETICON,
@@ -4445,8 +4446,8 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
             SetWindowPos(
                 control,
                 std::ptr::null_mut(),
-                s(left - app.scroll_offset_x),
-                s(12 - app.scroll_offset),
+                s(left) - scaled(app.scroll_offset_x, percent),
+                s(12) - scaled(app.scroll_offset, percent),
                 s(control_width),
                 s(32),
                 SWP_NOZORDER | SWP_NOACTIVATE,
@@ -5114,8 +5115,8 @@ unsafe extern "system" fn window_proc(
                 SB_BOTTOM => content_height(app.view_mode),
                 SB_LINEUP => app.scroll_offset - 32,
                 SB_LINEDOWN => app.scroll_offset + 32,
-                SB_PAGEUP => app.scroll_offset - page + 32,
-                SB_PAGEDOWN => app.scroll_offset + page - 32,
+                SB_PAGEUP => page_scroll(app.scroll_offset, page, false),
+                SB_PAGEDOWN => page_scroll(app.scroll_offset, page, true),
                 SB_THUMBTRACK | SB_THUMBPOSITION => scroll.nTrackPos,
                 _ => app.scroll_offset,
             };
@@ -5149,8 +5150,8 @@ unsafe extern "system" fn window_proc(
                 SB_RIGHT => ADVANCED_CONTENT_WIDTH,
                 SB_LINELEFT => app.scroll_offset_x - 32,
                 SB_LINERIGHT => app.scroll_offset_x + 32,
-                SB_PAGELEFT => app.scroll_offset_x - page + 32,
-                SB_PAGERIGHT => app.scroll_offset_x + page - 32,
+                SB_PAGELEFT => page_scroll(app.scroll_offset_x, page, false),
+                SB_PAGERIGHT => page_scroll(app.scroll_offset_x, page, true),
                 SB_THUMBTRACK | SB_THUMBPOSITION => scroll.nTrackPos,
                 _ => app.scroll_offset_x,
             };
@@ -5198,6 +5199,12 @@ unsafe extern "system" fn window_proc(
                     if app.fonts.is_some() {
                         layout_mode_controls(app, hwnd);
                     }
+                }
+                // Maximizing or snapping changes the viewport without a
+                // SIZE_RESTORED message; re-layout so the scroll offset is
+                // clamped to the new content/viewport delta.
+                SIZE_MAXIMIZED if app.fonts.is_some() => {
+                    layout_mode_controls(app, hwnd);
                 }
                 _ => {}
             }

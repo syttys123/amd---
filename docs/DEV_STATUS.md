@@ -67,6 +67,26 @@ hashes, review assets, and cover. Evidence:
 `docs/evidence/media/native-promo-1.0.22-draft-2026-11-13.json`. Status stays
 `DRAFT_FOR_HUMAN_REVIEW`; no upload or publication was performed.
 
+2026-11-13 (scroll, unreleased): fixed the advanced-mode maximize regression
+inherited from `1.0.22-native`. After shrinking the window, scrolling, and
+maximizing (or snapping), the page kept its old `scroll_offset` and shifted up
+by that amount, leaving a blank band at the bottom; the header row left the
+client area. `WM_SIZE` now re-lays out on `SIZE_MAXIMIZED`, page up/down moves
+exactly one viewport (`layout::page_scroll`) to match `SIF_PAGE`, and header
+controls subtract the scaled scroll offset instead of scaling the already
+subtracted value.
+
+- Verified: 24 library + 22 main Rust tests, Clippy `-D warnings`.
+- Regression proof: `native/verify-maximize-scroll.ps1` drives the deployed
+  `1.0.22` binary first (`-ExpectRegression`): scrolled `243`, maximized
+  position stays `243`, header top `-231`. The fixed release build reports
+  position `0` and header top `12`.
+- Evidence:
+  `docs/evidence/ui/native-maximize-scroll-1.0.22-baseline-2026-11-13.json`,
+  `docs/evidence/ui/native-maximize-scroll-2026-11-13.json`.
+- Next: package, run the release gate and hardware smoke test, then promote a
+  new stable deployment with a rollback copy.
+
 2026-11-13 (1.0.21): `1.0.21-native` was deployed to `C:\RyzenAdj`. It supersedes
 `1.0.20-native` with native horizontal/vertical scrollbars, a `560` logical
 pixel advanced-window minimum for narrow work areas, precision-wheel handling
