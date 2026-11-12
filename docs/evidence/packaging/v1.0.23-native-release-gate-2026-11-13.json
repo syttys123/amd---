@@ -1,0 +1,22 @@
+{
+  "Version": "1.0.23-native",
+  "Verification": "PASS",
+  "Package": "amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip",
+  "SHA256": "42f6cf9172f3db6d0a2ac81bfffbab4b38b1f5a1423ff64b7b020855fce29f79",
+  "Size": 760850,
+  "SourceCommit": "2033052dfb0e3fd0a427ea08adab12302b4addfc",
+  "PackageEvidence": "D:\\amd-mobile-power\\docs\\evidence\\packaging\\v1.0.23-native-clean-2026-11-13.json",
+  "ShellIntegration": "PASS",
+  "ShellEvidence": "D:\\amd-mobile-power\\docs\\evidence\\packaging\\v1.0.23-native-shell-integration-2026-11-13.json",
+  "NoChangePolicy": "PASS",
+  "PolicyEvidence": "D:\\amd-mobile-power\\docs\\evidence\\hardware\\v1.0.23-native-power-policy-no-change-2026-11-13.json",
+  "WorkerHang": "PASS",
+  "WorkerHangEvidence": "D:\\amd-mobile-power\\docs\\evidence\\hardware\\v1.0.23-native-worker-hang-2026-11-13.json",
+  "DpiFixtures": "PASS",
+  "DpiEvidence": "D:\\amd-mobile-power\\docs\\evidence\\ui\\native-dpi-100-125-150-2026-11-13.json",
+  "SmallViewport": "PASS",
+  "SmallViewportEvidence": "D:\\amd-mobile-power\\docs\\evidence\\ui\\native-workarea-200-1366x768-2026-11-13.json",
+  "Reproducibility": "PASS",
+  "ReproducibilityEvidence": "D:\\amd-mobile-power\\docs\\evidence\\build\\reproducibility-2026-11-13.json",
+  "RecordedAt": "2026-11-13T02:40:45.9916681+08:00"
+}
