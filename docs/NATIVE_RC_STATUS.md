@@ -3,9 +3,10 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.20-native`
-(commit `d9129b0`, compact 600x360 UI polish, input-draft retention, and
-advanced work-area scrolling). `1.0.19-native` is preserved as
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.21-native`
+(commit `3b51494`, native scrolling, precision wheel input, narrow-work-area
+fit, and DPI scroll preservation). `1.0.20-native` is preserved as
+`C:\RyzenAdj.before-20261113-004532`, `1.0.19-native` as
 `C:\RyzenAdj.before-v1.0.20-native-20261112-ui`, `1.0.18-native` as
 `C:\RyzenAdj.before-v1.0.19-native-20261112-ui`. The
 previous native `1.0.17-native` build is preserved as
@@ -30,9 +31,9 @@ previous native `1.0.17-native` build is preserved as
 `C:\RyzenAdj.before-20261111-232010`, and the .NET `1.0.4` package as
 `C:\RyzenAdj.before-20261111-223017`.
 
-Decision (2026-11-12): the native line has a hardware-gated stable-local
+Decision (2026-11-13): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.18-native` package. Broader AMD generation support remains experimental.
+`1.0.21-native` package. Broader AMD generation support remains experimental.
 The current local publication readiness gate is `PASS` with all 13 checks true,
 with
 `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW` and no local blockers. Evidence:
@@ -93,24 +94,24 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.20-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.21-native-win-x64-native-preview.zip
 ```
 
-- Size: `758,548` bytes.
+- Size: `759,212` bytes.
 - SHA256:
-  `4285011dee71e3fbdc9c36869079e54430bccaee168d8d5f0f99b9524d88adf0`.
-- Source commit: `d9129b01f4039ebd4db547070612589a1d834936`.
+  `d84051b6df5ec4dc1d6d004cea635a0fd262033dfaec867d61560559c01c0c66`.
+- Source commit: `3b514943905fdc24b597827eab50bde63b630571`.
 - Working tree at build time: clean.
-- Reproducibility: GUI `72b22832`, probe `9750418f`, worker `67af1d41`, and the
+- Reproducibility: GUI `e7f602de`, probe `9750418f`, worker `67af1d41`, and the
   ZIP itself are byte-identical across two builds.
-- Policy write verification: same-value battery probe at `25/25/20 W`.
-- Worker-hang replacement: verified separately on 2026-11-13 against the
-  packaged 1.0.20 pair (`33.5 s`, 20 responsive samples, 0 failures, policy
-  restored to `10/10/10 W`; the hardware was already at 10 W).
-- Supersedes `1.0.19-native` (package `f9825bb915e79ada5a61b19e1a30ac507f6aa3fc81e5190422f678116a5b4d6c`,
-  source `18dbec11cd6f7045edc9ff866b56fb5cde95f724`), which added the compact
-  600x360 polish; `1.0.20-native` adds the advanced work-area fit with
-  full-content scrolling and the minimum-width clamp fix.
+- Policy write verification: same-value AC probe at `10/10/10 W`.
+- Worker-hang replacement: PASS on 2026-11-13 (`33.9 s`, 21 responsive
+  samples, 0 failures, policy restored to `10/10/10 W`).
+- Supersedes `1.0.20-native` (package
+  `4285011dee71e3fbdc9c36869079e54430bccaee168d8d5f0f99b9524d88adf0`,
+  source `d9129b01f4039ebd4db547070612589a1d834936`); `1.0.21-native` adds
+  native scrollbars, the `560`-wide advanced minimum for small work areas,
+  fractional wheel deltas, DPI scroll retention, and header focus reveal.
 
 Local review bundle:
 
@@ -159,7 +160,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Rust GUI lifecycle, three Win32 minimize/restore cycles, close-to-tray, tray
   restore, single-instance wake-up, diagnostics export, view switching,
   topmost, and editable preset persistence.
-- Rust unit tests: 41/41 passed, including a contract test that parses every
+- Rust unit tests: 43/43 passed, including a contract test that parses every
   entry in `native/gui-cli-contract.json` and a regression test for the
   desktop shortcut arguments and uniform 10 W policy.
 - Rust formatting and Clippy with `-D warnings`.

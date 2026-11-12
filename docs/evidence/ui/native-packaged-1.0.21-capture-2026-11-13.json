@@ -1,0 +1,31 @@
+{
+  "SchemaVersion": 1,
+  "CaptureMode": "read-only-no-write-controls",
+  "Fixture": null,
+  "DpiFixture": null,
+  "UniformTargetWatts": null,
+  "PolicySeeded": false,
+  "BatteryOnly": false,
+  "FocusControlId": null,
+  "ControlChecks": {
+    "TargetAndPresetEnabled": false,
+    "DiagnosticsEnabled": true
+  },
+  "Simple": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\ui-1.0.21-packaged\\native-gui-1.0.21-simple-2026-11-13.png",
+    "Width": 752,
+    "Height": 489,
+    "CaptureMethod": "PrintWindow(normalized-fallback)",
+    "SHA256": "03b67a9c888fc68696c4e8f49f9005533fd4a84ad44a475925e62d07fe7406e7"
+  },
+  "Advanced": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\ui-1.0.21-packaged\\native-gui-1.0.21-advanced-2026-11-13.png",
+    "Width": 977,
+    "Height": 889,
+    "CaptureMethod": "PrintWindow(normalized-fallback)",
+    "SHA256": "f234da36712d3e52e10fc3543534d2120abef3396c04471ae67cf7e75bdbabb7"
+  },
+  "SimpleClientSize": null,
+  "AdvancedClientSize": null,
+  "RecordedAt": "2026-11-13T00:44:51.7461846+08:00"
+}

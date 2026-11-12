@@ -1,6 +1,6 @@
 # Release Checklist
 
-Release under review: `1.0.20-native`
+Release under review: `1.0.21-native`
 
 ## Source And Build
 
@@ -10,14 +10,14 @@ Release under review: `1.0.20-native`
 - [x] Rust formatting and Clippy with `-D warnings` pass.
 - [x] C++ power-limit and power-policy tests pass.
 - [x] Release build completes with the packaged icon present.
-- [x] `native\verify-release.ps1 -Version 1.0.20-native -VerifyReproducibility
+- [x] `native\verify-release.ps1 -Version 1.0.21-native -VerifyReproducibility
   -VerifyShellIntegration -ExecuteNoChangePolicy -AllowBatteryWriteGuard`
-  passes (battery session).
+  passes (AC session; the guard remained enabled).
 - [x] Package source commit and final SHA256 match the clean evidence.
-      Package SHA256 `4285011dee71e3fbdc9c36869079e54430bccaee168d8d5f0f99b9524d88adf0`,
-      source commit `d9129b01f4039ebd4db547070612589a1d834936`.
-- [x] Rebuild from the same tree is byte-identical: GUI `72b22832`, worker
-      `67af1d41`, probe `9750418f`, ZIP `4285011d`.
+      Package SHA256 `d84051b6df5ec4dc1d6d004cea635a0fd262033dfaec867d61560559c01c0c66`,
+      source commit `3b514943905fdc24b597827eab50bde63b630571`.
+- [x] Rebuild from the same tree is byte-identical: GUI `e7f602de`, worker
+      `67af1d41`, probe `9750418f`, ZIP `d84051b6`.
 - [ ] Hosted Windows CI passes for the release commit.
       Current blocker: GitHub Actions billing/spending-limit failure before job
       startup. Local release gates pass.
@@ -26,8 +26,8 @@ Release under review: `1.0.20-native`
 
 - [x] Read-only capability and telemetry pass on the verified 8845HS:
       SMU `15`, PM table `4c0009`, profile `hawk-point-8845hs`.
-- [x] Controlled current-value policy probe passes on battery at `25/25/20 W`
-      (firmware manages Slow dynamically on battery); policy disabled after.
+- [x] Controlled current-value policy probe passes on AC at `10/10/10 W`;
+      policy disabled after.
 - [x] The worker disables policy and shuts down cleanly after the probe.
 - [x] No second hardware owner remains after verification.
 - [x] The deployed shortcut keeps the reviewed
@@ -41,7 +41,7 @@ Release under review: `1.0.20-native`
 - [x] Firmware-clamp behavior is documented instead of treated as a transport
       failure.
 - [x] `-VerifyWorkerHang` passes against the expanded package: replacement in
-      `33.5 s`, `20/20` responsive samples, zero failures, and `10/10/10 W`
+      `33.9 s`, `21/21` responsive samples, zero failures, and `10/10/10 W`
       restored (the machine was already at 10 W, so no net change).
 
 ## UI Evidence
@@ -62,7 +62,8 @@ Release under review: `1.0.20-native`
 - [x] Seven-scene promo draft rendered at 1920x1080, 99.5 s, with voice,
       original seeded music, captions, and contact sheet.
 - [x] `verify-media.ps1` passes (decode, volume, hashes, review assets, cover).
-- [x] Bilibili cover regenerated for the 1.0.20 UI.
+- [x] Bilibili cover remains usable; 1.0.21 simple/advanced captures are
+      archived in `assets/`.
 - [ ] Owner reviews pacing, voice, claims, and cover.
 - [ ] Public GitHub Release and Bilibili upload (require explicit approval and
       an authenticated session).

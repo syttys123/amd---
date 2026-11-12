@@ -1,6 +1,6 @@
 # Development Status
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
 ## Objective
 
@@ -20,6 +20,37 @@ after each meaningful change. Conversation history and compacted summaries are
 not authoritative.
 
 ## Latest Maintenance Milestone
+
+2026-11-13: `1.0.21-native` is deployed to `C:\RyzenAdj`. It supersedes
+`1.0.20-native` with native horizontal/vertical scrollbars, a `560` logical
+pixel advanced-window minimum for narrow work areas, precision-wheel handling
+for `30/60` deltas, scroll preservation across `WM_DPICHANGED`, and header
+focus restoration in the scrollable advanced view.
+
+- Package: `759,212` bytes, SHA256
+  `d84051b6df5ec4dc1d6d004cea635a0fd262033dfaec867d61560559c01c0c66`,
+  built from clean commit `3b51494`.
+- Deployed GUI SHA256 `e7f602de314207734c752cf684c22150acc21d2cb5e9a2a4e6488d5b029d67b1`;
+  worker remains `67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1`.
+- Verified: 43 Rust GUI tests, 7 probe tests, Clippy `-D warnings`, C++ policy
+  tests, offline native Release build, DPI fixtures at 100/125/150%, shell
+  integration, packaged/deployed GUI interaction, and byte-identical rebuild.
+- Hardware gate wrote and read back the same AC `10/10/10 W`, so the daily
+  state did not change. Worker-hang replacement PASS in `33.9 s` with 21
+  responsive samples and zero failures.
+- Rollback: `C:\RyzenAdj.before-20261113-004532`. The daily GUI was relaunched
+  on `C:\RyzenAdj` with `--enable-write-controls --simple-mode
+  --max-target-watts 45`; editable presets remain `10/25/45 W`.
+- Evidence:
+  `docs/evidence/packaging/v1.0.21-native-release-gate-2026-11-13.json`,
+  `v1.0.21-native-clean-2026-11-13.json`,
+  `v1.0.21-native-shell-integration-2026-11-13.json`,
+  `v1.0.21-native-deployment-2026-11-13.json`,
+  `docs/evidence/hardware/v1.0.21-native-power-policy-no-change-2026-11-13.json`,
+  `v1.0.21-native-worker-hang-2026-11-13.json`,
+  `docs/evidence/ui/native-packaged-1.0.21-native-ui-2026-11-13.json`,
+  `native-deployed-1.0.21-native-ui-2026-11-13.json`, and
+  `native-dpi-100-125-150-2026-11-13.json`.
 
 2026-11-12: compact native UI polish is deployed as `1.0.20-native`
 (`d9129b0`, package SHA256

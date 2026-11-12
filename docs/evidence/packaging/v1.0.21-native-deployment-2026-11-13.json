@@ -1,0 +1,23 @@
+{
+  "Verification": "PASS",
+  "Package": "D:\\amd-mobile-power\\artifacts\\native-packages\\amd-mobile-power-v1.0.21-native-win-x64-native-preview.zip",
+  "PackageSHA256": "d84051b6df5ec4dc1d6d004cea635a0fd262033dfaec867d61560559c01c0c66",
+  "PackageVersion": "1.0.21-native",
+  "Target": "C:\\RyzenAdj",
+  "Backup": "C:\\RyzenAdj.before-20261113-004532",
+  "GuiArguments": "--enable-write-controls --simple-mode --max-target-watts 45",
+  "ShortcutsUpdated": [
+    "<USER_HOME>\\Desktop\\功耗设置 5-60W.lnk"
+  ],
+  "ShortcutArguments": [
+    {
+      "Path": "<USER_HOME>\\Desktop\\功耗设置 5-60W.lnk",
+      "Before": "--enable-write-controls --simple-mode --max-target-watts 45",
+      "After": "--enable-write-controls --simple-mode --max-target-watts 45",
+      "Dropped": []
+    }
+  ],
+  "LaunchVerification": "Skipped",
+  "Launched": false,
+  "RecordedAt": "2026-11-13T00:45:36.2732520+08:00"
+}
