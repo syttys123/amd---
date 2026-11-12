@@ -74,6 +74,20 @@ Release evidence for `1.0.20-native`:
 Rollback: `C:\RyzenAdj.before-v1.0.20-native-20261112-ui` plus
 `artifacts/deployment-backups/C-RyzenAdj-before-1.0.20-native-d9129b0-20261112-ui`.
 
+2026-11-12 (media): the 1.0.20 promo draft is rendered and verified.
+`render-promo.ps1` now accepts an optional seeded music bed
+(`media/promo-native/generate-music.py`, original composition, no external
+samples) mixed at `-26 dB` under the loudnormed voice. The new storyboard
+`media/promo-native/storyboard-1.0.20.json` tells the current product story in
+seven non-repeating scenes (hook, live telemetry, 10/25/45 presets, fail-closed
+safety, accessibility, evidence-first compatibility, closing) over 99.5 s at
+1920x1080 with SAPI `Microsoft Huihui` voice, SRT captions, and a regenerated
+Bilibili cover. Verification: `verify-media.ps1` PASS (full decode, volume,
+hashes, review assets, cover luma); fresh 1.0.20 screenshots were captured
+from the running build and archived under `assets/`. Evidence:
+`docs/evidence/media/native-promo-1.0.20-draft-2026-11-12.json`. Status stays
+`DRAFT_FOR_HUMAN_REVIEW`; no upload or publication was performed.
+
 ## Current Repo State
 
 - GitHub remote: `https://github.com/syttys123/amd-mobile-power.git`

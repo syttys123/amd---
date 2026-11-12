@@ -93,17 +93,21 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.18-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.20-native-win-x64-native-preview.zip
 ```
 
-- Size: `751,600` bytes.
+- Size: `758,548` bytes.
 - SHA256:
-  `fd7bf191ac557fb9bc1038cb725907ba67e5f819b8eeee6136f5cbe2721d6ef1`.
-- Source commit: `12934dfb2850fab6a9a91216343b45a18f849d07`.
+  `4285011dee71e3fbdc9c36869079e54430bccaee168d8d5f0f99b9524d88adf0`.
+- Source commit: `d9129b01f4039ebd4db547070612589a1d834936`.
 - Working tree at build time: clean.
-- Reproducibility: GUI `63193c17`, probe `9750418f`, worker `67af1d41`, and the
+- Reproducibility: GUI `72b22832`, probe `9750418f`, worker `67af1d41`, and the
   ZIP itself are byte-identical across two builds.
-- Policy write verification: intentionally skipped in the clean package gate.
+- Policy write verification: same-value battery probe at `25/25/20 W`.
+- Supersedes `1.0.19-native` (package `f9825bb915e79ada5a61b19e1a30ac507f6aa3fc81e5190422f678116a5b4d6c`,
+  source `18dbec11cd6f7045edc9ff866b56fb5cde95f724`), which added the compact
+  600x360 polish; `1.0.20-native` adds the advanced work-area fit with
+  full-content scrolling and the minimum-width clamp fix.
 
 Local review bundle:
 

@@ -2,6 +2,8 @@ param(
     [string]$Storyboard = "media\promo\storyboard.json",
     [string]$OutputDirectory = "artifacts\media\amd-mobile-power-promo-draft-2026-11-10",
     [string]$OutputName = "amd-mobile-power-intro-draft-2026-11-10.mp4",
+    [string]$MusicPath,
+    [double]$MusicVolumeDb = -26.0,
     [switch]$CleanWorkingFiles
 )
 
@@ -18,6 +20,13 @@ function Resolve-ProjectPath {
 }
 
 $storyboardPath = Resolve-ProjectPath $Storyboard
+$musicResolved = $null
+if ($MusicPath) {
+    $musicResolved = Resolve-ProjectPath $MusicPath
+    if (-not (Test-Path -LiteralPath $musicResolved)) {
+        throw "Music bed not found: $musicResolved"
+    }
+}
 $outputRoot = Resolve-ProjectPath $OutputDirectory
 $frameDirectory = Join-Path $outputRoot "slides"
 $audioDirectory = Join-Path $outputRoot "voice"
@@ -696,6 +705,7 @@ $captions.ToString().TrimEnd() + "`n" |
 
 $arguments = [Collections.Generic.List[string]]::new()
 $arguments.Add("-y")
+$musicInputIndex = -1
 foreach ($record in $sceneRecords) {
     $arguments.Add("-loop")
     $arguments.Add("1")
@@ -705,6 +715,13 @@ foreach ($record in $sceneRecords) {
     $arguments.Add($record.Slide)
     $arguments.Add("-i")
     $arguments.Add($record.Audio)
+}
+if ($null -ne $musicResolved) {
+    $musicInputIndex = $sceneRecords.Count * 2
+    $arguments.Add("-stream_loop")
+    $arguments.Add("-1")
+    $arguments.Add("-i")
+    $arguments.Add($musicResolved)
 }
 
 $filter = [Text.StringBuilder]::new()
@@ -734,9 +751,27 @@ for ($index = 0; $index -lt $sceneRecords.Count; $index++) {
 for ($index = 0; $index -lt $sceneRecords.Count; $index++) {
     [void]$filter.Append("[v$index][a$index]")
 }
-[void]$filter.Append(
-    "concat=n=$($sceneRecords.Count):v=1:a=1[vcat][acat];" +
-    "[acat]loudnorm=I=-16:LRA=11:TP=-1.5[aout]")
+$totalDuration = $currentStart
+[void]$filter.Append("concat=n=$($sceneRecords.Count):v=1:a=1[vcat][acat];")
+if ($musicInputIndex -ge 0) {
+    $fadeOutStart = [Math]::Max(0.0, $totalDuration - 4.0).ToString(
+        "0.###",
+        [Globalization.CultureInfo]::InvariantCulture)
+    $totalText = $totalDuration.ToString("0.###", [Globalization.CultureInfo]::InvariantCulture)
+    $volumeText = $MusicVolumeDb.ToString("0.0", [Globalization.CultureInfo]::InvariantCulture)
+    [void]$filter.Append(
+        "[$musicInputIndex`:a]aformat=sample_rates=48000:channel_layouts=stereo," +
+        "atrim=0:$totalText,asetpts=PTS-STARTPTS," +
+        "afade=t=in:st=0:d=2,afade=t=out:st=${fadeOutStart}:d=4," +
+        "volume=${volumeText}dB[musicbed];")
+    [void]$filter.Append(
+        "[acat]loudnorm=I=-16:LRA=11:TP=-1.5[voicenorm];" +
+        "[voicenorm][musicbed]amix=inputs=2:duration=first:normalize=0," +
+        "alimiter=limit=0.891:level=false[aout]")
+}
+else {
+    [void]$filter.Append("[acat]loudnorm=I=-16:LRA=11:TP=-1.5[aout]")
+}
 
 $arguments.Add("-filter_complex")
 $arguments.Add($filter.ToString())
@@ -962,6 +997,18 @@ $manifest = [ordered]@{
         channels = $audioStream.channels
     }
     voice = $selectedVoice.VoiceInfo.Name
+    music = if ($null -ne $musicResolved) {
+        [ordered]@{
+            path = $musicResolved
+            sha256 = (Get-FileHash -LiteralPath $musicResolved -Algorithm SHA256).
+                Hash.ToLowerInvariant()
+            volumeDb = $MusicVolumeDb
+            generated = "media/promo-native/generate-music.py (seeded, original composition)"
+        }
+    }
+    else {
+        $null
+    }
     captions = $captionsPath
     workingFilesRetained = $workingFilesRetained
     scenes = $sceneRecords
@@ -983,6 +1030,7 @@ $manifest = [ordered]@{
         noApplicationProcess = $true
         noHardwareWrite = $true
         noLoginOrUpload = $true
+        noExternalSamples = $true
     }
     safety = @(
         "No application process was started during rendering.",
