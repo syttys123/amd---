@@ -1956,8 +1956,14 @@ Historical development screenshots:
 ## Next Concrete Task
 
 Complete real 100% and 150% Windows-session DPI checks, restore GitHub
-connectivity so the 26 local commits and hosted CI can run, and complete the
+connectivity so the local commits and hosted CI can run, and complete the
 final human review for public release.
+
+Connectivity evidence (2026-11-13 03:40): direct `git push` and both direct and
+`http://127.0.0.1:7890` `curl` requests to github.com, google.com, and
+1.1.1.1 all fail with `schannel: failed to receive handshake` / `000`, while
+baidu.com returns `200`. The FlClash core is running and listening on 7890, so
+the failure is at the upstream node rather than the local proxy port.
 Keep the pre-promotion `C:\RyzenAdj` backup until the public release gates are
 closed, and never promote a dirty or write-unverified native package.
 
