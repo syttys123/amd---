@@ -32,6 +32,17 @@ Run the Rust GUI lifecycle gate:
 .\native\verify-rust-gui.ps1
 ```
 
+Run the isolated 1366x768/200% work-area fixture:
+
+```powershell
+.\native\verify-small-viewport.ps1 `
+  -GuiExecutable .\artifacts\native-build\gui-runtime\amd-mobile-power-gui.exe
+```
+
+The fixture sets the test-only
+`AMD_MOBILE_POWER_WORK_AREA_FIXTURE=1366x728` environment variable for the
+child process. It never changes the Windows display configuration.
+
 The hardware gate launches only the C++ worker, reads capability and snapshot
 data, and shuts it down. It does not expose or call any write function.
 
