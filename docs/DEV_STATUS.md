@@ -68,6 +68,10 @@ scaled scroll offset instead of scaling the already-subtracted value.
   read-only GUI/worker check, and uninstalled with no residual directory.
   Evidence:
   `docs/evidence/packaging/native-upgrade-1.0.22-to-1.0.23-2026-11-13.json`.
+- CI: the hosted Windows workflow now uploads the native portable ZIP,
+  `.sha256`, and `BUILD-INFO.txt` as a separate
+  `amd-mobile-power-native-win-x64` artifact; previously only the legacy .NET
+  package was published.
 
 2026-11-13: `1.0.22-native` is deployed to `C:\RyzenAdj`. It supersedes
 `1.0.21-native` with stabilised scrollbar layout, simple-mode scrolling on a
