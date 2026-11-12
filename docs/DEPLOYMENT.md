@@ -3,9 +3,10 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable-local native deployment (`1.0.22-native`,
-  commit `b688e50`, scrollbar/focus/DPI edge fixes).
-  `1.0.21-native` remains at `C:\RyzenAdj.before-20261113-012141`;
+- `C:\RyzenAdj`: current stable-local native deployment (`1.0.23-native`,
+  commit `2033052`, maximize scroll clamp and paging fixes).
+  `1.0.22-native` remains at `C:\RyzenAdj.before-20261113-024133`;
+  `1.0.21-native` at `C:\RyzenAdj.before-20261113-012141`;
   `1.0.20-native` at `C:\RyzenAdj.before-20261113-004532`;
   `1.0.19-native` at `C:\RyzenAdj.before-v1.0.20-native-20261112-ui` and under
   `artifacts/deployment-backups/C-RyzenAdj-before-1.0.20-native-d9129b0-20261112-ui`;
@@ -82,6 +83,38 @@ shortcuts while preserving their arguments, writes deployment evidence, and
 rolls back on failure.
 
 ## Current Deployment Evidence
+
+On 2026-11-13, `1.0.23-native` replaced `1.0.22-native` at `C:\RyzenAdj`.
+It re-lays out on `SIZE_MAXIMIZED` so a scrolled advanced page clamps its
+offset after maximizing or snapping, pages by exactly one viewport, and keeps
+header controls aligned at fractional DPI.
+
+- Package SHA256:
+  `42f6cf9172f3db6d0a2ac81bfffbab4b38b1f5a1423ff64b7b020855fce29f79`
+- Package size: `760,850` bytes
+- Package source commit: `2033052dfb0e3fd0a427ea08adab12302b4addfc`
+- Deployed GUI SHA256:
+  `e18c4213faf1da088aa71d75134616e898fe6a3943e7dd03ec769bcd9a6b9b6a`
+- Deployed worker SHA256:
+  `67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261113-024133`
+- Release gate:
+  `docs\evidence\packaging\v1.0.23-native-release-gate-2026-11-13.json`
+- Deployment evidence:
+  `docs\evidence\packaging\v1.0.23-native-deployment-2026-11-13.json`
+- Maximize-scroll regression evidence:
+  `docs\evidence\ui\native-maximize-scroll-1.0.22-baseline-2026-11-13.json`,
+  `docs\evidence\ui\native-maximize-scroll-2026-11-13.json`
+- DPI evidence:
+  `docs\evidence\ui\native-dpi-100-125-150-2026-11-13.json`
+- 1366x768/200% work-area evidence:
+  `docs\evidence\ui\native-workarea-200-1366x768-2026-11-13.json`
+- Worker-hang evidence:
+  `docs\evidence\hardware\v1.0.23-native-worker-hang-2026-11-13.json`
+- Live state after deployment: editable presets `10 / 25 / 45 W`, ceiling
+  `45 W`, automatic policy disabled, and AC read-back `10/10/10 W`.
+- Desktop shortcut:
+  `--enable-write-controls --simple-mode --max-target-watts 45`.
 
 On 2026-11-13, `1.0.22-native` replaced `1.0.21-native` at `C:\RyzenAdj`.
 It stabilises scrollbar visibility in the default advanced view, enables

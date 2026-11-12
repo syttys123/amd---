@@ -280,6 +280,13 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 ## Evidence
 
 - `docs/evidence/packaging/v1.0.22-native-clean-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.23-native-release-gate-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.23-native-shell-integration-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.23-native-deployment-2026-11-13.json`
+- `docs/evidence/hardware/v1.0.23-native-power-policy-no-change-2026-11-13.json`
+- `docs/evidence/hardware/v1.0.23-native-worker-hang-2026-11-13.json`
+- `docs/evidence/ui/native-maximize-scroll-1.0.22-baseline-2026-11-13.json`
+- `docs/evidence/ui/native-maximize-scroll-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.22-native-release-gate-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.22-native-shell-integration-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.22-native-deployment-2026-11-13.json`

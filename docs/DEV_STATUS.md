@@ -21,6 +21,44 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-13 (`1.0.23-native`): deployed to `C:\RyzenAdj`, superseding
+`1.0.22-native`. It fixes the advanced-mode maximize/snap regression inherited
+from `1.0.22-native`: after shrinking the window, scrolling, and maximizing,
+the page kept its old `scroll_offset`, shifted up by that amount, and left a
+blank band at the bottom while the header row left the client area. `WM_SIZE`
+now re-lays out on `SIZE_MAXIMIZED`, page up/down moves exactly one viewport
+(`layout::page_scroll`) to match `SIF_PAGE`, and header controls subtract the
+scaled scroll offset instead of scaling the already-subtracted value.
+
+- Package: `760,850` bytes, SHA256
+  `42f6cf9172f3db6d0a2ac81bfffbab4b38b1f5a1423ff64b7b020855fce29f79`,
+  built from clean commit `2033052`.
+- Deployed GUI SHA256 `e18c4213faf1da088aa71d75134616e898fe6a3943e7dd03ec769bcd9a6b9b6a`;
+  worker and probe unchanged (`67af1d41`, `9750418f`).
+- Verified: 24 library + 22 main Rust tests, 7 probe tests, Clippy
+  `-D warnings`, C++ policy tests, offline Release build, shell integration,
+  100/125/150% DPI fixtures, 1366x768/200% work-area fixture, worker-hang
+  replacement PASS, no-change hardware policy PASS (`10/10/10 W` read back),
+  and byte-identical rebuild.
+- Regression proof: `native/verify-maximize-scroll.ps1` drove the deployed
+  `1.0.22` binary first (`-ExpectRegression`): scrolled `243`, maximized
+  position stayed `243`, header top `-231`. The `1.0.23` release build reports
+  position `0` and header top `12`.
+- Rollback: `C:\RyzenAdj.before-20261113-024133`. The daily GUI was relaunched
+  with `--enable-write-controls --simple-mode --max-target-watts 45`;
+  editable presets remain `10/25/45 W`.
+- Evidence:
+  `docs/evidence/packaging/v1.0.23-native-release-gate-2026-11-13.json`,
+  `v1.0.23-native-clean-2026-11-13.json`,
+  `v1.0.23-native-shell-integration-2026-11-13.json`,
+  `docs/evidence/hardware/v1.0.23-native-power-policy-no-change-2026-11-13.json`,
+  `v1.0.23-native-worker-hang-2026-11-13.json`,
+  `docs/evidence/ui/native-maximize-scroll-1.0.22-baseline-2026-11-13.json`,
+  `native-maximize-scroll-2026-11-13.json`, and
+  `docs/evidence/build/reproducibility-2026-11-13.json`.
+- Next: keep the video/claim review and public-release approval gates open;
+  no second AMD device is available yet.
+
 2026-11-13: `1.0.22-native` is deployed to `C:\RyzenAdj`. It supersedes
 `1.0.21-native` with stabilised scrollbar layout, simple-mode scrolling on a
 short work area, correct header focus reveal, and real `WM_DPICHANGED`
@@ -66,26 +104,6 @@ captions, a new contact sheet, and a regenerated Bilibili cover.
 hashes, review assets, and cover. Evidence:
 `docs/evidence/media/native-promo-1.0.22-draft-2026-11-13.json`. Status stays
 `DRAFT_FOR_HUMAN_REVIEW`; no upload or publication was performed.
-
-2026-11-13 (scroll, unreleased): fixed the advanced-mode maximize regression
-inherited from `1.0.22-native`. After shrinking the window, scrolling, and
-maximizing (or snapping), the page kept its old `scroll_offset` and shifted up
-by that amount, leaving a blank band at the bottom; the header row left the
-client area. `WM_SIZE` now re-lays out on `SIZE_MAXIMIZED`, page up/down moves
-exactly one viewport (`layout::page_scroll`) to match `SIF_PAGE`, and header
-controls subtract the scaled scroll offset instead of scaling the already
-subtracted value.
-
-- Verified: 24 library + 22 main Rust tests, Clippy `-D warnings`.
-- Regression proof: `native/verify-maximize-scroll.ps1` drives the deployed
-  `1.0.22` binary first (`-ExpectRegression`): scrolled `243`, maximized
-  position stays `243`, header top `-231`. The fixed release build reports
-  position `0` and header top `12`.
-- Evidence:
-  `docs/evidence/ui/native-maximize-scroll-1.0.22-baseline-2026-11-13.json`,
-  `docs/evidence/ui/native-maximize-scroll-2026-11-13.json`.
-- Next: package, run the release gate and hardware smoke test, then promote a
-  new stable deployment with a rollback copy.
 
 2026-11-13 (1.0.21): `1.0.21-native` was deployed to `C:\RyzenAdj`. It supersedes
 `1.0.20-native` with native horizontal/vertical scrollbars, a `560` logical
