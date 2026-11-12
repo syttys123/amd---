@@ -63,6 +63,11 @@ scaled scroll offset instead of scaling the already-subtracted value.
   telemetry-refreshed status label (which can overwrite the save message within
   one tick). Re-run against the deployed `1.0.23` GUI reports `PolicySave
   PASS`.
+- Packaging: `native/verify-upgrade.ps1` installed `1.0.22-native`, upgraded in
+  place to `1.0.23-native`, verified every new payload hash, passed the
+  read-only GUI/worker check, and uninstalled with no residual directory.
+  Evidence:
+  `docs/evidence/packaging/native-upgrade-1.0.22-to-1.0.23-2026-11-13.json`.
 
 2026-11-13: `1.0.22-native` is deployed to `C:\RyzenAdj`. It supersedes
 `1.0.21-native` with stabilised scrollbar layout, simple-mode scrolling on a
