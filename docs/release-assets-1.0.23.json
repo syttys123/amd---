@@ -1,0 +1,49 @@
+{
+  "version": "1.0.23-native",
+  "generatedAt": "2026-11-13T03:10:00+08:00",
+  "status": "DRAFT_FOR_HUMAN_REVIEW",
+  "githubRelease": {
+    "tag": "v1.0.23-native",
+    "draftFirst": true,
+    "assets": [
+      {
+        "path": "artifacts/native-packages/amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip",
+        "sizeBytes": 760850,
+        "sha256": "42f6cf9172f3db6d0a2ac81bfffbab4b38b1f5a1423ff64b7b020855fce29f79"
+      },
+      {
+        "path": "artifacts/native-packages/amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip.sha256",
+        "note": "Generated next to the ZIP by native/build-package.ps1."
+      }
+    ]
+  },
+  "bilibili": {
+    "video": {
+      "path": "artifacts/media/amd-mobile-power-promo-1.0.22-2026-11-13/amd-mobile-power-intro-1.0.22-2026-11-13.mp4",
+      "durationSeconds": 107.7,
+      "width": 1920,
+      "height": 1080,
+      "sizeBytes": 25951043,
+      "sha256": "388fba8ead1e82211bd9790ea28defb20c28b53bc959c0f1fae9afc5189e4646"
+    },
+    "cover": {
+      "path": "docs/assets/bilibili-cover-1.0.22-2026-11-13.png",
+      "width": 1146,
+      "height": 717,
+      "sizeBytes": 150400,
+      "sha256": "8d2520125145c6bcc7302177865c21a88c5ffe0108f97d1862b42185a04d239d"
+    },
+    "contactSheet": {
+      "path": "docs/assets/native-promo-1.0.22-contact-sheet-2026-11-13.png",
+      "width": 1920,
+      "height": 640,
+      "sizeBytes": 463516,
+      "sha256": "902153580b97e88c2f48c081df0a5b813541a8330d8a3dd6c3ceadcb7bc6825d"
+    },
+    "note": "The 1.0.22 capture set is reused because 1.0.23 changes scroll behaviour only; no visible UI surface changed."
+  },
+  "copy": {
+    "launchCopy": "docs/NATIVE_LAUNCH_COPY_ZH.md",
+    "runbook": "docs/RELEASE_RUNBOOK.md"
+  }
+}

@@ -72,6 +72,10 @@ scaled scroll offset instead of scaling the already-subtracted value.
   `.sha256`, and `BUILD-INFO.txt` as a separate
   `amd-mobile-power-native-win-x64` artifact; previously only the legacy .NET
   package was published.
+- Release preparation: `docs/RELEASE_RUNBOOK.md` now records the exact push,
+  tag, GitHub draft-release, Bilibili upload, post-publish verification, and
+  rollback steps. `docs/release-assets-1.0.23.json` lists the release assets
+  with sizes and SHA256 values that were re-hashed from disk.
 
 2026-11-13: `1.0.22-native` is deployed to `C:\RyzenAdj`. It supersedes
 `1.0.21-native` with stabilised scrollbar layout, simple-mode scrolling on a
