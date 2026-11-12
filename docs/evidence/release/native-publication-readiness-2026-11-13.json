@@ -26,12 +26,12 @@
     "Arguments": "--enable-write-controls --simple-mode --max-target-watts 45",
     "RejectedArguments": [],
     "Launch": {
-      "Arguments": "--enable-write-controls --simple-mode --max-target-watts 45 --pipe-name AmdMobilePower.Worker.readiness.94cee9eb",
-      "WindowReady": false,
-      "ExitedEarly": true,
-      "ExitCode": 0,
+      "Arguments": "--enable-write-controls --simple-mode --max-target-watts 45 --pipe-name AmdMobilePower.Worker.readiness.6ecb8f2c",
+      "WindowReady": true,
+      "ExitedEarly": false,
+      "ExitCode": null,
       "StandardError": "",
-      "Note": "GUI exited immediately; exit code 0 means the arguments parsed and another instance owns the single-instance mutex."
+      "Note": "GUI window observed."
     }
   },
   "OpenGates": {
@@ -76,5 +76,5 @@
   },
   "BlockersFromLocalChecks": [],
   "Note": "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check. The shortcut launch audit runs the deployed GUI with an isolated LOCALAPPDATA and a unique worker pipe, then stops it.",
-  "RecordedAt": "2026-11-13T01:50:30.8250017+08:00"
+  "RecordedAt": "2026-11-13T02:14:55.5019816+08:00"
 }

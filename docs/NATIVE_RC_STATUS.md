@@ -288,6 +288,8 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - `docs/evidence/ui/native-packaged-1.0.22-native-ui-2026-11-13.json`
 - `docs/evidence/ui/native-deployed-1.0.22-native-ui-2026-11-13.json`
 - `docs/evidence/ui/native-workarea-200-1366x768-2026-11-13.json`
+- `docs/evidence/media/native-promo-1.0.22-draft-2026-11-13.json`
+- `docs/evidence/release/native-publication-readiness-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.17-native-watchdog-hang-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-clean-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-release-gate-2026-11-12.json`

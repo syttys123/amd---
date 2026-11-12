@@ -1,0 +1,31 @@
+{
+  "SchemaVersion": 1,
+  "CaptureMode": "read-only-no-write-controls",
+  "Fixture": "worker-offline",
+  "DpiFixture": null,
+  "UniformTargetWatts": null,
+  "PolicySeeded": false,
+  "BatteryOnly": false,
+  "FocusControlId": null,
+  "ControlChecks": {
+    "TargetAndPresetEnabled": false,
+    "DiagnosticsEnabled": true
+  },
+  "Simple": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\ui-1.0.22-worker-offline\\native-worker-offline-1.0.22-simple-2026-11-13.png",
+    "Width": 602,
+    "Height": 392,
+    "CaptureMethod": "CopyFromScreen(foreground-verified)",
+    "SHA256": "ab4909c51adf60a1c4ee7dee8da2de833c5b33a15a95532c73d7c40c8493286c"
+  },
+  "Advanced": {
+    "Path": "D:\\amd-mobile-power\\artifacts\\verify\\ui-1.0.22-worker-offline\\native-worker-offline-1.0.22-advanced-2026-11-13.png",
+    "Width": 782,
+    "Height": 712,
+    "CaptureMethod": "CopyFromScreen(foreground-verified)",
+    "SHA256": "30d1b8a927202a2f33fb229bf2ae58a0ddc8426b4f4b7250bec979f5de778039"
+  },
+  "SimpleClientSize": null,
+  "AdvancedClientSize": null,
+  "RecordedAt": "2026-11-13T01:54:03.7322118+08:00"
+}

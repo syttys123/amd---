@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "development-preview-video-draft",
+  "capturedAt": "2026-11-13T01:57:38.417607+08:00",
+  "status": "DRAFT_FOR_HUMAN_REVIEW",
+  "version": "1.0.22-native",
+  "video": {
+    "path": "artifacts/media/amd-mobile-power-promo-1.0.22-2026-11-13/amd-mobile-power-intro-1.0.22-2026-11-13.mp4",
+    "sha256": "388fba8ead1e82211bd9790ea28defb20c28b53bc959c0f1fae9afc5189e4646",
+    "sizeBytes": 25951043,
+    "durationSeconds": 107.7,
+    "width": 1920,
+    "height": 1080,
+    "frameRate": "25/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "sampleRate": "96000",
+    "channels": 2
+  },
+  "narration": {
+    "voice": "Microsoft Huihui Desktop",
+    "rate": 3,
+    "captions": "artifacts/media/amd-mobile-power-promo-1.0.22-2026-11-13/captions-zh.srt",
+    "captionsSha256": "657552fa8ffc02a89186616c426d4b4c7cfaef3c5880b5ab1f5e81ae86747d0e"
+  },
+  "music": {
+    "path": "D:\\amd-mobile-power\\artifacts\\media\\promo-music-bed-2026-11-12.wav",
+    "sha256": "a32e4be0e2baff4312fb5492f6012d3c74a0fb7959604a1d7447d9903cbf5735",
+    "volumeDb": -26.0,
+    "generated": "media/promo-native/generate-music.py (seeded, original composition)"
+  },
+  "source": {
+    "storyboard": "media/promo-native/storyboard-1.0.22.json",
+    "storyboardSha256": "59c74880ab7818dac26b9096b0ef7bc57c19820c02ed0a3ae4ff4376e9efbd51",
+    "renderer": "render-promo.ps1",
+    "rendererSha256": "519339f281e476d28bc95860ca4a3f9233d49ce4d2f2e42d00aa151efa24df51",
+    "musicGenerator": "media/promo-native/generate-music.py",
+    "musicGeneratorSha256": "2531cfbf2c390a7a1d6d4d8905fe3d43426cb65fae83a1424c5f767992107656"
+  },
+  "reviewAssets": {
+    "cover": "docs/assets/native-promo-1.0.22-cover-2026-11-13.png",
+    "coverSha256": "91e08408f8cfc29014caff5126fec88da28ef589fc13547b7ee3c331d57727bf",
+    "coverWidth": 1920,
+    "coverHeight": 1080,
+    "contactSheet": "docs/assets/native-promo-1.0.22-contact-sheet-2026-11-13.png",
+    "contactSheetSha256": "902153580b97e88c2f48c081df0a5b813541a8330d8a3dd6c3ceadcb7bc6825d",
+    "contactSheetWidth": 1920,
+    "contactSheetHeight": 640
+  },
+  "bilibiliCover": {
+    "path": "docs/assets/bilibili-cover-1.0.22-2026-11-13.png",
+    "sha256": "8d2520125145c6bcc7302177865c21a88c5ffe0108f97d1862b42185a04d239d",
+    "sizeBytes": 150400,
+    "width": 1146,
+    "height": 717,
+    "renderer": "render-launch-cover.ps1",
+    "rendererSha256": "f349a8403ecfc16fc65f4d439b9596cad5a8d9900fad837eb7476bbd43fad760"
+  },
+  "verification": {
+    "ffmpegFullDecode": "PASS",
+    "textSafeWidth": "PASS",
+    "sceneCount": 7,
+    "width": 1920,
+    "height": 1080,
+    "meanVolumeDb": -20.8,
+    "maxVolumeDb": -1.2,
+    "noApplicationProcess": true,
+    "noHardwareWrite": true,
+    "noLoginOrUpload": true,
+    "noExternalSamples": true
+  },
+  "limitations": [
+    "This is a development-preview draft, not a public release video.",
+    "The project owner has not reviewed final pacing, voice, claims, or cover.",
+    "The video uses verified native screenshots rather than a live screen recording.",
+    "Voice is the local Microsoft Huihui SAPI voice; music is an original seeded synthesis.",
+    "No authenticated GitHub or Bilibili upload was performed."
+  ]
+}

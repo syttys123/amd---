@@ -1,3 +1,4 @@
+# Requires PowerShell 7+ ([System.IO.Path]::GetRelativePath).
 param(
     [string]$Version = "1.0.0-native",
     [string]$EvidencePath
@@ -20,7 +21,7 @@ function Get-GuiArgumentContract {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
         throw "GUI argument contract is missing: $Path"
     }
-    return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+    return Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json
 }
 
 function Test-ShortcutArgumentsAgainstContract {
@@ -175,7 +176,7 @@ function Read-JsonFile {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
         throw "Required JSON file is missing: $Path"
     }
-    return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+    return Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json
 }
 
 function Get-Sha256 {
@@ -228,9 +229,18 @@ $policyEvidencePath = Join-Path `
 $packagedUiEvidencePath = Join-Path `
     $repositoryRoot `
     "docs\evidence\ui\native-packaged-$Version-ui-$(Get-Date -Format 'yyyy-MM-dd').json"
-$mediaEvidencePath = Join-Path `
+$versionedMediaEvidencePath = Join-Path `
+    $repositoryRoot `
+    "docs\evidence\media\native-promo-$Version-draft-$(Get-Date -Format 'yyyy-MM-dd').json"
+$genericMediaEvidencePath = Join-Path `
     $repositoryRoot `
     "docs\evidence\media\native-promo-draft-$(Get-Date -Format 'yyyy-MM-dd').json"
+$mediaEvidencePath = if (Test-Path -LiteralPath $versionedMediaEvidencePath -PathType Leaf) {
+    $versionedMediaEvidencePath
+}
+else {
+    $genericMediaEvidencePath
+}
 $compatibilityIndexPath = Join-Path `
     $repositoryRoot `
     "docs\evidence\compatibility\index.json"
@@ -443,7 +453,8 @@ $dpiEvidencePath = Join-Path `
 $dpiGate = "PENDING"
 $dpiEvidence = $null
 if (Test-Path -LiteralPath $dpiEvidencePath -PathType Leaf) {
-    $dpiEvidence = Get-Content -LiteralPath $dpiEvidencePath -Raw | ConvertFrom-Json
+    $dpiEvidence = Get-Content -LiteralPath $dpiEvidencePath -Raw -Encoding UTF8 |
+        ConvertFrom-Json
     $expectedDpiSizes = [ordered]@{
         "100" = "600x360|780x680"
         "125" = "750x450|975x850"

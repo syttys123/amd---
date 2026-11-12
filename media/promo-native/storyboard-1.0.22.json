@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "title": "AMD Mobile Power",
+  "subtitle": "原生 GUI · 实时回读 · 稳定滚动",
+  "repositoryUrl": "https://github.com/syttys123/amd-mobile-power",
+  "voice": "Microsoft Huihui Desktop",
+  "voiceRate": 3,
+  "voiceVolume": 90,
+  "scenes": [
+    {
+      "id": "hook",
+      "layout": "hero",
+      "eyebrow": "OPEN SOURCE / NATIVE GUI",
+      "title": "AMD 轻薄本\n功耗一手掌握",
+      "caption": "原生 GUI · 实时回读 · 三档预设",
+      "image": "assets/native-gui-1.0.22-simple-2026-11-13.png",
+      "badges": [
+        "开源",
+        "原生 GUI",
+        "安全回读"
+      ],
+      "narration": "同一台 AMD 轻薄本，插电、用电池、接充电宝，功耗表现常常不一致。AMD Mobile Power 把 RyzenAdj 装进原生桌面工具，让每一瓦都看得见、管得住。"
+    },
+    {
+      "id": "live",
+      "layout": "screenshot-right",
+      "eyebrow": "LIVE TELEMETRY",
+      "title": "每秒看见\n真实功耗",
+      "bullets": [
+        "实时 STAPM 与整机功耗",
+        "Fast / Slow 上限分列",
+        "温度和供电状态同屏"
+      ],
+      "image": "assets/native-gui-1.0.22-advanced-2026-11-13.png",
+      "narration": "界面每秒刷新：当前整机功耗、STAPM 上限、PPT Fast 和 Slow 分列显示，温度和供电状态也同屏呈现。目标值和固件实际上限始终分开，不会把调用成功当成真正生效。"
+    },
+    {
+      "id": "presets",
+      "layout": "screenshot-right",
+      "eyebrow": "DAY AND NIGHT",
+      "title": "10 / 25 / 45 W\n一键切换",
+      "bullets": [
+        "白天插电 25 或 45 W",
+        "夜间用电池 10 W",
+        "三档数值可编辑"
+      ],
+      "image": "assets/native-gui-1.0.22-simple-2026-11-13.png",
+      "narration": "本地预置十瓦、二十五瓦、四十五瓦三档。白天插电要性能，一键四十五瓦；夜间用电池求安静，切到十瓦。三档数值都能按自己的机型重新编辑保存。"
+    },
+    {
+      "id": "safety",
+      "layout": "screenshot-right",
+      "eyebrow": "FAIL CLOSED",
+      "title": "默认只读\n写入必回读",
+      "bullets": [
+        "硬件访问隔离 worker",
+        "单一硬件所有者",
+        "钳制与失败直接提示"
+      ],
+      "image": "assets/native-worker-offline-1.0.22-simple-2026-11-13.png",
+      "narration": "默认只读。显式开启写入后，硬件访问由独立 worker 完成，同一时刻只允许一个所有者；每次写入都强制回读，固件钳制或失败会在界面里直接说明，不会悄悄跳过。"
+    },
+    {
+      "id": "evidence",
+      "layout": "screenshot-right",
+      "eyebrow": "EVIDENCE FIRST",
+      "title": "多世代探测\n证据优先",
+      "bullets": [
+        "8845HS 已实机验证",
+        "保守 profile 覆盖多世代",
+        "脱敏只读诊断"
+      ],
+      "image": "assets/native-device-panel-1.0.22-2026-11-13.png",
+      "narration": "兼容性讲证据：Ryzen 七 8845HS 已完成实机验证，其他 AMD 世代使用保守 profile 兜底，还提供无需打开界面的脱敏只读诊断。换新机型时，请先收集诊断再讨论支持。"
+    },
+    {
+      "id": "accessibility",
+      "layout": "screenshot-right",
+      "eyebrow": "ACCESSIBILITY",
+      "title": "高对比度\n小窗也能读",
+      "bullets": [
+        "跟随 Windows 高对比度",
+        "1366x768 / 200% 可滚动",
+        "DPI 切换保留窗口状态"
+      ],
+      "image": "assets/native-high-contrast-1.0.22-advanced-2026-11-13.png",
+      "narration": "界面跟随 Windows 高对比度设置；屏幕小、缩放高的时候，简洁和高级模式都能完整滚动。跨显示器切换 DPI，窗口会使用系统建议尺寸，不再突然跳回默认大小。"
+    },
+    {
+      "id": "closing",
+      "layout": "closing",
+      "eyebrow": "OPEN SOURCE / SAFETY FIRST",
+      "title": "谨慎折腾\n欢迎共建",
+      "caption": "提交 issue 前请附上脱敏诊断",
+      "image": "assets/amd-mobile-power-256.png",
+      "narration": "版本 1.0.22 已经通过四十四项 GUI 测试、可复现构建、小屏夹具和硬件同值回读。项目开源在 GitHub，包内附校验和与回滚说明。折腾硬件有风险：请从保守数值开始，不要关闭系统安全防护，欢迎提交同型号诊断，一起完善兼容列表。"
+    }
+  ]
+}

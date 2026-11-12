@@ -84,7 +84,7 @@ Evidence:
 - `docs/evidence/ui/native-workarea-200-1366x768-2026-11-13.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-13.json`
 - `docs/evidence/build/reproducibility-2026-11-13.json`
-- `docs/evidence/media/native-promo-1.0.20-draft-2026-11-12.json`
+- `docs/evidence/media/native-promo-1.0.22-draft-2026-11-13.json`
 - `native/gui-cli-contract.json`
 
 ## 硬件门禁
@@ -118,9 +118,9 @@ Evidence:
 
 - 新截图：`assets/native-gui-1.0.22-simple-2026-11-13.png`、
   `assets/native-gui-1.0.22-advanced-2026-11-13.png`。
-- 宣传片草稿：99.5 秒、1920x1080、SAPI 中文配音 + 原创合成配乐、
+- 宣传片草稿：107.7 秒、1920x1080、SAPI 中文配音 + 原创合成配乐、
   7 个不重复场景，`verify-media.ps1` PASS。
-- B 站封面：`docs/assets/bilibili-cover-1.0.20-2026-11-12.png`。
+- B 站封面：`docs/assets/bilibili-cover-1.0.22-2026-11-13.png`。
 - 宣传片状态：`DRAFT_FOR_HUMAN_REVIEW`，未上传。
 
 ## 仍需人工或外部条件

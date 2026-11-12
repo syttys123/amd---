@@ -56,6 +56,17 @@ suggested-rect handling.
   `native-dpi-100-125-150-2026-11-13.json`, and
   `native-workarea-200-1366x768-2026-11-13.json`.
 
+2026-11-13 (media): the `1.0.22-native` promotional draft is rendered and
+verified. `media/promo-native/storyboard-1.0.22.json` uses the final GUI,
+high-contrast, worker-offline, and device-panel captures across seven
+non-repeating scenes over `107.7 s` at 1920x1080. It uses
+`Microsoft Huihui` SAPI voice, the original seeded music bed at `-26 dB`, SRT
+captions, a new contact sheet, and a regenerated Bilibili cover.
+`verify-media.ps1` PASS covers full decode, scene count, volume, evidence
+hashes, review assets, and cover. Evidence:
+`docs/evidence/media/native-promo-1.0.22-draft-2026-11-13.json`. Status stays
+`DRAFT_FOR_HUMAN_REVIEW`; no upload or publication was performed.
+
 2026-11-13 (1.0.21): `1.0.21-native` was deployed to `C:\RyzenAdj`. It supersedes
 `1.0.20-native` with native horizontal/vertical scrollbars, a `560` logical
 pixel advanced-window minimum for narrow work areas, precision-wheel handling
