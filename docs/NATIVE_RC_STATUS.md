@@ -118,7 +118,7 @@ artifacts/native-packages/amd-mobile-power-v1.0.22-native-win-x64-native-preview
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.18-native
+artifacts/native-release-review/v1.0.22-native
 ```
 
 The bundle is `REVIEW_ONLY` and is not a public release.
@@ -279,14 +279,15 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
-- `docs/evidence/packaging/v1.0.18-native-clean-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.18-native-release-gate-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.18-native-shell-integration-2026-11-12.json`
-- `docs/evidence/packaging/v1.0.18-native-deployment-2026-11-12.json`
-- `docs/evidence/hardware/v1.0.18-native-power-policy-no-change-2026-11-12.json`
-- `docs/evidence/hardware/v1.0.18-native-worker-hang-2026-11-12.json`
-- `docs/evidence/hardware/v1.0.18-native-worker-hang-clean-2026-11-12.json`
-- `docs/evidence/ui/native-packaged-1.0.18-native-ui-2026-11-12.json`
+- `docs/evidence/packaging/v1.0.22-native-clean-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.22-native-release-gate-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.22-native-shell-integration-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.22-native-deployment-2026-11-13.json`
+- `docs/evidence/hardware/v1.0.22-native-power-policy-no-change-2026-11-13.json`
+- `docs/evidence/hardware/v1.0.22-native-worker-hang-2026-11-13.json`
+- `docs/evidence/ui/native-packaged-1.0.22-native-ui-2026-11-13.json`
+- `docs/evidence/ui/native-deployed-1.0.22-native-ui-2026-11-13.json`
+- `docs/evidence/ui/native-workarea-200-1366x768-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.17-native-watchdog-hang-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-clean-2026-11-12.json`
 - `docs/evidence/packaging/v1.0.17-native-release-gate-2026-11-12.json`
