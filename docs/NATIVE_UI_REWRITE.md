@@ -205,6 +205,18 @@ the user's Windows accessibility settings.
 
 ## Runtime Evidence
 
+### 2026-11-13 1.0.23 Maximize Scroll Clamp
+
+- Rust GUI: 46 tests passed (24 library, 22 main); Rust probe: 7 tests passed.
+- `native\verify-maximize-scroll.ps1` shrinks the advanced window, scrolls to
+  the bottom via `SB_BOTTOM`, then maximizes it. The `1.0.22` binary reproduces
+  the regression (offset stays `243`, header top `-231`); the `1.0.23` release
+  build reports offset `0` and header top `12`.
+- Page up/down now moves exactly one viewport through `layout::page_scroll`, so
+  it matches the `SIF_PAGE` value the scrollbar advertises.
+- Header controls scale their position and then subtract the scaled offset,
+  removing the 1 px drift at 110%/175% scaling.
+
 ### 2026-11-13 1.0.22 Scroll And Work-Area Closure
 
 - Rust GUI: 44 tests passed (22 library, 22 main); Rust probe: 7 tests passed.
