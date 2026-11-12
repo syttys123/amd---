@@ -87,4 +87,13 @@ mod tests {
         assert_eq!(scroll_position(-10, 680, 420), 0);
         assert_eq!(scroll_position(50, 680, 720), 0);
     }
+
+    #[test]
+    fn simple_content_can_scroll_when_the_work_area_is_short() {
+        assert_eq!(SIMPLE_CLIENT_SIZE, (600, 360));
+        assert_eq!(scroll_position(-10, 360, 300), 0);
+        assert_eq!(scroll_position(20, 360, 300), 20);
+        assert_eq!(scroll_position(1000, 360, 300), 60);
+        assert_eq!(scroll_position(50, 360, 360), 0);
+    }
 }

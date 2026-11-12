@@ -57,8 +57,8 @@ use windows_sys::Win32::UI::Controls::{
     TTM_SETMAXTIPWIDTH, TTN_GETDISPINFOW, TTS_ALWAYSTIP, TTTOOLINFOW, WM_MOUSELEAVE,
 };
 use windows_sys::Win32::UI::HiDpi::{
-    AdjustWindowRectExForDpi, GetDpiForSystem, GetDpiForWindow, SetProcessDpiAwarenessContext,
-    DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
+    AdjustWindowRectExForDpi, GetDpiForSystem, GetDpiForWindow, GetSystemMetricsForDpi,
+    SetProcessDpiAwarenessContext, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
 };
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
     EnableWindow, GetFocus, GetKeyState, IsWindowEnabled, SetFocus, TrackMouseEvent, TME_LEAVE,
@@ -81,12 +81,12 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     SB_HORZ, SB_LEFT, SB_LINEDOWN, SB_LINELEFT, SB_LINERIGHT, SB_LINEUP, SB_PAGEDOWN, SB_PAGELEFT,
     SB_PAGERIGHT, SB_PAGEUP, SB_RIGHT, SB_THUMBPOSITION, SB_THUMBTRACK, SB_TOP, SB_VERT,
     SCROLLINFO, SIF_PAGE, SIF_POS, SIF_RANGE, SIF_TRACKPOS, SIZE_MINIMIZED, SIZE_RESTORED,
-    SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER, SW_HIDE,
-    SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND,
-    WM_CONTEXTMENU, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_GETICON, WM_GETMINMAXINFO,
-    WM_HSCROLL, WM_LBUTTONUP, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_NOTIFY, WM_QUERYENDSESSION,
-    WM_RBUTTONUP, WM_SETCURSOR, WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW, WM_SIZE,
-    WM_SYSCOLORCHANGE, WM_SYSCOMMAND, WM_VSCROLL, WNDCLASSEXW, WS_CAPTION, WS_CHILD,
+    SM_CXVSCROLL, SM_CYHSCROLL, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
+    SWP_NOZORDER, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP,
+    WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_GETICON,
+    WM_GETMINMAXINFO, WM_HSCROLL, WM_LBUTTONUP, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_NOTIFY,
+    WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SETCURSOR, WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW,
+    WM_SIZE, WM_SYSCOLORCHANGE, WM_SYSCOMMAND, WM_VSCROLL, WNDCLASSEXW, WS_CAPTION, WS_CHILD,
     WS_CLIPCHILDREN, WS_EX_APPWINDOW, WS_HSCROLL, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_POPUP,
     WS_SYSMENU, WS_THICKFRAME, WS_VISIBLE, WS_VSCROLL,
 };
@@ -307,6 +307,13 @@ fn scaled(value: i32, percent: i32) -> i32 {
 fn unscaled(value: i32, percent: i32) -> i32 {
     let percent = percent.max(1);
     (value * 100 + percent / 2) / percent
+}
+
+fn content_height(mode: state::UiMode) -> i32 {
+    match mode {
+        state::UiMode::Simple => SIMPLE_CLIENT_SIZE.1,
+        state::UiMode::Advanced => ADVANCED_CLIENT_SIZE.1,
+    }
 }
 
 const APP_WINDOW_STYLE: u32 = WS_OVERLAPPED
@@ -4005,6 +4012,20 @@ unsafe fn move_control(hwnd: HWND, id: usize, x: i32, y: i32, width: i32, height
 }
 
 unsafe fn monitor_work_area(hwnd: HWND) -> Option<RECT> {
+    if let Ok(value) = std::env::var("AMD_MOBILE_POWER_WORK_AREA_FIXTURE") {
+        if let Some((width, height)) = value.split_once('x') {
+            if let (Ok(width), Ok(height)) = (width.parse::<i32>(), height.parse::<i32>()) {
+                if width > 0 && height > 0 {
+                    return Some(RECT {
+                        left: 0,
+                        top: 0,
+                        right: width,
+                        bottom: height,
+                    });
+                }
+            }
+        }
+    }
     let mut monitor = MONITORINFO {
         cbSize: size_of::<MONITORINFO>() as u32,
         ..Default::default()
@@ -4017,19 +4038,21 @@ unsafe fn monitor_work_area(hwnd: HWND) -> Option<RECT> {
 }
 
 unsafe fn set_scroll_offsets(app: &mut GuiApp, hwnd: HWND, x: i32, y: i32) {
-    if app.view_mode != state::UiMode::Advanced {
-        return;
-    }
     let mut client = RECT::default();
     GetClientRect(hwnd, &mut client);
-    let x = scroll_position(
-        x,
-        ADVANCED_CONTENT_WIDTH,
-        unscaled(client.right.max(1), app.dpi_percent),
-    );
+    let advanced = app.view_mode == state::UiMode::Advanced;
+    let x = if advanced {
+        scroll_position(
+            x,
+            ADVANCED_CONTENT_WIDTH,
+            unscaled(client.right.max(1), app.dpi_percent),
+        )
+    } else {
+        0
+    };
     let y = scroll_position(
         y,
-        ADVANCED_CLIENT_SIZE.1,
+        content_height(app.view_mode),
         unscaled(client.bottom.max(1), app.dpi_percent),
     );
     if app.scroll_offset != y || app.scroll_offset_x != x {
@@ -4044,15 +4067,7 @@ unsafe fn set_scroll_offset(app: &mut GuiApp, hwnd: HWND, position: i32) {
 }
 
 unsafe fn reveal_control(app: &mut GuiApp, hwnd: HWND, control: HWND) {
-    if app.view_mode != state::UiMode::Advanced || control.is_null() || app.layout_in_progress {
-        return;
-    }
-    // Header buttons anchor the whole header row. Focusing one should also
-    // restore the title and mode controls that a narrow viewport may clip.
-    if app.header_controls.is_some_and(|controls| {
-        control == controls.simple || control == controls.advanced || control == controls.topmost
-    }) {
-        set_scroll_offsets(app, hwnd, 0, 0);
+    if control.is_null() || app.layout_in_progress {
         return;
     }
     let mut bounds = RECT::default();
@@ -4298,7 +4313,9 @@ unsafe fn apply_view_mode_inner(
     position.y = bounds.top;
     // Logical screenshot fixtures keep their full canvas; real windows fit
     // the current monitor work area and scroll any remaining advanced content.
-    if DPI_FIXTURE_PERCENT.load(Ordering::Relaxed) == 0 {
+    if DPI_FIXTURE_PERCENT.load(Ordering::Relaxed) == 0
+        || std::env::var_os("AMD_MOBILE_POWER_WORK_AREA_FIXTURE").is_some()
+    {
         if let Some(work) = monitor_work_area(hwnd) {
             outer_height = outer_height.min(work.bottom - work.top);
             outer_width = outer_width.min(work.right - work.left);
@@ -4347,50 +4364,62 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
     let s = |value: i32| scaled(value, percent);
     let mut client = RECT::default();
     GetClientRect(hwnd, &mut client);
-    let viewport_width = unscaled(client.right.max(1), percent);
-    let viewport_height = unscaled(client.bottom.max(1), percent);
-    let content_width = if advanced {
-        ADVANCED_CONTENT_WIDTH
-    } else {
-        viewport_width
-    };
-    app.scroll_offset = if advanced {
-        scroll_position(app.scroll_offset, ADVANCED_CLIENT_SIZE.1, viewport_height)
-    } else {
-        0
-    };
-    app.scroll_offset_x = if advanced {
-        scroll_position(app.scroll_offset_x, content_width, viewport_width)
-    } else {
-        0
-    };
-    let mut vscroll = SCROLLINFO {
-        cbSize: size_of::<SCROLLINFO>() as u32,
-        fMask: SIF_RANGE | SIF_PAGE | SIF_POS,
-        nMin: 0,
-        nMax: ADVANCED_CLIENT_SIZE.1 - 1,
-        nPage: viewport_height as u32,
-        nPos: app.scroll_offset,
-        ..Default::default()
-    };
-    let mut hscroll = SCROLLINFO {
-        cbSize: size_of::<SCROLLINFO>() as u32,
-        fMask: SIF_RANGE | SIF_PAGE | SIF_POS,
-        nMin: 0,
-        nMax: content_width - 1,
-        nPage: viewport_width as u32,
-        nPos: app.scroll_offset_x,
-        ..Default::default()
-    };
-    if !advanced {
-        vscroll.nMax = 0;
-        vscroll.nPage = 1;
-        hscroll.nMax = 0;
-        hscroll.nPage = 1;
+    let mut viewport_width = unscaled(client.right.max(1), percent);
+    let mut viewport_height = unscaled(client.bottom.max(1), percent);
+    // Showing or hiding one native scrollbar changes the client area, which
+    // changes whether the other bar is needed. Recompute until the client
+    // size stabilises, otherwise an advanced window can keep a phantom bar
+    // that eats 17 logical pixels.
+    for _ in 0..3 {
+        app.scroll_offset =
+            scroll_position(app.scroll_offset, content_height(mode), viewport_height);
+        app.scroll_offset_x = if advanced {
+            scroll_position(app.scroll_offset_x, ADVANCED_CONTENT_WIDTH, viewport_width)
+        } else {
+            0
+        };
+        let vscroll = SCROLLINFO {
+            cbSize: size_of::<SCROLLINFO>() as u32,
+            fMask: SIF_RANGE | SIF_PAGE | SIF_POS,
+            nMin: 0,
+            nMax: if content_height(mode) > 0 {
+                content_height(mode) - 1
+            } else {
+                0
+            },
+            nPage: viewport_height.max(1) as u32,
+            nPos: app.scroll_offset,
+            ..Default::default()
+        };
+        let hscroll = SCROLLINFO {
+            cbSize: size_of::<SCROLLINFO>() as u32,
+            fMask: SIF_RANGE | SIF_PAGE | SIF_POS,
+            nMin: 0,
+            nMax: if advanced {
+                ADVANCED_CONTENT_WIDTH - 1
+            } else {
+                0
+            },
+            nPage: if advanced {
+                viewport_width.max(1) as u32
+            } else {
+                1
+            },
+            nPos: app.scroll_offset_x,
+            ..Default::default()
+        };
+        SetScrollInfo(hwnd, SB_VERT, &vscroll, 1);
+        SetScrollInfo(hwnd, SB_HORZ, &hscroll, 1);
+
+        let mut next_client = RECT::default();
+        GetClientRect(hwnd, &mut next_client);
+        if next_client.right == client.right && next_client.bottom == client.bottom {
+            break;
+        }
+        client = next_client;
+        viewport_width = unscaled(client.right.max(1), percent);
+        viewport_height = unscaled(client.bottom.max(1), percent);
     }
-    SetScrollInfo(hwnd, SB_VERT, &vscroll, 1);
-    SetScrollInfo(hwnd, SB_HORZ, &hscroll, 1);
-    GetClientRect(hwnd, &mut client);
     let viewport_width = unscaled(client.right.max(1), percent);
     let width = if advanced {
         ADVANCED_CONTENT_WIDTH.max(viewport_width)
@@ -5054,7 +5083,13 @@ unsafe extern "system" fn window_proc(
                 scaled(minimum_height, percent),
                 window_dpi(hwnd),
             );
-            if DPI_FIXTURE_PERCENT.load(Ordering::Relaxed) == 0 {
+            if app.view_mode == state::UiMode::Advanced {
+                width += GetSystemMetricsForDpi(SM_CXVSCROLL, window_dpi(hwnd));
+                height += GetSystemMetricsForDpi(SM_CYHSCROLL, window_dpi(hwnd));
+            }
+            if DPI_FIXTURE_PERCENT.load(Ordering::Relaxed) == 0
+                || std::env::var_os("AMD_MOBILE_POWER_WORK_AREA_FIXTURE").is_some()
+            {
                 if let Some(work) = monitor_work_area(hwnd) {
                     width = width.min(work.right - work.left);
                     height = height.min(work.bottom - work.top);
@@ -5064,7 +5099,7 @@ unsafe extern "system" fn window_proc(
             info.ptMinTrackSize.y = height;
             0
         }
-        WM_VSCROLL if app.view_mode == state::UiMode::Advanced => {
+        WM_VSCROLL => {
             let mut client = RECT::default();
             GetClientRect(hwnd, &mut client);
             let page = unscaled(client.bottom, app.dpi_percent);
@@ -5076,7 +5111,7 @@ unsafe extern "system" fn window_proc(
             GetScrollInfo(hwnd, SB_VERT, &mut scroll);
             let position = match (wparam & 0xFFFF) as i32 {
                 SB_TOP => 0,
-                SB_BOTTOM => ADVANCED_CLIENT_SIZE.1,
+                SB_BOTTOM => content_height(app.view_mode),
                 SB_LINEUP => app.scroll_offset - 32,
                 SB_LINEDOWN => app.scroll_offset + 32,
                 SB_PAGEUP => app.scroll_offset - page + 32,
@@ -5087,12 +5122,12 @@ unsafe extern "system" fn window_proc(
             set_scroll_offset(app, hwnd, position);
             0
         }
-        WM_MOUSEWHEEL if app.view_mode == state::UiMode::Advanced => {
+        WM_MOUSEWHEEL => {
             let delta = ((wparam >> 16) as u16 as i16) as i32;
             // 48 logical px per notch with fractional deltas preserved:
             // a precision touchpad reports 30/60 instead of 120 per notch.
             let step = delta * 2 / 5;
-            if GetKeyState(VK_SHIFT as i32) < 0 {
+            if app.view_mode == state::UiMode::Advanced && GetKeyState(VK_SHIFT as i32) < 0 {
                 set_scroll_offsets(app, hwnd, app.scroll_offset_x - step, app.scroll_offset);
             } else {
                 set_scroll_offsets(app, hwnd, app.scroll_offset_x, app.scroll_offset - step);
@@ -5123,10 +5158,34 @@ unsafe extern "system" fn window_proc(
             0
         }
         WM_DPICHANGED => {
-            app.dpi_percent = effective_dpi_percent(hwnd);
+            let fixture = DPI_FIXTURE_PERCENT.load(Ordering::Relaxed);
+            if fixture > 0 {
+                app.dpi_percent = fixture;
+                refresh_control_fonts(app);
+                layout_mode_controls(app, hwnd);
+                return 0;
+            }
+            let new_dpi = (wparam & 0xFFFF) as u32;
+            app.dpi_percent = dpi_percent(if new_dpi == 0 {
+                window_dpi(hwnd)
+            } else {
+                new_dpi
+            });
             refresh_control_fonts(app);
-            let mode = app.view_mode;
-            apply_view_mode_inner(app, hwnd, mode, true);
+            let suggested = lparam as *const RECT;
+            if !suggested.is_null() {
+                let suggested = &*suggested;
+                SetWindowPos(
+                    hwnd,
+                    std::ptr::null_mut(),
+                    suggested.left,
+                    suggested.top,
+                    suggested.right - suggested.left,
+                    suggested.bottom - suggested.top,
+                    SWP_NOZORDER | SWP_NOACTIVATE,
+                );
+            }
+            layout_mode_controls(app, hwnd);
             0
         }
         WM_SIZE => {

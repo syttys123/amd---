@@ -96,6 +96,9 @@ $packageDirectory = Join-Path `
 $dpiEvidencePath = Join-Path `
     $repositoryRoot `
     "docs\evidence\ui\native-dpi-100-125-150-$(Get-Date -Format 'yyyy-MM-dd').json"
+$smallViewportEvidencePath = Join-Path `
+    $repositoryRoot `
+    "docs\evidence\ui\native-workarea-200-1366x768-$(Get-Date -Format 'yyyy-MM-dd').json"
 $null = & (Join-Path $root "verify-dpi-fixtures.ps1") `
     -GuiExecutable (Join-Path $packageDirectory "amd-mobile-power-gui.exe") `
     -WorkerExecutable (Join-Path $packageDirectory "amdmobilepower_native_worker.exe") `
@@ -104,6 +107,14 @@ if (-not (Test-Path -LiteralPath $dpiEvidencePath -PathType Leaf) -or
     (Get-Content -LiteralPath $dpiEvidencePath -Raw |
         ConvertFrom-Json).Verification -ne "PASS") {
     throw "Native DPI layout fixtures failed."
+}
+$null = & (Join-Path $root "verify-small-viewport.ps1") `
+    -GuiExecutable (Join-Path $packageDirectory "amd-mobile-power-gui.exe") `
+    -EvidencePath $smallViewportEvidencePath
+if (-not (Test-Path -LiteralPath $smallViewportEvidencePath -PathType Leaf) -or
+    (Get-Content -LiteralPath $smallViewportEvidencePath -Raw |
+        ConvertFrom-Json).Verification -ne "PASS") {
+    throw "Native 1366x768/200% work-area fixture failed."
 }
 
 $shellStatus = "Not requested"
@@ -204,6 +215,8 @@ $result = [ordered]@{
     WorkerHangEvidence = if ($VerifyWorkerHang) { $workerHangEvidence } else { $null }
     DpiFixtures = "PASS"
     DpiEvidence = $dpiEvidencePath
+    SmallViewport = "PASS"
+    SmallViewportEvidence = $smallViewportEvidencePath
     Reproducibility = $reproducibilityStatus
     ReproducibilityEvidence = if ($VerifyReproducibility) {
         $reproducibilityEvidencePath

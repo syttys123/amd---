@@ -88,6 +88,9 @@ public static class AmdMobilePowerRustGuiNative {
     public static extern bool GetClientRect(IntPtr hWnd, out RECT rect);
 
     [DllImport("user32.dll")]
+    public static extern uint GetDpiForWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
     public static extern bool ScreenToClient(IntPtr hwnd, ref POINT point);
 
     [DllImport("user32.dll")]
@@ -847,8 +850,25 @@ try {
             }
         }
         $resizeBoundsResult = "PASS"
+
         [AmdMobilePowerRustGuiNative]::SendMessage(
             $advancedButton, 0x00F5, [UIntPtr]109, [IntPtr]::Zero) | Out-Null
+        Start-Sleep -Milliseconds 300
+
+        $defaultVScroll = New-Object AmdMobilePowerRustGuiNative+SCROLLINFO
+        $defaultVScroll.Size = [System.Runtime.InteropServices.Marshal]::SizeOf($defaultVScroll)
+        $defaultVScroll.Mask = 0x0017
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo(
+            $window, 1, [ref]$defaultVScroll) | Out-Null
+        $defaultHScroll = New-Object AmdMobilePowerRustGuiNative+SCROLLINFO
+        $defaultHScroll.Size = [System.Runtime.InteropServices.Marshal]::SizeOf($defaultHScroll)
+        $defaultHScroll.Mask = 0x0017
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo(
+            $window, 0, [ref]$defaultHScroll) | Out-Null
+        if ($defaultVScroll.Max -ge $defaultVScroll.Page -or
+            $defaultHScroll.Max -ge $defaultHScroll.Page) {
+            throw "Default advanced viewport retained a phantom scrollbar."
+        }
 
         $minimum = New-Object AmdMobilePowerRustGuiNative+MINMAXINFO
         [AmdMobilePowerRustGuiNative]::SendMinMax(
@@ -856,6 +876,21 @@ try {
         [AmdMobilePowerRustGuiNative]::SetWindowPos(
             $window, [IntPtr]::Zero, 0, 0,
             $minimum.MinTrackSize.X, $minimum.MinTrackSize.Y, 0x0016) | Out-Null
+        $windowDpi = [AmdMobilePowerRustGuiNative]::GetDpiForWindow($window)
+        $scalePercent = if ($DpiFixture) {
+            [int]$DpiFixture
+        }
+        else {
+            [int][Math]::Round(($windowDpi * 100.0) / 96.0)
+        }
+        $expectedAdvancedMinWidth = [int][Math]::Round(
+            (560.0 * $scalePercent) / 100.0)
+        $advancedMinClient = New-Object AmdMobilePowerRustGuiNative+RECT
+        [AmdMobilePowerRustGuiNative]::GetClientRect(
+            $window, [ref]$advancedMinClient) | Out-Null
+        if ($advancedMinClient.Right -lt ($expectedAdvancedMinWidth - 2)) {
+            throw "Advanced minimum client width is below 560 logical pixels: $($advancedMinClient.Right) at $scalePercent%."
+        }
         $scroll = New-Object AmdMobilePowerRustGuiNative+SCROLLINFO
         $scroll.Size = [System.Runtime.InteropServices.Marshal]::SizeOf($scroll)
         $scroll.Mask = 0x0017
@@ -882,6 +917,13 @@ try {
         if ($scroll.Position -ne ($wheelBefore + 12)) {
             throw "Precision wheel delta 30 did not scroll by 12 logical pixels: $($scroll.Position)."
         }
+        $wheelAfter30 = $scroll.Position
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $window, 0x020A, [UIntPtr]0xFFC40000L, [IntPtr]::Zero) | Out-Null
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
+        if ($scroll.Position -ne ($wheelAfter30 + 24)) {
+            throw "Precision wheel delta 60 did not scroll by 24 logical pixels: $($scroll.Position)."
+        }
         [AmdMobilePowerRustGuiNative]::SendMessage(
             $window, 0x020A, [UIntPtr]0xFF880000L, [IntPtr]::Zero) | Out-Null
         [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
@@ -907,11 +949,33 @@ try {
         if ($bottom.X -gt $client.Right -or $bottom.Y -gt $client.Bottom) {
             throw "Diagnostics button is clipped after scrolling to the bottom."
         }
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $window, 0x0114, [UIntPtr]6, [IntPtr]::Zero) | Out-Null
         Set-GuiControlFocus -Window $window -Control $topMostButton
-        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
-        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 0, [ref]$hscroll) | Out-Null
-        if ($scroll.Position -ge 48 -or $hscroll.Position -ge 48) {
-            throw "Keyboard focus did not reveal the advanced header: x=$($hscroll.Position) y=$($scroll.Position)"
+        $topMostRect = New-Object AmdMobilePowerRustGuiNative+RECT
+        [AmdMobilePowerRustGuiNative]::GetWindowRect(
+            $topMostButton, [ref]$topMostRect) | Out-Null
+        $topMostTop = New-Object AmdMobilePowerRustGuiNative+POINT
+        $topMostTop.X = $topMostRect.Left
+        $topMostTop.Y = $topMostRect.Top
+        $topMostBottom = New-Object AmdMobilePowerRustGuiNative+POINT
+        $topMostBottom.X = $topMostRect.Right
+        $topMostBottom.Y = $topMostRect.Bottom
+        [AmdMobilePowerRustGuiNative]::ScreenToClient(
+            $window, [ref]$topMostTop) | Out-Null
+        [AmdMobilePowerRustGuiNative]::ScreenToClient(
+            $window, [ref]$topMostBottom) | Out-Null
+        [AmdMobilePowerRustGuiNative]::GetClientRect(
+            $window, [ref]$client) | Out-Null
+        if ($topMostTop.X -lt 0 -or $topMostTop.Y -lt 0 -or
+            $topMostBottom.X -gt $client.Right -or
+            $topMostBottom.Y -gt $client.Bottom) {
+            throw "Keyboard focus did not reveal the topmost button inside the advanced viewport."
+        }
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo(
+            $window, 0, [ref]$hscroll) | Out-Null
+        if ($hscroll.Position -le 0) {
+            throw "Narrow header focus did not scroll horizontally to the topmost button."
         }
         Set-GuiControlFocus -Window $window -Control $exportButton
         [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
