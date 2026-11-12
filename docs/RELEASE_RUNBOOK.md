@@ -11,7 +11,7 @@
 ```powershell
 git -C D:\amd-mobile-power status --short --branch
 git -C D:\amd-mobile-power log --oneline -5
-gh auth status
+Get-Command gh -ErrorAction SilentlyContinue
 ```
 
 - 工作树干净，分支领先远端的提交已全部推送。
@@ -28,9 +28,22 @@ git -C D:\amd-mobile-power tag -a v1.0.23-native -m "AMD Mobile Power 1.0.23-nat
 git -C D:\amd-mobile-power push origin v1.0.23-native
 ```
 
-若 GitHub TLS 握手失败，先修复代理节点再重试；不要用 `--force` 覆盖远端。
+- 若 GitHub TLS 握手失败，先修复代理节点再重试；不要用 `--force` 覆盖远端。
 
 ## 2. 创建 GitHub Release
+
+本机目前没有安装 `gh`；优先用网页端创建草稿，避免为了发布临时装工具。
+
+网页端步骤：
+
+1. 打开 `https://github.com/syttys123/amd-mobile-power/releases/new`。
+2. 选择刚推送的 tag `v1.0.23-native`，标题填
+   `1.0.23-native - AMD Mobile Power 原生稳定本地候选`。
+3. 正文粘贴 `docs/release-notes-1.0.23-zh.md` 的全部内容。
+4. 上传 ZIP 与 `.zip.sha256` 两个附件。
+5. 勾选 “Save as draft”，预览通过后再 Publish。
+
+如果以后安装了 `gh`，等价命令：
 
 ```powershell
 gh release create v1.0.23-native `
@@ -46,9 +59,6 @@ gh release create v1.0.23-native `
   是内部口径，不要把整份说明贴进 Release。
 - 附件只放 ZIP 与 `.sha256`；视频和封面属于 B 站物料。
 
-网页端等价步骤：Draft a new release → 选择 tag `v1.0.23-native` → 上传两个
-附件 → 粘贴正文 → 预览 → Publish。
-
 ## 3. B 站上传
 
 - 视频：`artifacts/media/amd-mobile-power-promo-1.0.22-2026-11-13/amd-mobile-power-intro-1.0.22-2026-11-13.mp4`
@@ -62,10 +72,9 @@ gh release create v1.0.23-native `
 ## 4. 发布后核验
 
 ```powershell
-gh release download v1.0.23-native -D $env:TEMP\amp-verify
-Get-FileHash $env:TEMP\amp-verify\*.zip -Algorithm SHA256
-Expand-Archive $env:TEMP\amp-verify\*.zip -DestinationPath $env:TEMP\amp-verify\pkg
-& $env:TEMP\amp-verify\pkg\amd-mobile-power-v1.0.23-native-win-x64-native-preview\amd-mobile-power-probe.exe --self-test
+Get-FileHash $env:USERPROFILE\Downloads\amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip -Algorithm SHA256
+Expand-Archive $env:USERPROFILE\Downloads\amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip -DestinationPath $env:TEMP\amp-verify
+& $env:TEMP\amp-verify\amd-mobile-power-v1.0.23-native-win-x64-native-preview\amd-mobile-power-probe.exe --self-test
 ```
 
 - 下载到的 ZIP SHA256 必须等于
