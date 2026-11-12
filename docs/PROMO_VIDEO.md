@@ -6,83 +6,66 @@ process and performs no hardware write.
 
 ## Current Draft
 
-The current draft is 78.2 seconds at 1920x1080, 25 fps, with H.264 video, AAC
+The current draft is 107.7 seconds at 1920x1080, 25 fps, with H.264 video, AAC
 stereo audio, Chinese narration, and simplified-Chinese captions. It uses the
-verified `1.0.8-native` 10 W local policy screenshots, including the corrected
-target editor and the `5-10 W` effective range. It is marked
+final `1.0.22-native` GUI captures together with the high-contrast,
+worker-offline, and device-panel states. It is marked
 `DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
 
-![Promo draft cover](assets/native-promo-10w-cover-2026-11-12.png)
+![Promo draft cover](assets/native-promo-1.0.22-cover-2026-11-13.png)
 
-![Seven-scene review contact sheet](assets/native-promo-10w-contact-sheet-2026-11-12.png)
+![Seven-scene review contact sheet](assets/native-promo-1.0.22-contact-sheet-2026-11-13.png)
 
 Bilibili 1146x717 cover:
 
-![Bilibili launch cover](assets/bilibili-cover-native-10w-2026-11-12.png)
+![Bilibili launch cover](assets/bilibili-cover-1.0.22-2026-11-13.png)
 
 Local render:
 
 ```text
-artifacts/media/amd-mobile-power-native-promo-10w-2026-11-12/
-  amd-mobile-power-native-intro-10w-2026-11-12.mp4
+artifacts/media/amd-mobile-power-promo-1.0.22-2026-11-13/
+  amd-mobile-power-intro-1.0.22-2026-11-13.mp4
 ```
 
-- Size: 22,129,812 bytes.
+- Size: 25,951,043 bytes.
 - SHA256:
-  `af70c9e7bd837c04346dde7110fa7cd0a9c9221edad5f3e5826a28c92ed7d575`.
+  `388fba8ead1e82211bd9790ea28defb20c28b53bc959c0f1fae9afc5189e4646`.
 - Full-file FFmpeg decode: PASS.
-- Audio level: mean `-21.2 dB`, peak `-1.1 dB`.
+- Audio level: mean `-20.8 dB`, peak `-1.2 dB`.
 - Title, caption, and bullet safe-width checks: PASS.
 - Scene count: 7.
 
 Machine-readable evidence:
-`docs/evidence/media/native-promo-10w-draft-2026-11-12.json`.
+`docs/evidence/media/native-promo-1.0.22-draft-2026-11-13.json`.
 
 Verify the local MP4 and every committed review/source hash without rerendering:
 
 ```powershell
 .\verify-media.ps1 `
-  -VideoPath .\artifacts\media\amd-mobile-power-native-promo-10w-2026-11-12\amd-mobile-power-native-intro-10w-2026-11-12.mp4 `
-  -ManifestPath .\artifacts\media\amd-mobile-power-native-promo-10w-2026-11-12\promo-manifest.json `
-  -EvidencePath .\docs\evidence\media\native-promo-10w-draft-2026-11-12.json
+  -VideoPath .\artifacts\media\amd-mobile-power-promo-1.0.22-2026-11-13\amd-mobile-power-intro-1.0.22-2026-11-13.mp4 `
+  -ManifestPath .\artifacts\media\amd-mobile-power-promo-1.0.22-2026-11-13\promo-manifest.json `
+  -EvidencePath .\docs\evidence\media\native-promo-1.0.22-draft-2026-11-13.json
 ```
 
 The verifier checks the manifest, evidence, SHA256, codecs, dimensions, frame
 rate, duration, full decode, mean/peak audio levels, captions, storyboard,
 renderer, video cover, contact sheet, and the 1146x717 Bilibili cover.
 
-Regenerate the Bilibili cover:
-
-```powershell
-.\render-launch-cover.ps1 `
-  -OutputPath .\docs\assets\bilibili-cover-native-10w-2026-11-12.png `
-  -ScreenshotPath .\assets\native-gui-10w-1.0.10-simple-2026-11-12.png `
-  -Eyebrow "AMD NATIVE / OPEN SOURCE" `
-  -PreviewLabel "10 W / VERIFIED" `
-  -TitleLine1 "AMD 轻薄本" `
-  -TitleLine2 "10W" `
-  -Subtitle "10W 统一 · 实时回读" `
-  -PillText "原生 GUI|10W 策略|回读校验" `
-  -FooterRight "READ-ONLY BY DEFAULT"
-```
-
-The cover uses the verified clean-package screenshot, application icon, and
-reviewed launch copy. Rendering fails if the main text exceeds its safe width.
-
 ## Render
 
 ```powershell
 .\render-promo.ps1 `
-  -Storyboard .\media\promo-native\storyboard.json `
-  -OutputDirectory .\artifacts\media\amd-mobile-power-native-promo-10w-2026-11-12 `
-  -OutputName amd-mobile-power-native-intro-10w-2026-11-12.mp4
+  -Storyboard .\media\promo-native\storyboard-1.0.22.json `
+  -OutputDirectory .\artifacts\media\amd-mobile-power-promo-1.0.22-2026-11-13 `
+  -OutputName amd-mobile-power-intro-1.0.22-2026-11-13.mp4 `
+  -MusicPath .\artifacts\media\promo-music-bed-2026-11-12.wav
 ```
 
 The default output is written under the ignored `artifacts/media` directory:
 
 ```text
-artifacts/media/amd-mobile-power-native-promo-10w-2026-11-12/
-  amd-mobile-power-native-intro-10w-2026-11-12.mp4
+artifacts/media/amd-mobile-power-promo-1.0.22-2026-11-13/
+  amd-mobile-power-intro-1.0.22-2026-11-13.mp4
   captions-zh.srt
   cover-draft.png
   promo-manifest.json
