@@ -1092,27 +1092,49 @@ try {
         }
 
         if ($ExecutePolicySave) {
+            $statePath = Join-Path `
+                $isolatedLocalAppData `
+                "AmdMobilePower\rust-ui-state.json"
             Post-GuiMessage `
                 -Window $window `
                 -Message $wmCommand `
                 -WParam 105
             $policySaved = $false
-            $deadline = [DateTime]::UtcNow.AddSeconds(5)
+            $deadline = [DateTime]::UtcNow.AddSeconds(10)
             while ([DateTime]::UtcNow -lt $deadline) {
                 if ((Get-GuiStatusText -Window $window) -match "自动策略已保存。") {
                     $policySaved = $true
                     break
                 }
+                # The status label is refreshed by telemetry every second, so
+                # treat the persisted policy as the durable success signal.
+                if (Test-Path -LiteralPath $statePath) {
+                    try {
+                        $persisted = Get-Content -LiteralPath $statePath -Raw |
+                            ConvertFrom-Json
+                        if ($null -ne $persisted.powerPolicy) {
+                            $policySaved = $true
+                            break
+                        }
+                    }
+                    catch {
+                        # A concurrent write can leave a partial file; retry.
+                    }
+                }
                 Start-Sleep -Milliseconds 50
             }
             if (-not $policySaved) {
                 $lastStatus = Get-GuiStatusText -Window $window
-                throw "Rust GUI did not report a successful policy save. Status: $lastStatus"
+                $stateText = if (Test-Path -LiteralPath $statePath) {
+                    Get-Content -LiteralPath $statePath -Raw
+                }
+                else {
+                    "<missing>"
+                }
+                throw ("Rust GUI did not persist the power policy. " +
+                    "Status: $lastStatus`nState: $stateText")
             }
             if ($presetEditingResult -eq "PASS") {
-                $statePath = Join-Path `
-                    $isolatedLocalAppData `
-                    "AmdMobilePower\rust-ui-state.json"
                 $policyState = Get-Content -LiteralPath $statePath -Raw |
                     ConvertFrom-Json
                 if (($policyState.presets -join ",") -ne "11,24,43") {

@@ -58,6 +58,11 @@ scaled scroll offset instead of scaling the already-subtracted value.
   `docs/evidence/build/reproducibility-2026-11-13.json`.
 - Next: keep the video/claim review and public-release approval gates open;
   no second AMD device is available yet.
+- Verification tooling: `verify-rust-gui.ps1 -ExecutePolicySave` now treats the
+  persisted `powerPolicy` block as the durable success signal instead of the
+  telemetry-refreshed status label (which can overwrite the save message within
+  one tick). Re-run against the deployed `1.0.23` GUI reports `PolicySave
+  PASS`.
 
 2026-11-13: `1.0.22-native` is deployed to `C:\RyzenAdj`. It supersedes
 `1.0.21-native` with stabilised scrollbar layout, simple-mode scrolling on a
