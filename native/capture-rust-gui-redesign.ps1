@@ -11,6 +11,8 @@ param(
     [string]$DpiFixture,
     [ValidateRange(5, 60)]
     [int]$UniformTargetWatts,
+    [ValidateCount(3, 3)]
+    [int[]]$PresetWatts = @(12, 25, 45),
     [switch]$BatteryOnly,
     [int]$FocusControlId,
     [switch]$ReadOnly
@@ -445,6 +447,16 @@ if ($BatteryOnly -or $UniformTargetWatts -gt 0) {
         ConvertTo-Json -Depth 8 |
         Set-Content -LiteralPath (Join-Path $stateFileDirectory "rust-ui-state.json") -Encoding UTF8
 }
+else {
+    $stateFileDirectory = Join-Path $stateDirectory "AmdMobilePower"
+    New-Item -ItemType Directory -Path $stateFileDirectory -Force | Out-Null
+    [ordered]@{
+        presets = $PresetWatts
+        mode = "simple"
+        topMost = $false
+    } | ConvertTo-Json | Set-Content -LiteralPath (
+        Join-Path $stateFileDirectory "rust-ui-state.json") -Encoding UTF8
+}
 $previousLocalAppData = $env:LOCALAPPDATA
 $env:LOCALAPPDATA = $stateDirectory
 $pipeName = "AmdMobilePower.RedesignCapture.$([Guid]::NewGuid().ToString('N'))"
@@ -544,8 +556,8 @@ try {
     $simpleClientSize = Assert-FixtureClientSize `
         -Window $window `
         -Scale $DpiFixture `
-        -LogicalWidth 640 `
-        -LogicalHeight 392 `
+        -LogicalWidth 600 `
+        -LogicalHeight 360 `
         -Description "simple"
     Start-Sleep -Milliseconds 400
     [void](Focus-CaptureWindow -Window $window -FocusControlId $FocusControlId)

@@ -106,6 +106,13 @@ an isolated `%LocalAppData%`, saves them, checks the rewritten button labels,
 and verifies the persisted JSON. With `-ExecutePolicySave`, it also confirms
 that saving the battery/AC policy does not discard those presets.
 
+`-ExecuteNoChangePreset` requires external power and three matching live limits
+within `5-60 W`. It reads the current limits from diagnostics, places that value
+in an isolated preset, applies it through the simple-mode preset button, and
+checks both the GUI result and fresh telemetry. It never chooses a fixed 45 W
+target. Unequal limits fail before a write, because a uniform GUI preset would
+otherwise change the starting state.
+
 The write-control page exposes three editable quick presets, initially `12`,
 `25`, and `45 W`. Saving a preset updates the radio-button labels and the
 current target, with every value clamped to the active platform profile.

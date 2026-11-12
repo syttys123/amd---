@@ -82,6 +82,17 @@ public static class AmdMobilePowerRustGuiNative {
     [DllImport("user32.dll")]
     public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
 
+    [DllImport("user32.dll")]
+    public static extern bool GetClientRect(IntPtr hWnd, out RECT rect);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetWindowPos(
+        IntPtr hwnd, IntPtr after, int x, int y, int width, int height, uint flags);
+
+    [DllImport("user32.dll", EntryPoint = "SendMessageW")]
+    public static extern IntPtr SendMinMax(
+        IntPtr hwnd, uint message, UIntPtr value, ref MINMAXINFO data);
+
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool PostMessage(
         IntPtr hWnd,
@@ -118,11 +129,28 @@ public static class AmdMobilePowerRustGuiNative {
         UIntPtr wParam,
         string lParam);
 
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "SendMessageW")]
+    public static extern IntPtr ReadControlText(
+        IntPtr hwnd, uint message, UIntPtr length, StringBuilder text);
+
     public struct RECT {
         public int Left;
         public int Top;
         public int Right;
         public int Bottom;
+    }
+
+    public struct POINT {
+        public int X;
+        public int Y;
+    }
+
+    public struct MINMAXINFO {
+        public POINT Reserved;
+        public POINT MaxSize;
+        public POINT MaxPosition;
+        public POINT MinTrackSize;
+        public POINT MaxTrackSize;
     }
 }
 "@
@@ -259,10 +287,11 @@ function Get-ControlText {
         return ""
     }
     $text = New-Object System.Text.StringBuilder 1024
-    [AmdMobilePowerRustGuiNative]::GetWindowText(
+    [AmdMobilePowerRustGuiNative]::ReadControlText(
         $control,
-        $text,
-        $text.Capacity) | Out-Null
+        0x000D,
+        [UIntPtr]$text.Capacity,
+        $text) | Out-Null
     return $text.ToString()
 }
 
@@ -630,8 +659,13 @@ try {
     $topMostResult = "PASS"
 
     $writePresetResult = "Not requested"
+    $noChangeTarget = $null
+    $noChangeReadBack = $null
     $presetEditingResult = "Not requested"
     $batteryOnlyToggleResult = "Not requested"
+    $focusNotificationsResult = "Not requested"
+    $targetDraftResult = "Not requested"
+    $resizeBoundsResult = "Not requested"
     if ($VerifyWriteControls) {
         $childTexts = @(Get-GuiChildTexts -Window $window)
         foreach ($required in @(
@@ -694,6 +728,60 @@ try {
             throw "Unexpected native UI mode, contrast, icon, or policy state."
         }
 
+        foreach ($command in @(108, 110, 315, 318)) {
+            $child = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, $command)
+            [AmdMobilePowerRustGuiNative]::SendMessage(
+                $window, 0x0111, [UIntPtr]($command -bor (6 -shl 16)), $child) | Out-Null
+        }
+        $afterFocus = Export-GuiDiagnostics `
+            -Window $window `
+            -LocalAppDataRoot $isolatedLocalAppData
+        if ($afterFocus.Document.ui.mode -ne "advanced" -or
+            -not $afterFocus.Document.ui.topMost -or
+            $afterFocus.Document.ui.policyEnabled -or
+            $afterFocus.Document.ui.batteryOnly) {
+            throw "A focus notification performed a button action."
+        }
+        $focusNotificationsResult = "PASS"
+
+        $targetEdit = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, 316)
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $window, 0x0028, [UIntPtr]$targetEdit.ToInt64(), [IntPtr]1) | Out-Null
+        [AmdMobilePowerRustGuiNative]::SendMessageText(
+            $targetEdit, 0x000C, [UIntPtr]::Zero, "17") | Out-Null
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $window, 0x0028, [UIntPtr]$topMostButton.ToInt64(), [IntPtr]1) | Out-Null
+        Start-Sleep -Milliseconds 1200
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $simpleButton, 0x00F5, [UIntPtr]108, [IntPtr]::Zero) | Out-Null
+        if ((Get-ControlText -Window $window -ControlId 316) -ne "17") {
+            throw "The custom target draft was overwritten by telemetry or a mode switch."
+        }
+        $targetDraftResult = "PASS"
+
+        $minimum = New-Object AmdMobilePowerRustGuiNative+MINMAXINFO
+        [AmdMobilePowerRustGuiNative]::SendMinMax(
+            $window, 0x0024, [UIntPtr]::Zero, [ref]$minimum) | Out-Null
+        [AmdMobilePowerRustGuiNative]::SetWindowPos(
+            $window, [IntPtr]::Zero, 0, 0,
+            $minimum.MinTrackSize.X, $minimum.MinTrackSize.Y, 0x0016) | Out-Null
+        $client = New-Object AmdMobilePowerRustGuiNative+RECT
+        [AmdMobilePowerRustGuiNative]::GetClientRect($window, [ref]$client) | Out-Null
+        $outer = New-Object AmdMobilePowerRustGuiNative+RECT
+        [AmdMobilePowerRustGuiNative]::GetWindowRect($window, [ref]$outer) | Out-Null
+        foreach ($command in @(101, 102, 103, 107, 108, 109, 110, 316, 317, 324)) {
+            $child = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, $command)
+            $childRect = New-Object AmdMobilePowerRustGuiNative+RECT
+            [AmdMobilePowerRustGuiNative]::GetWindowRect($child, [ref]$childRect) | Out-Null
+            if ($childRect.Left -lt $outer.Left -or $childRect.Right -gt $outer.Right -or
+                $childRect.Top -lt $outer.Top -or $childRect.Bottom -gt $outer.Bottom) {
+                throw "Control $command escapes the minimum window bounds."
+            }
+        }
+        $resizeBoundsResult = "PASS"
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $advancedButton, 0x00F5, [UIntPtr]109, [IntPtr]::Zero) | Out-Null
+
         [AmdMobilePowerRustGuiNative]::SendMessage(
             $batteryOnlyButton,
             0x00F5,
@@ -749,6 +837,12 @@ try {
                     0x000C,
                     [UIntPtr]::Zero,
                     $editedPresets[$index]) | Out-Null
+            }
+            Start-Sleep -Milliseconds 1200
+            for ($index = 0; $index -lt $editedPresets.Count; $index++) {
+                if ((Get-ControlText -Window $window -ControlId (301 + $index)) -ne $editedPresets[$index]) {
+                    throw "Telemetry overwrote an unsaved preset draft."
+                }
             }
             $savePresetButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
                 $window,
@@ -823,27 +917,46 @@ try {
         }
 
         if ($ExecuteNoChangePreset) {
-            if ($workerStatus -notmatch "供电：交流电" -or
-                $workerStatus -notmatch "STAPM 上限：45\.00 W" -or
-                $workerStatus -notmatch "Fast 上限：45\.00 W" -or
-                $workerStatus -notmatch "Slow 上限：45\.00 W") {
-                throw "No-change preset requires an AC 45/45/45 W starting state."
+            $telemetry = $diagnostics.snapshot.telemetry
+            if ($telemetry.powerLine -ne "ac") {
+                throw "No-change preset verification requires AC power."
             }
+            $limits = @(
+                $telemetry.stapmLimitWatts,
+                $telemetry.fastLimitWatts,
+                $telemetry.slowLimitWatts
+            )
+            if (@($limits | Where-Object { $null -eq $_ }).Count -gt 0) {
+                throw "No-change preset requires all three live limits."
+            }
+            $noChangeTarget = [int][Math]::Round([double]$limits[0])
+            if ($noChangeTarget -lt 5 -or $noChangeTarget -gt 60 -or
+                @($limits | Where-Object {
+                    [Math]::Abs([double]$_ - $noChangeTarget) -gt 0.25
+                }).Count -gt 0) {
+                throw "No-change preset requires matching live limits in the 5-60 W range."
+            }
+
+            $firstPresetEdit = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, 301)
+            [AmdMobilePowerRustGuiNative]::SendMessageText(
+                $firstPresetEdit, 0x000C, [UIntPtr]::Zero,
+                [string]$noChangeTarget) | Out-Null
+            [AmdMobilePowerRustGuiNative]::SendMessage(
+                $window, $wmCommand, [UIntPtr]106, [IntPtr]::Zero) | Out-Null
+            [AmdMobilePowerRustGuiNative]::SendMessage(
+                $simpleButton, 0x00F5, [UIntPtr]108, [IntPtr]::Zero) | Out-Null
 
             Post-GuiMessage `
                 -Window $window `
                 -Message $wmCommand `
-                -WParam 103
-            Post-GuiMessage `
-                -Window $window `
-                -Message $wmCommand `
-                -WParam 104
+                -WParam 101
 
             $deadline = [DateTime]::UtcNow.AddSeconds(10)
             $applied = $false
             while ([DateTime]::UtcNow -lt $deadline) {
                 $childTexts = @(Get-GuiChildTexts -Window $window)
-                if ($childTexts -contains "已应用 45 W / 45 W / 45 W。`n回读校验通过。") {
+                $expected = "已应用 $noChangeTarget W / $noChangeTarget W / $noChangeTarget W。`n回读校验通过。"
+                if ($childTexts -contains $expected) {
                     $applied = $true
                     break
                 }
@@ -853,8 +966,23 @@ try {
                 Start-Sleep -Milliseconds 50
             }
             if (-not $applied) {
-                throw "Rust GUI did not report a verified 45 W no-change preset."
+                throw "Rust GUI did not report a verified $noChangeTarget W no-change preset."
             }
+            Start-Sleep -Milliseconds 1200
+            $afterApply = Export-GuiDiagnostics `
+                -Window $window -LocalAppDataRoot $isolatedLocalAppData
+            $afterTelemetry = $afterApply.Document.snapshot.telemetry
+            foreach ($field in @("stapmLimitWatts", "fastLimitWatts", "slowLimitWatts")) {
+                if ($null -eq $afterTelemetry.$field -or
+                    [Math]::Abs([double]$afterTelemetry.$field - $noChangeTarget) -gt 0.75) {
+                    throw "No-change GUI preset read-back mismatch for $field."
+                }
+            }
+            $noChangeReadBack = @(
+                $afterTelemetry.stapmLimitWatts,
+                $afterTelemetry.fastLimitWatts,
+                $afterTelemetry.slowLimitWatts
+            ) -join "/"
             $writePresetResult = "PASS"
         }
     }
@@ -977,10 +1105,16 @@ try {
             DiagnosticsExport = $diagnosticsExportResult
             ViewModes = $viewModeResult
             TopMost = $topMostResult
-            TargetWatts = if ($ExecuteNoChangePreset) { "45/45/45" } else { $null }
+            TargetWatts = if ($ExecuteNoChangePreset) {
+                "$noChangeTarget/$noChangeTarget/$noChangeTarget"
+            } else { $null }
+            ReadBackWatts = $noChangeReadBack
             WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
             PresetEditing = $presetEditingResult
             BatteryOnlyToggle = $batteryOnlyToggleResult
+            FocusNotifications = $focusNotificationsResult
+            TargetDraftRetention = $targetDraftResult
+            MinimumResizeBounds = $resizeBoundsResult
             WritePreset = $writePresetResult
             PolicySave = if ($ExecutePolicySave) { "PASS" } else { "Not requested" }
             RecordedAt = (Get-Date).ToString("o")
@@ -1004,6 +1138,9 @@ try {
         WriteControls = if ($VerifyWriteControls) { "PASS" } else { "Not requested" }
         PresetEditing = $presetEditingResult
         BatteryOnlyToggle = $batteryOnlyToggleResult
+        FocusNotifications = $focusNotificationsResult
+        TargetDraftRetention = $targetDraftResult
+        MinimumResizeBounds = $resizeBoundsResult
         WritePreset = $writePresetResult
         PolicySave = if ($ExecutePolicySave) { "PASS" } else { "Not requested" }
         Evidence = if ($EvidencePath) { $EvidencePath } else { $null }

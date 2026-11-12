@@ -19,6 +19,39 @@ This file is the first file every maintenance session must read. Update it
 after each meaningful change. Conversation history and compacted summaries are
 not authoritative.
 
+## Latest Maintenance Milestone
+
+2026-11-12: compact native UI polish is implemented and verified in development;
+clean-package verification and promotion are the next step. The current C-drive
+deployment remains `1.0.18-native` until that gate completes. Older version
+statements below are chronological records, not the current deployment pointer.
+
+- Simple mode now defaults to a `600x360` client and resizes down to `560x360`;
+  advanced mode stays `780x680`. One layout model aligns the target field,
+  apply action, three presets, and preset editor at every supported width.
+- Neutral charcoal/white surfaces, a restrained teal primary action, a smaller
+  measured-power display, aligned units, compact telemetry, full-width device
+  rows, and icon-only topmost/edit/export actions replace the previous deck.
+- Hover, hand cursors, keyboard focus rings, and native tooltips are wired.
+  Focus notifications no longer execute button actions. Target and preset
+  drafts survive the one-second telemetry refresh and mode changes.
+- Verified: 42 Rust GUI tests, 7 probe tests, Clippy, offline native Release
+  build, both C++ policy tests, .NET Release build with zero warnings/errors,
+  and 72 .NET tests. Live read-only interaction and lifecycle checks pass,
+  including three minimize/restore cycles, tray restoration, single-instance
+  wake, target draft retention, and minimum resize bounds.
+- Logical 100/125/150% fixtures and separate region crops pass visual review;
+  real Windows-session 100/150% monitor transitions remain pending.
+- Local state remains editable `10/25/45 W`, ceiling `45 W`, automatic
+  battery/AC policy disabled. Start-of-session hardware read-back was
+  `25/25/25 W` on external power. Visual/interaction checks were read-only;
+  a separate explicit GUI current-value preset test wrote and verified the
+  same `25/25/25 W`, with no change to the daily configuration.
+- Detail and development evidence: `docs/NATIVE_UI_REWRITE.md` and ignored
+  `artifacts/verify/native-ui-polish-*.json`. Next: clean `1.0.19-native`
+  package, controlled current-value write/read-back, reversible C-drive
+  promotion, shortcut verification, and relaunch of the daily GUI.
+
 ## Current Repo State
 
 - GitHub remote: `https://github.com/syttys123/amd-mobile-power.git`
@@ -1668,7 +1701,14 @@ third_party/
   `docs/evidence/packaging/v1.0.2-native-release-gate-2026-11-11.json`,
   `docs/evidence/packaging/v1.0.2-native-deployment-2026-11-11.json`.
 
-Development screenshot:
+Current development screenshots (isolated firmware-clamp fixture; not live
+hardware telemetry):
+
+![Compact native polish](assets/native-ui-polish-simple-2026-11-12.png)
+
+![Advanced native polish](assets/native-ui-polish-advanced-2026-11-12.png)
+
+Earlier rewrite screenshots:
 
 ![Native simple mode](assets/native-gui-redesign-simple-2026-11-11.png)
 

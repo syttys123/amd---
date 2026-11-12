@@ -45,8 +45,8 @@ foreach ($scale in @("100", "125", "150")) {
     if ([int]$capture.DpiFixture -ne [int]$scale) {
         throw "DPI capture evidence reports the wrong scale: $($capture.DpiFixture)"
     }
-    $expectedSimple = [int][Math]::Floor((640 * [int]$scale + 50) / 100.0)
-    $expectedSimpleHeight = [int][Math]::Floor((392 * [int]$scale + 50) / 100.0)
+    $expectedSimple = [int][Math]::Floor((600 * [int]$scale + 50) / 100.0)
+    $expectedSimpleHeight = [int][Math]::Floor((360 * [int]$scale + 50) / 100.0)
     $expectedAdvanced = [int][Math]::Floor((780 * [int]$scale + 50) / 100.0)
     $expectedAdvancedHeight = [int][Math]::Floor((680 * [int]$scale + 50) / 100.0)
     if ($capture.SimpleClientSize -ne "${expectedSimple}x${expectedSimpleHeight}") {

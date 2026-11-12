@@ -1,6 +1,6 @@
 # Native UI Rewrite
 
-Last updated: 2026-11-11
+Last updated: 2026-11-12
 
 This document describes the current Rust native GUI. The card-stack layout used
 by the earlier native preview has been removed.
@@ -32,7 +32,7 @@ The current audit also applies
   sections at 24 px or more. Structural rules are limited to ledgers, inputs,
   and focus boundaries.
 - Keep the type ladder at five roles or fewer: 12-14 px labels/body, 18 px
-  telemetry, 42 px live power, and one title role. Use normal and bold only;
+  telemetry, 36 px live power, and one title role. Use normal and bold only;
   no light or thin weights.
 - Status always pairs semantic color with text. Numbers use tabular figures
   and aligned units. Selected, focused, pressed, and disabled states remain
@@ -47,25 +47,30 @@ The current audit also applies
 The top of both modes is one continuous dark command deck:
 
 - 56 px command bar with product identity, detected CPU/family/power line,
-  `简洁` / `高级` segmented controls, and `置顶`.
-- 172 px shared control area with live STAPM power, power-line badge, target
-  range, fixed-width target input, primary apply action, and quick presets.
-- A 2 px electric-blue rule closes the command deck before the light data area.
+  `简洁` / `高级` segmented controls, and an icon-only topmost button.
+- 160 px shared control area with measured STAPM power, power-line badge,
+  target range, editable target, primary apply action, three quick presets,
+  and an icon-only preset editor.
+- A neutral boundary separates the command deck from the flat telemetry band.
 
-The live power value is the only display-scale number. The primary blue action
+The live power value is the only display-scale number. It never substitutes a
+configured limit when the measured sample is missing. The primary teal action
 is unique. Selected presets use a white surface and dark text; unselected
-presets remain part of the dark deck instead of becoming separate cards.
+presets remain part of the dark deck instead of becoming separate cards. A
+shared `CommandLayout` computes target, apply, preset, and edit positions from
+the available client width.
 
 ## Simple Mode
 
-Logical client size: `640x392`.
+Default logical client size: `600x360`; minimum: `560x360`. The minimum outer
+window includes caption and frame dimensions through `AdjustWindowRectExForDpi`.
 
 | Region | Geometry | Purpose |
 | --- | --- | --- |
 | Command bar | `0..56` | identity and mode controls |
-| Control deck | `56..228` | live power, target, apply, presets |
-| Telemetry band | `240..320` | STAPM, PPT Fast, PPT Slow, CPU temperature |
-| Status band | `332..376` | persistent write/read-back/error state |
+| Control deck | `56..216` | live power, target, apply, presets, edit |
+| Telemetry band | `230..296` | STAPM, PPT Fast, PPT Slow, CPU temperature |
+| Status band | `312..352` | persistent write/read-back/error state |
 
 The telemetry band is a flat ledger with vertical separators, not four cards.
 The status band keeps diagnostics export available in read-only mode and
@@ -86,7 +91,7 @@ Advanced mode uses the same command deck, followed by one split workspace:
     writes untouched, and save action,
   - live STAPM/Fast/Slow read-back ledger.
 - Right column:
-  - processor, family, SMU, PM table, and matched profile,
+  - full-width processor and matched-profile rows, family, SMU, and PM table,
   - platform write support and STAPM/Fast/Slow field support,
   - worker state, saved policy, read-back health, and privacy-safe diagnostics
     export.
@@ -100,26 +105,26 @@ nest cards inside cards.
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `canvas` | `#EEF1F6` | window background |
+| `canvas` | `#F7F8FA` | window background |
 | `surface` | `#FFFFFF` | advanced workspace |
-| `surface-muted` | `#F7F9FC` | telemetry and status bands |
-| `command` | `#0D121B` | command bar and control deck |
-| `border` | `#D3DAE6` | workspace boundary |
-| `rule` | `#E2E7EF` | internal separators |
+| `surface-muted` | `#F7F8FA` | telemetry and status bands |
+| `command` | `#191B1F` | command bar and control deck |
+| `border` | `#CBD0D7` | workspace boundary |
+| `rule` | `#E1E4E9` | internal separators |
 
 ### Semantic Color
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `accent` | `#2463EB` | apply action, live marker, focus |
-| `accent-pressed` | `#1648B2` | pressed primary action |
+| `accent` | `#107768` | apply action and focus |
+| `accent-pressed` | `#0A5C50` | pressed primary action |
 | `battery` | `#9C5207` | battery badge |
 | `warning` | amber surface/text | firmware clamp and recovery |
 | `error` | red surface/text | worker/platform failures |
 | `success` | `#0D7551` | connected/read-back success text |
 
-Neutral surfaces carry most of the window. Blue, amber, and red remain
-semantic.
+Neutral surfaces carry most of the window. Teal denotes actions, blue denotes
+external power, and amber/red remain warning/error colors.
 
 ### High Contrast
 
@@ -134,10 +139,10 @@ the user's Windows accessibility settings.
 
 - `Consolas` is used for live power and telemetry numbers.
 - `Microsoft YaHei UI` is used for Chinese labels and body text.
-- Display power is 42 px bold at 96 DPI.
+- Display power is 36 px bold at 96 DPI, with a separately aligned unit.
 - Telemetry values are 18 px bold.
 - Labels and status copy are 12-14 px.
-- Controls use `6 px` radius, rounded surfaces use `8-12 px`.
+- Controls and status chips use a `6 px` radius.
 - Primary and secondary controls retain stable geometry in normal, selected,
   pressed, disabled, and focused states.
 
@@ -145,6 +150,11 @@ the user's Windows accessibility settings.
 
 - Windows dialog navigation handles Tab, Shift+Tab, Enter, and Space.
 - Owner-drawn buttons paint a focus ring only for the actually focused control.
+- Buttons retain native keyboard behavior and add hover feedback, hand cursors,
+  and contrast-appropriate focus rings. `WM_COMMAND` ignores focus notifications
+  when dispatching button actions.
+- Native tooltips name the topmost, preset-edit, and diagnostics icons and expose
+  the full processor, profile, and status strings.
 - Text inputs and button windows paint their matching backdrop before rounded
   content so dark-shell corners never leak light default-control pixels.
 - Read-only mode keeps editable geometry visible but disabled and states
@@ -161,6 +171,12 @@ the user's Windows accessibility settings.
   paths or process IDs.
 - Switching modes preserves worker connection, presets, policy, target,
   topmost state, and diagnostics availability.
+- A modified target survives telemetry refreshes and mode switches. Preset
+  fields are refreshed only when profile identity or effective bounds change,
+  so the one-second telemetry loop no longer erases unsaved edits.
+- The local machine keeps editable `10/25/45 W` presets and a `45 W` ceiling;
+  automatic battery/AC policy is disabled. `10 W` is the manual night preset,
+  not a global application restriction.
 
 ## Rendering
 
@@ -169,11 +185,51 @@ the user's Windows accessibility settings.
 - Interactive text fields and owner-drawn buttons stay as native child windows
   for keyboard and accessibility support.
 - The embedded application icon is used in the title bar and tray.
-- Generated screenshots are captured only after confirming the target window
-  is foreground. This prevents the earlier failure mode where a read-only
-  capture recorded unrelated desktop content.
+- Screenshot capture first attempts a foreground DWM-frame copy. When the
+  foreground lock prevents activation, the script records
+  `PrintWindow(normalized-fallback)` and verifies the result is nonblank; it
+  does not label that result as a foreground screenshot.
 
 ## Runtime Evidence
+
+### 2026-11-12 Compact Polish
+
+- Rust GUI: 42 tests passed (20 library, 22 main); Rust probe: 7 tests passed.
+- Clippy with `-D warnings`, the offline native Release build, both C++ policy
+  test executables, and the .NET Release build passed. .NET tests: 72 passed.
+- Live read-only GUI/worker verification passed at `25/25/25 W` on external
+  power: target draft retention, unsaved preset retention across refresh,
+  focus-notification filtering, minimum resize bounds, diagnostics, mode
+  switching, topmost, three minimize/restore cycles, close-to-tray, tray
+  restore, and single-instance wake.
+- A separate explicit `-ExecuteNoChangePreset` run applied the existing
+  `25/25/25 W` through the simple-mode preset button and required fresh matching
+  telemetry. The verifier now derives that isolated preset from live limits
+  rather than requiring a fixed 45 W starting state.
+- Logical DPI fixtures passed: simple `600x360`, `750x450`, `900x540` and
+  advanced `780x680`, `975x850`, `1170x1020` at 100/125/150% respectively.
+  These do not replace real Windows monitor-transition evidence.
+- Screenshots were reviewed by individual header, live-power, target, preset,
+  telemetry, status, editor, policy, and device regions. High-contrast and
+  logical 100/150% crops were reviewed separately. The final captures use the
+  recorded PrintWindow fallback; the first pass used foreground captures.
+- Evidence before packaging lives under ignored `artifacts/verify/`:
+  `native-ui-polish-live-interaction-2026-11-12.json`,
+  `native-ui-polish-dpi-2026-11-12.json`, and `native-ui-polish-final.json`.
+  These describe a development tree; clean-package evidence is recorded by the
+  release gate before promotion.
+- The maintained development summary is
+  `docs/evidence/ui/native-ui-polish-development-2026-11-12.json`. The final
+  simple/advanced screenshots and read-only footer are retained below. The
+  firmware-clamp captures use isolated fixture telemetry, not a hardware test.
+
+![Compact polish fixture](assets/native-ui-polish-simple-2026-11-12.png)
+
+![Advanced polish fixture](assets/native-ui-polish-advanced-2026-11-12.png)
+
+![Read-only polish](assets/native-ui-polish-readonly-simple-2026-11-12.png)
+
+### Earlier Rewrite Evidence
 
 At 125% Windows scaling:
 

@@ -1,0 +1,65 @@
+use crate::state::UiMode;
+
+pub const SIMPLE_CLIENT_SIZE: (i32, i32) = (600, 360);
+pub const ADVANCED_CLIENT_SIZE: (i32, i32) = (780, 680);
+
+pub fn minimum_client_size(mode: UiMode) -> (i32, i32) {
+    match mode {
+        UiMode::Simple => (560, 360),
+        UiMode::Advanced => ADVANCED_CLIENT_SIZE,
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct CommandLayout {
+    pub width: i32,
+    pub target_left: i32,
+    pub target_width: i32,
+    pub apply_left: i32,
+    pub apply_width: i32,
+    pub preset_left: i32,
+    pub preset_width: i32,
+    pub edit_left: i32,
+}
+
+impl CommandLayout {
+    pub fn new(width: i32) -> Self {
+        let target_left = width / 2 + 12;
+        let target_width = width - target_left - 24;
+        let apply_left = target_left + 112;
+        let preset_left = 96;
+        let preset_width = (width - preset_left - 24 - 44 - 3 * 8) / 3;
+        Self {
+            width,
+            target_left,
+            target_width,
+            apply_left,
+            apply_width: width - 24 - apply_left,
+            preset_left,
+            preset_width,
+            edit_left: width - 24 - 44,
+        }
+    }
+
+    pub fn preset_x(self, slot: i32) -> i32 {
+        self.preset_left + slot * (self.preset_width + 8)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn command_controls_fit_at_minimum_and_expanded_widths() {
+        for width in [560, 600, 780, 960, 1200] {
+            let layout = CommandLayout::new(width);
+            assert!(layout.apply_width >= 120);
+            assert!(layout.preset_width >= 112);
+            assert!(layout.target_left > 270);
+            assert!(layout.preset_x(2) + layout.preset_width + 8 <= layout.edit_left);
+            assert_eq!(layout.edit_left + 44, width - 24);
+            assert_eq!(layout.apply_left + layout.apply_width, width - 24);
+        }
+    }
+}
