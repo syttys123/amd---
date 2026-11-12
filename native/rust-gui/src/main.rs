@@ -1,7 +1,8 @@
 #![windows_subsystem = "windows"]
 
 use amd_mobile_power_gui::layout::{
-    minimum_client_size, scroll_position, CommandLayout, ADVANCED_CLIENT_SIZE, SIMPLE_CLIENT_SIZE,
+    minimum_client_size, minimum_window_client_size, scroll_position, CommandLayout,
+    ADVANCED_CLIENT_SIZE, SIMPLE_CLIENT_SIZE,
 };
 use amd_mobile_power_gui::lifecycle::{
     LifecycleAction, LifecycleEvent, LifecycleState, Transition, WindowVisibility,
@@ -4970,15 +4971,12 @@ unsafe extern "system" fn window_proc(
         WM_GETMINMAXINFO => {
             let info = &mut *(lparam as *mut MINMAXINFO);
             let percent = app.dpi_percent.max(1);
-            let (minimum_width, minimum_height) = minimum_client_size(app.view_mode);
-            let (mut width, mut height) = outer_window_size(
+            let (minimum_width, minimum_height) = minimum_window_client_size(app.view_mode);
+            let (width, mut height) = outer_window_size(
                 scaled(minimum_width, percent),
                 scaled(minimum_height, percent),
                 window_dpi(hwnd),
             );
-            if app.view_mode == state::UiMode::Advanced {
-                width += GetSystemMetricsForDpi(SM_CXVSCROLL, window_dpi(hwnd));
-            }
             if DPI_FIXTURE_PERCENT.load(Ordering::Relaxed) == 0 {
                 if let Some(work) = monitor_work_area(hwnd) {
                     height = height.min(work.bottom - work.top);
