@@ -863,6 +863,25 @@ try {
         if ($scroll.Max -lt $scroll.Page -or $scroll.Position -ne 0) {
             throw "Short advanced viewport did not expose its scroll range."
         }
+        $hscroll = New-Object AmdMobilePowerRustGuiNative+SCROLLINFO
+        $hscroll.Size = [System.Runtime.InteropServices.Marshal]::SizeOf($hscroll)
+        $hscroll.Mask = 0x0017
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 0, [ref]$hscroll) | Out-Null
+        if ($hscroll.Max -lt $hscroll.Page -or $hscroll.Position -ne 0) {
+            throw "Narrow advanced viewport did not expose its horizontal scroll range."
+        }
+        $windowStyle = [AmdMobilePowerRustGuiNative]::GetWindowLongPtr($window, -16).ToInt64()
+        if (($windowStyle -band 0x00200000) -eq 0 -or
+            ($windowStyle -band 0x00100000) -eq 0) {
+            throw "Advanced window is missing the vertical/horizontal scrollbar styles."
+        }
+        $wheelBefore = $scroll.Position
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $window, 0x020A, [UIntPtr]0xFFE20000L, [IntPtr]::Zero) | Out-Null
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
+        if ($scroll.Position -ne ($wheelBefore + 12)) {
+            throw "Precision wheel delta 30 did not scroll by 12 logical pixels: $($scroll.Position)."
+        }
         [AmdMobilePowerRustGuiNative]::SendMessage(
             $window, 0x020A, [UIntPtr]0xFF880000L, [IntPtr]::Zero) | Out-Null
         [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
@@ -871,6 +890,12 @@ try {
         }
         [AmdMobilePowerRustGuiNative]::SendMessage(
             $window, 0x0115, [UIntPtr]7, [IntPtr]::Zero) | Out-Null
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $window, 0x0114, [UIntPtr]7, [IntPtr]::Zero) | Out-Null
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 0, [ref]$hscroll) | Out-Null
+        if ($hscroll.Position -le 0) {
+            throw "Horizontal scrollbar did not move to the right edge."
+        }
         $exportButton = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, 107)
         $exportRect = New-Object AmdMobilePowerRustGuiNative+RECT
         [AmdMobilePowerRustGuiNative]::GetWindowRect($exportButton, [ref]$exportRect) | Out-Null
@@ -884,8 +909,9 @@ try {
         }
         Set-GuiControlFocus -Window $window -Control $topMostButton
         [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
-        if ($scroll.Position -ge 48) {
-            throw "Keyboard focus did not reveal the advanced header: pos=$($scroll.Position) max=$($scroll.Max) page=$($scroll.Page)"
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 0, [ref]$hscroll) | Out-Null
+        if ($scroll.Position -ge 48 -or $hscroll.Position -ge 48) {
+            throw "Keyboard focus did not reveal the advanced header: x=$($hscroll.Position) y=$($scroll.Position)"
         }
         Set-GuiControlFocus -Window $window -Control $exportButton
         [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null

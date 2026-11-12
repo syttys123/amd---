@@ -2,21 +2,22 @@ use crate::state::UiMode;
 
 pub const SIMPLE_CLIENT_SIZE: (i32, i32) = (600, 360);
 pub const ADVANCED_CLIENT_SIZE: (i32, i32) = (780, 680);
+pub const ADVANCED_CONTENT_WIDTH: i32 = 760;
 
 pub fn minimum_client_size(mode: UiMode) -> (i32, i32) {
     match mode {
         UiMode::Simple => (560, 360),
-        UiMode::Advanced => (760, 420),
+        UiMode::Advanced => (ADVANCED_CONTENT_WIDTH, 420),
     }
 }
 
-/// Window-level minimum client size. Advanced reserves room for its vertical
-/// scrollbar (~17 logical px) inside the 780 px client, so the visible
-/// content never drops below the 760 px layout minimum.
+/// Window-level minimum client size. Advanced keeps the 760 px content width
+/// and scrolls horizontally when the work area is narrower (for example
+/// 1366x768 at 200% scaling), so the window never exceeds the screen.
 pub fn minimum_window_client_size(mode: UiMode) -> (i32, i32) {
     match mode {
         UiMode::Simple => minimum_client_size(mode),
-        UiMode::Advanced => (780, 420),
+        UiMode::Advanced => (560, 420),
     }
 }
 
@@ -80,7 +81,8 @@ mod tests {
     #[test]
     fn advanced_content_can_scroll_in_a_short_viewport() {
         assert_eq!(minimum_client_size(UiMode::Advanced), (760, 420));
-        assert_eq!(minimum_window_client_size(UiMode::Advanced), (780, 420));
+        assert_eq!(minimum_window_client_size(UiMode::Advanced), (560, 420));
+        assert_eq!(ADVANCED_CONTENT_WIDTH, 760);
         assert_eq!(scroll_position(1000, 680, 420), 260);
         assert_eq!(scroll_position(-10, 680, 420), 0);
         assert_eq!(scroll_position(50, 680, 720), 0);

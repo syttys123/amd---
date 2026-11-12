@@ -2,7 +2,7 @@
 
 use amd_mobile_power_gui::layout::{
     minimum_client_size, minimum_window_client_size, scroll_position, CommandLayout,
-    ADVANCED_CLIENT_SIZE, SIMPLE_CLIENT_SIZE,
+    ADVANCED_CLIENT_SIZE, ADVANCED_CONTENT_WIDTH, SIMPLE_CLIENT_SIZE,
 };
 use amd_mobile_power_gui::lifecycle::{
     LifecycleAction, LifecycleEvent, LifecycleState, Transition, WindowVisibility,
@@ -52,16 +52,17 @@ use windows_sys::Win32::System::Threading::{
 };
 use windows_sys::Win32::UI::Accessibility::{HCF_HIGHCONTRASTON, HIGHCONTRASTW};
 use windows_sys::Win32::UI::Controls::{
-    SetScrollInfo, ShowScrollBar, DRAWITEMSTRUCT, NMHDR, NMTTDISPINFOW, ODS_DISABLED, ODS_SELECTED,
-    ODT_BUTTON, TOOLTIPS_CLASSW, TTF_IDISHWND, TTF_SUBCLASS, TTM_ADDTOOLW, TTM_NEWTOOLRECTW,
+    SetScrollInfo, DRAWITEMSTRUCT, NMHDR, NMTTDISPINFOW, ODS_DISABLED, ODS_SELECTED, ODT_BUTTON,
+    TOOLTIPS_CLASSW, TTF_IDISHWND, TTF_SUBCLASS, TTM_ADDTOOLW, TTM_NEWTOOLRECTW,
     TTM_SETMAXTIPWIDTH, TTN_GETDISPINFOW, TTS_ALWAYSTIP, TTTOOLINFOW, WM_MOUSELEAVE,
 };
 use windows_sys::Win32::UI::HiDpi::{
-    AdjustWindowRectExForDpi, GetDpiForSystem, GetDpiForWindow, GetSystemMetricsForDpi,
-    SetProcessDpiAwarenessContext, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
+    AdjustWindowRectExForDpi, GetDpiForSystem, GetDpiForWindow, SetProcessDpiAwarenessContext,
+    DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
 };
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
-    EnableWindow, GetFocus, IsWindowEnabled, SetFocus, TrackMouseEvent, TME_LEAVE, TRACKMOUSEEVENT,
+    EnableWindow, GetFocus, GetKeyState, IsWindowEnabled, SetFocus, TrackMouseEvent, TME_LEAVE,
+    TRACKMOUSEEVENT, VK_SHIFT,
 };
 use windows_sys::Win32::UI::Shell::{
     DefSubclassProc, SetWindowSubclass, Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD,
@@ -77,15 +78,17 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     TranslateMessage, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, HICON, HMENU,
     HWND_NOTOPMOST, HWND_TOPMOST, ICON_BIG, ICON_SMALL, IDC_ARROW, IDC_HAND, IDI_APPLICATION,
     LR_DEFAULTCOLOR, MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED, MINMAXINFO, MSG, SB_BOTTOM,
-    SB_LINEDOWN, SB_LINEUP, SB_PAGEDOWN, SB_PAGEUP, SB_THUMBPOSITION, SB_THUMBTRACK, SB_TOP,
-    SB_VERT, SCROLLINFO, SIF_PAGE, SIF_POS, SIF_RANGE, SIF_TRACKPOS, SIZE_MINIMIZED, SIZE_RESTORED,
-    SM_CXVSCROLL, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER,
-    SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND,
+    SB_HORZ, SB_LEFT, SB_LINEDOWN, SB_LINELEFT, SB_LINERIGHT, SB_LINEUP, SB_PAGEDOWN, SB_PAGELEFT,
+    SB_PAGERIGHT, SB_PAGEUP, SB_RIGHT, SB_THUMBPOSITION, SB_THUMBTRACK, SB_TOP, SB_VERT,
+    SCROLLINFO, SIF_PAGE, SIF_POS, SIF_RANGE, SIF_TRACKPOS, SIZE_MINIMIZED, SIZE_RESTORED,
+    SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER, SW_HIDE,
+    SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND,
     WM_CONTEXTMENU, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_GETICON, WM_GETMINMAXINFO,
-    WM_LBUTTONUP, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_NOTIFY, WM_QUERYENDSESSION, WM_RBUTTONUP,
-    WM_SETCURSOR, WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOLORCHANGE,
-    WM_SYSCOMMAND, WM_VSCROLL, WNDCLASSEXW, WS_CAPTION, WS_CHILD, WS_CLIPCHILDREN, WS_EX_APPWINDOW,
-    WS_MINIMIZEBOX, WS_OVERLAPPED, WS_POPUP, WS_SYSMENU, WS_THICKFRAME, WS_VISIBLE,
+    WM_HSCROLL, WM_LBUTTONUP, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_NOTIFY, WM_QUERYENDSESSION,
+    WM_RBUTTONUP, WM_SETCURSOR, WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW, WM_SIZE,
+    WM_SYSCOLORCHANGE, WM_SYSCOMMAND, WM_VSCROLL, WNDCLASSEXW, WS_CAPTION, WS_CHILD,
+    WS_CLIPCHILDREN, WS_EX_APPWINDOW, WS_HSCROLL, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_POPUP,
+    WS_SYSMENU, WS_THICKFRAME, WS_VISIBLE, WS_VSCROLL,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_SETCHECK, BS_OWNERDRAW, ES_CENTER,
@@ -306,8 +309,14 @@ fn unscaled(value: i32, percent: i32) -> i32 {
     (value * 100 + percent / 2) / percent
 }
 
-const APP_WINDOW_STYLE: u32 =
-    WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_THICKFRAME | WS_CLIPCHILDREN;
+const APP_WINDOW_STYLE: u32 = WS_OVERLAPPED
+    | WS_CAPTION
+    | WS_SYSMENU
+    | WS_MINIMIZEBOX
+    | WS_THICKFRAME
+    | WS_CLIPCHILDREN
+    | WS_VSCROLL
+    | WS_HSCROLL;
 
 const fn rgb(red: u8, green: u8, blue: u8) -> u32 {
     red as u32 | ((green as u32) << 8) | ((blue as u32) << 16)
@@ -432,6 +441,7 @@ struct GuiApp {
     fonts: Option<UiFonts>,
     dpi_percent: i32,
     scroll_offset: i32,
+    scroll_offset_x: i32,
     layout_in_progress: bool,
     max_target_watts: Option<i32>,
 }
@@ -490,6 +500,7 @@ impl GuiApp {
             fonts: None,
             dpi_percent: 100,
             scroll_offset: 0,
+            scroll_offset_x: 0,
             layout_in_progress: false,
             max_target_watts,
         }
@@ -2050,7 +2061,7 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
     if let Some(fonts) = app.fonts.as_ref() {
         SetViewportOrgEx(
             target_dc,
-            0,
+            -scaled(app.scroll_offset_x, percent),
             -scaled(app.scroll_offset, percent),
             std::ptr::null_mut(),
         );
@@ -3973,16 +3984,19 @@ unsafe fn move_control(hwnd: HWND, id: usize, x: i32, y: i32, width: i32, height
     let control = GetDlgItem(hwnd, id as i32);
     if !control.is_null() {
         let app = app_from_window(hwnd);
-        let offset = if app.is_null() {
-            0
+        let (offset_x, offset_y) = if app.is_null() {
+            (0, 0)
         } else {
-            scaled((*app).scroll_offset, (*app).dpi_percent)
+            (
+                scaled((*app).scroll_offset_x, (*app).dpi_percent),
+                scaled((*app).scroll_offset, (*app).dpi_percent),
+            )
         };
         SetWindowPos(
             control,
             std::ptr::null_mut(),
-            x,
-            y - offset,
+            x - offset_x,
+            y - offset_y,
             width,
             height,
             SWP_NOZORDER | SWP_NOACTIVATE,
@@ -4002,25 +4016,43 @@ unsafe fn monitor_work_area(hwnd: HWND) -> Option<RECT> {
         .then_some(monitor.rcWork)
 }
 
-unsafe fn set_scroll_offset(app: &mut GuiApp, hwnd: HWND, position: i32) {
+unsafe fn set_scroll_offsets(app: &mut GuiApp, hwnd: HWND, x: i32, y: i32) {
     if app.view_mode != state::UiMode::Advanced {
         return;
     }
     let mut client = RECT::default();
     GetClientRect(hwnd, &mut client);
-    let position = scroll_position(
-        position,
-        ADVANCED_CLIENT_SIZE.1,
-        unscaled(client.bottom, app.dpi_percent),
+    let x = scroll_position(
+        x,
+        ADVANCED_CONTENT_WIDTH,
+        unscaled(client.right.max(1), app.dpi_percent),
     );
-    if app.scroll_offset != position {
-        app.scroll_offset = position;
+    let y = scroll_position(
+        y,
+        ADVANCED_CLIENT_SIZE.1,
+        unscaled(client.bottom.max(1), app.dpi_percent),
+    );
+    if app.scroll_offset != y || app.scroll_offset_x != x {
+        app.scroll_offset = y;
+        app.scroll_offset_x = x;
         layout_mode_controls(app, hwnd);
     }
 }
 
+unsafe fn set_scroll_offset(app: &mut GuiApp, hwnd: HWND, position: i32) {
+    set_scroll_offsets(app, hwnd, app.scroll_offset_x, position);
+}
+
 unsafe fn reveal_control(app: &mut GuiApp, hwnd: HWND, control: HWND) {
     if app.view_mode != state::UiMode::Advanced || control.is_null() || app.layout_in_progress {
+        return;
+    }
+    // Header buttons anchor the whole header row. Focusing one should also
+    // restore the title and mode controls that a narrow viewport may clip.
+    if app.header_controls.is_some_and(|controls| {
+        control == controls.simple || control == controls.advanced || control == controls.topmost
+    }) {
+        set_scroll_offsets(app, hwnd, 0, 0);
         return;
     }
     let mut bounds = RECT::default();
@@ -4039,18 +4071,26 @@ unsafe fn reveal_control(app: &mut GuiApp, hwnd: HWND, control: HWND) {
     ScreenToClient(hwnd, &mut top);
     ScreenToClient(hwnd, &mut bottom);
     let margin = scaled(8, app.dpi_percent);
-    let delta = if top.y < margin {
+    let delta_y = if top.y < margin {
         top.y - margin
     } else if bottom.y > client.bottom - margin {
         bottom.y - client.bottom + margin
     } else {
         0
     };
-    if delta != 0 {
-        set_scroll_offset(
+    let delta_x = if top.x < margin {
+        top.x - margin
+    } else if bottom.x > client.right - margin {
+        bottom.x - client.right + margin
+    } else {
+        0
+    };
+    if delta_x != 0 || delta_y != 0 {
+        set_scroll_offsets(
             app,
             hwnd,
-            app.scroll_offset + unscaled(delta, app.dpi_percent),
+            app.scroll_offset_x + unscaled(delta_x, app.dpi_percent),
+            app.scroll_offset + unscaled(delta_y, app.dpi_percent),
         );
     }
 }
@@ -4198,6 +4238,8 @@ unsafe fn layout_text_tooltips(app: &GuiApp, hwnd: HWND, width: i32) {
         } else {
             bounds
         };
+        let left = left - app.scroll_offset_x;
+        let right = right - app.scroll_offset_x;
         let top = top - app.scroll_offset;
         let bottom = bottom - app.scroll_offset;
         let s = |value| scaled(value, app.dpi_percent);
@@ -4223,21 +4265,32 @@ unsafe fn layout_text_tooltips(app: &GuiApp, hwnd: HWND, width: i32) {
 }
 
 unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
+    apply_view_mode_inner(app, hwnd, mode, false);
+}
+
+unsafe fn apply_view_mode_inner(
+    app: &mut GuiApp,
+    hwnd: HWND,
+    mode: state::UiMode,
+    preserve_scroll: bool,
+) {
     app.view_mode = mode;
-    app.scroll_offset = 0;
-    ShowScrollBar(hwnd, SB_VERT, 0);
+    if !preserve_scroll {
+        app.scroll_offset = 0;
+        app.scroll_offset_x = 0;
+    }
     let percent = app.dpi_percent.max(1);
     let (width, height) = match mode {
         state::UiMode::Simple => SIMPLE_CLIENT_SIZE,
         state::UiMode::Advanced => ADVANCED_CLIENT_SIZE,
     };
-    let (mut outer_width, outer_height) = outer_window_size(
+    let (outer_width_requested, outer_height_requested) = outer_window_size(
         scaled(width, percent),
         scaled(height, percent),
         window_dpi(hwnd),
     );
-    let full_outer_height = outer_height;
-    let mut outer_height = outer_height;
+    let mut outer_width = outer_width_requested;
+    let mut outer_height = outer_height_requested;
     let mut position = POINT::default();
     let mut bounds = RECT::default();
     GetWindowRect(hwnd, &mut bounds);
@@ -4248,9 +4301,7 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
     if DPI_FIXTURE_PERCENT.load(Ordering::Relaxed) == 0 {
         if let Some(work) = monitor_work_area(hwnd) {
             outer_height = outer_height.min(work.bottom - work.top);
-            if mode == state::UiMode::Advanced && outer_height < full_outer_height {
-                outer_width += GetSystemMetricsForDpi(SM_CXVSCROLL, window_dpi(hwnd));
-            }
+            outer_width = outer_width.min(work.right - work.left);
             position.x = position
                 .x
                 .clamp(work.left, (work.right - outer_width).max(work.left));
@@ -4296,13 +4347,24 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
     let s = |value: i32| scaled(value, percent);
     let mut client = RECT::default();
     GetClientRect(hwnd, &mut client);
+    let viewport_width = unscaled(client.right.max(1), percent);
     let viewport_height = unscaled(client.bottom.max(1), percent);
+    let content_width = if advanced {
+        ADVANCED_CONTENT_WIDTH
+    } else {
+        viewport_width
+    };
     app.scroll_offset = if advanced {
         scroll_position(app.scroll_offset, ADVANCED_CLIENT_SIZE.1, viewport_height)
     } else {
         0
     };
-    let mut scroll = SCROLLINFO {
+    app.scroll_offset_x = if advanced {
+        scroll_position(app.scroll_offset_x, content_width, viewport_width)
+    } else {
+        0
+    };
+    let mut vscroll = SCROLLINFO {
         cbSize: size_of::<SCROLLINFO>() as u32,
         fMask: SIF_RANGE | SIF_PAGE | SIF_POS,
         nMin: 0,
@@ -4311,15 +4373,30 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
         nPos: app.scroll_offset,
         ..Default::default()
     };
+    let mut hscroll = SCROLLINFO {
+        cbSize: size_of::<SCROLLINFO>() as u32,
+        fMask: SIF_RANGE | SIF_PAGE | SIF_POS,
+        nMin: 0,
+        nMax: content_width - 1,
+        nPage: viewport_width as u32,
+        nPos: app.scroll_offset_x,
+        ..Default::default()
+    };
     if !advanced {
-        scroll.nMax = 0;
-        scroll.nPage = 1;
+        vscroll.nMax = 0;
+        vscroll.nPage = 1;
+        hscroll.nMax = 0;
+        hscroll.nPage = 1;
     }
-    SetScrollInfo(hwnd, SB_VERT, &scroll, 1);
+    SetScrollInfo(hwnd, SB_VERT, &vscroll, 1);
+    SetScrollInfo(hwnd, SB_HORZ, &hscroll, 1);
     GetClientRect(hwnd, &mut client);
-    let width = minimum_client_size(mode)
-        .0
-        .max(unscaled(client.right.max(1), percent));
+    let viewport_width = unscaled(client.right.max(1), percent);
+    let width = if advanced {
+        ADVANCED_CONTENT_WIDTH.max(viewport_width)
+    } else {
+        minimum_client_size(mode).0.max(viewport_width)
+    };
     let layout = CommandLayout::new(width);
 
     if let Some(controls) = app.header_controls {
@@ -4339,7 +4416,7 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
             SetWindowPos(
                 control,
                 std::ptr::null_mut(),
-                s(left),
+                s(left - app.scroll_offset_x),
                 s(12 - app.scroll_offset),
                 s(control_width),
                 s(32),
@@ -4972,13 +5049,14 @@ unsafe extern "system" fn window_proc(
             let info = &mut *(lparam as *mut MINMAXINFO);
             let percent = app.dpi_percent.max(1);
             let (minimum_width, minimum_height) = minimum_window_client_size(app.view_mode);
-            let (width, mut height) = outer_window_size(
+            let (mut width, mut height) = outer_window_size(
                 scaled(minimum_width, percent),
                 scaled(minimum_height, percent),
                 window_dpi(hwnd),
             );
             if DPI_FIXTURE_PERCENT.load(Ordering::Relaxed) == 0 {
                 if let Some(work) = monitor_work_area(hwnd) {
+                    width = width.min(work.right - work.left);
                     height = height.min(work.bottom - work.top);
                 }
             }
@@ -5011,14 +5089,44 @@ unsafe extern "system" fn window_proc(
         }
         WM_MOUSEWHEEL if app.view_mode == state::UiMode::Advanced => {
             let delta = ((wparam >> 16) as u16 as i16) as i32;
-            set_scroll_offset(app, hwnd, app.scroll_offset - delta / 120 * 48);
+            // 48 logical px per notch with fractional deltas preserved:
+            // a precision touchpad reports 30/60 instead of 120 per notch.
+            let step = delta * 2 / 5;
+            if GetKeyState(VK_SHIFT as i32) < 0 {
+                set_scroll_offsets(app, hwnd, app.scroll_offset_x - step, app.scroll_offset);
+            } else {
+                set_scroll_offsets(app, hwnd, app.scroll_offset_x, app.scroll_offset - step);
+            }
+            0
+        }
+        WM_HSCROLL if app.view_mode == state::UiMode::Advanced => {
+            let mut client = RECT::default();
+            GetClientRect(hwnd, &mut client);
+            let page = unscaled(client.right, app.dpi_percent);
+            let mut scroll = SCROLLINFO {
+                cbSize: size_of::<SCROLLINFO>() as u32,
+                fMask: SIF_TRACKPOS,
+                ..Default::default()
+            };
+            GetScrollInfo(hwnd, SB_HORZ, &mut scroll);
+            let position = match (wparam & 0xFFFF) as i32 {
+                SB_LEFT => 0,
+                SB_RIGHT => ADVANCED_CONTENT_WIDTH,
+                SB_LINELEFT => app.scroll_offset_x - 32,
+                SB_LINERIGHT => app.scroll_offset_x + 32,
+                SB_PAGELEFT => app.scroll_offset_x - page + 32,
+                SB_PAGERIGHT => app.scroll_offset_x + page - 32,
+                SB_THUMBTRACK | SB_THUMBPOSITION => scroll.nTrackPos,
+                _ => app.scroll_offset_x,
+            };
+            set_scroll_offsets(app, hwnd, position, app.scroll_offset);
             0
         }
         WM_DPICHANGED => {
             app.dpi_percent = effective_dpi_percent(hwnd);
             refresh_control_fonts(app);
             let mode = app.view_mode;
-            apply_view_mode(app, hwnd, mode);
+            apply_view_mode_inner(app, hwnd, mode, true);
             0
         }
         WM_SIZE => {
