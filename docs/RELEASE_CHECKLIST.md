@@ -27,8 +27,9 @@ Release under review: `1.0.18-native`
 - [x] The worker disables policy and shuts down cleanly after the probe.
 - [x] No second hardware owner remains after verification.
 - [x] The deployed shortcut keeps the reviewed
-      `--max-target-watts 10 --uniform-target-watts 10` arguments.
-- [x] Local saved policy has both battery and AC at `10/10/10 W`.
+      `--enable-write-controls --simple-mode --max-target-watts 45` arguments.
+- [x] Local presets are `10 / 25 / 45 W`, the automatic battery/AC policy is
+      disabled, and `10 W` is the manual night preset.
 - [ ] A second physical AMD laptop has read-only evidence.
 - [ ] A fresh battery-to-AC-to-battery transition is re-run for this exact
       package revision. Historical transition evidence exists from earlier

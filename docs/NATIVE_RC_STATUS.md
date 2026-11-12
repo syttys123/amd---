@@ -61,10 +61,10 @@ logical DPI layout fixtures executed against the packaged GUI.
 read-only `getProfiles`, complete-catalog compatibility reports, and
 report-import validation. Every RyzenAdj family `0-15` maps to exactly one
 conservative fallback while `8845HS + 4c0009` remains the sole verified device
-profile. Worker version is `0.6.0-native`. The shortcut still launches with
-`--max-target-watts 10 --uniform-target-watts 10`, which persists and enables
-10/10/10 W for both battery and AC while preventing every UI target, preset, or
-policy from exceeding 10 W. `1.0.3-native` added per-monitor DPI awareness, a
+profile. Worker version is `0.6.0-native`. The local shortcut launches with
+`--enable-write-controls --simple-mode --max-target-watts 45`; saved presets
+are `10/25/45 W`, the automatic battery/AC policy is disabled, and `10 W` is
+the manual night preset. `1.0.3-native` added per-monitor DPI awareness, a
 resizable native window, hand cursors, a protected metric band, and the
 uniform policy. `1.0.2-native` added the embedded
 PE icon (`RT_ICON` + `RT_GROUP_ICON` 1). `1.0.1-native` fixed the desktop
@@ -238,8 +238,7 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
   `C:\RyzenAdj.before-20261111-223017`. The deployed GUI/worker passed
   read-only worker, lifecycle, tray, single-instance, mode, preset,
   battery-only, and diagnostics checks; the desktop shortcut keeps
-  `--enable-write-controls --simple-mode --max-target-watts 10
-  --uniform-target-watts 10`.
+  `--enable-write-controls --simple-mode --max-target-watts 45`.
 - Profile-catalog gate: the worker reports 10 entries, exactly one verified
   profile, and exactly one family fallback for every RyzenAdj family `0-15`.
   The packaged read-only collector returned `PASS` with worker

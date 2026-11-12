@@ -62,9 +62,11 @@ Do not run AMD Mobile Power alongside legacy `RyzenPower`, `ryzenadj`, or AMD
 Ryzen Master processes. The application intentionally refuses to become a
 second hardware owner.
 
-The local stable deployment on this development laptop is fixed to a
-`10/10/10 W` battery and AC policy. That local choice does not change the
-portable package's read-only default.
+The local stable deployment on this development laptop exposes editable
+presets `10 / 25 / 45 W` with a `45 W` ceiling and the automatic battery/AC
+policy disabled. `10 W` is the manual night preset; daytime switching is one
+click. That local choice does not change the portable package's read-only
+default.
 
 ## Portable Quick Start
 

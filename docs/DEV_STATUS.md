@@ -245,6 +245,14 @@ not authoritative.
   string, and exposes `-Reindex` to repair an existing index without adding a
   report. The current index is UTC-normalized and lists the 1.0.18 report
   first; duplicate rejection still passes.
+- Local deployment profile (2026-11-12): the machine-specific 10 W uniform
+  lock was removed. The shortcut is now
+  `--enable-write-controls --simple-mode --max-target-watts 45`; saved presets
+  are `[10, 25, 45]`, `maxTargetWatts=45`, and the automatic battery/AC policy
+  is disabled. Direct 25 W and 45 W preset writes were verified on the live
+  package, then the app was returned to 25 W. `10 W` remains the manual night
+  preset. The previous state file is backed up as
+  `rust-ui-state.json.before-10-25-45.bak`.
 - `C:\RyzenAdj` previously contained the promoted `1.0.17-native` package, which adds
   hung-worker replacement on top of the 1.0.16 supervision path. Package
   SHA256 is

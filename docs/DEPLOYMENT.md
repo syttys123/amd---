@@ -52,9 +52,9 @@ The native Rust GUI + C++ worker line uses the tested reversible helper:
 
 ```powershell
 .\native\promote-stable-deployment.ps1 `
-  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.10-native-win-x64-native-preview.zip `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.18-native-win-x64-native-preview.zip `
   -TargetDirectory C:\RyzenAdj `
-  -GuiArguments "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10"
+  -GuiArguments "--enable-write-controls --simple-mode --max-target-watts 45"
 ```
 
 That command is a dry run. Apply only after reviewing the target, backup, and
@@ -62,9 +62,9 @@ shortcut plan:
 
 ```powershell
 .\native\promote-stable-deployment.ps1 `
-  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.10-native-win-x64-native-preview.zip `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.18-native-win-x64-native-preview.zip `
   -TargetDirectory C:\RyzenAdj `
-  -GuiArguments "--enable-write-controls --simple-mode --max-target-watts 10 --uniform-target-watts 10" `
+  -GuiArguments "--enable-write-controls --simple-mode --max-target-watts 45" `
   -Apply -NoLaunch
 ```
 
@@ -79,8 +79,8 @@ On 2026-11-12, `1.0.18-native` replaced `1.0.17-native` at `C:\RyzenAdj`. It
 is the first package gated with `-VerifyWorkerHang`: the gate suspends the
 isolated worker, waits for the 30 s heartbeat watchdog to replace it, checks
 that the GUI stays responsive, and requires the saved 10/10/10 W policy to
-return. Exit supervision, probe pipe-busy retries, and the 10 W uniform policy
-remain in place.
+return. Exit supervision, probe pipe-busy retries, and the uniform-policy
+feature remain available.
 
 - Package SHA256:
   `fd7bf191ac557fb9bc1038cb725907ba67e5f819b8eeee6136f5cbe2721d6ef1`
@@ -94,9 +94,14 @@ remain in place.
   `docs\evidence\packaging\v1.0.18-native-release-gate-2026-11-12.json`
 - Deployment evidence:
   `docs\evidence\packaging\v1.0.18-native-deployment-2026-11-12.json`
+- Local machine profile: editable presets `10 / 25 / 45 W`, ceiling `45 W`,
+  automatic battery/AC policy disabled, and `25/25/25 W` active after the
+  transition test. `10 W` is the manual night preset.
+- Desktop shortcut:
+  `--enable-write-controls --simple-mode --max-target-watts 45`.
 - Acceptance: `-VerifyWorkerHang` held the isolated worker until the watchdog
-  replaced it in `34.9 s`; `28/28` responsiveness samples passed and the saved
-  policy was re-applied (`enabled=true`, both targets `10/10/10`).
+  replaced it in `34.9 s`; `28/28` responsiveness samples passed and the
+  verifier's isolated 10/10/10 W policy was re-applied.
 
 On 2026-11-12, `1.0.13-native` replaced `1.0.12-native` at `C:\RyzenAdj`. It is
 the first release whose portable ZIP rebuilds byte-identically from the same

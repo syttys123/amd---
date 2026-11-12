@@ -117,11 +117,11 @@ Evidence:
 - 仓库备份：
   `artifacts/deployment-backups/promote-amd-mobile-power-v1.0.18-native-win-x64-native-preview-20261112-074413.json`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
-- 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 10
-  --uniform-target-watts 10`
+- 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 45`
 - 部署验证：worker、托盘、单实例、模式、预设、电池策略开关、诊断导出 PASS；
-  快捷方式真实参数启动验证 PASS；实时策略 `enabled=true`、电池和插电均为
-  `10/10/10 W`，AC 回读 `10/10/10 W`
+  快捷方式真实参数启动验证 PASS。本机预设为 `10/25/45 W`，自动策略关闭，
+  25 W 与 45 W 预设均完成真机写入/回读，当前停留在 25 W；`10 W` 仅作为
+  夜间手动预设
 - Evidence:
   `docs/evidence/packaging/v1.0.18-native-deployment-2026-11-12.json`
 
