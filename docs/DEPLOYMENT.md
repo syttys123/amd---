@@ -98,6 +98,9 @@ scrolling (fixing the 1080p/150% taskbar occlusion found in review).
   `docs\evidence\packaging\v1.0.20-native-deployment-2026-11-12.json`
 - Deployed UI evidence:
   `docs\evidence\ui\native-deployed-1.0.20-native-ui-2026-11-12.json`
+- Worker-hang supplement:
+  `docs\evidence\hardware\v1.0.20-native-worker-hang-2026-11-13.json`
+  (`33.5 s` replacement, 20 responsive samples, 0 failures)
 - Live state after restart: editable presets `10 / 25 / 45 W`, ceiling
   `45 W`, automatic policy disabled; battery read-back `25/25/20 W`
   (firmware dynamic Slow limit) after a same-value policy probe on battery.

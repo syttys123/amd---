@@ -88,6 +88,18 @@ from the running build and archived under `assets/`. Evidence:
 `docs/evidence/media/native-promo-1.0.20-draft-2026-11-12.json`. Status stays
 `DRAFT_FOR_HUMAN_REVIEW`; no upload or publication was performed.
 
+2026-11-13 (gate supplement): the 1.0.20 release gate had skipped the
+worker-hang check. It now ran separately against the packaged GUI/worker while
+the hardware was already at `10/10/10 W`, so the verifier's isolated 10 W
+policy caused no net change. Result: `PASS` after `33.5 s`, 20 responsive
+samples with 0 failures, replacement worker healthy, policy and telemetry
+restored to `10/10/10 W`. Evidence:
+`docs/evidence/hardware/v1.0.20-native-worker-hang-2026-11-13.json`.
+A follow-up static re-read of the scroll paths (offset units, focus reveal,
+scrollbar range, DPI change, mode switch) found no confirmed regression
+beyond what the harness already covers. The daily GUI was relaunched and
+reports `10/10/10 W` on AC.
+
 ## Current Repo State
 
 - GitHub remote: `https://github.com/syttys123/amd-mobile-power.git`

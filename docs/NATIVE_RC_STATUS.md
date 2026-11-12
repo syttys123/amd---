@@ -104,6 +104,9 @@ artifacts/native-packages/amd-mobile-power-v1.0.20-native-win-x64-native-preview
 - Reproducibility: GUI `72b22832`, probe `9750418f`, worker `67af1d41`, and the
   ZIP itself are byte-identical across two builds.
 - Policy write verification: same-value battery probe at `25/25/20 W`.
+- Worker-hang replacement: verified separately on 2026-11-13 against the
+  packaged 1.0.20 pair (`33.5 s`, 20 responsive samples, 0 failures, policy
+  restored to `10/10/10 W`; the hardware was already at 10 W).
 - Supersedes `1.0.19-native` (package `f9825bb915e79ada5a61b19e1a30ac507f6aa3fc81e5190422f678116a5b4d6c`,
   source `18dbec11cd6f7045edc9ff866b56fb5cde95f724`), which added the compact
   600x360 polish; `1.0.20-native` adds the advanced work-area fit with
