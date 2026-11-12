@@ -45,6 +45,12 @@ These profiles only constrain presets and target ranges. They do not prove
 that a laptop supports writes, that its PM table is correct, or that firmware
 will accept a requested value.
 
+The table above was cross-checked on 2026-11-13 against the pinned submodule:
+`third_party/RyzenAdj/lib/ryzenadj.h` (enum order `0` Raven through `15` Fire
+Range) and `third_party/RyzenAdj/lib/cpuid.c` (family/model switch). Any
+submodule bump that renumbers `enum ryzen_family` requires updating both the
+catalog and the expected-ID test.
+
 The test suite requires every RyzenAdj family identifier from `0` through `15`
 to appear exactly once across the shipped family-fallback set. It also requires
 exactly one verified device profile. Adding support for a new family therefore
