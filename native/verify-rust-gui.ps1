@@ -6,6 +6,8 @@ param(
     [switch]$ExecutePolicySave,
     [ValidateSet("worker-offline", "firmware-clamp", "unsupported-platform", "long-error", "high-contrast")]
     [string]$UiFixture,
+    [ValidateSet("100", "125", "150", "200")]
+    [string]$DpiFixture,
     [string]$GuiExecutable,
     [string]$WorkerExecutable,
     [string]$PipeName,
@@ -86,6 +88,24 @@ public static class AmdMobilePowerRustGuiNative {
     public static extern bool GetClientRect(IntPtr hWnd, out RECT rect);
 
     [DllImport("user32.dll")]
+    public static extern bool ScreenToClient(IntPtr hwnd, ref POINT point);
+
+    [DllImport("user32.dll")]
+    public static extern bool GetScrollInfo(IntPtr hwnd, int bar, ref SCROLLINFO info);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr SetFocus(IntPtr hwnd);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool AttachThreadInput(uint attach, uint attachTo, bool attachInput);
+
+    [DllImport("kernel32.dll")]
+    public static extern uint GetCurrentThreadId();
+
+    [DllImport("user32.dll")]
     public static extern bool SetWindowPos(
         IntPtr hwnd, IntPtr after, int x, int y, int width, int height, uint flags);
 
@@ -151,6 +171,16 @@ public static class AmdMobilePowerRustGuiNative {
         public POINT MaxPosition;
         public POINT MinTrackSize;
         public POINT MaxTrackSize;
+    }
+
+    public struct SCROLLINFO {
+        public uint Size;
+        public uint Mask;
+        public int Min;
+        public int Max;
+        public uint Page;
+        public int Position;
+        public int TrackPosition;
     }
 }
 "@
@@ -337,6 +367,41 @@ function Export-GuiDiagnostics {
     }
 }
 
+function Set-GuiControlFocus {
+    param(
+        [IntPtr]$Window,
+        [IntPtr]$Control
+    )
+
+    $processId = 0
+    $threadId = [AmdMobilePowerRustGuiNative]::GetWindowThreadProcessId(
+        $Window,
+        [ref]$processId)
+    if ($threadId -eq 0) {
+        throw "GetWindowThreadProcessId failed."
+    }
+    $currentThread = [AmdMobilePowerRustGuiNative]::GetCurrentThreadId()
+    $attached = $false
+    if ($threadId -ne $currentThread) {
+        $attached = [AmdMobilePowerRustGuiNative]::AttachThreadInput(
+            $currentThread, $threadId, $true)
+        if (-not $attached) {
+            throw "AttachThreadInput failed for focus injection."
+        }
+    }
+    try {
+        if ([AmdMobilePowerRustGuiNative]::SetFocus($Control) -eq [IntPtr]::Zero) {
+            throw "SetFocus failed for the requested control."
+        }
+    }
+    finally {
+        if ($attached) {
+            [AmdMobilePowerRustGuiNative]::AttachThreadInput(
+                $currentThread, $threadId, $false) | Out-Null
+        }
+    }
+}
+
 $firstProcess = $null
 $secondProcess = $null
 $existingWorkerIds = @(
@@ -376,6 +441,9 @@ try {
     }
     if ($UiFixture) {
         $startArguments += @("--ui-fixture", $UiFixture)
+    }
+    if ($DpiFixture) {
+        $startArguments += @("--dpi-fixture", $DpiFixture)
     }
 
     $firstProcess = Start-Process `
@@ -666,6 +734,7 @@ try {
     $focusNotificationsResult = "Not requested"
     $targetDraftResult = "Not requested"
     $resizeBoundsResult = "Not requested"
+    $advancedScrollResult = "Not requested"
     if ($VerifyWriteControls) {
         $childTexts = @(Get-GuiChildTexts -Window $window)
         foreach ($required in @(
@@ -749,8 +818,7 @@ try {
             $window, 0x0028, [UIntPtr]$targetEdit.ToInt64(), [IntPtr]1) | Out-Null
         [AmdMobilePowerRustGuiNative]::SendMessageText(
             $targetEdit, 0x000C, [UIntPtr]::Zero, "17") | Out-Null
-        [AmdMobilePowerRustGuiNative]::SendMessage(
-            $window, 0x0028, [UIntPtr]$topMostButton.ToInt64(), [IntPtr]1) | Out-Null
+        Set-GuiControlFocus -Window $window -Control $topMostButton
         Start-Sleep -Milliseconds 1200
         [AmdMobilePowerRustGuiNative]::SendMessage(
             $simpleButton, 0x00F5, [UIntPtr]108, [IntPtr]::Zero) | Out-Null
@@ -779,6 +847,52 @@ try {
             }
         }
         $resizeBoundsResult = "PASS"
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $advancedButton, 0x00F5, [UIntPtr]109, [IntPtr]::Zero) | Out-Null
+
+        $minimum = New-Object AmdMobilePowerRustGuiNative+MINMAXINFO
+        [AmdMobilePowerRustGuiNative]::SendMinMax(
+            $window, 0x0024, [UIntPtr]::Zero, [ref]$minimum) | Out-Null
+        [AmdMobilePowerRustGuiNative]::SetWindowPos(
+            $window, [IntPtr]::Zero, 0, 0,
+            $minimum.MinTrackSize.X, $minimum.MinTrackSize.Y, 0x0016) | Out-Null
+        $scroll = New-Object AmdMobilePowerRustGuiNative+SCROLLINFO
+        $scroll.Size = [System.Runtime.InteropServices.Marshal]::SizeOf($scroll)
+        $scroll.Mask = 0x0017
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
+        if ($scroll.Max -lt $scroll.Page -or $scroll.Position -ne 0) {
+            throw "Short advanced viewport did not expose its scroll range."
+        }
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $window, 0x020A, [UIntPtr]0xFF880000L, [IntPtr]::Zero) | Out-Null
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
+        if ($scroll.Position -le 0) {
+            throw "Mouse wheel did not scroll the advanced viewport."
+        }
+        [AmdMobilePowerRustGuiNative]::SendMessage(
+            $window, 0x0115, [UIntPtr]7, [IntPtr]::Zero) | Out-Null
+        $exportButton = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, 107)
+        $exportRect = New-Object AmdMobilePowerRustGuiNative+RECT
+        [AmdMobilePowerRustGuiNative]::GetWindowRect($exportButton, [ref]$exportRect) | Out-Null
+        $bottom = New-Object AmdMobilePowerRustGuiNative+POINT
+        $bottom.X = $exportRect.Right
+        $bottom.Y = $exportRect.Bottom
+        [AmdMobilePowerRustGuiNative]::ScreenToClient($window, [ref]$bottom) | Out-Null
+        [AmdMobilePowerRustGuiNative]::GetClientRect($window, [ref]$client) | Out-Null
+        if ($bottom.X -gt $client.Right -or $bottom.Y -gt $client.Bottom) {
+            throw "Diagnostics button is clipped after scrolling to the bottom."
+        }
+        Set-GuiControlFocus -Window $window -Control $topMostButton
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
+        if ($scroll.Position -ge 48) {
+            throw "Keyboard focus did not reveal the advanced header: pos=$($scroll.Position) max=$($scroll.Max) page=$($scroll.Page)"
+        }
+        Set-GuiControlFocus -Window $window -Control $exportButton
+        [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
+        if ($scroll.Position -le 0) {
+            throw "Keyboard focus did not reveal the advanced footer."
+        }
+        $advancedScrollResult = "PASS"
         [AmdMobilePowerRustGuiNative]::SendMessage(
             $advancedButton, 0x00F5, [UIntPtr]109, [IntPtr]::Zero) | Out-Null
 
@@ -1115,6 +1229,8 @@ try {
             FocusNotifications = $focusNotificationsResult
             TargetDraftRetention = $targetDraftResult
             MinimumResizeBounds = $resizeBoundsResult
+            AdvancedScroll = $advancedScrollResult
+            DpiFixture = $DpiFixture
             WritePreset = $writePresetResult
             PolicySave = if ($ExecutePolicySave) { "PASS" } else { "Not requested" }
             RecordedAt = (Get-Date).ToString("o")
@@ -1141,6 +1257,7 @@ try {
         FocusNotifications = $focusNotificationsResult
         TargetDraftRetention = $targetDraftResult
         MinimumResizeBounds = $resizeBoundsResult
+        AdvancedScroll = $advancedScrollResult
         WritePreset = $writePresetResult
         PolicySave = if ($ExecutePolicySave) { "PASS" } else { "Not requested" }
         Evidence = if ($EvidencePath) { $EvidencePath } else { $null }

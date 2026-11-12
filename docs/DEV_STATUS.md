@@ -52,6 +52,14 @@ statements below are chronological records, not the current deployment pointer.
   package, controlled current-value write/read-back, reversible C-drive
   promotion, shortcut verification, and relaunch of the daily GUI.
 
+2026-11-12 (follow-up): independent source review caught a 1080p/150%
+regression where the advanced minimum height exceeded the work area. Fixed:
+the advanced window fits the monitor work area on open, its full content
+scrolls (wheel, scrollbar, keyboard reveal), the minimum advanced client is
+`760x420`, and the harness now checks scroll range, bottom-button bounds, and
+focus reveal at native scale and the 150% fixture. Verified read-only while
+the machine was on battery (`25/25/20 W` live firmware limits; no writes).
+
 ## Current Repo State
 
 - GitHub remote: `https://github.com/syttys123/amd-mobile-power.git`

@@ -1,7 +1,7 @@
 #![windows_subsystem = "windows"]
 
 use amd_mobile_power_gui::layout::{
-    minimum_client_size, CommandLayout, ADVANCED_CLIENT_SIZE, SIMPLE_CLIENT_SIZE,
+    minimum_client_size, scroll_position, CommandLayout, ADVANCED_CLIENT_SIZE, SIMPLE_CLIENT_SIZE,
 };
 use amd_mobile_power_gui::lifecycle::{
     LifecycleAction, LifecycleEvent, LifecycleState, Transition, WindowVisibility,
@@ -32,14 +32,15 @@ extern "system" {
 }
 use windows_sys::Win32::Foundation::{
     CloseHandle, GetLastError, ERROR_ALREADY_EXISTS, HANDLE, HINSTANCE, HWND, LPARAM, LRESULT,
-    RECT, WPARAM,
+    POINT, RECT, WPARAM,
 };
 use windows_sys::Win32::Graphics::Gdi::{
     BeginPaint, BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, CreateFontW, CreatePen,
-    CreateSolidBrush, DeleteDC, DeleteObject, DrawTextW, EndPaint, FillRect, GetStockObject,
-    InvalidateRect, RoundRect, SelectObject, SetBkColor, SetBkMode, SetTextColor, UpdateWindow,
-    BLACK_BRUSH, COLOR_WINDOW, DT_CENTER, DT_END_ELLIPSIS, DT_LEFT, DT_NOPREFIX, DT_RIGHT,
-    DT_SINGLELINE, DT_VCENTER, FW_BOLD, FW_NORMAL, HBRUSH, HGDIOBJ, NULL_BRUSH, PAINTSTRUCT,
+    CreateSolidBrush, DeleteDC, DeleteObject, DrawTextW, EndPaint, FillRect, GetMonitorInfoW,
+    GetStockObject, InvalidateRect, MonitorFromWindow, RoundRect, ScreenToClient, SelectObject,
+    SetBkColor, SetBkMode, SetTextColor, SetViewportOrgEx, UpdateWindow, BLACK_BRUSH, COLOR_WINDOW,
+    DT_CENTER, DT_END_ELLIPSIS, DT_LEFT, DT_NOPREFIX, DT_RIGHT, DT_SINGLELINE, DT_VCENTER, FW_BOLD,
+    FW_NORMAL, HBRUSH, HGDIOBJ, MONITORINFO, MONITOR_DEFAULTTONEAREST, NULL_BRUSH, PAINTSTRUCT,
     PS_SOLID, SRCCOPY, TRANSPARENT, WHITE_BRUSH,
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
@@ -50,13 +51,13 @@ use windows_sys::Win32::System::Threading::{
 };
 use windows_sys::Win32::UI::Accessibility::{HCF_HIGHCONTRASTON, HIGHCONTRASTW};
 use windows_sys::Win32::UI::Controls::{
-    DRAWITEMSTRUCT, NMHDR, NMTTDISPINFOW, ODS_DISABLED, ODS_SELECTED, ODT_BUTTON, TOOLTIPS_CLASSW,
-    TTF_IDISHWND, TTF_SUBCLASS, TTM_ADDTOOLW, TTM_NEWTOOLRECTW, TTM_SETMAXTIPWIDTH,
-    TTN_GETDISPINFOW, TTS_ALWAYSTIP, TTTOOLINFOW, WM_MOUSELEAVE,
+    SetScrollInfo, ShowScrollBar, DRAWITEMSTRUCT, NMHDR, NMTTDISPINFOW, ODS_DISABLED, ODS_SELECTED,
+    ODT_BUTTON, TOOLTIPS_CLASSW, TTF_IDISHWND, TTF_SUBCLASS, TTM_ADDTOOLW, TTM_NEWTOOLRECTW,
+    TTM_SETMAXTIPWIDTH, TTN_GETDISPINFOW, TTS_ALWAYSTIP, TTTOOLINFOW, WM_MOUSELEAVE,
 };
 use windows_sys::Win32::UI::HiDpi::{
-    AdjustWindowRectExForDpi, GetDpiForSystem, GetDpiForWindow, SetProcessDpiAwarenessContext,
-    DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
+    AdjustWindowRectExForDpi, GetDpiForSystem, GetDpiForWindow, GetSystemMetricsForDpi,
+    SetProcessDpiAwarenessContext, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
 };
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
     EnableWindow, GetFocus, IsWindowEnabled, SetFocus, TrackMouseEvent, TME_LEAVE, TRACKMOUSEEVENT,
@@ -68,20 +69,22 @@ use windows_sys::Win32::UI::Shell::{
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     AppendMenuW, CheckMenuItem, CreateIconFromResourceEx, CreatePopupMenu, CreateWindowExW,
     DefWindowProcW, DestroyIcon, DestroyMenu, DestroyWindow, DispatchMessageW, FindWindowW,
-    GetClientRect, GetCursorPos, GetDlgCtrlID, GetDlgItem, GetMessageW, GetParent,
-    GetWindowLongPtrW, IsDialogMessageW, LoadCursorW, LoadIconW, PostMessageW, PostQuitMessage,
-    RegisterClassExW, SetCursor, SetForegroundWindow, SetWindowLongPtrW, SetWindowPos,
-    SetWindowTextW, ShowWindow, SystemParametersInfoW, TrackPopupMenu, TranslateMessage,
-    CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, HICON, HMENU, HWND_NOTOPMOST,
-    HWND_TOPMOST, ICON_BIG, ICON_SMALL, IDC_ARROW, IDC_HAND, IDI_APPLICATION, LR_DEFAULTCOLOR,
-    MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED, MINMAXINFO, MSG, SIZE_MINIMIZED,
-    SIZE_RESTORED, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER,
+    GetClientRect, GetCursorPos, GetDlgCtrlID, GetDlgItem, GetMessageW, GetParent, GetScrollInfo,
+    GetWindowLongPtrW, GetWindowRect, IsDialogMessageW, LoadCursorW, LoadIconW, PostMessageW,
+    PostQuitMessage, RegisterClassExW, SetCursor, SetForegroundWindow, SetWindowLongPtrW,
+    SetWindowPos, SetWindowTextW, ShowWindow, SystemParametersInfoW, TrackPopupMenu,
+    TranslateMessage, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, HICON, HMENU,
+    HWND_NOTOPMOST, HWND_TOPMOST, ICON_BIG, ICON_SMALL, IDC_ARROW, IDC_HAND, IDI_APPLICATION,
+    LR_DEFAULTCOLOR, MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED, MINMAXINFO, MSG, SB_BOTTOM,
+    SB_LINEDOWN, SB_LINEUP, SB_PAGEDOWN, SB_PAGEUP, SB_THUMBPOSITION, SB_THUMBTRACK, SB_TOP,
+    SB_VERT, SCROLLINFO, SIF_PAGE, SIF_POS, SIF_RANGE, SIF_TRACKPOS, SIZE_MINIMIZED, SIZE_RESTORED,
+    SM_CXVSCROLL, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER,
     SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND,
     WM_CONTEXTMENU, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_GETICON, WM_GETMINMAXINFO,
-    WM_LBUTTONUP, WM_MOUSEMOVE, WM_NOTIFY, WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SETCURSOR,
-    WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOLORCHANGE, WM_SYSCOMMAND,
-    WNDCLASSEXW, WS_CAPTION, WS_CHILD, WS_CLIPCHILDREN, WS_EX_APPWINDOW, WS_MINIMIZEBOX,
-    WS_OVERLAPPED, WS_POPUP, WS_SYSMENU, WS_THICKFRAME, WS_VISIBLE,
+    WM_LBUTTONUP, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_NOTIFY, WM_QUERYENDSESSION, WM_RBUTTONUP,
+    WM_SETCURSOR, WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW, WM_SIZE, WM_SYSCOLORCHANGE,
+    WM_SYSCOMMAND, WM_VSCROLL, WNDCLASSEXW, WS_CAPTION, WS_CHILD, WS_CLIPCHILDREN, WS_EX_APPWINDOW,
+    WS_MINIMIZEBOX, WS_OVERLAPPED, WS_POPUP, WS_SYSMENU, WS_THICKFRAME, WS_VISIBLE,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     GetWindowTextLengthW, GetWindowTextW, SendMessageW, BM_SETCHECK, BS_OWNERDRAW, ES_CENTER,
@@ -427,6 +430,8 @@ struct GuiApp {
     simple_controls: Option<SimpleViewControls>,
     fonts: Option<UiFonts>,
     dpi_percent: i32,
+    scroll_offset: i32,
+    layout_in_progress: bool,
     max_target_watts: Option<i32>,
 }
 
@@ -483,6 +488,8 @@ impl GuiApp {
             simple_controls: None,
             fonts: None,
             dpi_percent: 100,
+            scroll_offset: 0,
+            layout_in_progress: false,
             max_target_watts,
         }
     }
@@ -2040,11 +2047,18 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
         palette().canvas,
     );
     if let Some(fonts) = app.fonts.as_ref() {
+        SetViewportOrgEx(
+            target_dc,
+            0,
+            -scaled(app.scroll_offset, percent),
+            std::ptr::null_mut(),
+        );
         paint_header(target_dc, app, fonts, width);
         match app.view_mode {
             state::UiMode::Simple => paint_simple_window(target_dc, app, fonts, width),
             state::UiMode::Advanced => paint_advanced_window(target_dc, app, fonts, width),
         }
+        SetViewportOrgEx(target_dc, 0, 0, std::ptr::null_mut());
     }
 
     if !memory_dc.is_null() && !bitmap.is_null() {
@@ -3957,14 +3971,85 @@ unsafe fn outer_window_size(client_width: i32, client_height: i32, dpi: u32) -> 
 unsafe fn move_control(hwnd: HWND, id: usize, x: i32, y: i32, width: i32, height: i32) {
     let control = GetDlgItem(hwnd, id as i32);
     if !control.is_null() {
+        let app = app_from_window(hwnd);
+        let offset = if app.is_null() {
+            0
+        } else {
+            scaled((*app).scroll_offset, (*app).dpi_percent)
+        };
         SetWindowPos(
             control,
             std::ptr::null_mut(),
             x,
-            y,
+            y - offset,
             width,
             height,
             SWP_NOZORDER | SWP_NOACTIVATE,
+        );
+    }
+}
+
+unsafe fn monitor_work_area(hwnd: HWND) -> Option<RECT> {
+    let mut monitor = MONITORINFO {
+        cbSize: size_of::<MONITORINFO>() as u32,
+        ..Default::default()
+    };
+    (GetMonitorInfoW(
+        MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST),
+        &mut monitor,
+    ) != 0)
+        .then_some(monitor.rcWork)
+}
+
+unsafe fn set_scroll_offset(app: &mut GuiApp, hwnd: HWND, position: i32) {
+    if app.view_mode != state::UiMode::Advanced {
+        return;
+    }
+    let mut client = RECT::default();
+    GetClientRect(hwnd, &mut client);
+    let position = scroll_position(
+        position,
+        ADVANCED_CLIENT_SIZE.1,
+        unscaled(client.bottom, app.dpi_percent),
+    );
+    if app.scroll_offset != position {
+        app.scroll_offset = position;
+        layout_mode_controls(app, hwnd);
+    }
+}
+
+unsafe fn reveal_control(app: &mut GuiApp, hwnd: HWND, control: HWND) {
+    if app.view_mode != state::UiMode::Advanced || control.is_null() || app.layout_in_progress {
+        return;
+    }
+    let mut bounds = RECT::default();
+    let mut client = RECT::default();
+    if GetWindowRect(control, &mut bounds) == 0 || GetClientRect(hwnd, &mut client) == 0 {
+        return;
+    }
+    let mut top = POINT {
+        x: bounds.left,
+        y: bounds.top,
+    };
+    let mut bottom = POINT {
+        x: bounds.right,
+        y: bounds.bottom,
+    };
+    ScreenToClient(hwnd, &mut top);
+    ScreenToClient(hwnd, &mut bottom);
+    let margin = scaled(8, app.dpi_percent);
+    let delta = if top.y < margin {
+        top.y - margin
+    } else if bottom.y > client.bottom - margin {
+        bottom.y - client.bottom + margin
+    } else {
+        0
+    };
+    if delta != 0 {
+        set_scroll_offset(
+            app,
+            hwnd,
+            app.scroll_offset + unscaled(delta, app.dpi_percent),
         );
     }
 }
@@ -3985,6 +4070,7 @@ unsafe extern "system" fn button_feedback_proc(
         match message {
             0x0007 => {
                 app.focused_control = Some(id);
+                reveal_control(app, parent, hwnd);
                 InvalidateRect(hwnd, std::ptr::null(), 0);
             }
             0x0008 if app.focused_control == Some(id) => {
@@ -4111,6 +4197,8 @@ unsafe fn layout_text_tooltips(app: &GuiApp, hwnd: HWND, width: i32) {
         } else {
             bounds
         };
+        let top = top - app.scroll_offset;
+        let bottom = bottom - app.scroll_offset;
         let s = |value| scaled(value, app.dpi_percent);
         let mut tool = TTTOOLINFOW {
             cbSize: size_of::<TTTOOLINFOW>() as u32,
@@ -4135,24 +4223,49 @@ unsafe fn layout_text_tooltips(app: &GuiApp, hwnd: HWND, width: i32) {
 
 unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
     app.view_mode = mode;
+    app.scroll_offset = 0;
+    ShowScrollBar(hwnd, SB_VERT, 0);
     let percent = app.dpi_percent.max(1);
     let (width, height) = match mode {
         state::UiMode::Simple => SIMPLE_CLIENT_SIZE,
         state::UiMode::Advanced => ADVANCED_CLIENT_SIZE,
     };
-    let (outer_width, outer_height) = outer_window_size(
+    let (mut outer_width, outer_height) = outer_window_size(
         scaled(width, percent),
         scaled(height, percent),
         window_dpi(hwnd),
     );
+    let full_outer_height = outer_height;
+    let mut outer_height = outer_height;
+    let mut position = POINT::default();
+    let mut bounds = RECT::default();
+    GetWindowRect(hwnd, &mut bounds);
+    position.x = bounds.left;
+    position.y = bounds.top;
+    // Logical screenshot fixtures keep their full canvas; real windows fit
+    // the current monitor work area and scroll any remaining advanced content.
+    if DPI_FIXTURE_PERCENT.load(Ordering::Relaxed) == 0 {
+        if let Some(work) = monitor_work_area(hwnd) {
+            outer_height = outer_height.min(work.bottom - work.top);
+            if mode == state::UiMode::Advanced && outer_height < full_outer_height {
+                outer_width += GetSystemMetricsForDpi(SM_CXVSCROLL, window_dpi(hwnd));
+            }
+            position.x = position
+                .x
+                .clamp(work.left, (work.right - outer_width).max(work.left));
+            position.y = position
+                .y
+                .clamp(work.top, (work.bottom - outer_height).max(work.top));
+        }
+    }
     SetWindowPos(
         hwnd,
         std::ptr::null_mut(),
-        0,
-        0,
+        position.x,
+        position.y,
         outer_width,
         outer_height,
-        SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE,
+        SWP_NOZORDER | SWP_NOACTIVATE,
     );
     layout_mode_controls(app, hwnd);
 
@@ -4172,11 +4285,36 @@ unsafe fn apply_view_mode(app: &mut GuiApp, hwnd: HWND, mode: state::UiMode) {
 /// Places the child controls for the current mode using the live client width,
 /// so a user-resized window keeps its right-aligned controls in place.
 unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
+    if app.layout_in_progress {
+        return;
+    }
+    app.layout_in_progress = true;
     let mode = app.view_mode;
     let advanced = mode == state::UiMode::Advanced;
     let percent = app.dpi_percent.max(1);
     let s = |value: i32| scaled(value, percent);
     let mut client = RECT::default();
+    GetClientRect(hwnd, &mut client);
+    let viewport_height = unscaled(client.bottom.max(1), percent);
+    app.scroll_offset = if advanced {
+        scroll_position(app.scroll_offset, ADVANCED_CLIENT_SIZE.1, viewport_height)
+    } else {
+        0
+    };
+    let mut scroll = SCROLLINFO {
+        cbSize: size_of::<SCROLLINFO>() as u32,
+        fMask: SIF_RANGE | SIF_PAGE | SIF_POS,
+        nMin: 0,
+        nMax: ADVANCED_CLIENT_SIZE.1 - 1,
+        nPage: viewport_height as u32,
+        nPos: app.scroll_offset,
+        ..Default::default()
+    };
+    if !advanced {
+        scroll.nMax = 0;
+        scroll.nPage = 1;
+    }
+    SetScrollInfo(hwnd, SB_VERT, &scroll, 1);
     GetClientRect(hwnd, &mut client);
     let width = minimum_client_size(mode)
         .0
@@ -4201,7 +4339,7 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
                 control,
                 std::ptr::null_mut(),
                 s(left),
-                s(12),
+                s(12 - app.scroll_offset),
                 s(control_width),
                 s(32),
                 SWP_NOZORDER | SWP_NOACTIVATE,
@@ -4370,6 +4508,7 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
     InvalidateRect(hwnd, std::ptr::null(), 1);
     UpdateWindow(hwnd);
     update_simple_view(app);
+    app.layout_in_progress = false;
 }
 
 /// Rebuilds the device-sized fonts used by native child controls after a DPI
@@ -4832,13 +4971,49 @@ unsafe extern "system" fn window_proc(
             let info = &mut *(lparam as *mut MINMAXINFO);
             let percent = app.dpi_percent.max(1);
             let (minimum_width, minimum_height) = minimum_client_size(app.view_mode);
-            let (width, height) = outer_window_size(
+            let (mut width, mut height) = outer_window_size(
                 scaled(minimum_width, percent),
                 scaled(minimum_height, percent),
                 window_dpi(hwnd),
             );
+            if app.view_mode == state::UiMode::Advanced {
+                width += GetSystemMetricsForDpi(SM_CXVSCROLL, window_dpi(hwnd));
+            }
+            if DPI_FIXTURE_PERCENT.load(Ordering::Relaxed) == 0 {
+                if let Some(work) = monitor_work_area(hwnd) {
+                    height = height.min(work.bottom - work.top);
+                }
+            }
             info.ptMinTrackSize.x = width;
             info.ptMinTrackSize.y = height;
+            0
+        }
+        WM_VSCROLL if app.view_mode == state::UiMode::Advanced => {
+            let mut client = RECT::default();
+            GetClientRect(hwnd, &mut client);
+            let page = unscaled(client.bottom, app.dpi_percent);
+            let mut scroll = SCROLLINFO {
+                cbSize: size_of::<SCROLLINFO>() as u32,
+                fMask: SIF_TRACKPOS,
+                ..Default::default()
+            };
+            GetScrollInfo(hwnd, SB_VERT, &mut scroll);
+            let position = match (wparam & 0xFFFF) as i32 {
+                SB_TOP => 0,
+                SB_BOTTOM => ADVANCED_CLIENT_SIZE.1,
+                SB_LINEUP => app.scroll_offset - 32,
+                SB_LINEDOWN => app.scroll_offset + 32,
+                SB_PAGEUP => app.scroll_offset - page + 32,
+                SB_PAGEDOWN => app.scroll_offset + page - 32,
+                SB_THUMBTRACK | SB_THUMBPOSITION => scroll.nTrackPos,
+                _ => app.scroll_offset,
+            };
+            set_scroll_offset(app, hwnd, position);
+            0
+        }
+        WM_MOUSEWHEEL if app.view_mode == state::UiMode::Advanced => {
+            let delta = ((wparam >> 16) as u16 as i16) as i32;
+            set_scroll_offset(app, hwnd, app.scroll_offset - delta / 120 * 48);
             0
         }
         WM_DPICHANGED => {
@@ -5015,6 +5190,7 @@ unsafe extern "system" fn window_proc(
             let notification = (wparam >> 16) & 0xFFFF;
             if notification == 0x0100 || notification == 0x0006 {
                 app.focused_control = Some(command);
+                reveal_control(app, hwnd, lparam as HWND);
                 InvalidateRect(hwnd, std::ptr::null(), 0);
             } else if (notification == 0x0200 || notification == 0x0007)
                 && app.focused_control == Some(command)

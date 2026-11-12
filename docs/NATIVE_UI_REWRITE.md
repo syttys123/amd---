@@ -83,6 +83,15 @@ restore the user's last selected mode.
 
 Logical client size: `780x680`.
 
+The advanced window opens fit to the current monitor's work area instead of
+always claiming the full 680 px height. When the work area is shorter (for
+example 1080p at 150% scaling), the whole advanced canvas becomes scrollable:
+mouse wheel, the vertical scrollbar, and keyboard focus all move through the
+full content, and focusing a clipped control reveals it automatically. The
+minimum advanced client is `760x420`; simple mode has no scrolling. Logical
+screenshot fixtures keep the full `780x680` canvas so layout evidence stays
+deterministic.
+
 Advanced mode uses the same command deck, followed by one split workspace:
 
 - Left column:
@@ -202,6 +211,11 @@ the user's Windows accessibility settings.
   focus-notification filtering, minimum resize bounds, diagnostics, mode
   switching, topmost, three minimize/restore cycles, close-to-tray, tray
   restore, and single-instance wake.
+- Follow-up review found one regression on 1080p/150% displays: the advanced
+  minimum height exceeded the work area and trapped the status bar behind the
+  taskbar. The advanced shell now fits the monitor work area and scrolls its
+  full content; verified by the maintained harness (mouse wheel, scrollbar,
+  keyboard reveal, bottom-button bounds) at native scale and the 150% fixture.
 - A separate explicit `-ExecuteNoChangePreset` run applied the existing
   `25/25/25 W` through the simple-mode preset button and required fresh matching
   telemetry. The verifier now derives that isolated preset from live limits
