@@ -71,7 +71,8 @@ scaled scroll offset instead of scaling the already-subtracted value.
 - CI: the hosted Windows workflow now uploads the native portable ZIP,
   `.sha256`, and `BUILD-INFO.txt` as a separate
   `amd-mobile-power-native-win-x64` artifact; previously only the legacy .NET
-  package was published.
+  package was published. A new `native/verify-docs.ps1` step checks relative
+  Markdown links (currently 41 files / 37 links) before the Rust lint step.
 - Release preparation: `docs/RELEASE_RUNBOOK.md` now records the exact push,
   tag, GitHub draft-release, Bilibili upload, post-publish verification, and
   rollback steps. `docs/release-assets-1.0.23.json` lists the release assets

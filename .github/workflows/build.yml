@@ -40,6 +40,11 @@ jobs:
             }
           }
 
+      - name: Verify documentation links
+        shell: pwsh
+        run: |
+          .\native\verify-docs.ps1
+
       - name: Verify Rust formatting and lint
         shell: pwsh
         run: |
@@ -127,15 +132,5 @@ jobs:
             artifacts/native-packages/*.zip
             artifacts/native-packages/*.zip.sha256
             artifacts/native-packages/*/BUILD-INFO.txt
-          if-no-files-found: error
-
-      - name: Upload native preview package
-        if: github.event_name == 'push'
-        uses: actions/upload-artifact@v4
-        with:
-          name: amd-mobile-power-native-preview
-          path: |
-            artifacts/native-packages/*.zip
-            artifacts/native-packages/*.zip.sha256
             artifacts/ci/reproducibility.json
           if-no-files-found: error
