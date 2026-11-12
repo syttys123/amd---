@@ -1945,8 +1945,9 @@ Historical development screenshots:
   still pending. The current display session is 125%.
 ## Next Concrete Task
 
-Complete real 100% and 150% Windows-session DPI checks, resolve the hosted CI
-account blocker, and complete the final human review for public release.
+Complete real 100% and 150% Windows-session DPI checks, restore GitHub
+connectivity so the 26 local commits and hosted CI can run, and complete the
+final human review for public release.
 Keep the pre-promotion `C:\RyzenAdj` backup until the public release gates are
 closed, and never promote a dirty or write-unverified native package.
 

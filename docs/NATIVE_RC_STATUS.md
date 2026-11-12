@@ -3,9 +3,10 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.22-native`
-(commit `b688e50`, stable scrolling, short-work-area coverage, focus reveal,
-and DPI rectangle handling). `1.0.21-native` is preserved as
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.23-native`
+(commit `2033052`, maximize scroll clamp, page-step alignment, and
+fractional-DPI header alignment). `1.0.22-native` is preserved as
+`C:\RyzenAdj.before-20261113-024133`, `1.0.21-native` as
 `C:\RyzenAdj.before-20261113-012141`, `1.0.20-native` as
 `C:\RyzenAdj.before-20261113-004532`, `1.0.19-native` as
 `C:\RyzenAdj.before-v1.0.20-native-20261112-ui`, `1.0.18-native` as
@@ -34,7 +35,7 @@ previous native `1.0.17-native` build is preserved as
 
 Decision (2026-11-13): the native line has a hardware-gated stable-local
 candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.22-native` package. Broader AMD generation support remains experimental.
+`1.0.23-native` package. Broader AMD generation support remains experimental.
 The current local publication readiness gate is `PASS` with all 13 checks true,
 with
 `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW` and no local blockers. Evidence:
@@ -69,8 +70,8 @@ report-import validation. Every RyzenAdj family `0-15` maps to exactly one
 conservative fallback while `8845HS + 4c0009` remains the sole verified device
 profile. Worker version is `0.6.0-native`. The local shortcut launches with
 `--enable-write-controls --simple-mode --max-target-watts 45`; saved presets
-are `10/25/45 W`, the automatic battery/AC policy is disabled, and `10 W` is
-the manual night preset. `1.0.3-native` added per-monitor DPI awareness, a
+are `10/25/45 W`, the automatic battery/AC policy keeps `10/10/10 W` on both
+lines, and `10 W` is the manual night preset. `1.0.3-native` added per-monitor DPI awareness, a
 resizable native window, hand cursors, a protected metric band, and the
 uniform policy. `1.0.2-native` added the embedded
 PE icon (`RT_ICON` + `RT_GROUP_ICON` 1). `1.0.1-native` fixed the desktop
@@ -95,30 +96,30 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.22-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip
 ```
 
-- Size: `760,654` bytes.
+- Size: `760,850` bytes.
 - SHA256:
-  `500224c715e834e14a0134af681cf17171d24fb747d57515175688317fab3e76`.
-- Source commit: `b688e50a337c399537ede69c42570d5c3b3013e0`.
+  `42f6cf9172f3db6d0a2ac81bfffbab4b38b1f5a1423ff64b7b020855fce29f79`.
+- Source commit: `2033052dfb0e3fd0a427ea08adab12302b4addfc`.
 - Working tree at build time: clean.
-- Reproducibility: GUI `288f86de`, probe `9750418f`, worker `67af1d41`, and the
+- Reproducibility: GUI `e18c4213`, probe `9750418f`, worker `67af1d41`, and the
   ZIP itself are byte-identical across two builds.
 - Policy write verification: same-value AC probe at `10/10/10 W`.
-- Worker-hang replacement: PASS on 2026-11-13 (`34.6 s`, 22 responsive
+- Worker-hang replacement: PASS on 2026-11-13 (`35.3 s`, 21 responsive
   samples, 0 failures, policy restored to `10/10/10 W`).
-- Supersedes `1.0.21-native` (package
-  `d84051b6df5ec4dc1d6d004cea635a0fd262033dfaec867d61560559c01c0c66`,
-  source `3b514943905fdc24b597827eab50bde63b630571`); `1.0.22-native`
-  removes the phantom default scrollbar, scrolls simple mode on short work
-  areas, reveals focused header buttons by their actual rectangle, and applies
-  the system-suggested DPI rectangle.
+- Supersedes `1.0.22-native` (package
+  `500224c715e834e14a0134af681cf17171d24fb747d57515175688317fab3e76`,
+  source `b688e50a337c399537ede69c42570d5c3b3013e0`); `1.0.23-native`
+  re-lays out on `SIZE_MAXIMIZED` so a scrolled advanced page clamps its
+  offset, pages by exactly one viewport, and keeps header controls aligned at
+  fractional DPI.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.22-native
+artifacts/native-release-review/v1.0.23-native
 ```
 
 The bundle is `REVIEW_ONLY` and is not a public release.
@@ -279,14 +280,17 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
-- `docs/evidence/packaging/v1.0.22-native-clean-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.23-native-clean-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.23-native-release-gate-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.23-native-shell-integration-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.23-native-deployment-2026-11-13.json`
 - `docs/evidence/hardware/v1.0.23-native-power-policy-no-change-2026-11-13.json`
 - `docs/evidence/hardware/v1.0.23-native-worker-hang-2026-11-13.json`
+- `docs/evidence/ui/native-packaged-1.0.23-native-ui-2026-11-13.json`
+- `docs/evidence/ui/native-deployed-1.0.23-native-ui-2026-11-13.json`
 - `docs/evidence/ui/native-maximize-scroll-1.0.22-baseline-2026-11-13.json`
 - `docs/evidence/ui/native-maximize-scroll-2026-11-13.json`
+- `docs/evidence/media/native-promo-1.0.23-draft-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.22-native-release-gate-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.22-native-shell-integration-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.22-native-deployment-2026-11-13.json`
