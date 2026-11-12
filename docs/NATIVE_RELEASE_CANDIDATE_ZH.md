@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `1.0.22-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.23-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,23 +16,25 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `1.0.22-native`
+- Candidate: `1.0.23-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v1.0.22-native-win-x64-native-preview.zip`
-- Size: `760,654` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip`
+- Size: `760,850` bytes
 - SHA256:
-  `500224c715e834e14a0134af681cf17171d24fb747d57515175688317fab3e76`
-- Package source commit: `b688e50a337c399537ede69c42570d5c3b3013e0`
+  `42f6cf9172f3db6d0a2ac81bfffbab4b38b1f5a1423ff64b7b020855fce29f79`
+- Package source commit: `2033052dfb0e3fd0a427ea08adab12302b4addfc`
 - Working tree at build time: clean
 - 19 项包内校验和。
 
-本版在 `1.0.21-native` 滚动基础之上完成边界收口：
+本版在 `1.0.22-native` 滚动基础之上完成边界收口：
 
 1. **输入与焦点**：目标功耗与预设编辑在每秒遥测刷新、模式切换之间保留草稿；
    按钮只对真实点击执行动作，获得焦点不再误触发模式切换。
 2. **滚动与窄屏**：滚动条显隐做成稳定循环，默认高级窗口不再残留假滚动条；
    简洁模式在短工作区也可纵向滚动；页头焦点按按钮实际矩形横向带入；DPI 切换
    使用系统建议矩形，不会把自定义窗口尺寸重置成默认值。
+3. **最大化与翻页**：矮窗口滚动后最大化/贴边时重新收敛滚动偏移，页头不再被
+   推出客户区；翻页步进与滚动条页大小一致；非整数 DPI 下页头不再 1px 错位。
 
 `1.0.18-native` 的 worker 卡死自愈、退出重启、探针管道忙重试、同提交逐字节
 可复现、安全驱动卸载、多代 profile 目录、托盘/任务栏与单实例行为全部保留。
@@ -50,19 +52,19 @@ worker 二进制与 `1.0.18-native` 完全相同（`67af1d41`）。
 
 ## 本机验证
 
-- Rust GUI 测试：`44/44`（22 library + 22 main，新增短屏滚动布局测试）。
+- Rust GUI 测试：`46/46`（24 library + 22 main，新增翻页与最大化收敛测试）。
 - Rust formatting / Clippy `-D warnings`：PASS。
 - Rust probe 测试：`7/7`。
 - C++ power-limit / power-policy 测试：PASS。
 - 19 项包内 SHA256 校验：PASS。
 - 提取后 GUI/worker 只读验证、诊断导出、兼容性 JSON/Markdown、无头探针：PASS。
-- 可复现构建：GUI `288f86de`、worker `67af1d41`、探针 `9750418f`、ZIP
-  `500224c7`，两次构建逐字节一致。
+- 可复现构建：GUI `e18c4213`、worker `67af1d41`、探针 `9750418f`、ZIP
+  `42f6cf91`，两次构建逐字节一致。
 - 打包版交互：模式切换、置顶、预设编辑、目标草稿保留、焦点通知过滤、最小
   窗口边界、高级模式滚动（滚轮/滚动条/焦点带入）、诊断导出、三轮最小化恢复、
   关闭到托盘、托盘恢复、单实例唤醒：PASS。
 - worker 卡死替换（2026-11-13 补跑）：`NtSuspendProcess` 挂起隔离 worker 后
-  `34.6 s` 完成替换，`22/22` 次窗口响应采样通过、失败 0 次，策略与遥测恢复
+  `35.3 s` 完成替换，`21/21` 次窗口响应采样通过、失败 0 次，策略与遥测恢复
   `10/10/10 W`。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
@@ -73,14 +75,16 @@ worker 二进制与 `1.0.18-native` 完全相同（`67af1d41`）。
 
 Evidence:
 
-- `docs/evidence/packaging/v1.0.22-native-clean-2026-11-13.json`
-- `docs/evidence/packaging/v1.0.22-native-release-gate-2026-11-13.json`
-- `docs/evidence/packaging/v1.0.22-native-shell-integration-2026-11-13.json`
-- `docs/evidence/packaging/v1.0.22-native-deployment-2026-11-13.json`
-- `docs/evidence/hardware/v1.0.22-native-power-policy-no-change-2026-11-13.json`
-- `docs/evidence/hardware/v1.0.22-native-worker-hang-2026-11-13.json`
-- `docs/evidence/ui/native-packaged-1.0.22-native-ui-2026-11-13.json`
-- `docs/evidence/ui/native-deployed-1.0.22-native-ui-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.23-native-clean-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.23-native-release-gate-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.23-native-shell-integration-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.23-native-deployment-2026-11-13.json`
+- `docs/evidence/hardware/v1.0.23-native-power-policy-no-change-2026-11-13.json`
+- `docs/evidence/hardware/v1.0.23-native-worker-hang-2026-11-13.json`
+- `docs/evidence/ui/native-packaged-1.0.23-native-ui-2026-11-13.json`
+- `docs/evidence/ui/native-deployed-1.0.23-native-ui-2026-11-13.json`
+- `docs/evidence/ui/native-maximize-scroll-2026-11-13.json`
+- `docs/evidence/ui/native-maximize-scroll-1.0.22-baseline-2026-11-13.json`
 - `docs/evidence/ui/native-workarea-200-1366x768-2026-11-13.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-13.json`
 - `docs/evidence/build/reproducibility-2026-11-13.json`
@@ -109,8 +113,8 @@ Evidence:
 ## 本地部署
 
 - 目标目录：`C:\RyzenAdj`
-- 版本：`1.0.22-native`
-- 旧版备份：`C:\RyzenAdj.before-20261113-012141`
+- 版本：`1.0.23-native`
+- 旧版备份：`C:\RyzenAdj.before-20261113-024133`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 45`
 
@@ -136,7 +140,7 @@ Evidence:
 
 ```powershell
 .\native\verify-release.ps1 `
-  -Version 1.0.22-native `
+  -Version 1.0.23-native `
   -VerifyReproducibility `
   -VerifyShellIntegration `
   -ExecuteNoChangePolicy `
