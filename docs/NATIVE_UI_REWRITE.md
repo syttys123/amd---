@@ -64,6 +64,8 @@ the available client width.
 
 Default logical client size: `600x360`; minimum: `560x360`. The minimum outer
 window includes caption and frame dimensions through `AdjustWindowRectExForDpi`.
+When a work area is shorter than 360 logical pixels, the simple canvas scrolls
+vertically instead of clipping the status band.
 
 | Region | Geometry | Purpose |
 | --- | --- | --- |
@@ -88,9 +90,11 @@ always claiming the full 680 px height. When the work area is shorter (for
 example 1080p at 150% scaling), the whole advanced canvas becomes scrollable:
 mouse wheel, the vertical scrollbar, and keyboard focus all move through the
 full content, and focusing a clipped control reveals it automatically. The
-minimum advanced client is `760x420`; simple mode has no scrolling. Logical
+minimum advanced client is `560x420`; the content layout stays 760 px wide and
+the whole advanced canvas can scroll horizontally and vertically. Simple and
+advanced both use native scrollbars and precision-wheel deltas. Logical
 screenshot fixtures keep the full `780x680` canvas so layout evidence stays
-deterministic.
+deterministic; a separate work-area fixture covers 1366x768 at 200%.
 
 Advanced mode uses the same command deck, followed by one split workspace:
 
@@ -200,6 +204,19 @@ the user's Windows accessibility settings.
   does not label that result as a foreground screenshot.
 
 ## Runtime Evidence
+
+### 2026-11-13 1.0.22 Scroll And Work-Area Closure
+
+- Rust GUI: 44 tests passed (22 library, 22 main); Rust probe: 7 tests passed.
+- Default advanced layout hides both scrollbars; the harness checks the final
+  client size and verifies wheel deltas `30/60`, header focus rectangles,
+  minimum advanced width, and footer visibility.
+- The isolated 1366x768/200% work-area fixture passes for simple and advanced
+  modes. Simple mode reaches the footer with its vertical scrollbar; advanced
+  exposes both `330/680` vertical and `664/760` horizontal ranges.
+- Package and deployed GUI interaction suites pass, including focus
+  notifications, target draft retention, preset editing, tray restore, and
+  single-instance wake.
 
 ### 2026-11-12 Compact Polish
 

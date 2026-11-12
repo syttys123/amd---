@@ -1,23 +1,24 @@
 # Release Checklist
 
-Release under review: `1.0.21-native`
+Release under review: `1.0.22-native`
 
 ## Source And Build
 
 - [x] Tracked worktree is clean before the package build.
-- [x] Rust tests pass: 43/43 (22 GUI tests + 21 library tests).
+- [x] Rust tests pass: 44/44 (22 GUI tests + 22 library tests).
 - [x] Rust probe tests pass: 7/7.
 - [x] Rust formatting and Clippy with `-D warnings` pass.
 - [x] C++ power-limit and power-policy tests pass.
 - [x] Release build completes with the packaged icon present.
-- [x] `native\verify-release.ps1 -Version 1.0.21-native -VerifyReproducibility
-  -VerifyShellIntegration -ExecuteNoChangePolicy -AllowBatteryWriteGuard`
+- [x] `native\verify-release.ps1 -Version 1.0.22-native -VerifyReproducibility
+  -VerifyShellIntegration -ExecuteNoChangePolicy -VerifyWorkerHang
+  -AllowBatteryWriteGuard`
   passes (AC session; the guard remained enabled).
 - [x] Package source commit and final SHA256 match the clean evidence.
-      Package SHA256 `d84051b6df5ec4dc1d6d004cea635a0fd262033dfaec867d61560559c01c0c66`,
-      source commit `3b514943905fdc24b597827eab50bde63b630571`.
-- [x] Rebuild from the same tree is byte-identical: GUI `e7f602de`, worker
-      `67af1d41`, probe `9750418f`, ZIP `d84051b6`.
+      Package SHA256 `500224c715e834e14a0134af681cf17171d24fb747d57515175688317fab3e76`,
+      source commit `b688e50a337c399537ede69c42570d5c3b3013e0`.
+- [x] Rebuild from the same tree is byte-identical: GUI `288f86de`, worker
+      `67af1d41`, probe `9750418f`, ZIP `500224c7`.
 - [ ] Hosted Windows CI passes for the release commit.
       Current blocker: GitHub Actions billing/spending-limit failure before job
       startup. Local release gates pass.
@@ -41,7 +42,7 @@ Release under review: `1.0.21-native`
 - [x] Firmware-clamp behavior is documented instead of treated as a transport
       failure.
 - [x] `-VerifyWorkerHang` passes against the expanded package: replacement in
-      `33.9 s`, `21/21` responsive samples, zero failures, and `10/10/10 W`
+      `34.6 s`, `22/22` responsive samples, zero failures, and `10/10/10 W`
       restored (the machine was already at 10 W, so no net change).
 
 ## UI Evidence
@@ -51,6 +52,8 @@ Release under review: `1.0.21-native`
       scrolling (wheel, scrollbar, focus reveal), diagnostics, minimize/restore
       cycles, close-to-tray, tray restore, single-instance wake.
 - [x] Logical 100/125/150% layout fixtures match the exact client sizes.
+- [x] The isolated 1366x768/200% work-area fixture passes for simple and
+      advanced modes, including both scroll ranges and footer visibility.
 - [x] Deployed GUI binary passes the same interaction suite.
 - [ ] Real OS-level 100%/150% session and monitor-transition evidence.
 - [x] Region-by-region screenshot review covers header, live power, target,
@@ -62,7 +65,7 @@ Release under review: `1.0.21-native`
 - [x] Seven-scene promo draft rendered at 1920x1080, 99.5 s, with voice,
       original seeded music, captions, and contact sheet.
 - [x] `verify-media.ps1` passes (decode, volume, hashes, review assets, cover).
-- [x] Bilibili cover remains usable; 1.0.21 simple/advanced captures are
+- [x] Bilibili cover remains usable; 1.0.22 simple/advanced captures are
       archived in `assets/`.
 - [ ] Owner reviews pacing, voice, claims, and cover.
 - [ ] Public GitHub Release and Bilibili upload (require explicit approval and

@@ -21,7 +21,42 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
-2026-11-13: `1.0.21-native` is deployed to `C:\RyzenAdj`. It supersedes
+2026-11-13: `1.0.22-native` is deployed to `C:\RyzenAdj`. It supersedes
+`1.0.21-native` with stabilised scrollbar layout, simple-mode scrolling on a
+short work area, correct header focus reveal, and real `WM_DPICHANGED`
+suggested-rect handling.
+
+- Package: `760,654` bytes, SHA256
+  `500224c715e834e14a0134af681cf17171d24fb747d57515175688317fab3e76`,
+  built from clean commit `b688e50`.
+- Deployed GUI SHA256
+  `288f86ded5ca06d52813b010572c8e4e25dfb9545daee48aead4a319205683e7`;
+  worker remains `67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1`.
+- Verified: 44 Rust GUI tests (22 library + 22 main), 7 probe tests, Clippy
+  `-D warnings`, C++ policy tests, offline Release build, 100/125/150% DPI
+  fixtures, an isolated 1366x768/200% work-area fixture, shell integration,
+  packaged/deployed GUI interaction, and byte-identical rebuild.
+- Default advanced mode no longer leaves a phantom scrollbar; precision wheel
+  `30/60` produce `12/24` logical pixels; header focus is checked as a client
+  rectangle; simple and advanced content both scroll in a short work area.
+- Hardware gate wrote/read back the same AC `10/10/10 W`. Worker-hang
+  replacement PASS in `34.6 s` with 22 responsive samples and zero failures.
+- Rollback: `C:\RyzenAdj.before-20261113-012141`. The daily GUI was relaunched
+  with `--enable-write-controls --simple-mode --max-target-watts 45`;
+  editable presets remain `10/25/45 W`.
+- Evidence:
+  `docs/evidence/packaging/v1.0.22-native-release-gate-2026-11-13.json`,
+  `v1.0.22-native-clean-2026-11-13.json`,
+  `v1.0.22-native-shell-integration-2026-11-13.json`,
+  `v1.0.22-native-deployment-2026-11-13.json`,
+  `docs/evidence/hardware/v1.0.22-native-power-policy-no-change-2026-11-13.json`,
+  `v1.0.22-native-worker-hang-2026-11-13.json`,
+  `docs/evidence/ui/native-packaged-1.0.22-native-ui-2026-11-13.json`,
+  `native-deployed-1.0.22-native-ui-2026-11-13.json`,
+  `native-dpi-100-125-150-2026-11-13.json`, and
+  `native-workarea-200-1366x768-2026-11-13.json`.
+
+2026-11-13 (1.0.21): `1.0.21-native` was deployed to `C:\RyzenAdj`. It supersedes
 `1.0.20-native` with native horizontal/vertical scrollbars, a `560` logical
 pixel advanced-window minimum for narrow work areas, precision-wheel handling
 for `30/60` deltas, scroll preservation across `WM_DPICHANGED`, and header

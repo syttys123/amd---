@@ -3,9 +3,10 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable-local native deployment (`1.0.21-native`,
-  commit `3b51494`, native scrolling plus narrow-work-area fixes).
-  `1.0.20-native` remains at `C:\RyzenAdj.before-20261113-004532`;
+- `C:\RyzenAdj`: current stable-local native deployment (`1.0.22-native`,
+  commit `b688e50`, scrollbar/focus/DPI edge fixes).
+  `1.0.21-native` remains at `C:\RyzenAdj.before-20261113-012141`;
+  `1.0.20-native` at `C:\RyzenAdj.before-20261113-004532`;
   `1.0.19-native` at `C:\RyzenAdj.before-v1.0.20-native-20261112-ui` and under
   `artifacts/deployment-backups/C-RyzenAdj-before-1.0.20-native-d9129b0-20261112-ui`;
   `1.0.18-native` at `C:\RyzenAdj.before-v1.0.19-native-20261112-ui`.
@@ -82,37 +83,43 @@ rolls back on failure.
 
 ## Current Deployment Evidence
 
-On 2026-11-13, `1.0.21-native` replaced `1.0.20-native` at `C:\RyzenAdj`.
-It adds always-visible native scrollbars when content overflows, a `560`
-logical pixel advanced-window minimum for small work areas, precision-wheel
-handling for `30/60` deltas, scroll preservation across DPI changes, and header
-focus restoration in the advanced view.
+On 2026-11-13, `1.0.22-native` replaced `1.0.21-native` at `C:\RyzenAdj`.
+It stabilises scrollbar visibility in the default advanced view, enables
+vertical scrolling for simple mode on a short work area, reveals right-aligned
+header buttons by their actual client rectangle, and uses the system-suggested
+rectangle during `WM_DPICHANGED` instead of resetting the window size.
 
 - Package SHA256:
-  `d84051b6df5ec4dc1d6d004cea635a0fd262033dfaec867d61560559c01c0c66`
-- Package size: `759,212` bytes, 19 checksum entries
-- Package source commit: `3b514943905fdc24b597827eab50bde63b630571`
+  `500224c715e834e14a0134af681cf17171d24fb747d57515175688317fab3e76`
+- Package size: `760,654` bytes, 19 checksum entries
+- Package source commit: `b688e50a337c399537ede69c42570d5c3b3013e0`
 - Deployed GUI SHA256:
-  `e7f602de314207734c752cf684c22150acc21d2cb5e9a2a4e6488d5b029d67b1`
+  `288f86ded5ca06d52813b010572c8e4e25dfb9545daee48aead4a319205683e7`
 - Deployed worker SHA256:
   `67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1`
-- Previous stable rollback directory: `C:\RyzenAdj.before-20261113-004532`
+- Previous stable rollback directory: `C:\RyzenAdj.before-20261113-012141`
 - Release gate:
-  `docs\evidence\packaging\v1.0.21-native-release-gate-2026-11-13.json`
+  `docs\evidence\packaging\v1.0.22-native-release-gate-2026-11-13.json`
 - Deployment evidence:
-  `docs\evidence\packaging\v1.0.21-native-deployment-2026-11-13.json`
+  `docs\evidence\packaging\v1.0.22-native-deployment-2026-11-13.json`
 - Packaged UI evidence:
-  `docs\evidence\ui\native-packaged-1.0.21-native-ui-2026-11-13.json`
+  `docs\evidence\ui\native-packaged-1.0.22-native-ui-2026-11-13.json`
 - Deployed UI evidence:
-  `docs\evidence\ui\native-deployed-1.0.21-native-ui-2026-11-13.json`
+  `docs\evidence\ui\native-deployed-1.0.22-native-ui-2026-11-13.json`
 - DPI evidence:
   `docs\evidence\ui\native-dpi-100-125-150-2026-11-13.json`
+- 1366x768/200% work-area evidence:
+  `docs\evidence\ui\native-workarea-200-1366x768-2026-11-13.json`
 - Worker-hang evidence:
-  `docs\evidence\hardware\v1.0.21-native-worker-hang-2026-11-13.json`
+  `docs\evidence\hardware\v1.0.22-native-worker-hang-2026-11-13.json`
 - Live state after restart: editable presets `10 / 25 / 45 W`, ceiling
   `45 W`, automatic policy disabled, and AC read-back `10/10/10 W`.
 - Desktop shortcut:
   `--enable-write-controls --simple-mode --max-target-watts 45`.
+
+On 2026-11-13, `1.0.21-native` briefly replaced `1.0.20-native`; it introduced
+the native scrolling and narrow-work-area pass that `1.0.22-native` completes.
+Rollback: `C:\RyzenAdj.before-20261113-004532`.
 
 On 2026-11-12, `1.0.20-native` replaced `1.0.19-native` at `C:\RyzenAdj`.
 It ships the compact 600x360 UI polish, input-draft retention, hover/focus

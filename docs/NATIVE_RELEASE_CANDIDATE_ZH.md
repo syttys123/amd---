@@ -3,7 +3,7 @@
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++
-worker 候选 `1.0.21-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
+worker 候选 `1.0.22-native` 的可复核资产、已验证边界和仍需人工完成的门禁。
 
 ## 目标与定位
 
@@ -16,24 +16,23 @@ AMD 笔记本都受支持。
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
 - Branch: `main`
-- Candidate: `1.0.21-native`
+- Candidate: `1.0.22-native`
 - Package:
-  `artifacts/native-packages/amd-mobile-power-v1.0.21-native-win-x64-native-preview.zip`
-- Size: `759,212` bytes
+  `artifacts/native-packages/amd-mobile-power-v1.0.22-native-win-x64-native-preview.zip`
+- Size: `760,654` bytes
 - SHA256:
-  `d84051b6df5ec4dc1d6d004cea635a0fd262033dfaec867d61560559c01c0c66`
-- Package source commit: `3b514943905fdc24b597827eab50bde63b630571`
+  `500224c715e834e14a0134af681cf17171d24fb747d57515175688317fab3e76`
+- Package source commit: `b688e50a337c399537ede69c42570d5c3b3013e0`
 - Working tree at build time: clean
 - 19 项包内校验和。
 
-本版在 `1.0.20-native` 紧凑 UI 与工作区适配之上完成滚动可靠性修复：
+本版在 `1.0.21-native` 滚动基础之上完成边界收口：
 
 1. **输入与焦点**：目标功耗与预设编辑在每秒遥测刷新、模式切换之间保留草稿；
    按钮只对真实点击执行动作，获得焦点不再误触发模式切换。
-2. **滚动与窄屏**：高级窗口的原生横/纵滚动条由 `SetScrollInfo` 自动显隐；
-   窗口最小客户宽度降到 `560` 逻辑像素，工作区不足时横向整页滚动；精密触控板
-   的 `30/60` 滚轮 delta 不再被整数除法归零；DPI 切换保留滚动位置，键盘焦点
-   进入页头时恢复到顶部。
+2. **滚动与窄屏**：滚动条显隐做成稳定循环，默认高级窗口不再残留假滚动条；
+   简洁模式在短工作区也可纵向滚动；页头焦点按按钮实际矩形横向带入；DPI 切换
+   使用系统建议矩形，不会把自定义窗口尺寸重置成默认值。
 
 `1.0.18-native` 的 worker 卡死自愈、退出重启、探针管道忙重试、同提交逐字节
 可复现、安全驱动卸载、多代 profile 目录、托盘/任务栏与单实例行为全部保留。
@@ -51,19 +50,19 @@ worker 二进制与 `1.0.18-native` 完全相同（`67af1d41`）。
 
 ## 本机验证
 
-- Rust GUI 测试：`43/43`（21 library + 22 main，滚动修复新增 1 项布局测试）。
+- Rust GUI 测试：`44/44`（22 library + 22 main，新增短屏滚动布局测试）。
 - Rust formatting / Clippy `-D warnings`：PASS。
 - Rust probe 测试：`7/7`。
 - C++ power-limit / power-policy 测试：PASS。
 - 19 项包内 SHA256 校验：PASS。
 - 提取后 GUI/worker 只读验证、诊断导出、兼容性 JSON/Markdown、无头探针：PASS。
-- 可复现构建：GUI `e7f602de`、worker `67af1d41`、探针 `9750418f`、ZIP
-  `d84051b6`，两次构建逐字节一致。
+- 可复现构建：GUI `288f86de`、worker `67af1d41`、探针 `9750418f`、ZIP
+  `500224c7`，两次构建逐字节一致。
 - 打包版交互：模式切换、置顶、预设编辑、目标草稿保留、焦点通知过滤、最小
   窗口边界、高级模式滚动（滚轮/滚动条/焦点带入）、诊断导出、三轮最小化恢复、
   关闭到托盘、托盘恢复、单实例唤醒：PASS。
 - worker 卡死替换（2026-11-13 补跑）：`NtSuspendProcess` 挂起隔离 worker 后
-  `33.9 s` 完成替换，`21/21` 次窗口响应采样通过、失败 0 次，策略与遥测恢复
+  `34.6 s` 完成替换，`22/22` 次窗口响应采样通过、失败 0 次，策略与遥测恢复
   `10/10/10 W`。
 - 隔离安装、覆盖安装、卸载：PASS。
 - 真实当前用户 Start menu / Startup / uninstall entry 建删循环：PASS。
@@ -74,14 +73,15 @@ worker 二进制与 `1.0.18-native` 完全相同（`67af1d41`）。
 
 Evidence:
 
-- `docs/evidence/packaging/v1.0.21-native-clean-2026-11-13.json`
-- `docs/evidence/packaging/v1.0.21-native-release-gate-2026-11-13.json`
-- `docs/evidence/packaging/v1.0.21-native-shell-integration-2026-11-13.json`
-- `docs/evidence/packaging/v1.0.21-native-deployment-2026-11-13.json`
-- `docs/evidence/hardware/v1.0.21-native-power-policy-no-change-2026-11-13.json`
-- `docs/evidence/hardware/v1.0.21-native-worker-hang-2026-11-13.json`
-- `docs/evidence/ui/native-packaged-1.0.21-native-ui-2026-11-13.json`
-- `docs/evidence/ui/native-deployed-1.0.21-native-ui-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.22-native-clean-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.22-native-release-gate-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.22-native-shell-integration-2026-11-13.json`
+- `docs/evidence/packaging/v1.0.22-native-deployment-2026-11-13.json`
+- `docs/evidence/hardware/v1.0.22-native-power-policy-no-change-2026-11-13.json`
+- `docs/evidence/hardware/v1.0.22-native-worker-hang-2026-11-13.json`
+- `docs/evidence/ui/native-packaged-1.0.22-native-ui-2026-11-13.json`
+- `docs/evidence/ui/native-deployed-1.0.22-native-ui-2026-11-13.json`
+- `docs/evidence/ui/native-workarea-200-1366x768-2026-11-13.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-13.json`
 - `docs/evidence/build/reproducibility-2026-11-13.json`
 - `docs/evidence/media/native-promo-1.0.20-draft-2026-11-12.json`
@@ -95,29 +95,29 @@ Evidence:
   `hawk-point-8845hs [5-60 W]`。
 - 受控当前值策略门禁（AC）：请求与回读 `10/10/10 W`，策略随后禁用，worker
   正常关闭；本次同值写入没有改变日常功耗。
-- 1.0.21 的 GUI 写入路径由打包版交互门禁与上述策略门禁覆盖。
+- 1.0.22 的 GUI 写入路径由打包版交互门禁与上述策略门禁覆盖。
 - 读-only 写入守卫：非法目标被拒绝，没有发起硬件写入。
 - 当前用户手动选择的状态：AC `10/10/10 W`（10 W 预设），自动策略关闭。
 
 Evidence:
 
-- `docs/evidence/hardware/v1.0.21-native-power-policy-no-change-2026-11-13.json`
-- `docs/evidence/hardware/v1.0.21-native-worker-hang-2026-11-13.json`
+- `docs/evidence/hardware/v1.0.22-native-power-policy-no-change-2026-11-13.json`
+- `docs/evidence/hardware/v1.0.22-native-worker-hang-2026-11-13.json`
 - `docs/evidence/compatibility/mechrevo-wujie15-pro-20261112-011617.json`
 - `docs/COMPATIBILITY_REPORTS.md`
 
 ## 本地部署
 
 - 目标目录：`C:\RyzenAdj`
-- 版本：`1.0.21-native`
-- 旧版备份：`C:\RyzenAdj.before-20261113-004532`
+- 版本：`1.0.22-native`
+- 旧版备份：`C:\RyzenAdj.before-20261113-012141`
 - 桌面快捷方式：`<USER_HOME>\Desktop\功耗设置 5-60W.lnk`
 - 快捷方式参数：`--enable-write-controls --simple-mode --max-target-watts 45`
 
 ## 发布物料
 
-- 新截图：`assets/native-gui-1.0.21-simple-2026-11-13.png`、
-  `assets/native-gui-1.0.21-advanced-2026-11-13.png`。
+- 新截图：`assets/native-gui-1.0.22-simple-2026-11-13.png`、
+  `assets/native-gui-1.0.22-advanced-2026-11-13.png`。
 - 宣传片草稿：99.5 秒、1920x1080、SAPI 中文配音 + 原创合成配乐、
   7 个不重复场景，`verify-media.ps1` PASS。
 - B 站封面：`docs/assets/bilibili-cover-1.0.20-2026-11-12.png`。
@@ -136,8 +136,10 @@ Evidence:
 
 ```powershell
 .\native\verify-release.ps1 `
-  -Version 1.0.21-native `
+  -Version 1.0.22-native `
   -VerifyReproducibility `
   -VerifyShellIntegration `
-  -ExecuteNoChangePolicy
+  -ExecuteNoChangePolicy `
+  -VerifyWorkerHang `
+  -AllowBatteryWriteGuard
 ```

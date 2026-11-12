@@ -6,16 +6,16 @@ AMD thin-and-light laptops. It uses a Rust GUI and a separate C++ worker so the
 UI and hardware access stay behind a narrow named-pipe contract.
 
 > Status: no public release yet. The current stable-local candidate is
-> `1.0.21-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
+> `1.0.22-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
 > Its GUI, probe, worker, and portable ZIP rebuild byte-identically from the
 > same commit. Local publication readiness is `PASS`; the release remains
 > `READY_FOR_HUMAN_REVIEW`.
 > Broader AMD generation support remains experimental until each device has
 > read-only and supervised write evidence.
 
-![Native simple mode](assets/native-gui-1.0.21-simple-2026-11-13.png)
+![Native simple mode](assets/native-gui-1.0.22-simple-2026-11-13.png)
 
-![Native advanced mode](assets/native-gui-1.0.21-advanced-2026-11-13.png)
+![Native advanced mode](assets/native-gui-1.0.22-advanced-2026-11-13.png)
 
 ## Current Capabilities
 
@@ -73,12 +73,12 @@ default.
 Current review candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.21-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.22-native-win-x64-native-preview.zip
 ```
 
-- Size: `759,212` bytes
+- Size: `760,654` bytes
 - SHA256:
-  `d84051b6df5ec4dc1d6d004cea635a0fd262033dfaec867d61560559c01c0c66`
+  `500224c715e834e14a0134af681cf17171d24fb747d57515175688317fab3e76`
 
 1. Extract the complete ZIP to a writable directory.
 2. On a fresh Windows host, open an elevated PowerShell in the extracted
@@ -150,7 +150,7 @@ git submodule update --init --recursive
 .\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui `
   -VerifyRustWorker -VerifyWriteGuard
 .\native\verify-release.ps1 `
-  -Version 1.0.21-native `
+  -Version 1.0.22-native `
   -VerifyReproducibility `
   -VerifyShellIntegration `
   -ExecuteNoChangePolicy `
