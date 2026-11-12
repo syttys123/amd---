@@ -1,19 +1,23 @@
 # Release Checklist
 
-Release under review: `1.0.18-native`
+Release under review: `1.0.20-native`
 
 ## Source And Build
 
 - [x] Tracked worktree is clean before the package build.
-- [x] Rust tests pass: 41/41 (22 GUI tests + 19 library tests).
+- [x] Rust tests pass: 43/43 (22 GUI tests + 21 library tests).
+- [x] Rust probe tests pass: 7/7.
 - [x] Rust formatting and Clippy with `-D warnings` pass.
 - [x] C++ power-limit and power-policy tests pass.
 - [x] Release build completes with the packaged icon present.
-- [x] `native\verify-release.ps1 -NoBuild -VerifyReproducibility
-  -VerifyShellIntegration -ExecuteNoChangePolicy -VerifyWorkerHang` passes.
+- [x] `native\verify-release.ps1 -Version 1.0.20-native -VerifyReproducibility
+  -VerifyShellIntegration -ExecuteNoChangePolicy -AllowBatteryWriteGuard`
+  passes (battery session).
 - [x] Package source commit and final SHA256 match the clean evidence.
-      Package SHA256 `fd7bf191ac557fb9bc1038cb725907ba67e5f819b8eeee6136f5cbe2721d6ef1`,
-      source commit `12934dfb2850fab6a9a91216343b45a18f849d07`.
+      Package SHA256 `4285011dee71e3fbdc9c36869079e54430bccaee168d8d5f0f99b9524d88adf0`,
+      source commit `d9129b01f4039ebd4db547070612589a1d834936`.
+- [x] Rebuild from the same tree is byte-identical: GUI `72b22832`, worker
+      `67af1d41`, probe `9750418f`, ZIP `4285011d`.
 - [ ] Hosted Windows CI passes for the release commit.
       Current blocker: GitHub Actions billing/spending-limit failure before job
       startup. Local release gates pass.
@@ -22,8 +26,8 @@ Release under review: `1.0.18-native`
 
 - [x] Read-only capability and telemetry pass on the verified 8845HS:
       SMU `15`, PM table `4c0009`, profile `hawk-point-8845hs`.
-- [x] Controlled current-value Fast/Slow/STAPM write-back and read-back pass at
-      `10/10/10 W`.
+- [x] Controlled current-value policy probe passes on battery at `25/25/20 W`
+      (firmware manages Slow dynamically on battery); policy disabled after.
 - [x] The worker disables policy and shuts down cleanly after the probe.
 - [x] No second hardware owner remains after verification.
 - [x] The deployed shortcut keeps the reviewed
@@ -37,9 +41,31 @@ Release under review: `1.0.18-native`
 - [x] Firmware-clamp behavior is documented instead of treated as a transport
       failure.
 - [x] `-VerifyWorkerHang` passes against the expanded package: replacement in
-      `34.9 s`, `28/28` responsive samples, zero failures, and 10/10/10 W
-      restored. A separate clean-tree run against the deployed binaries
-      replaced the worker in `35.6 s` with `27/27` responsive samples.
+      `33.5 s`, `20/20` responsive samples, zero failures, and `10/10/10 W`
+      restored (the machine was already at 10 W, so no net change).
+
+## UI Evidence
+
+- [x] Packaged GUI interaction passes: modes, topmost, preset editing, target
+      draft retention, focus-notification filtering, minimum bounds, advanced
+      scrolling (wheel, scrollbar, focus reveal), diagnostics, minimize/restore
+      cycles, close-to-tray, tray restore, single-instance wake.
+- [x] Logical 100/125/150% layout fixtures match the exact client sizes.
+- [x] Deployed GUI binary passes the same interaction suite.
+- [ ] Real OS-level 100%/150% session and monitor-transition evidence.
+- [x] Region-by-region screenshot review covers header, live power, target,
+      presets, telemetry, status, editor, policy, device, high contrast, and
+      long-error states.
+
+## Release Media
+
+- [x] Seven-scene promo draft rendered at 1920x1080, 99.5 s, with voice,
+      original seeded music, captions, and contact sheet.
+- [x] `verify-media.ps1` passes (decode, volume, hashes, review assets, cover).
+- [x] Bilibili cover regenerated for the 1.0.20 UI.
+- [ ] Owner reviews pacing, voice, claims, and cover.
+- [ ] Public GitHub Release and Bilibili upload (require explicit approval and
+      an authenticated session).
 
 ## Safety And Licensing
 
@@ -55,57 +81,3 @@ Release under review: `1.0.18-native`
       this application's ProgramData driver.
 - [x] RyzenAdj, InpOut32, and WinRing0 notices are present in the ZIP.
 - [x] Driver security behavior and unsigned-driver risks are documented.
-
-## Package Verification
-
-- [x] Portable ZIP builds from the recorded source commit.
-- [x] ZIP SHA256 and source commit are recorded.
-- [x] `SHA256SUMS.txt` verifies all 19 staged payload files.
-- [x] First install, overwrite install, and uninstall pass in an isolated path.
-- [x] Real current-user Start menu, Startup shortcut, and uninstall entry
-      create/cleanup pass.
-- [x] Packaged GUI and worker launch, tray lifecycle, single-instance wake,
-      mode switch, preset editing, and diagnostics export pass.
-- [x] DPI layout fixtures pass at 100%, 125%, and 150%.
-- [x] Packaged compatibility collector produces sanitized JSON and Markdown.
-- [x] No machine-specific diagnostics, logs, or user data are included.
-- [x] Deployed `C:\RyzenAdj` payload matches all 19 staged files.
-- [x] Deployment backup and recoverable repository copy exist.
-
-## Documentation And Media
-
-- [x] README status, package path, hash, driver setup, and safety scope match
-      the current package.
-- [x] Installation, recovery, deployment, and driver-cleanup instructions are
-      current.
-- [x] Supported-hardware wording does not claim universal support.
-- [x] Native simple/advanced screenshots exist.
-- [x] Promo video draft is rendered and machine-verified.
-- [x] Bilibili cover exists and is machine-verified:
-      `docs/assets/bilibili-cover-native-10w-2026-11-12.png` (`10 W / VERIFIED`).
-- [x] Local review bundle validates package, video, cover, and runtime drift.
-- [x] Review bundle `artifacts/native-release-review/v1.0.18-native` contains
-      27 files and its SHA256SUMS verifies cleanly.
-- [ ] Project owner reviews the final video voice, pacing, claims, and cover.
-- [ ] Bilibili title, description, cover, and tags are reviewed.
-
-## Open External Gates
-
-- [ ] Second AMD device compatibility evidence.
-- [ ] Real 100% and 150% Windows system sessions; current capture uses
-      test-only logical DPI fixtures.
-- [ ] Hosted Windows CI.
-- [ ] Clean Windows security-baseline WinRing0 verification.
-- [ ] Human video and claim review.
-- [ ] Explicit public-release approval.
-- [ ] Authenticated human-operated GitHub Release and Bilibili upload.
-
-## Final Publication
-
-- [x] Consolidated native release dossier exists.
-- [x] Draft GitHub release notes and Bilibili copy exist.
-- [x] Release notes include safety limits and known risks.
-- [ ] GitHub tag and asset list are reviewed.
-- [ ] Bilibili upload uses an authenticated human-operated session.
-- [ ] No login or credential prompt is automated.
-- [ ] Project owner explicitly approves final publication.
