@@ -87,6 +87,9 @@ scaled scroll offset instead of scaling the already-subtracted value.
   tag, GitHub draft-release, Bilibili upload, post-publish verification, and
   rollback steps. `docs/release-assets-1.0.23.json` lists the release assets
   with sizes and SHA256 values that were re-hashed from disk.
+- Release gate: `native/verify-release.ps1` now also runs
+  `verify-maximize-scroll.ps1` and records `MaximizeScroll=PASS` plus the
+  evidence path, so the 1.0.23 regression is checked by every future gate.
 
 2026-11-13: `1.0.22-native` is deployed to `C:\RyzenAdj`. It supersedes
 `1.0.21-native` with stabilised scrollbar layout, simple-mode scrolling on a

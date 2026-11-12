@@ -117,6 +117,18 @@ if (-not (Test-Path -LiteralPath $smallViewportEvidencePath -PathType Leaf) -or
     throw "Native 1366x768/200% work-area fixture failed."
 }
 
+$maximizeEvidencePath = Join-Path `
+    $repositoryRoot `
+    "docs\evidence\ui\native-maximize-scroll-$(Get-Date -Format 'yyyy-MM-dd').json"
+$null = & (Join-Path $root "verify-maximize-scroll.ps1") `
+    -GuiExecutable (Join-Path $packageDirectory "amd-mobile-power-gui.exe") `
+    -EvidencePath $maximizeEvidencePath
+if (-not (Test-Path -LiteralPath $maximizeEvidencePath -PathType Leaf) -or
+    (Get-Content -LiteralPath $maximizeEvidencePath -Raw |
+        ConvertFrom-Json).Verification -ne "PASS") {
+    throw "Native maximize-scroll regression check failed."
+}
+
 $shellStatus = "Not requested"
 if ($VerifyShellIntegration) {
     $null = & (Join-Path $root "verify-preview-shell-integration.ps1") `
@@ -217,6 +229,8 @@ $result = [ordered]@{
     DpiEvidence = $dpiEvidencePath
     SmallViewport = "PASS"
     SmallViewportEvidence = $smallViewportEvidencePath
+    MaximizeScroll = "PASS"
+    MaximizeScrollEvidence = $maximizeEvidencePath
     Reproducibility = $reproducibilityStatus
     ReproducibilityEvidence = if ($VerifyReproducibility) {
         $reproducibilityEvidencePath
