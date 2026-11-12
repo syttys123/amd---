@@ -38,7 +38,7 @@ candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
 The current local publication readiness gate is `PASS` with all 13 checks true,
 with
 `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW` and no local blockers. Evidence:
-`docs/evidence/release/native-publication-readiness-1.0.18-2026-11-12.json`.
+`docs/evidence/release/native-publication-readiness-2026-11-13.json`.
 
 Note (2026-11-12): `1.0.18-native` is the first package gated with
 `-VerifyWorkerHang`, which runs the maintained hang verifier against the

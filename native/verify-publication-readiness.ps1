@@ -439,15 +439,15 @@ if (-not $checks.ReviewBundle) {
 
 $dpiEvidencePath = Join-Path `
     $repositoryRoot `
-    "docs\evidence\ui\native-dpi-100-125-150-2026-11-12.json"
+    "docs\evidence\ui\native-dpi-100-125-150-$(Get-Date -Format 'yyyy-MM-dd').json"
 $dpiGate = "PENDING"
 $dpiEvidence = $null
 if (Test-Path -LiteralPath $dpiEvidencePath -PathType Leaf) {
     $dpiEvidence = Get-Content -LiteralPath $dpiEvidencePath -Raw | ConvertFrom-Json
     $expectedDpiSizes = [ordered]@{
-        "100" = "640x392|780x680"
-        "125" = "800x490|975x850"
-        "150" = "960x588|1170x1020"
+        "100" = "600x360|780x680"
+        "125" = "750x450|975x850"
+        "150" = "900x540|1170x1020"
     }
     $dpiResultsValid = $dpiEvidence.Verification -eq "PASS"
     foreach ($scale in $expectedDpiSizes.Keys) {
