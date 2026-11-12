@@ -31,6 +31,13 @@ hashes, review assets, and cover. Evidence:
 `docs/evidence/media/native-promo-1.0.23-draft-2026-11-13.json`. Status stays
 `DRAFT_FOR_HUMAN_REVIEW`; no upload or publication was performed.
 
+2026-11-13 (visual QA): deployed `1.0.23-native` was captured in simple and
+advanced modes at 100% and 125% logical scaling with the worker-offline
+fixture. No truncated labels, overlapping controls, or clipped footers were
+found; preset rows and telemetry columns align. Screenshots:
+`assets/native-qa-1.0.23-{simple,advanced}-{100,125}.png`. Evidence:
+`docs/evidence/ui/native-visual-qa-100-125-2026-11-13.json`.
+
 2026-11-13 (`1.0.23-native`): deployed to `C:\RyzenAdj`, superseding
 `1.0.22-native`. It fixes the advanced-mode maximize/snap regression inherited
 from `1.0.22-native`: after shrinking the window, scrolling, and maximizing,

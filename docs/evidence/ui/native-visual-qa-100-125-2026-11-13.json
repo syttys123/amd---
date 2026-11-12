@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "verification": "PASS",
+  "version": "1.0.23-native",
+  "method": "Deployed GUI captured through native/capture-rust-gui-redesign.ps1 with the worker-offline fixture at 100% and 125% logical scaling.",
+  "checks": {
+    "simpleModeTextClipping": "PASS",
+    "advancedModeTextClipping": "PASS",
+    "presetRowAlignment": "PASS",
+    "telemetryColumnsAligned": "PASS",
+    "footerVisible": "PASS"
+  },
+  "images": [
+    {
+      "path": "assets/native-qa-1.0.23-simple-100.png",
+      "width": 602,
+      "height": 392,
+      "sha256": "ab4909c51adf60a1c4ee7dee8da2de833c5b33a15a95532c73d7c40c8493286c"
+    },
+    {
+      "path": "assets/native-qa-1.0.23-advanced-100.png",
+      "width": 782,
+      "height": 712,
+      "sha256": "9f0e067efc37ca1b5df67e9d53263b19e0b718a788766c15a626ab8bc6ac7153"
+    },
+    {
+      "path": "assets/native-qa-1.0.23-simple-125.png",
+      "width": 752,
+      "height": 482,
+      "sha256": "c5f87760e0e811927b4537e0f0eaff6dbe419b150f11f9758e9f76a5075c6a02"
+    },
+    {
+      "path": "assets/native-qa-1.0.23-advanced-125.png",
+      "width": 977,
+      "height": 882,
+      "sha256": "3a6cbc3ccdbf8b1cffee8308b735cad14da55265797c7275a315d5b018abae91"
+    }
+  ],
+  "recordedAt": "2026-11-13T03:36:00+08:00"
+}
