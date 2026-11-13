@@ -26,7 +26,7 @@
     "Arguments": "--simple-mode --max-target-watts 45",
     "RejectedArguments": [],
     "Launch": {
-      "Arguments": "--simple-mode --max-target-watts 45 --pipe-name AmdMobilePower.Worker.readiness.e73f7373",
+      "Arguments": "--simple-mode --max-target-watts 45 --pipe-name AmdMobilePower.Worker.readiness.ce1af011",
       "WindowReady": false,
       "ExitedEarly": true,
       "ExitCode": 0,
@@ -38,7 +38,7 @@
     "SecondAmdDevice": "PENDING",
     "DpiLayoutFixtures100And150": "PASS",
     "Dpi100And150SystemSessions": "PENDING",
-    "HostedWindowsCi": "PENDING",
+    "HostedWindowsCi": "PASS",
     "CleanWindowsWinRing0Baseline": "PENDING",
     "HumanVideoAndClaimReview": "PENDING",
     "ExplicitPublicReleaseApproval": "PENDING",
@@ -76,11 +76,11 @@
   },
   "HostedCi": {
     "Evidence": "docs/evidence/build/hosted-ci-2026-11-14.json",
-    "Verification": "PENDING",
-    "RunId": 43509158502,
-    "Commit": "4f91e4e0115cfdc6891cba9827f5c096b3eb1929"
+    "Verification": "PASS",
+    "RunId": 43514695587,
+    "Commit": "5cfc3573f20a868e8c8f3ca1e958d6af11a28701"
   },
   "BlockersFromLocalChecks": [],
   "Note": "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check. The shortcut launch audit runs the deployed GUI with an isolated LOCALAPPDATA and a unique worker pipe, then stops it.",
-  "RecordedAt": "2026-11-14T05:52:45.2426838+08:00"
+  "RecordedAt": "2026-11-14T06:01:40.5671048+08:00"
 }
