@@ -166,6 +166,8 @@ conservative values and restore the previous state.
 
 ## Documentation
 
+- [CONTRIBUTING.md](CONTRIBUTING.md): safe contribution rules, compatibility
+  reports, and build/test expectations.
 - [docs/README.md](docs/README.md): documentation index and authority order.
 - [docs/DEV_STATUS.md](docs/DEV_STATUS.md): current implementation and next task.
 - [docs/NATIVE_RC_STATUS.md](docs/NATIVE_RC_STATUS.md): native release gates.
