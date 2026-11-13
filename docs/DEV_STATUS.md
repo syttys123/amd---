@@ -1972,6 +1972,11 @@ Resolution (2026-11-13 03:45): connectivity recovered intermittently and
 backlog of local commits is pushed. The hosted workflow was triggered by the
 push but its run status could not be inspected because `api.github.com` still
 failed TLS from this host.
+
+Visibility check (2026-11-13 03:50): unauthenticated requests to
+`https://github.com/syttys123/amd-mobile-power` return `404`, so the repository is still
+private. No tag or GitHub Release has been created; the release runbook remains
+the next step after the owner approves public publication.
 Keep the pre-promotion `C:\RyzenAdj` backup until the public release gates are
 closed, and never promote a dirty or write-unverified native package.
 
