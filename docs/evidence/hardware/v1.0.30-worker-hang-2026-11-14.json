@@ -1,0 +1,40 @@
+{
+  "SchemaVersion": 1,
+  "Version": "1.0.30",
+  "Verification": "PASS",
+  "Method": "NtSuspendProcess holds the isolated worker until the GUI heartbeat watchdog replaces it.",
+  "SourceCommit": "2f04605d620a84a0c06b3662e99de0e7a8b6fcbd",
+  "WorkingTree": "Dirty",
+  "GuiSHA256": "213a96fddd8698b44134d067df5598db8769a1e3f2ee97e91230b447994bc207",
+  "WorkerSHA256": "67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1",
+  "ProbeSHA256": "9750418f15ebce2d70e750e845cfa5408751a96b178d60bbaa168155322a615e",
+  "PipeName": "\\\\.\\pipe\\AmdMobilePower.Worker.hangtest.c42e8a46",
+  "IsolatedStateDirectory": "D:\\amd-mobile-power\\artifacts\\verify\\worker-hang-state-c42e8a46",
+  "WatchdogThresholdSeconds": 30,
+  "TimeoutSeconds": 75,
+  "OldWorkerPid": 56356,
+  "NewWorkerPid": 27312,
+  "ReplacementElapsedSeconds": 33.8,
+  "GuiRespondingChecks": 18,
+  "GuiRespondingFailures": 0,
+  "PolicyAfterReplacement": {
+    "enabled": true,
+    "batteryEnabled": true,
+    "acEnabled": true,
+    "batteryTargetWatts": "10/10/10",
+    "acTargetWatts": "10/10/10",
+    "lastAttemptSucceeded": true
+  },
+  "TelemetryAfterReplacement": {
+    "powerLine": "ac",
+    "stapmLimitWatts": 10,
+    "fastLimitWatts": 10,
+    "slowLimitWatts": 10,
+    "stapmValueWatts": 10.0176,
+    "fastValueWatts": 10.0675,
+    "slowValueWatts": 10.0012,
+    "tctlValueCelsius": 47.1665
+  },
+  "Failure": null,
+  "RecordedAt": "2026-11-14T07:24:45.5216606+08:00"
+}

@@ -6,7 +6,7 @@ AMD thin-and-light laptops. It uses a Rust GUI and a separate C++ worker so the
 UI and hardware access stay behind a narrow named-pipe contract.
 
 > Status: no public release yet. The current stable-local candidate is
-> `1.0.29-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
+> `1.0.30-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
 > Its GUI, probe, worker, and portable ZIP rebuild byte-identically from the
 > same commit. Local publication readiness is `PASS`; the release remains
 > `READY_FOR_HUMAN_REVIEW`.
@@ -74,12 +74,12 @@ package's read-only default.
 Current review candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.29-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.30-win-x64-native-preview.zip
 ```
 
-- Size: `770,245` bytes
+- Size: `771,049` bytes
 - SHA256:
-  `c6b54d84f3f1bdba67407fe72a1f4465913e554defa1577e5c02c7373b5db640`
+  `618c01442aac0715dade459f2f1a2e58a0471dcd1688096b0ca8765e7df44c3f`
 
 1. Extract the complete ZIP to a writable directory.
 2. On a fresh Windows host, open an elevated PowerShell in the extracted
@@ -152,7 +152,7 @@ git submodule update --init --recursive
 .\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui `
   -VerifyRustWorker -VerifyWriteGuard
 .\native\verify-release.ps1 `
-  -Version 1.0.29 `
+  -Version 1.0.30 `
   -VerifyReproducibility `
   -VerifyShellIntegration `
   -ExecuteNoChangePolicy `
@@ -175,9 +175,9 @@ conservative values and restore the previous state.
 - [docs/PACKAGING.md](docs/PACKAGING.md): package, driver, install, and uninstall.
 - [docs/BUILDING.md](docs/BUILDING.md): build and verification commands.
 - [docs/SECURITY.md](docs/SECURITY.md): hardware and driver safety boundaries.
-- [docs/NATIVE_RELEASE_CANDIDATE_1.0.29_ZH.md](docs/NATIVE_RELEASE_CANDIDATE_1.0.29_ZH.md):
+- [docs/NATIVE_RELEASE_CANDIDATE_1.0.30_ZH.md](docs/NATIVE_RELEASE_CANDIDATE_1.0.30_ZH.md):
   current Chinese review dossier.
-- [docs/NATIVE_LAUNCH_COPY_1.0.29_ZH.md](docs/NATIVE_LAUNCH_COPY_1.0.29_ZH.md):
+- [docs/NATIVE_LAUNCH_COPY_1.0.30_ZH.md](docs/NATIVE_LAUNCH_COPY_1.0.30_ZH.md):
   current review-only GitHub and Bilibili copy. It is not publication approval.
 
 ## License
@@ -186,3 +186,4 @@ Original project code is licensed under the MIT License. Third-party components
 retain their own licenses. Packages include the reviewed RyzenAdj, InpOut32, and
 WinRing0 license texts. See [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md)
 and [docs/LICENSING_REVIEW.md](docs/LICENSING_REVIEW.md).
+

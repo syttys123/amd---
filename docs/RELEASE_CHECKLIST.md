@@ -1,24 +1,24 @@
 # Release Checklist
 
-Release under review: `1.0.29-native`
+Release under review: `1.0.30-native`
 
 ## Source And Build
 
 - [x] Tracked worktree is clean before the package build.
-- [x] Rust tests pass: 47/47 (23 GUI tests + 24 library tests).
+- [x] Rust tests pass: 48/48 (23 GUI tests + 25 library tests).
 - [x] Rust probe tests pass: 7/7.
 - [x] Rust formatting and Clippy with `-D warnings` pass.
 - [x] C++ power-limit and power-policy tests pass.
 - [x] Release build completes with the packaged icon present.
-- [x] `native\verify-release.ps1 -Version 1.0.29 -VerifyReproducibility
+- [x] `native\verify-release.ps1 -Version 1.0.30 -VerifyReproducibility
   -VerifyShellIntegration -ExecuteNoChangePolicy -VerifyWorkerHang
   -AllowBatteryWriteGuard`
   passes (AC session; the guard remained enabled).
 - [x] Package source commit and final SHA256 match the clean evidence.
-      Package SHA256 `c6b54d84f3f1bdba67407fe72a1f4465913e554defa1577e5c02c7373b5db640`,
-      source commit `ee40565b66f6f8f0f52b362135604228fd2f7433`.
-- [x] Rebuild from the same tree is byte-identical: GUI `d46f885e`, worker
-      `67af1d41`, probe `9750418f`, ZIP `c6b54d84`.
+      Package SHA256 `618c01442aac0715dade459f2f1a2e58a0471dcd1688096b0ca8765e7df44c3f`,
+      source commit `2f04605d620a84a0c06b3662e99de0e7a8b6fcbd`.
+- [x] Rebuild from the same tree is byte-identical: GUI `213a96fd`, worker
+      `67af1d41`, probe `9750418f`, ZIP `618c0144`.
 - [x] Hosted Windows CI passes for the release commit
       (run `43514695587`, commit `5cfc357`).
 

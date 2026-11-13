@@ -60,17 +60,19 @@ Markdown document records the decisions that apply to AMD Mobile Power.
 | `ROADMAP.md` | Milestones and release gates |
 | `RELEASE_CHECKLIST.md` | Final publication checklist |
 | `RELEASE_RUNBOOK.md` | Offline GitHub tag/Release and Bilibili upload procedure |
-| `release-notes-1.0.29-zh.md` | Current public GitHub Release body draft |
-| `release-assets-1.0.29.json` | Current package, video, cover, and copy manifest |
+| `release-notes-1.0.30-zh.md` | Current public GitHub Release body draft |
+| `release-assets-1.0.30.json` | Current package, video, cover, and copy manifest |
 | `RELEASE_CANDIDATE_ZH.md` | Legacy .NET 1.0.4 package and historical review |
-| `NATIVE_RELEASE_CANDIDATE_1.0.29_ZH.md` | Current native 1.0.29 package, evidence, and open-gate review |
+| `NATIVE_RELEASE_CANDIDATE_1.0.30_ZH.md` | Current native 1.0.30 package, evidence, and open-gate review |
+| `NATIVE_RELEASE_CANDIDATE_1.0.29_ZH.md` | Historical native 1.0.29 review snapshot |
 | `NATIVE_RELEASE_CANDIDATE_1.0.28_ZH.md` | Historical native 1.0.28 review snapshot |
 | `NATIVE_RELEASE_CANDIDATE_ZH.md` | Historical native 1.0.23 review snapshot |
 | `INTRODUCTION_ZH.md` | Chinese project introduction draft |
 | `MEDIA_PLAN.md` | Screenshot, video, and Bilibili preparation plan |
 | `PROMO_VIDEO.md` | Current video draft, render command, hashes, and media verification |
 | `LAUNCH_COPY_ZH.md` | Review-only GitHub release and Bilibili publication copy |
-| `NATIVE_LAUNCH_COPY_1.0.29_ZH.md` | Current review-only native 1.0.29 GitHub and Bilibili copy |
+| `NATIVE_LAUNCH_COPY_1.0.30_ZH.md` | Current review-only native 1.0.30 GitHub and Bilibili copy |
+| `NATIVE_LAUNCH_COPY_1.0.29_ZH.md` | Historical native 1.0.29 launch copy |
 | `NATIVE_LAUNCH_COPY_1.0.28_ZH.md` | Historical native 1.0.28 launch copy |
 | `NATIVE_LAUNCH_COPY_ZH.md` | Historical native 1.0.23 launch-copy snapshot |
 

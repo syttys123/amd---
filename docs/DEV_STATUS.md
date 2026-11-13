@@ -21,6 +21,27 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (1.0.30-native tolerates a UTF-8 BOM in the state file):
+
+- Root cause of the 07:00 state reset: Windows PowerShell 5.1 writes UTF-8 with
+  a BOM, and `serde_json` rejected the file. `state::load_state` then returned
+  `None`, so presets, policy, and the unlock flag silently fell back to
+  defaults (`12/25/45`, locked) while the worker kept the real limits.
+- `decode_state` now trims a leading U+FEFF before parsing, with a unit test
+  for a BOM-prefixed file. Rust GUI tests are 25 library + 23 main = `48/48`.
+- Clean 1.0.30 package: 771,049 bytes, SHA256
+  `618c01442aac0715dade459f2f1a2e58a0471dcd1688096b0ca8765e7df44c3f`,
+  source commit `2f04605`. Full release gate PASS: clean package, shell
+  integration, `10/10/10 W` no-change policy, worker hang, DPI, 1366x768/200%
+  work area, maximize scroll, byte-identical reproducibility. Evidence:
+  `docs/evidence/packaging/v1.0.30-release-gate-2026-11-14.json`.
+- Promoted to `C:\RyzenAdj`; 1.0.29 is recoverable at
+  `C:\RyzenAdj.before-20261114-072507`. Deployed GUI SHA256
+  `213a96fd...`, worker/probe unchanged. Live state after restart: AC,
+  `10/10/10 W`, presets `10/25/45`, write unlocked.
+- Packaged GUI evidence:
+  `docs/evidence/ui/native-packaged-1.0.30-ui-2026-11-14.json`.
+
 2026-11-14 (verifier guard for Windows PowerShell 5.1):
 
 - Reproduced at 06:41: Windows PowerShell 5.1 removes the quotes from JSON
