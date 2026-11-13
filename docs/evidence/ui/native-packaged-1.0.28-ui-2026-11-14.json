@@ -1,9 +1,9 @@
 {
-  "SourceCommit": "a78c9fc5204ff3c42e09b3e56ff0e821f86cc2c9",
+  "SourceCommit": "8bae690e441da746c92c6e181ba65a7391d2632e",
   "Verification": "PASS",
   "Path": "Rust GUI -> C++ worker -> RyzenAdj",
   "Processor": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
-  "WorkerStatus": "已连接 worker · 电池\nAMD Ryzen 7 8845HS w/ Radeon 780M Graphics     \n\nSTAPM / Fast / Slow 上限\n8.00 W / 8.00 W / 8.00 W\n\n目标功耗：--    CPU：39.1 °C\n自动策略：已启用（电池 8 W / 外接 8 W）\n上次应用：电池 · 成功",
+  "WorkerStatus": "已连接 worker · 电池\nAMD Ryzen 7 8845HS w/ Radeon 780M Graphics     \n\nSTAPM / Fast / Slow 上限\n8.00 W / 8.00 W / 8.00 W\n\n目标功耗：--    CPU：39.0 °C\n自动策略：已启用（电池 8 W / 外接 8 W）\n上次应用：电池 · 成功",
   "GuiExecutable": "amd-mobile-power-gui.exe",
   "GuiSHA256": "d46f885e44aa53355739005a875d107bff58b83a23da4639991be6fd7f538245",
   "WorkerExecutable": "amdmobilepower_native_worker.exe",
@@ -31,5 +31,6 @@
   "DpiFixture": "",
   "WritePreset": "Not requested",
   "PolicySave": "Not requested",
-  "RecordedAt": "2026-11-14T04:32:43.6916802+08:00"
+  "BackgroundGuiRelaunched": 1,
+  "RecordedAt": "2026-11-14T05:02:48.7962511+08:00"
 }

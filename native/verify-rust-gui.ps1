@@ -407,6 +407,7 @@ function Set-GuiControlFocus {
 
 $firstProcess = $null
 $secondProcess = $null
+$backgroundGuiSessions = @()
 $existingWorkerIds = @(
     Get-Process `
         -Name "amdmobilepower_native_worker" `
@@ -414,6 +415,28 @@ $existingWorkerIds = @(
         Select-Object -ExpandProperty Id
 )
 try {
+    # The GUI owns a machine-wide single-instance mutex, so the verification
+    # instance needs exclusive ownership. Remember any GUI that is already
+    # running (normally the user's deployed tray app) and relaunch it in the
+    # `finally` block instead of silently closing it.
+    $backgroundGuiSessions = @(
+        Get-CimInstance Win32_Process -Filter "Name = 'amd-mobile-power-gui.exe'" |
+            ForEach-Object {
+                $commandLine = [string]$_.CommandLine
+                $arguments = ""
+                if ($commandLine -match '^\s*"([^"]+)"\s*(.*)$') {
+                    $arguments = $Matches[2]
+                }
+                elseif ($commandLine -match '^\s*(\S+)\s*(.*)$') {
+                    $arguments = $Matches[2]
+                }
+                [pscustomobject]@{
+                    ExecutablePath = $_.ExecutablePath
+                    Arguments = $arguments.Trim()
+                }
+            } |
+            Where-Object { $_.ExecutablePath }
+    )
     Get-Process `
         -Name "amd-mobile-power-gui" `
         -ErrorAction SilentlyContinue |
@@ -1346,6 +1369,7 @@ try {
             DpiFixture = $DpiFixture
             WritePreset = $writePresetResult
             PolicySave = if ($ExecutePolicySave) { "PASS" } else { "Not requested" }
+            BackgroundGuiRelaunched = $backgroundGuiSessions.Count
             RecordedAt = (Get-Date).ToString("o")
         } |
             ConvertTo-Json -Depth 8 |
@@ -1410,5 +1434,20 @@ finally {
     $env:LOCALAPPDATA = $previousLocalAppData
     if (Test-Path -LiteralPath $isolatedLocalAppData) {
         Remove-Item -LiteralPath $isolatedLocalAppData -Recurse -Force
+    }
+    foreach ($session in $backgroundGuiSessions) {
+        try {
+            Start-Process `
+                -FilePath $session.ExecutablePath `
+                -ArgumentList $session.Arguments `
+                -WorkingDirectory (Split-Path -Parent $session.ExecutablePath) `
+                -ErrorAction Stop
+        }
+        catch {
+            Write-Warning "Unable to relaunch the GUI that was running before the check: $($session.ExecutablePath)"
+        }
+    }
+    if ($backgroundGuiSessions.Count -gt 0) {
+        Start-Sleep -Seconds 3
     }
 }
