@@ -832,6 +832,8 @@ for ($index = 0; $index -lt $sceneRecords.Count; $index++) {
 }
 $totalDuration = $currentStart
 [void]$filter.Append("concat=n=$($sceneRecords.Count):v=1:a=1[vcat][acat];")
+[void]$filter.Append(
+    "[vcat]drawbox=x=0:y=1074:w='max(1,1920*t/$($totalDuration.ToString("0.###", [Globalization.CultureInfo]::InvariantCulture)))':h=6:color=0x45D6A8:t=fill[vprog];")
 if ($musicInputIndex -ge 0) {
     $fadeOutStart = [Math]::Max(0.0, $totalDuration - 4.0).ToString(
         "0.###",
@@ -855,7 +857,7 @@ else {
 $arguments.Add("-filter_complex")
 $arguments.Add($filter.ToString())
 $arguments.Add("-map")
-$arguments.Add("[vcat]")
+$arguments.Add("[vprog]")
 $arguments.Add("-map")
 $arguments.Add("[aout]")
 $arguments.Add("-c:v")

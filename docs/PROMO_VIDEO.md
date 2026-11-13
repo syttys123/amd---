@@ -11,7 +11,8 @@ stereo audio, Chinese narration, and simplified-Chinese captions. It uses the
 `1.0.22-native` capture set (layout identical to `1.0.23`) together with the
 high-contrast, worker-offline, and device-panel states. Each scene now uses its
 own camera motion (zoom or pan) instead of a static card, and the presets scene
-shows an animated `10 / 12 / 25 / 45 W` counter on top of the UI capture. It is
+shows an animated `10 / 12 / 25 / 45 W` counter on top of the UI capture. A
+thin accent progress bar runs along the bottom of the whole video. It is
 marked `DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
 
 ![Promo draft cover](assets/native-promo-1.0.23-cover-2026-11-13.png)
@@ -29,9 +30,9 @@ artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/
   amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4
 ```
 
-- Size: 23,769,552 bytes.
+- Size: 24,145,236 bytes.
 - SHA256:
-  `0ac11c87377ba296ea0c56c4bd1c360810bec305e29abeb4a06eb6adcabaedcb`.
+  `990087053389a1f3f3cccc7db729357c5bb72a06878f984035f125bf75787036`.
 - Full-file FFmpeg decode: PASS.
 - Audio level: mean `-20.7 dB`, peak `-1.2 dB`.
 - Title, caption, and bullet safe-width checks: PASS.
@@ -94,5 +95,3 @@ or audio bound stops the render instead of producing an accepted draft.
   content appears.
 - The project owner reviews the final voice, pacing, claims, and cover before
   any authenticated upload.
-
-

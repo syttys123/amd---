@@ -34,14 +34,18 @@ hashes, review assets, and cover. Evidence:
 2026-11-13 (media 1.0.23 v2): re-rendered the draft again after visual review.
 Each scene now uses its own camera motion (zoom or pan) instead of a static
 card, and the presets scene overlays an animated `10 / 12 / 25 / 45 W` counter
-on the UI capture. Video SHA256
-`0ac11c87377ba296ea0c56c4bd1c360810bec305e29abeb4a06eb6adcabaedcb`,
-`23,769,552` bytes, `109.2 s`. `verify-media.ps1` PASS.
+on the UI capture, and a thin accent progress bar runs along the bottom of the
+whole video. Video SHA256
+`990087053389a1f3f3cccc7db729357c5bb72a06878f984035f125bf75787036`,
+`24,145,236` bytes, `109.2 s`. `verify-media.ps1` PASS.
 
 2026-11-13 (media 1.0.23 v3 candidate): rendered an alternate voice draft with
 `Microsoft Yaoyao` at rate 2 so the owner can compare narration quality before
 choosing the public take: `111 s`, `24,044,748` bytes, SHA256
-`d6ad307c3633fb0b04b7361192f5793cd71b8a93b8385cf342257da6e9661ca6`.
+choosing the public take: `111 s`, `24,413,847` bytes, SHA256
+`f1bfddea46a45a8fa7bea4ad2e4af03de16196f19c4babfc73d022c3a0e32707` (re-rendered
+`f1bfddea46a45a8fa7bea4ad2e4af03de16196f19c4babfc73d022c3a0e32707` (re-rendered
+with the same motion, counter, and progress bar as v2).
 Path: `artifacts/media/amd-mobile-power-promo-1.0.23-v3-yaoyao-2026-11-13/`.
 Isolated voice samples (same sentence, rate 3 vs 1/2) live under
 `artifacts/media/voice-samples/`. The `v2` Huihui draft stays the default

@@ -23,8 +23,8 @@
       "durationSeconds": 109.2,
       "width": 1920,
       "height": 1080,
-      "sizeBytes": 23769552,
-      "sha256": "0ac11c87377ba296ea0c56c4bd1c360810bec305e29abeb4a06eb6adcabaedcb"
+      "sizeBytes": 24145236,
+      "sha256": "990087053389a1f3f3cccc7db729357c5bb72a06878f984035f125bf75787036"
     },
     "cover": {
       "path": "docs/assets/bilibili-cover-1.0.23-2026-11-13.png",
@@ -37,8 +37,8 @@
       "path": "docs/assets/native-promo-1.0.23-contact-sheet-2026-11-13.png",
       "width": 1920,
       "height": 640,
-      "sizeBytes": 481262,
-      "sha256": "0bf43d4d196dff2baba0ba5b0377509389ceebf226671841b084f998844216cc"
+      "sizeBytes": 481027,
+      "sha256": "5a93d67c7652e8bbd8d37083dcce1c8e669ad34bdbb7a29b743df96f611e0ce2"
     },
     "note": "The 1.0.22 capture set is reused because 1.0.23 changes scroll behaviour only; no visible UI surface changed."
   },
