@@ -195,6 +195,35 @@ if ($deploymentEvidenceCandidate) {
     }
 }
 
+$releaseNotesPath = Join-Path $repositoryRoot "docs\release-notes-$Version-zh.md"
+if (Test-Path -LiteralPath $releaseNotesPath -PathType Leaf) {
+    $copies += @{
+        Source = $releaseNotesPath
+        Destination = "RELEASE_NOTES_ZH.md"
+    }
+}
+
+$releaseAssetsPath = Join-Path $repositoryRoot "docs\release-assets-$Version.json"
+if (Test-Path -LiteralPath $releaseAssetsPath -PathType Leaf) {
+    $copies += @{
+        Source = $releaseAssetsPath
+        Destination = "RELEASE_ASSETS.json"
+    }
+}
+
+foreach ($reviewDoc in @(
+    "RELEASE_CHECKLIST.md",
+    "RELEASE_RUNBOOK.md"
+)) {
+    $reviewDocPath = Join-Path $repositoryRoot (Join-Path "docs" $reviewDoc)
+    if (Test-Path -LiteralPath $reviewDocPath -PathType Leaf) {
+        $copies += @{
+            Source = $reviewDocPath
+            Destination = $reviewDoc
+        }
+    }
+}
+
 $dpiEvidenceFile = Get-NewestFile `
     -Directory (Join-Path $repositoryRoot "docs\evidence\ui") `
     -Filter "native-dpi-100-125-150-*.json"
