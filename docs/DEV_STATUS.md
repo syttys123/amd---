@@ -21,6 +21,39 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (1.0.29-native ships corrected package documentation):
+
+- The packaged `README.txt` still told users to start the GUI with
+  `--enable-write-controls`, which contradicted the 1.0.27+ in-app lock and
+  tray `写入解锁…` flow. `native/portable-README.txt` now documents the
+  in-app unlock, `10 / 25 / 45 W` editable presets, the battery/AC policy, and
+  `%LOCALAPPDATA%\AmdMobilePower`. `native/build-package.ps1` fails the build
+  if those required strings disappear from the staged README.
+- `verify-rust-gui.ps1` exported diagnostics by picking the newest file in the
+  folder; during policy-toggle checks that could still be the previous export,
+  producing `Policy toggles were not reflected together in diagnostics`. It now
+  records existing files and waits for a genuinely new export. The failing
+  1.0.29 build then passed `PolicySave` and every other packaged-GUI check.
+- `verify-release.ps1` writes reproducibility evidence to
+  `reproducibility-<version>-<date>.json`, so a new candidate no longer
+  overwrites the previous version's record.
+- Clean 1.0.29 package: 770,245 bytes, SHA256
+  `c6b54d84f3f1bdba67407fe72a1f4465913e554defa1577e5c02c7373b5db640`,
+  source commit `ee40565`, working tree clean. GUI / worker / probe hashes are
+  unchanged from 1.0.28 because only packaging text changed.
+- Full release gate PASS: clean package, shell integration, battery no-change
+  policy (`8/8/8 W` request and read-back), worker hang, 100/125/150% DPI,
+  1366x768/200% work area, maximize scroll, byte-identical reproducibility.
+  Evidence: `docs/evidence/packaging/v1.0.29-release-gate-2026-11-14.json`.
+- Promoted to `C:\RyzenAdj`; previous stable is recoverable at
+  `C:\RyzenAdj.before-20261114-054523`. The desktop shortcut keeps
+  `--simple-mode --max-target-watts 45`. The app was restarted and the battery
+  policy still reads `8/8/8 W`.
+- Packaged GUI evidence `PASS`
+  (`docs/evidence/ui/native-packaged-1.0.29-ui-2026-11-14.json`), review bundle
+  `artifacts/native-release-review/v1.0.29` (29 files), and publication
+  readiness `LocalReadiness=PASS` with no local blockers.
+
 2026-11-14 (publication readiness gate is green for human review):
 
 - `native/verify-publication-readiness.ps1` now resolves the real desktop
