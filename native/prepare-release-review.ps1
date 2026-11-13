@@ -3,11 +3,12 @@ param(
     [string]$Version,
     [string]$OutputDirectory,
     [switch]$IncludeMedia,
-    [string]$VideoPath = "artifacts\media\amd-mobile-power-native-promo-draft-2026-11-11\amd-mobile-power-native-intro-draft-2026-11-11.mp4",
-    [string]$MediaEvidencePath = "docs\evidence\media\native-promo-draft-2026-11-11.json",
-    [string]$BilibiliCoverPath = "docs\assets\bilibili-cover-native-2026-11-11.png",
-    [string]$ContactSheetPath = "docs\assets\native-promo-draft-contact-sheet-2026-11-11.png",
-    [string]$LaunchCopyPath = "docs\NATIVE_LAUNCH_COPY_ZH.md"
+    [string]$VideoPath,
+    [string]$MediaEvidencePath,
+    [string]$BilibiliCoverPath,
+    [string]$ContactSheetPath,
+    [string]$LaunchCopyPath,
+    [string]$ReleaseCandidatePath
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,6 +17,73 @@ $root = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $root
 $artifactsRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $repositoryRoot "artifacts"))
+
+function Get-NewestFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Directory,
+        [Parameter(Mandatory = $true)]
+        [string]$Filter
+    )
+
+    if (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
+        return $null
+    }
+    return Get-ChildItem -LiteralPath $Directory -Filter $Filter -File |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1
+}
+
+function Resolve-DefaultFile {
+    param(
+        [AllowEmptyString()]
+        [string]$Provided,
+        [string[]]$Candidates
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($Provided)) {
+        return $Provided
+    }
+    foreach ($candidate in $Candidates) {
+        if ($candidate -and (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+            return $candidate
+        }
+    }
+    return $Candidates | Where-Object { $_ } | Select-Object -First 1
+}
+
+$today = Get-Date -Format "yyyy-MM-dd"
+$newestPromoVideo = Get-NewestFile `
+    -Directory (Join-Path $artifactsRoot "media\promo-html-v1") `
+    -Filter "*.mp4"
+$newestCover = Get-NewestFile `
+    -Directory (Join-Path $repositoryRoot "docs\assets") `
+    -Filter "bilibili-cover-*.png"
+$newestContactSheet = Get-NewestFile `
+    -Directory (Join-Path $repositoryRoot "docs\assets") `
+    -Filter "native-promo-*-contact-sheet-*.png"
+
+$VideoPath = Resolve-DefaultFile -Provided $VideoPath -Candidates @(
+    $(if ($newestPromoVideo) { $newestPromoVideo.FullName })
+)
+$MediaEvidencePath = Resolve-DefaultFile -Provided $MediaEvidencePath -Candidates @(
+    (Join-Path $repositoryRoot "docs\evidence\media\native-promo-$Version-draft-$today.json"),
+    (Join-Path $repositoryRoot "docs\evidence\media\native-promo-draft-$today.json")
+)
+$BilibiliCoverPath = Resolve-DefaultFile -Provided $BilibiliCoverPath -Candidates @(
+    $(if ($newestCover) { $newestCover.FullName })
+)
+$ContactSheetPath = Resolve-DefaultFile -Provided $ContactSheetPath -Candidates @(
+    $(if ($newestContactSheet) { $newestContactSheet.FullName })
+)
+$LaunchCopyPath = Resolve-DefaultFile -Provided $LaunchCopyPath -Candidates @(
+    (Join-Path $repositoryRoot "docs\NATIVE_LAUNCH_COPY_$($Version)_ZH.md"),
+    (Join-Path $repositoryRoot "docs\NATIVE_LAUNCH_COPY_ZH.md")
+)
+$ReleaseCandidatePath = Resolve-DefaultFile -Provided $ReleaseCandidatePath -Candidates @(
+    (Join-Path $repositoryRoot "docs\NATIVE_RELEASE_CANDIDATE_$($Version)_ZH.md"),
+    (Join-Path $repositoryRoot "docs\NATIVE_RELEASE_CANDIDATE_ZH.md")
+)
 if (-not $OutputDirectory) {
     $OutputDirectory = Join-Path `
         $artifactsRoot `
@@ -105,9 +173,39 @@ $copies = @(
     @{ Source = (Join-Path $repositoryRoot "docs\BUILDING.md"); Destination = "BUILDING.md" },
     @{ Source = (Join-Path $repositoryRoot "docs\NATIVE_RC_STATUS.md"); Destination = "NATIVE_RC_STATUS.md" }
 )
-$dpiEvidencePath = Join-Path `
+
+$packagedUiEvidencePath = Join-Path `
     $repositoryRoot `
-    "docs\evidence\ui\native-dpi-100-125-150-2026-11-12.json"
+    "docs\evidence\ui\native-packaged-$Version-ui-$today.json"
+if (Test-Path -LiteralPath $packagedUiEvidencePath -PathType Leaf) {
+    $copies += @{
+        Source = $packagedUiEvidencePath
+        Destination = "packaged-ui.json"
+    }
+}
+
+$deploymentEvidenceCandidate = @(
+    (Join-Path $repositoryRoot "docs\evidence\packaging\v$Version-native-deployment-$today.json"),
+    (Join-Path $repositoryRoot "docs\evidence\packaging\v$Version-deployment-$today.json")
+) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+if ($deploymentEvidenceCandidate) {
+    $copies += @{
+        Source = $deploymentEvidenceCandidate
+        Destination = "deployment.json"
+    }
+}
+
+$dpiEvidenceFile = Get-NewestFile `
+    -Directory (Join-Path $repositoryRoot "docs\evidence\ui") `
+    -Filter "native-dpi-100-125-150-*.json"
+$dpiEvidencePath = if ($dpiEvidenceFile) {
+    $dpiEvidenceFile.FullName
+}
+else {
+    Join-Path `
+        $repositoryRoot `
+        "docs\evidence\ui\native-dpi-100-125-150-$today.json"
+}
 $dpiGate = "PENDING"
 $dpiEvidence = $null
 if (Test-Path -LiteralPath $dpiEvidencePath -PathType Leaf) {
@@ -144,10 +242,7 @@ if ($IncludeMedia) {
         @{ Source = $BilibiliCoverPath; Destination = "bilibili-cover.png" },
         @{ Source = $ContactSheetPath; Destination = "native-promo-contact-sheet.png" },
         @{ Source = $LaunchCopyPath; Destination = "NATIVE_LAUNCH_COPY_ZH.md" },
-        @{
-            Source = (Join-Path $repositoryRoot "docs\NATIVE_RELEASE_CANDIDATE_ZH.md")
-            Destination = "NATIVE_RELEASE_CANDIDATE_ZH.md"
-        }
+        @{ Source = $ReleaseCandidatePath; Destination = "NATIVE_RELEASE_CANDIDATE_ZH.md" }
     )
     foreach ($mediaInput in $mediaInputs) {
         $resolvedMediaSource = [System.IO.Path]::GetFullPath(

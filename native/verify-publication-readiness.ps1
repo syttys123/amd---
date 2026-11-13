@@ -220,9 +220,20 @@ $releaseGatePath = Join-Path `
 $cleanEvidencePath = Join-Path `
     $repositoryRoot `
     "docs\evidence\packaging\v$Version-clean-$(Get-Date -Format 'yyyy-MM-dd').json"
-$deploymentEvidencePath = Join-Path `
-    $repositoryRoot `
-    "docs\evidence\packaging\v$Version-deployment-$(Get-Date -Format 'yyyy-MM-dd').json"
+$deploymentEvidenceCandidates = @(
+    (Join-Path `
+        $repositoryRoot `
+        "docs\evidence\packaging\v$Version-native-deployment-$(Get-Date -Format 'yyyy-MM-dd').json"),
+    (Join-Path `
+        $repositoryRoot `
+        "docs\evidence\packaging\v$Version-deployment-$(Get-Date -Format 'yyyy-MM-dd').json")
+)
+$deploymentEvidencePath = $deploymentEvidenceCandidates |
+    Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
+    Select-Object -First 1
+if (-not $deploymentEvidencePath) {
+    $deploymentEvidencePath = $deploymentEvidenceCandidates[0]
+}
 $policyEvidencePath = Join-Path `
     $repositoryRoot `
     "docs\evidence\hardware\v$Version-power-policy-no-change-$(Get-Date -Format 'yyyy-MM-dd').json"
@@ -308,13 +319,20 @@ if (-not $checks.PackagedUi) {
 $deployedBuildInfo = Get-BuildInfo (Join-Path "C:\RyzenAdj" "BUILD-INFO.txt")
 $deployedGuiPath = Join-Path "C:\RyzenAdj" "amd-mobile-power-gui.exe"
 $deployedWorkerPath = Join-Path "C:\RyzenAdj" "amdmobilepower_native_worker.exe"
+# The deployment record may carry its own UI verdict, but a fresh packaged-GUI
+# verification of the same executable hash is stronger evidence and is accepted
+# in its place.
+$packagedUiMatchesDeployment = (
+    $packagedUi.Verification -eq "PASS" -and
+    $packagedUi.GuiSHA256 -eq $deployment.DeployedGuiSHA256
+)
 $checks.LocalDeployment = (
     (Test-Path -LiteralPath $deployedGuiPath -PathType Leaf) -and
     (Test-Path -LiteralPath $deployedWorkerPath -PathType Leaf) -and
     $deployedBuildInfo["Version"] -eq $Version -and
     (Get-Sha256 $deployedGuiPath) -eq $deployment.DeployedGuiSHA256 -and
     (Get-Sha256 $deployedWorkerPath) -eq $deployment.DeployedWorkerSHA256 -and
-    $deployment.UiVerification -eq "PASS"
+    ($deployment.UiVerification -eq "PASS" -or $packagedUiMatchesDeployment)
 )
 if (-not $checks.LocalDeployment) {
     $blockers.Add("C:\RyzenAdj does not match the recorded deployment evidence.")
@@ -356,7 +374,11 @@ else {
     $blockers.Add("Deployed GUI is missing, so its icon resource cannot be verified.")
 }
 
-$shortcutPath = "<USER_HOME>\Desktop\功耗设置 5-60W.lnk"
+$shortcutPath = Join-Path `
+    ([Environment]::GetFolderPath("Desktop")) `
+    "功耗设置 5-60W.lnk"
+# The recorded evidence is published, so the user-home prefix is redacted.
+$shortcutDisplayPath = "<USER_HOME>\Desktop\功耗设置 5-60W.lnk"
 $deployedGui = Join-Path "C:\RyzenAdj" "amd-mobile-power-gui.exe"
 $shortcutArguments = ""
 $checks.DesktopShortcut = $false
@@ -511,7 +533,7 @@ $result = [ordered]@{
         "BLOCKED_BY_LOCAL_CHECKS"
     }
     DesktopShortcut = [ordered]@{
-        Path = $shortcutPath
+        Path = $shortcutDisplayPath
         Arguments = $shortcutArguments
         RejectedArguments = @($argumentAudit.Unsupported)
         Launch = $launchAudit
