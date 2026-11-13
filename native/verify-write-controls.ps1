@@ -7,11 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-if ($PSVersionTable.PSVersion.Major -lt 7) {
-    throw ("This verifier passes JSON to the probe. Run it with PowerShell 7 " +
-        "(pwsh): Windows PowerShell 5.1 strips quotes from native-command " +
-        "arguments, so --payload-json arrives malformed.")
-}
+. (Join-Path $PSScriptRoot "worker-client.ps1")
 
 $root = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $root
@@ -49,9 +45,12 @@ function Wait-ForWorker {
         if ($Process.HasExited) {
             throw "Native worker exited before becoming ready: $($Process.ExitCode)"
         }
-        $health = & $probe --pipe-name $PipePath --command getHealth 2>&1
-        if ($LASTEXITCODE -eq 0) {
-            return ($health | Out-String).Trim()
+        $health = Invoke-ProbeProcess `
+            -ProbePath $probe `
+            -PipePath $PipePath `
+            -Command "getHealth"
+        if ($health.ExitCode -eq 0) {
+            return $health.Output
         }
         Start-Sleep -Milliseconds 150
     }
@@ -63,11 +62,14 @@ function Read-Snapshot {
         [string]$PipePath
     )
 
-    $text = & $probe --pipe-name $PipePath --command getSnapshot 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "Native snapshot failed: $text"
+    $snapshot = Invoke-ProbeProcess `
+        -ProbePath $probe `
+        -PipePath $PipePath `
+        -Command "getSnapshot"
+    if ($snapshot.ExitCode -ne 0) {
+        throw "Native snapshot failed: $($snapshot.Output)"
     }
-    return ($text | Out-String).Trim() | ConvertFrom-Json
+    return $snapshot.Output | ConvertFrom-Json
 }
 
 function Assert-Close {
@@ -121,16 +123,15 @@ try {
         }
     }
 
-    $invalidPayload = '{"target":{"stapmWatts":4,"fastWatts":12,"slowWatts":12}}'
-    $invalidResult = & $probe `
-        --pipe-name $pipePath `
-        --command applyTarget `
-        --payload-json $invalidPayload 2>&1
-    if ($LASTEXITCODE -eq 0) {
+    $invalidResult = Invoke-WorkerPipeRequest `
+        -PipeName $pipePath `
+        -Command "applyTarget" `
+        -Payload @{ target = @{ stapmWatts = 4; fastWatts = 12; slowWatts = 12 } }
+    if ($invalidResult.Success) {
         throw "Out-of-range target was accepted by the native worker."
     }
-    if (($invalidResult | Out-String) -notmatch "invalid_target") {
-        throw "Out-of-range target returned an unexpected error: $invalidResult"
+    if ($invalidResult.ErrorText -notmatch "invalid_target") {
+        throw "Out-of-range target returned an unexpected error: $($invalidResult.ErrorText)"
     }
 
     if (-not $ExecuteNoChangeWrite) {
@@ -145,21 +146,17 @@ try {
         return
     }
 
-    $applyPayload = @{
-        target = $target
-    } | ConvertTo-Json -Compress
-    $applyResultText = & $probe `
-        --pipe-name $pipePath `
-        --command applyTarget `
-        --payload-json $applyPayload 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "Native no-change apply failed: $applyResultText"
+    $applyResult = Invoke-WorkerPipeRequest `
+        -PipeName $pipePath `
+        -Command "applyTarget" `
+        -Payload @{ target = $target }
+    if (-not $applyResult.Success) {
+        throw "Native no-change apply failed: $($applyResult.ErrorText)"
     }
-    $applyResult = ($applyResultText | Out-String).Trim() | ConvertFrom-Json
-    if ($applyResult.isSuccessful -ne $true) {
+    if ($applyResult.Payload.isSuccessful -ne $true) {
         throw "Native no-change apply returned an unsuccessful result."
     }
-    if ($applyResult.restoreAttempted -eq $true) {
+    if ($applyResult.Payload.restoreAttempted -eq $true) {
         throw "Native no-change apply unexpectedly attempted restore."
     }
 
@@ -173,9 +170,12 @@ try {
         -Expected ([double]$target.slowWatts) `
         -Name "Slow limit"
 
-    $shutdown = & $probe --pipe-name $pipePath --command shutdown 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "Native worker shutdown failed: $shutdown"
+    $shutdown = Invoke-ProbeProcess `
+        -ProbePath $probe `
+        -PipePath $pipePath `
+        -Command "shutdown"
+    if ($shutdown.ExitCode -ne 0) {
+        throw "Native worker shutdown failed: $($shutdown.Output)"
     }
     if (-not $workerProcess.WaitForExit(5000)) {
         throw "Native worker did not exit after shutdown."

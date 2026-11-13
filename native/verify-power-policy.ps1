@@ -6,11 +6,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-if ($PSVersionTable.PSVersion.Major -lt 7) {
-    throw ("This verifier passes JSON to the probe. Run it with PowerShell 7 " +
-        "(pwsh): Windows PowerShell 5.1 strips quotes from native-command " +
-        "arguments, so --payload-json arrives malformed.")
-}
+. (Join-Path $PSScriptRoot "worker-client.ps1")
 
 $root = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $root
@@ -38,17 +34,33 @@ function Invoke-Probe {
         [string]$PayloadJson = "null"
     )
 
-    $arguments = @(
-        "--pipe-name", $PipePath,
-        "--command", $Command
-    )
-    if ($PayloadJson -ne "null") {
-        $arguments += @("--payload-json", $PayloadJson)
+    if ([string]::IsNullOrWhiteSpace($PayloadJson) -or $PayloadJson -eq "null") {
+        return Invoke-ProbeProcess `
+            -ProbePath $probe `
+            -PipePath $PipePath `
+            -Command $Command
     }
-    $output = & $probe @arguments 2>&1
+
+    $payload = $PayloadJson | ConvertFrom-Json
+    $result = Invoke-WorkerPipeRequest `
+        -PipeName $PipePath `
+        -Command $Command `
+        -Payload $payload
+    if ($result.Success) {
+        $text = if ($null -eq $result.Payload) {
+            "null"
+        }
+        else {
+            $result.Payload | ConvertTo-Json -Depth 12 -Compress
+        }
+        return [pscustomobject]@{
+            ExitCode = 0
+            Output = $text
+        }
+    }
     return [pscustomobject]@{
-        ExitCode = $LASTEXITCODE
-        Output = ($output | Out-String).Trim()
+        ExitCode = 1
+        Output = $result.ErrorText
     }
 }
 

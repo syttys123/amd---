@@ -28,13 +28,14 @@ not authoritative.
   `{settings:{...}}` and fails with `key must be a string`. The packaged
   night-revert helper already avoids this by speaking the named-pipe protocol
   directly.
-- `native/verify-write-controls.ps1` and `native/verify-power-policy.ps1` now
-  refuse to start below PowerShell 7 with an explicit message instead of
-  producing a confusing probe error. `docs/HARDWARE_TEST_PROCEDURE.md` and
-  `native/README.md` tell hardware testers to use `pwsh`.
-- Next concrete task: move these two verifiers onto a shared named-pipe client
-  so 5.1 works without the guard, then repeat their supervised no-change tests
-  on hardware.
+- Both verifiers now use `native/worker-client.ps1`: payloads go over the named
+  pipe, and probe output is collected without letting 5.1 turn a native
+  command's stderr into a terminating error. Verified under `powershell.exe`
+  5.1 at 07:10: `verify-write-controls.ps1 -NoBuild` reports `DRY RUN PASS`
+  with the invalid-target guard at `10/10/10`, and
+  `verify-power-policy.ps1 -NoBuild` passes the policy read plus write-gate
+  checks. `docs/HARDWARE_TEST_PROCEDURE.md` and `native/README.md` describe the
+  pipe-based behaviour.
 
 2026-11-14 (1.0.29-native ships corrected package documentation):
 
@@ -192,6 +193,17 @@ not authoritative.
   `powershell.exe` 5.1 on 1.0.29 at 06:33: policy apply, read-back, state
   mirror, GUI restart, and post-restart read-back all returned `OK` at
   `8/8/8 W`, so the 06:59 task exercises the same path with `10 W`.
+- The first 5.1 state write used `Set-Content -Encoding UTF8`, which emits a
+  BOM; the Rust state loader rejected that file and fell back to defaults
+  (`12/25/45`, locked). The helper now writes UTF-8 without a BOM and creates a
+  missing `powerPolicy` object. The state was repaired and re-verified at
+  07:06 with `10/10/10 W` and presets `10/25/45`. Follow-up: make the Rust
+  state loader tolerate a BOM.
+- The 06:59 one-shot task hung before its first log line; the worker pipe still
+  existed and answered probes. The helper no longer enumerates `\\.\pipe\`
+  (which can block on a wedged pipe) and connects to the fixed
+  `AmdMobilePower.RustGui.Worker.v1` name instead. The revert was completed
+  manually at 07:05 after stopping the stuck process.
 
 2026-11-14 (auto-policy fix, shipped as 1.0.27-native): user reported that
 after enabling the auto power policy, unplugging/replugging never wrote the

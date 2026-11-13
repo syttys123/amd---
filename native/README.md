@@ -97,9 +97,10 @@ Check the write-enabled worker without changing power state:
 .\native\verify-write-controls.ps1 -NoBuild
 ```
 
-Run this verifier and `verify-power-policy.ps1` with PowerShell 7 (`pwsh`).
-Windows PowerShell 5.1 removes the quotes from JSON passed to native commands,
-so the `--payload-json` argument is rejected before the worker sees it.
+This verifier and `verify-power-policy.ps1` send JSON over the worker named
+pipe, so they work under Windows PowerShell 5.1 as well. Avoid passing JSON to
+`probe.exe --payload-json` from 5.1; it strips the quotes and the probe rejects
+the payload before it reaches the worker.
 
 The dry run verifies that an out-of-range target is rejected. To perform the
 supervised no-change write and generate hardware evidence, explicitly pass:
