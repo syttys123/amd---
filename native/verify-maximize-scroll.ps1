@@ -60,6 +60,9 @@ public static class AmdMobilePowerMaximizeScroll {
     public static extern bool ShowWindowAsync(IntPtr hwnd, int command);
 
     [DllImport("user32.dll")]
+    public static extern uint GetDpiForWindow(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
     public static extern IntPtr SendMessage(
         IntPtr hwnd, uint message, UIntPtr wParam, IntPtr lParam);
 
@@ -173,14 +176,23 @@ try {
     Start-Sleep -Milliseconds 600
 
     # Shrink the advanced window to its minimum height so the page scrolls.
+    # Window and client sizes are device pixels, so scale the requested
+    # geometry and the expectation by the window's current DPI.
+    $dpi = [AmdMobilePowerMaximizeScroll]::GetDpiForWindow($window)
+    if ($dpi -eq 0) { $dpi = 96 }
+    $scale = $dpi / 96.0
+    $shortWidth = [int][Math]::Round(796 * $scale)
+    $shortHeight = [int][Math]::Round(460 * $scale)
+    $shortThreshold = [int][Math]::Round(440 * $scale)
     [AmdMobilePowerMaximizeScroll]::SetWindowPos(
-        $window, [IntPtr]::Zero, 40, 40, 796, 460, 0x0014) | Out-Null
+        $window, [IntPtr]::Zero, 40, 40, $shortWidth, $shortHeight, 0x0014) | Out-Null
     Start-Sleep -Milliseconds 400
     $shortClient = New-Object AmdMobilePowerMaximizeScroll+RECT
     [AmdMobilePowerMaximizeScroll]::GetClientRect(
         $window, [ref]$shortClient) | Out-Null
-    if ($shortClient.Bottom -gt 440) {
-        throw "Window did not shrink below the scrolling threshold."
+    if ($shortClient.Bottom -gt $shortThreshold) {
+        throw ("Window did not shrink below the scrolling threshold " +
+            "($($shortClient.Bottom) > $shortThreshold at $dpi dpi).")
     }
 
     # SB_BOTTOM scrolls to the largest offset.
