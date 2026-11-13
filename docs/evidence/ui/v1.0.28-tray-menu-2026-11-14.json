@@ -1,0 +1,22 @@
+{
+  "Verification": "PASS",
+  "Version": "1.0.28",
+  "Method": "Post WM_APP_TRAY/WM_RBUTTONUP, locate the #32768 popup, read MN_GETHMENU, enumerate labels and check states, then close only the popup.",
+  "ProcessAliveAfterClose": true,
+  "RespondingAfterClose": true,
+  "Items": [
+    { "Index": 0, "Text": "显示主界面", "Checked": false },
+    { "Index": 1, "Text": "", "Checked": false },
+    { "Index": 2, "Text": "简洁模式", "Checked": true },
+    { "Index": 3, "Text": "高级模式", "Checked": false },
+    { "Index": 4, "Text": "窗口置顶", "Checked": false },
+    { "Index": 5, "Text": "写入已解锁", "Checked": true },
+    { "Index": 6, "Text": "", "Checked": false },
+    { "Index": 7, "Text": "应用预设 1：10 W", "Checked": false },
+    { "Index": 8, "Text": "应用预设 2：25 W", "Checked": false },
+    { "Index": 9, "Text": "应用预设 3：45 W", "Checked": false },
+    { "Index": 10, "Text": "", "Checked": false },
+    { "Index": 11, "Text": "退出", "Checked": false }
+  ],
+  "RecordedAt": "2026-11-14T03:33:00+08:00"
+}

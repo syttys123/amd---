@@ -26,6 +26,10 @@ not authoritative.
 - Added the tray-menu write gate: `写入解锁…` opens the same consent dialog as
   the header lock, `写入已解锁` is checked while writes are enabled, and
   selecting it again relocks and restarts the worker read-only.
+- Runtime inspect of the deployed tray menu passed: `简洁模式` checked,
+  `写入已解锁` checked, presets `10 / 25 / 45 W` present, and the GUI stayed
+  alive and responsive after the popup closed. Evidence:
+  `docs/evidence/ui/v1.0.28-tray-menu-2026-11-14.json`.
 - Replaced the awkward advanced-panel capability sentence
   `STAPM 是 · Fast 是 · Slow 是` with `可写：STAPM / Fast / Slow` (or the
   subset actually supported), and added a unit test covering full, partial,
