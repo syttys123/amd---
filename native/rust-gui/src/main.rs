@@ -8,6 +8,7 @@ use amd_mobile_power_gui::lifecycle::{
     LifecycleAction, LifecycleEvent, LifecycleState, Transition, WindowVisibility,
 };
 use amd_mobile_power_gui::state;
+use amd_mobile_power_gui::unlock_dialog;
 use amd_mobile_power_gui::worker::{
     ApplyTargetResult, CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget,
     PowerLineState, PowerPolicySettings, PowerPolicyState, ProfilePayload, SnapshotPayload,
@@ -123,6 +124,7 @@ const EXPORT_DIAGNOSTICS: usize = 107;
 const SIMPLE_MODE: usize = 108;
 const ADVANCED_MODE: usize = 109;
 const TOPMOST_TOGGLE: usize = 110;
+const WRITE_UNLOCK: usize = 111;
 const PRESET_MENU_START: usize = 201;
 const PRESET_EDIT_START: usize = 301;
 const PRESET_LABEL: usize = 310;
@@ -356,6 +358,7 @@ struct HeaderControls {
     simple: HWND,
     advanced: HWND,
     topmost: HWND,
+    write: HWND,
 }
 
 #[derive(Clone, Copy)]
@@ -2122,6 +2125,7 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
         SIMPLE_MODE => app.view_mode == state::UiMode::Simple,
         ADVANCED_MODE => app.view_mode == state::UiMode::Advanced,
         TOPMOST_TOGGLE => app.top_most,
+        WRITE_UNLOCK => app.write_enabled,
         PRESET_12 => app.selected_preset == Some(0),
         PRESET_25 => app.selected_preset == Some(1),
         PRESET_45 => app.selected_preset == Some(2),
@@ -2130,7 +2134,10 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
         _ => false,
     };
     let primary = matches!(id, SIMPLE_APPLY | APPLY_TARGET);
-    let header_button = matches!(id, SIMPLE_MODE | ADVANCED_MODE | TOPMOST_TOGGLE);
+    let header_button = matches!(
+        id,
+        SIMPLE_MODE | ADVANCED_MODE | TOPMOST_TOGGLE | WRITE_UNLOCK
+    );
     let hero_button = matches!(id, PRESET_12 | PRESET_25 | PRESET_45 | PRESET_EDIT_OPEN);
     let (fill, text_color, border) = if disabled && hero_button {
         (
@@ -2236,6 +2243,11 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
 
     let icon = match id {
         TOPMOST_TOGGLE => Some("\u{e718}"),
+        WRITE_UNLOCK => Some(if app.write_enabled {
+            "\u{e785}"
+        } else {
+            "\u{e72e}"
+        }),
         PRESET_EDIT_OPEN => Some("\u{e70f}"),
         EXPORT_DIAGNOSTICS => Some("\u{e896}"),
         _ => None,
@@ -3202,17 +3214,20 @@ unsafe fn create_header_controls(
     instance: HINSTANCE,
     mode: state::UiMode,
     top_most: bool,
+    write_enabled: bool,
 ) -> HeaderControls {
     let button_class = wide("BUTTON");
     let labels = [
         (SIMPLE_MODE, "简洁", 422),
         (ADVANCED_MODE, "高级", 486),
         (TOPMOST_TOGGLE, "置顶", 550),
+        (WRITE_UNLOCK, "写入", 614),
     ];
     let mut controls = HeaderControls {
         simple: std::ptr::null_mut(),
         advanced: std::ptr::null_mut(),
         topmost: std::ptr::null_mut(),
+        write: std::ptr::null_mut(),
     };
     for (id, label, x) in labels {
         let text = wide(label);
@@ -3253,6 +3268,10 @@ unsafe fn create_header_controls(
             TOPMOST_TOGGLE => {
                 controls.topmost = button;
                 SendMessageW(button, BM_SETCHECK, usize::from(top_most), 0);
+            }
+            WRITE_UNLOCK => {
+                controls.write = button;
+                SendMessageW(button, BM_SETCHECK, usize::from(write_enabled), 0);
             }
             _ => {}
         }
@@ -4205,6 +4224,7 @@ unsafe fn initialize_control_feedback(app: &mut GuiApp, hwnd: HWND, instance: HI
         (SIMPLE_MODE, "简洁模式"),
         (ADVANCED_MODE, "高级模式"),
         (TOPMOST_TOGGLE, "切换窗口置顶"),
+        (WRITE_UNLOCK, "解锁或重新锁定写入"),
         (PRESET_12, "预设 1"),
         (PRESET_25, "预设 2"),
         (PRESET_45, "预设 3"),
@@ -4431,8 +4451,9 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
 
     if let Some(controls) = app.header_controls {
         let topmost_left = width - 60;
-        let advanced_left = width - 128;
-        let simple_left = width - 188;
+        let write_left = width - 104;
+        let advanced_left = width - 172;
+        let simple_left = width - 232;
         for (control, left, control_width, checked) in [
             (
                 controls.simple,
@@ -4441,6 +4462,7 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
                 mode == state::UiMode::Simple,
             ),
             (controls.advanced, advanced_left, 56, advanced),
+            (controls.write, write_left, 36, app.write_enabled),
             (controls.topmost, topmost_left, 36, app.top_most),
         ] {
             SetWindowPos(
@@ -4670,6 +4692,103 @@ unsafe fn toggle_topmost(app: &mut GuiApp, hwnd: HWND) {
             SetWindowTextW(app.status_label, text.as_ptr());
         }
     }
+}
+
+/// Flip write access. Enabling shows the consent dialog first and only then
+/// restarts the privileged worker with the write flag; disabling drops the
+/// UI gate and restarts the worker read-only again.
+unsafe fn toggle_write_unlock(app: &mut GuiApp, hwnd: HWND) {
+    if app.apply_in_flight || app.policy_in_flight {
+        if !app.status_label.is_null() {
+            hold_status(app);
+            let waiting = wide("正在应用，写入状态稍后再切换。");
+            SetWindowTextW(app.status_label, waiting.as_ptr());
+        }
+        if let Some(controls) = app.simple_controls {
+            let waiting = wide("正在应用，请稍候");
+            SetWindowTextW(controls.status, waiting.as_ptr());
+        }
+        InvalidateRect(hwnd, std::ptr::null(), 0);
+        return;
+    }
+
+    let enabling = !app.write_enabled;
+    if enabling {
+        let agreed =
+            unlock_dialog::show_unlock_dialog(hwnd, effective_dpi_percent(hwnd));
+        if !agreed {
+            return;
+        }
+    }
+    app.write_enabled = enabling;
+    let _ = state::save_write_unlocked(enabling);
+
+    // The privileged worker decides whether it accepts writes at launch, so
+    // the flag change takes effect by replacing the worker this GUI owns.
+    let mut note = String::new();
+    if app.ui_fixture.is_none() && !app.worker_pipe.is_empty() {
+        if app.worker_child.is_some() {
+            if let Some(child) = app.worker_child.as_mut() {
+                let _ = child.kill();
+                let _ = child.wait();
+            }
+            app.worker_child = None;
+            app.worker_error = None;
+            let restarted = try_restart_worker(app);
+            note = if restarted {
+                "后台服务已重启".to_owned()
+            } else {
+                "后台服务重启失败，请重启应用".to_owned()
+            };
+        } else {
+            note = "后台服务由外部启动，请重启应用后生效".to_owned();
+        }
+    }
+
+    if let Some(controls) = app.header_controls {
+        SendMessageW(
+            controls.write,
+            BM_SETCHECK,
+            usize::from(app.write_enabled),
+            0,
+        );
+        InvalidateRect(controls.write, std::ptr::null(), 0);
+    }
+    update_write_availability(app, hwnd);
+    update_simple_view(app);
+    if !app.status_label.is_null() {
+        hold_status(app);
+        let message = if app.write_enabled {
+            let suffix = if note.is_empty() {
+                String::new()
+            } else {
+                format!(" · {note}")
+            };
+            format!(
+                "写入已解锁 · 当前目标 {} W{}",
+                app.selected_target.stapm_watts, suffix
+            )
+        } else {
+            let suffix = if note.is_empty() {
+                String::new()
+            } else {
+                format!(" · {note}")
+            };
+            format!("已重新锁定 · 只读模式{suffix}")
+        };
+        let text = wide(&message);
+        SetWindowTextW(app.status_label, text.as_ptr());
+        if let Some(controls) = app.simple_controls {
+            let short = if app.write_enabled {
+                "写入已解锁"
+            } else {
+                "已切换为只读"
+            };
+            let text = wide(short);
+            SetWindowTextW(controls.status, text.as_ptr());
+        }
+    }
+    InvalidateRect(hwnd, std::ptr::null(), 0);
 }
 
 unsafe fn save_preset_edits(app: &mut GuiApp) -> Result<(), String> {
@@ -5459,6 +5578,9 @@ unsafe extern "system" fn window_proc(
                 MENU_TOPMOST | TOPMOST_TOGGLE => {
                     toggle_topmost(app, hwnd);
                 }
+                WRITE_UNLOCK => {
+                    toggle_write_unlock(app, hwnd);
+                }
                 POLICY_ENABLED if app.write_enabled => {
                     app.policy_enabled = !app.policy_enabled;
                     if let Some(controls) = app.policy_controls {
@@ -5724,7 +5846,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let app = Box::into_raw(Box::new(GuiApp::new(mutex, options.mode_override)));
     unsafe {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, app as isize);
-        (*app).write_enabled = options.enable_write_controls;
+        // The launch flag stays authoritative for scripts and fixtures; a
+        // persisted unlock from the consent dialog also survives restarts.
+        (*app).write_enabled =
+            options.enable_write_controls || state::load_write_unlocked();
         if let Some(cap) = options.max_target_watts {
             (*app).max_target_watts = Some(cap);
             let _ = state::save_max_target_watts(cap);
@@ -5779,6 +5904,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             instance,
             (*app).view_mode,
             (*app).top_most,
+            (*app).write_enabled,
         ));
         (*app).status_label = create_status_label(hwnd, instance);
         set_control_font((*app).status_label, fonts.body);

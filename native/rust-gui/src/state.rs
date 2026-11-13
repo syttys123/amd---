@@ -15,6 +15,8 @@ struct PersistedUiState {
     top_most: bool,
     #[serde(default)]
     max_target_watts: Option<i32>,
+    #[serde(default)]
+    write_unlocked: bool,
 }
 
 impl Default for PersistedUiState {
@@ -25,6 +27,7 @@ impl Default for PersistedUiState {
             mode: UiMode::default(),
             top_most: false,
             max_target_watts: None,
+            write_unlocked: false,
         }
     }
 }
@@ -101,6 +104,17 @@ pub fn load_max_target_watts() -> Option<i32> {
     load_state()?.max_target_watts.filter(|watts| *watts > 0)
 }
 
+/// Whether the owner previously accepted the unlock notice. Write access is
+/// still granted explicitly per session *and* stored here so a restart keeps
+/// the chosen state instead of silently reverting to read-only.
+pub fn load_write_unlocked() -> bool {
+    load_state().map(|state| state.write_unlocked).unwrap_or(false)
+}
+
+pub fn save_write_unlocked(unlocked: bool) -> Result<(), String> {
+    update_state(|state| state.write_unlocked = unlocked)
+}
+
 pub fn save_max_target_watts(watts: i32) -> Result<(), String> {
     update_state(|state| state.max_target_watts = Some(watts.max(1)))
 }
@@ -157,6 +171,7 @@ mod tests {
             mode: UiMode::Simple,
             top_most: true,
             max_target_watts: None,
+            write_unlocked: false,
         })
         .unwrap();
         let decoded: PersistedUiState = serde_json::from_str(&encoded).unwrap();
@@ -210,6 +225,7 @@ mod tests {
             mode: preferences.mode,
             top_most: preferences.top_most,
             max_target_watts: None,
+            write_unlocked: false,
         })
         .unwrap();
         let decoded: PersistedUiState = serde_json::from_str(&encoded).unwrap();
