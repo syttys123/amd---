@@ -403,33 +403,32 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
     border: "1px solid rgba(255,255,255,0.1)", borderRadius: "14px",
     padding: "44px 42px", display: "flex", flexDirection: "column", gap: "26px",
   });
-  const cardHead = txt("写入解锁", {
+  const cardHead = txt("默认只读", {
     color: "#f1f7f4", fontSize: "28px", fontWeight: "700",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
+  // The app has no in-window unlock switch: write access is a launch-time
+  // choice. Show the real state as a static status chip, not a toggle.
   const toggleRow = el("div", {
     display: "flex", alignItems: "center", justifyContent: "space-between",
   });
-  const toggleLabel = txt("只读模式 · 默认", {
-    color: "#a6b8b0", fontSize: "24px",
+  const toggleLabel = txt("启动时选择是否允许写入", {
+    color: "#a6b8b0", fontSize: "22px",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
-  const toggle = el("div", {
-    width: "64px", height: "34px", borderRadius: "17px",
-    background: "rgba(255,255,255,0.14)", position: "relative",
+  const toggle = txt("只读", {
+    background: "rgba(255,180,90,0.12)", border: "1px solid rgba(255,180,90,0.55)",
+    color: "#ffb45a", fontSize: "22px", fontWeight: "700",
+    padding: "8px 20px", borderRadius: "8px",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
-  const knob = el("div", {
-    width: "26px", height: "26px", borderRadius: "50%",
-    background: "#f1f7f4", position: "absolute", left: "4px", top: "4px",
-  });
-  toggle.append(knob);
   toggleRow.append(toggleLabel, toggle);
   const divider = el("div", {
     height: "1px", background: "rgba(255,255,255,0.08)",
   });
   const checks = [
-    "解锁后才能修改功耗",
-    "改完立刻检查是否生效",
+    "只看不改，不怕点错",
+    "允许写入后，改完立刻核对",
     "没生效会直接说明",
   ];
   card.append(cardHead, toggleRow, divider);
