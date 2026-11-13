@@ -21,6 +21,26 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-13 (media 1.0.23 v2 live-demo): the presets scene no longer overlays
+an animated counter on a static capture; it now plays a real recorded GUI
+clip filling the screenshot card edge to edge (`25 -> 12 -> 45 W` preset
+selection in advanced mode), recorded from the deployed `1.0.23` build under
+the read-only `firmware-clamp` fixture at 125% DPI. New tooling:
+`media/promo-native/capture-live-demo.ps1` (PrintWindow recorder; the capture
+process must be per-monitor DPI aware and must use PW_CLIENTONLY, or the
+window measures wrong and renders with a left border strip and a cropped
+bottom row), and `render-promo.ps1` learned storyboard `"video"` scenes (slide
+base + clip cover-composited into the card area, freeze last frame if
+narration runs long). Video SHA256
+`3e429a16feef7d5310d3f4c2b9c86bb2d15736b5262e29ca95222a77d7e90a4e`,
+`23,748,047` bytes, `109.2 s`; `verify-media.ps1` PASS.
+
+2026-11-13 (gui): quick-preset clicks now apply immediately in advanced mode
+too, matching simple mode, instead of only staging the target field
+(`PRESET_12/25/45` all route to `start_preset_apply`). User-reported UX gap;
+covered by the existing 22-test suite plus fixture capture. Ships as
+`1.0.24-native`.
+
 2026-11-13 (media 1.0.23): re-rendered the promo draft so the closing
 narration matches the shipped build: `1.0.23`, 46 GUI tests, and the maximize
 scroll regression. The video is `109.2 s` at 1920x1080 with seven non-repeating
@@ -41,11 +61,10 @@ whole video. Video SHA256
 
 2026-11-13 (media 1.0.23 v3 candidate): rendered an alternate voice draft with
 `Microsoft Yaoyao` at rate 2 so the owner can compare narration quality before
-choosing the public take: `111 s`, `24,044,748` bytes, SHA256
 choosing the public take: `111 s`, `24,413,847` bytes, SHA256
-`f1bfddea46a45a8fa7bea4ad2e4af03de16196f19c4babfc73d022c3a0e32707` (re-rendered
-`f1bfddea46a45a8fa7bea4ad2e4af03de16196f19c4babfc73d022c3a0e32707` (re-rendered
-with the same motion, counter, and progress bar as v2).
+`f1bfddea46a45a8fa7bea4ad2e4af03de16196f19c4babfc73d022c3a0e32707`.
+This draft predates the live-demo presets scene, so it still shows the animated
+watt counter; re-render it from the same storyboard after the voice choice.
 Path: `artifacts/media/amd-mobile-power-promo-1.0.23-v3-yaoyao-2026-11-13/`.
 Isolated voice samples (same sentence, rate 3 vs 1/2) live under
 `artifacts/media/voice-samples/`. The `v2` Huihui draft stays the default

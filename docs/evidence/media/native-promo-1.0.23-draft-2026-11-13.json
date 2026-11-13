@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "evidenceType": "development-preview-video-draft",
-  "capturedAt": "2026-11-13T03:19:25.4161115+08:00",
+  "capturedAt": "2026-11-13T14:26:00+08:00",
   "status": "DRAFT_FOR_HUMAN_REVIEW",
   "version": "1.0.23-native",
   "captureSetVersion": "1.0.22-native",
-  "captureSetNote": "The 1.0.22 capture set is reused because 1.0.23 changes scroll behaviour only; no visible UI surface changed.",
+  "captureSetNote": "The 1.0.22 capture set is reused for stills; the presets scene is a live fixture clip recorded from the deployed 1.0.23 GUI (select-only preset staging).",
   "video": {
     "path": "artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4",
-    "sha256": "990087053389a1f3f3cccc7db729357c5bb72a06878f984035f125bf75787036",
-    "sizeBytes": 24145236,
+    "sha256": "3e429a16feef7d5310d3f4c2b9c86bb2d15736b5262e29ca95222a77d7e90a4e",
+    "sizeBytes": 23748047,
     "durationSeconds": 109.2,
     "width": 1920,
     "height": 1080,
@@ -33,11 +33,22 @@
   },
   "source": {
     "storyboard": "media/promo-native/storyboard-1.0.23.json",
-    "storyboardSha256": "ee3218c66564677c00b190606f75d9bedb3ef79950dd4c4e40e0fef183f57a03",
+    "storyboardSha256": "b7be5fdc1de7fa979b97700a6fc2ffdef012cae4802527fc479b0b79f62ab188",
     "renderer": "render-promo.ps1",
-    "rendererSha256": "31ff41f0cf62a0056a1af9bdbc15c09a84de1eca93da131fb1d9246112d7cbf2",
+    "rendererSha256": "2e60b0481e164fbd6b816dc9118c8ed8adc16b7fd6c704e1fa0eb2aa0d96c4d9",
     "musicGenerator": "media/promo-native/generate-music.py",
     "musicGeneratorSha256": "2531cfbf2c390a7a1d6d4d8905fe3d43426cb65fae83a1424c5f767992107656"
+  },
+  "liveDemoClip": {
+    "path": "artifacts/media/live-demo/presets-demo.mp4",
+    "sha256": "f1f36d67e1371881bd85121ecb207f4ea11647493aaea6471586f03ba489f7c7",
+    "durationSeconds": 9.5,
+    "recorder": "media/promo-native/capture-live-demo.ps1",
+    "recorderSha256": "0a21bfe4090d4fbeb797fc2b1db8cb5e7c6ef74b6be29c27442a1d5eb02f48bc",
+    "sourceBuild": "1.0.23-native (deployed C:\\RyzenAdj build)",
+    "fixture": "firmware-clamp",
+    "dpiFixture": 125,
+    "note": "Client-only PrintWindow capture (PW_CLIENTONLY|PW_RENDERFULLCONTENT) in a per-monitor DPI aware helper; scripted WM_COMMAND preset clicks 25/12/45 W in advanced mode, no mode switch after, no hardware access or write."
   },
   "reviewAssets": {
     "cover": "docs/assets/native-promo-1.0.23-cover-2026-11-13.png",
@@ -45,7 +56,7 @@
     "coverWidth": 1920,
     "coverHeight": 1080,
     "contactSheet": "docs/assets/native-promo-1.0.23-contact-sheet-2026-11-13.png",
-    "contactSheetSha256": "5a93d67c7652e8bbd8d37083dcce1c8e669ad34bdbb7a29b743df96f611e0ce2",
+    "contactSheetSha256": "4b02d85ec850293741540362b194eeaa7c10c2982138bf271804be089475e00a",
     "contactSheetWidth": 1920,
     "contactSheetHeight": 640
   },
@@ -67,7 +78,8 @@
     "meanVolumeDb": -20.7,
     "maxVolumeDb": -1.2,
     "perSceneCameraMotion": true,
-    "presetsAnimatedWattCounter": true,
+    "presetsAnimatedWattCounter": false,
+    "presetsLiveDemoClip": true,
     "bottomProgressBar": true,
     "noApplicationProcess": true,
     "noHardwareWrite": true,
@@ -77,7 +89,7 @@
   "limitations": [
     "This is a development-preview draft, not a public release video.",
     "The project owner has not reviewed final pacing, voice, claims, or cover.",
-    "The video uses verified native screenshots rather than a live screen recording.",
+    "Stills are verified native screenshots; the presets scene is a fixture-recorded GUI clip (no real hardware write).",
     "Voice is the local Microsoft Huihui SAPI voice; music is an original seeded synthesis.",
     "No authenticated GitHub or Bilibili upload was performed."
   ]
