@@ -82,11 +82,10 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     SB_HORZ, SB_LEFT, SB_LINEDOWN, SB_LINELEFT, SB_LINERIGHT, SB_LINEUP, SB_PAGEDOWN, SB_PAGELEFT,
     SB_PAGERIGHT, SB_PAGEUP, SB_RIGHT, SB_THUMBPOSITION, SB_THUMBTRACK, SB_TOP, SB_VERT,
     SCROLLINFO, SIF_PAGE, SIF_POS, SIF_RANGE, SIF_TRACKPOS, SIZE_MAXIMIZED, SIZE_MINIMIZED,
-    SIZE_RESTORED,
-    SM_CXVSCROLL, SM_CYHSCROLL, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
-    SWP_NOZORDER, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP,
-    WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_GETICON,
-    WM_GETMINMAXINFO, WM_HSCROLL, WM_LBUTTONUP, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_NOTIFY,
+    SIZE_RESTORED, SM_CXVSCROLL, SM_CYHSCROLL, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE,
+    SWP_NOSIZE, SWP_NOZORDER, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON,
+    WM_APP, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION,
+    WM_GETICON, WM_GETMINMAXINFO, WM_HSCROLL, WM_LBUTTONUP, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_NOTIFY,
     WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SETCURSOR, WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW,
     WM_SIZE, WM_SYSCOLORCHANGE, WM_SYSCOMMAND, WM_VSCROLL, WNDCLASSEXW, WS_CAPTION, WS_CHILD,
     WS_CLIPCHILDREN, WS_EX_APPWINDOW, WS_HSCROLL, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_POPUP,
@@ -1855,20 +1854,16 @@ unsafe fn paint_advanced_window(
     draw_text_in(
         hdc,
         &format!(
-            "STAPM {} · Fast {} · Slow {}",
-            format_flag(
+            "可写：{}",
+            format_writable_fields(
                 app.latest_snapshot
                     .as_ref()
                     .map(|snapshot| snapshot.platform.limits.supports_stapm)
-                    .unwrap_or(false)
-            ),
-            format_flag(
+                    .unwrap_or(false),
                 app.latest_snapshot
                     .as_ref()
                     .map(|snapshot| snapshot.platform.limits.supports_fast)
-                    .unwrap_or(false)
-            ),
-            format_flag(
+                    .unwrap_or(false),
                 app.latest_snapshot
                     .as_ref()
                     .map(|snapshot| snapshot.platform.limits.supports_slow)
@@ -2409,6 +2404,18 @@ fn format_flag(value: bool) -> &'static str {
     }
 }
 
+fn format_writable_fields(stapm: bool, fast: bool, slow: bool) -> String {
+    let fields: Vec<&str> = [(stapm, "STAPM"), (fast, "Fast"), (slow, "Slow")]
+        .into_iter()
+        .filter_map(|(supported, name)| supported.then_some(name))
+        .collect();
+    if fields.is_empty() {
+        "无".to_owned()
+    } else {
+        fields.join(" / ")
+    }
+}
+
 fn format_watts(value: Option<f64>) -> String {
     match value {
         Some(value) => format!("{value:.2} W"),
@@ -2519,7 +2526,7 @@ fn format_snapshot(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>
             "Fast 上限：{}\n",
             "Slow 上限：{}\n",
             "CPU 温度：{}\n",
-            "可写字段：STAPM={} Fast={} Slow={}\n",
+            "支持写入：{}\n",
             "平台状态：{}\n",
             "固件钳制：{}\n",
             "更新时间：{}"
@@ -2537,9 +2544,11 @@ fn format_snapshot(snapshot: &SnapshotPayload, policy: Option<&PowerPolicyState>
         format_watts(telemetry.fast_limit_watts),
         format_watts(telemetry.slow_limit_watts),
         format_celsius(telemetry.tctl_value_celsius),
-        format_flag(limits.supports_stapm),
-        format_flag(limits.supports_fast),
-        format_flag(limits.supports_slow),
+        format_writable_fields(
+            limits.supports_stapm,
+            limits.supports_fast,
+            limits.supports_slow
+        ),
         support,
         format_flag(telemetry.has_firmware_clamp),
         telemetry.updated_at.as_deref().unwrap_or("未知")
@@ -3954,7 +3963,7 @@ unsafe fn update_simple_view(app: &GuiApp) {
         })
         .unwrap_or_else(|| "无匹配配置".to_owned());
     let device = wide(&format!(
-        "处理器：{}\n平台：{} · PM {}\n供电：{} · 可写 STAPM={} Fast={} Slow={}",
+        "处理器：{}\n平台：{} · PM {}\n供电：{} · 可写：{}",
         snapshot.platform.cpu.processor_name,
         profile,
         snapshot
@@ -3964,9 +3973,11 @@ unsafe fn update_simple_view(app: &GuiApp) {
             .as_deref()
             .unwrap_or("未知"),
         format_power_line_raw(&telemetry.power_line),
-        format_flag(snapshot.platform.limits.supports_stapm),
-        format_flag(snapshot.platform.limits.supports_fast),
-        format_flag(snapshot.platform.limits.supports_slow)
+        format_writable_fields(
+            snapshot.platform.limits.supports_stapm,
+            snapshot.platform.limits.supports_fast,
+            snapshot.platform.limits.supports_slow
+        )
     ));
     SetWindowTextW(controls.advanced_device, device.as_ptr());
 
@@ -4723,8 +4734,7 @@ unsafe fn toggle_write_unlock(app: &mut GuiApp, hwnd: HWND) {
 
     let enabling = !app.write_enabled;
     if enabling {
-        let agreed =
-            unlock_dialog::show_unlock_dialog(hwnd, effective_dpi_percent(hwnd));
+        let agreed = unlock_dialog::show_unlock_dialog(hwnd, effective_dpi_percent(hwnd));
         if !agreed {
             return;
         }
@@ -4955,7 +4965,12 @@ unsafe fn start_preset_apply(app: &mut GuiApp, hwnd: HWND, index: usize) {
         SetWindowTextW(app.status_label, text.as_ptr());
     }
     update_write_availability(app, hwnd);
-    start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target, app.ui_fixture);
+    start_apply(
+        hwnd as usize,
+        app.worker_pipe.clone(),
+        app.selected_target,
+        app.ui_fixture,
+    );
 }
 
 unsafe fn apply_profile_to_presets(app: &mut GuiApp, hwnd: HWND, profile: &ProfilePayload) {
@@ -5440,11 +5455,7 @@ unsafe extern "system" fn window_proc(
                     if let Some(settings) = state::load_power_policy() {
                         if settings.enabled {
                             app.policy_in_flight = true;
-                            start_policy_save(
-                                hwnd as usize,
-                                app.worker_pipe.clone(),
-                                settings,
-                            );
+                            start_policy_save(hwnd as usize, app.worker_pipe.clone(), settings);
                         }
                     }
                 }
@@ -5662,7 +5673,12 @@ unsafe extern "system" fn window_proc(
                         }
                         update_write_availability(app, hwnd);
                         InvalidateRect(hwnd, std::ptr::null(), 0);
-                        start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target, app.ui_fixture);
+                        start_apply(
+                            hwnd as usize,
+                            app.worker_pipe.clone(),
+                            app.selected_target,
+                            app.ui_fixture,
+                        );
                     }
                 }
                 PRESET_12 | PRESET_25 | PRESET_45 if app.write_enabled => {
@@ -5726,7 +5742,12 @@ unsafe extern "system" fn window_proc(
                         SetWindowTextW(app.status_label, text.as_ptr());
                     }
                     update_write_availability(app, hwnd);
-                    start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target, app.ui_fixture);
+                    start_apply(
+                        hwnd as usize,
+                        app.worker_pipe.clone(),
+                        app.selected_target,
+                        app.ui_fixture,
+                    );
                 }
                 POLICY_SAVE if app.write_enabled && !app.policy_in_flight => {
                     if let Some(controls) = app.policy_controls {
@@ -5894,8 +5915,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, app as isize);
         // The launch flag stays authoritative for scripts and fixtures; a
         // persisted unlock from the consent dialog also survives restarts.
-        (*app).write_enabled =
-            options.enable_write_controls || state::load_write_unlocked();
+        (*app).write_enabled = options.enable_write_controls || state::load_write_unlocked();
         if let Some(cap) = options.max_target_watts {
             (*app).max_target_watts = Some(cap);
             let _ = state::save_max_target_watts(cap);
@@ -6080,9 +6100,9 @@ mod tests {
     use super::{
         clamp_preset_values, clamp_to_ceiling, diagnostics_document, fixture_snapshot,
         fixture_worker_error, format_policy_state, format_snapshot, format_snapshot_simple,
-        parse_arguments, parse_ui_fixture, preset_menu_label, restart_delay, rgb, state,
-        terminate_process_bounded, uniform_power_policy, watchdog_should_restart, UiDiagnostics,
-        UiFixture, HIGH_CONTRAST_PALETTE,
+        format_writable_fields, parse_arguments, parse_ui_fixture, preset_menu_label,
+        restart_delay, rgb, state, terminate_process_bounded, uniform_power_policy,
+        watchdog_should_restart, UiDiagnostics, UiFixture, HIGH_CONTRAST_PALETTE,
     };
     use amd_mobile_power_gui::worker::{
         CpuPayload, LimitsPayload, PlatformPayload, PowerLimitTarget, PowerLineState,
@@ -6153,12 +6173,19 @@ mod tests {
         assert!(text.contains("平台状态：支持写入"), "{text}");
         assert!(text.contains("自动策略：不可用"), "{text}");
         assert!(text.contains("固件钳制：否"), "{text}");
-        assert!(
-            text.contains("可写字段：STAPM=是 Fast=是 Slow=是"),
-            "{text}"
-        );
+        assert!(text.contains("支持写入：STAPM / Fast / Slow"), "{text}");
         assert!(!text.contains("Worker: connected"), "{text}");
         assert!(!text.contains("Power source"), "{text}");
+    }
+
+    #[test]
+    fn writable_field_summary_lists_only_supported_limits() {
+        assert_eq!(
+            format_writable_fields(true, true, true),
+            "STAPM / Fast / Slow"
+        );
+        assert_eq!(format_writable_fields(true, false, true), "STAPM / Slow");
+        assert_eq!(format_writable_fields(false, false, false), "无");
     }
 
     #[test]

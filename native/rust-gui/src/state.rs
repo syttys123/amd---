@@ -108,7 +108,9 @@ pub fn load_max_target_watts() -> Option<i32> {
 /// still granted explicitly per session *and* stored here so a restart keeps
 /// the chosen state instead of silently reverting to read-only.
 pub fn load_write_unlocked() -> bool {
-    load_state().map(|state| state.write_unlocked).unwrap_or(false)
+    load_state()
+        .map(|state| state.write_unlocked)
+        .unwrap_or(false)
 }
 
 pub fn save_write_unlocked(unlocked: bool) -> Result<(), String> {

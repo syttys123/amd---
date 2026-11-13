@@ -10,29 +10,31 @@ use std::ffi::c_void;
 use std::mem::size_of;
 
 use windows_sys::Win32::Foundation::{
-    GetLastError, HINSTANCE, HWND, LPARAM, LRESULT, RECT, WPARAM, ERROR_CLASS_ALREADY_EXISTS,
+    GetLastError, ERROR_CLASS_ALREADY_EXISTS, HINSTANCE, HWND, LPARAM, LRESULT, RECT, WPARAM,
 };
 use windows_sys::Win32::Graphics::Gdi::{
     BeginPaint, CreateFontW, CreateSolidBrush, DeleteObject, DrawTextW, EndPaint, FillRect,
-    RoundRect, SelectObject, SetBkColor, SetBkMode, SetTextColor, HGDIOBJ, HBRUSH, PAINTSTRUCT,
-    TRANSPARENT, DT_CENTER, DT_LEFT, DT_NOPREFIX, DT_SINGLELINE, DT_VCENTER, DT_WORDBREAK,
-    FW_BOLD, FW_NORMAL,
+    RoundRect, SelectObject, SetBkColor, SetBkMode, SetTextColor, DT_CENTER, DT_LEFT, DT_NOPREFIX,
+    DT_SINGLELINE, DT_VCENTER, DT_WORDBREAK, FW_BOLD, FW_NORMAL, HBRUSH, HGDIOBJ, PAINTSTRUCT,
+    TRANSPARENT,
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
-use windows_sys::Win32::UI::Input::KeyboardAndMouse::{EnableWindow, SetFocus, VK_ESCAPE, VK_RETURN};
+use windows_sys::Win32::UI::Controls::{DRAWITEMSTRUCT, ODS_DISABLED, ODS_SELECTED, ODT_BUTTON};
+use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
+    EnableWindow, SetFocus, VK_ESCAPE, VK_RETURN,
+};
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, GetClientRect,
-    GetMessageW, GetWindowLongPtrW, GetWindowRect, LoadCursorW, RegisterClassExW,
-    SendMessageW, SetWindowLongPtrW, SetWindowPos, ShowWindow, TranslateMessage,
-    GWLP_USERDATA, HMENU, IDC_ARROW, MSG, SWP_NOACTIVATE, SWP_NOZORDER, SW_SHOW,
-    WM_CLOSE, WM_COMMAND, WM_CREATE, WM_DESTROY, WM_KEYDOWN, WM_PAINT, WNDCLASSEXW, WS_CAPTION,
-    WS_CHILD, WS_POPUP, WS_SYSMENU, WS_TABSTOP, WS_VISIBLE,
+    CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, GetClientRect, GetMessageW,
+    GetWindowLongPtrW, GetWindowRect, LoadCursorW, RegisterClassExW, SendMessageW,
+    SetWindowLongPtrW, SetWindowPos, ShowWindow, TranslateMessage, GWLP_USERDATA, HMENU, IDC_ARROW,
+    MSG, SWP_NOACTIVATE, SWP_NOZORDER, SW_SHOW, WM_CLOSE, WM_COMMAND, WM_CREATE, WM_DESTROY,
+    WM_KEYDOWN, WM_PAINT, WNDCLASSEXW, WS_CAPTION, WS_CHILD, WS_POPUP, WS_SYSMENU, WS_TABSTOP,
+    WS_VISIBLE,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     BM_GETCHECK, BS_AUTOCHECKBOX, BS_OWNERDRAW, SWP_NOMOVE, SWP_NOSIZE, WM_CTLCOLORBTN,
     WM_CTLCOLORSTATIC, WM_DRAWITEM,
 };
-use windows_sys::Win32::UI::Controls::{DRAWITEMSTRUCT, ODS_DISABLED, ODS_SELECTED, ODT_BUTTON};
 
 const DIALOG_CLASS: &str = "AmdMobilePower.UnlockConsent.v1";
 const ID_CONSENT_CHECKBOX: usize = 401;
@@ -114,7 +116,8 @@ unsafe extern "system" fn dialog_proc(
 ) -> LRESULT {
     match message {
         WM_CREATE => {
-            let create = lparam as *const windows_sys::Win32::UI::WindowsAndMessaging::CREATESTRUCTW;
+            let create =
+                lparam as *const windows_sys::Win32::UI::WindowsAndMessaging::CREATESTRUCTW;
             let state = if create.is_null() {
                 std::ptr::null_mut()
             } else {
@@ -218,10 +221,42 @@ unsafe extern "system" fn dialog_proc(
                 windows_sys::Win32::Graphics::Gdi::SelectObject(hdc, old);
             };
             draw(TITLE, s.fonts.title, rgb(241, 247, 244), 36, 26, 588, 46);
-            draw(LIABILITY_HEADING, s.fonts.heading, rgb(69, 214, 168), 36, 86, 588, 30);
-            draw(LIABILITY_BODY, s.fonts.body, rgb(200, 214, 208), 36, 122, 588, 140);
-            draw(MANUAL_HEADING, s.fonts.heading, rgb(69, 214, 168), 36, 268, 588, 30);
-            draw(MANUAL_BODY, s.fonts.body, rgb(200, 214, 208), 36, 304, 588, 176);
+            draw(
+                LIABILITY_HEADING,
+                s.fonts.heading,
+                rgb(69, 214, 168),
+                36,
+                86,
+                588,
+                30,
+            );
+            draw(
+                LIABILITY_BODY,
+                s.fonts.body,
+                rgb(200, 214, 208),
+                36,
+                122,
+                588,
+                140,
+            );
+            draw(
+                MANUAL_HEADING,
+                s.fonts.heading,
+                rgb(69, 214, 168),
+                36,
+                268,
+                588,
+                30,
+            );
+            draw(
+                MANUAL_BODY,
+                s.fonts.body,
+                rgb(200, 214, 208),
+                36,
+                304,
+                588,
+                176,
+            );
             EndPaint(hwnd, &paint);
             0
         }
@@ -253,27 +288,25 @@ unsafe extern "system" fn dialog_proc(
                 _ => DefWindowProcW(hwnd, message, wparam, lparam),
             }
         }
-        WM_KEYDOWN => {
-            match wparam as u16 {
-                VK_ESCAPE => {
-                    DestroyWindow(hwnd);
-                    0
-                }
-                VK_RETURN => {
-                    let state = shared(hwnd);
-                    if !state.is_null() {
-                        let s = &(*state);
-                        let checked = SendMessageW(s.checkbox, BM_GETCHECK, 0, 0) == 1;
-                        if checked {
-                            (*state).agreed = true;
-                            DestroyWindow(hwnd);
-                        }
-                    }
-                    0
-                }
-                _ => DefWindowProcW(hwnd, message, wparam, lparam),
+        WM_KEYDOWN => match wparam as u16 {
+            VK_ESCAPE => {
+                DestroyWindow(hwnd);
+                0
             }
-        }
+            VK_RETURN => {
+                let state = shared(hwnd);
+                if !state.is_null() {
+                    let s = &(*state);
+                    let checked = SendMessageW(s.checkbox, BM_GETCHECK, 0, 0) == 1;
+                    if checked {
+                        (*state).agreed = true;
+                        DestroyWindow(hwnd);
+                    }
+                }
+                0
+            }
+            _ => DefWindowProcW(hwnd, message, wparam, lparam),
+        },
         WM_CLOSE => {
             DestroyWindow(hwnd);
             0
@@ -477,7 +510,12 @@ pub unsafe fn show_unlock_dialog(parent: HWND, percent: i32) -> bool {
     }
     EnableWindow(parent, 1);
     let agreed = state.agreed;
-    let fonts = [state.fonts.title, state.fonts.heading, state.fonts.body, state.fonts.control];
+    let fonts = [
+        state.fonts.title,
+        state.fonts.heading,
+        state.fonts.body,
+        state.fonts.control,
+    ];
     let brush = state.brush;
     drop(state);
     for font in fonts {
