@@ -83,9 +83,14 @@ SCENE_RENDERERS.hook = (scene, t, root) => {
   const opacity = fadeSlide(scene, t);
   const wrap = el("div", {
     position: "absolute", inset: "0", opacity: String(opacity),
-    display: "flex", flexDirection: "column", justifyContent: "center",
-    padding: "0 120px",
+    display: "flex", alignItems: "center",
+    padding: "0 100px 0 120px",
     background: "linear-gradient(160deg,#0b1216 0%,#0d1a1c 55%,#0a1a14 100%)",
+  });
+
+  const left = el("div", {
+    display: "flex", flexDirection: "column", justifyContent: "center",
+    width: "1150px", flexShrink: "0",
   });
 
   const eyebrow = txt("OPEN SOURCE · NATIVE WINDOWS APP", {
@@ -97,7 +102,7 @@ SCENE_RENDERERS.hook = (scene, t, root) => {
   const title = el("div", {});
   title.innerHTML = "AMD 轻薄本<br>功耗一手掌握";
   Object.assign(title.style, {
-    color: "#f1f7f4", fontSize: "118px", fontWeight: "900", lineHeight: "1.08",
+    color: "#f1f7f4", fontSize: "108px", fontWeight: "900", lineHeight: "1.08",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
     letterSpacing: "-1px", marginBottom: "32px",
   });
@@ -115,7 +120,27 @@ SCENE_RENDERERS.hook = (scene, t, root) => {
   });
   slideUp(bar, t, 0.0);
 
-  wrap.append(bar, eyebrow, title, sub);
+  // Brand icon on the right with a soft accent ring.
+  const iconWrap = el("div", {
+    flex: "1", display: "flex", alignItems: "center", justifyContent: "center",
+  });
+  const ring = el("div", {
+    width: "380px", height: "380px", borderRadius: "50%",
+    border: "2px solid rgba(69,214,168,0.35)",
+    boxShadow: "0 0 90px rgba(69,214,168,0.18), inset 0 0 60px rgba(69,214,168,0.08)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+  });
+  const icon = el("img", { width: "220px", height: "220px" });
+  icon.src = "../../assets/amd-mobile-power-256.png";
+  ring.append(icon);
+  iconWrap.append(ring);
+  const ringPop = clamp01((t - 0.45) / 0.6);
+  const ringEased = easeOut(ringPop);
+  iconWrap.style.opacity = String(ringEased);
+  iconWrap.style.transform = `scale(${0.85 + 0.15 * ringEased})`;
+
+  left.append(eyebrow, title, sub);
+  wrap.append(bar, left, iconWrap);
   root.append(wrap);
 };
 
@@ -178,71 +203,48 @@ SCENE_RENDERERS["ui-demo"] = (scene, t, root) => {
   const wrap = el("div", {
     position: "absolute", inset: "0", opacity: String(opacity),
     background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
-    display: "flex", flexDirection: "column", padding: "80px 100px 60px",
+    display: "flex", alignItems: "center", padding: "0 90px 0 110px", gap: "70px",
   });
 
   const head = el("div", {
-    display: "flex", justifyContent: "space-between",
-    alignItems: "flex-end", marginBottom: "36px",
+    display: "flex", flexDirection: "column", width: "520px", flexShrink: "0",
   });
   const eyebrow = txt("ONE-CLICK PRESETS", {
     color: "#45d6a8", fontSize: "22px", fontWeight: "700",
-    letterSpacing: "5px", marginBottom: "12px",
+    letterSpacing: "5px", marginBottom: "20px",
   });
   const title = el("div", {});
   title.innerHTML = "一键切换<br>三档功耗";
   Object.assign(title.style, {
-    color: "#f1f7f4", fontSize: "76px", fontWeight: "900", lineHeight: "1.1",
+    color: "#f1f7f4", fontSize: "72px", fontWeight: "900", lineHeight: "1.12",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+    marginBottom: "28px",
+  });
+  const sub = txt("预设可编辑 · 应用即回读", {
+    color: "#a6b8b0", fontSize: "26px",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
-  const headLeft = el("div", {});
-  headLeft.append(eyebrow, title);
-  head.append(headLeft);
+  head.append(eyebrow, title, sub);
   slideUp(head, t, 0.1);
 
+  // The demo clip is 1200x720 (5:3); the right column holds it at 1050x630.
   const frameWrap = el("div", {
-    flex: "1", position: "relative", borderRadius: "14px", overflow: "hidden",
+    width: "1050px", height: "630px", flexShrink: "0",
+    position: "relative", borderRadius: "14px", overflow: "hidden",
     border: "1px solid rgba(69,214,168,0.25)",
-    boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
+    boxShadow: "0 24px 64px rgba(0,0,0,0.5)", background: "#10181d",
   });
   const img = el("img", {
-    width: "100%", height: "100%", objectFit: "cover", display: "block",
+    width: "100%", height: "100%", objectFit: "contain", display: "block",
   });
   img.id = "live-demo-frame";
   img.src = window.__CLIP_POSTER__ || "";
   frameWrap.append(img);
 
-  const chips = el("div", {
-    position: "absolute", left: "40px", bottom: "40px",
-    display: "flex", gap: "16px",
-  });
-  const chipData = [
-    { label: "10 W · 夜间电池" },
-    { label: "25 W · 日常插电" },
-    { label: "45 W · 性能模式" },
-  ];
-  const chipNodes = chipData.map((c) => txt(c.label, {
-    background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)",
-    color: "#a6b8b0", fontSize: "22px", fontWeight: "600",
-    padding: "12px 22px", borderRadius: "8px",
-    border: "1px solid rgba(255,255,255,0.12)",
-    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
-  }));
-  chips.append(...chipNodes);
-  frameWrap.append(chips);
-
-  // The recorder maps localTime -> clipTime -> active chip.
-  const clipTime = Math.max(0, t - 0.4);
-  let active = 0;
-  if (clipTime >= 7.6) active = 0;
-  else if (clipTime >= 4.6) active = 2;
-  else if (clipTime >= 1.6) active = 1;
-  chipNodes.forEach((chip, i) => {
-    const on = i === active && clipTime > 0.5;
-    chip.style.color = on ? "#0b1216" : "#a6b8b0";
-    chip.style.background = on ? "#45d6a8" : "rgba(0,0,0,0.55)";
-    chip.style.borderColor = on ? "#45d6a8" : "rgba(255,255,255,0.12)";
-  });
+  const framePop = clamp01((t - 0.15) / 0.5);
+  const frameEased = easeOut(framePop);
+  frameWrap.style.opacity = String(frameEased);
+  frameWrap.style.transform = `translateY(${(1 - frameEased) * 30}px)`;
 
   wrap.append(head, frameWrap);
   root.append(wrap);
@@ -253,8 +255,14 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
   const opacity = fadeSlide(scene, t);
   const wrap = el("div", {
     position: "absolute", inset: "0", opacity: String(opacity),
+    display: "flex", alignItems: "center",
+    padding: "0 110px 0 120px", gap: "80px",
+    background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
+  });
+
+  const left = el("div", {
     display: "flex", flexDirection: "column", justifyContent: "center",
-    padding: "0 120px", background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
+    width: "1050px", flexShrink: "0",
   });
 
   const eyebrow = txt("FAIL CLOSED BY DESIGN", {
@@ -266,16 +274,16 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
   const title = el("div", {});
   title.innerHTML = "默认只读<br>写入必回读";
   Object.assign(title.style, {
-    color: "#f1f7f4", fontSize: "96px", fontWeight: "900", lineHeight: "1.1",
+    color: "#f1f7f4", fontSize: "88px", fontWeight: "900", lineHeight: "1.1",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
-    marginBottom: "56px",
+    marginBottom: "48px",
   });
   slideUp(title, t, 0.18);
 
   const items = [
-    ["默认只读", "不申请写入权限也能看功耗"],
-    ["worker 隔离", "硬件访问独立进程，单所有者"],
-    ["回读确认", "固件钳制直接提示，不静默跳过"],
+    ["默认只读", "不申请权限也能看功耗"],
+    ["worker 隔离", "硬件访问独立进程"],
+    ["回读确认", "钳制失败直接提示"],
   ];
   const list = el("div", { display: "flex", flexDirection: "column", gap: "20px" });
   items.forEach(([head, body], i) => {
@@ -301,7 +309,61 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
     list.append(row);
   });
 
-  wrap.append(eyebrow, title, list);
+  // Right: mock write-gate card (read-only by default, explicit unlock).
+  const card = el("div", {
+    flex: "1", background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)", borderRadius: "14px",
+    padding: "44px 42px", display: "flex", flexDirection: "column", gap: "26px",
+  });
+  const cardHead = txt("写入控制", {
+    color: "#f1f7f4", fontSize: "28px", fontWeight: "700",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+  });
+  const toggleRow = el("div", {
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+  });
+  const toggleLabel = txt("默认只读", {
+    color: "#a6b8b0", fontSize: "24px",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+  });
+  const toggle = el("div", {
+    width: "64px", height: "34px", borderRadius: "17px",
+    background: "rgba(255,255,255,0.14)", position: "relative",
+  });
+  const knob = el("div", {
+    width: "26px", height: "26px", borderRadius: "50%",
+    background: "#f1f7f4", position: "absolute", left: "4px", top: "4px",
+  });
+  toggle.append(knob);
+  toggleRow.append(toggleLabel, toggle);
+  const divider = el("div", {
+    height: "1px", background: "rgba(255,255,255,0.08)",
+  });
+  const checks = [
+    "每次写入强制回读",
+    "同一时刻仅一个硬件所有者",
+    "钳制 / 失败明示，不静默跳过",
+  ];
+  card.append(cardHead, toggleRow, divider);
+  checks.forEach((c) => {
+    const line = el("div", { display: "flex", gap: "14px", alignItems: "center" });
+    const mark = txt("✓", {
+      color: "#45d6a8", fontSize: "24px", fontWeight: "900",
+    });
+    const body = txt(c, {
+      color: "#c9d6cf", fontSize: "22px",
+      fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+    });
+    line.append(mark, body);
+    card.append(line);
+  });
+  const cardPop = clamp01((t - 0.5) / 0.6);
+  const cardEased = easeOut(cardPop);
+  card.style.opacity = String(cardEased);
+  card.style.transform = `translateY(${(1 - cardEased) * 30}px)`;
+
+  left.append(eyebrow, title, list);
+  wrap.append(left, card);
   root.append(wrap);
 };
 
@@ -310,8 +372,14 @@ SCENE_RENDERERS.compat = (scene, t, root) => {
   const opacity = fadeSlide(scene, t);
   const wrap = el("div", {
     position: "absolute", inset: "0", opacity: String(opacity),
+    display: "flex", alignItems: "center",
+    padding: "0 110px 0 120px", gap: "80px",
+    background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
+  });
+
+  const left = el("div", {
     display: "flex", flexDirection: "column", justifyContent: "center",
-    padding: "0 120px", background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
+    width: "1050px", flexShrink: "0",
   });
 
   const eyebrow = txt("EVIDENCE FIRST", {
@@ -323,26 +391,26 @@ SCENE_RENDERERS.compat = (scene, t, root) => {
   const title = el("div", {});
   title.innerHTML = "多世代探测<br>证据优先";
   Object.assign(title.style, {
-    color: "#f1f7f4", fontSize: "96px", fontWeight: "900", lineHeight: "1.1",
+    color: "#f1f7f4", fontSize: "88px", fontWeight: "900", lineHeight: "1.1",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
-    marginBottom: "56px",
+    marginBottom: "48px",
   });
   slideUp(title, t, 0.18);
 
   const stats = [
     ["8845HS", "已实机验证"],
-    ["多世代", "保守 profile 兜底"],
-    ["脱敏诊断", "只读收集，可脱敏"],
+    ["多世代", "保守 profile"],
+    ["脱敏诊断", "只读收集"],
   ];
-  const row = el("div", { display: "flex", gap: "40px" });
+  const row = el("div", { display: "flex", gap: "36px" });
   stats.forEach(([num, label], i) => {
     const box = el("div", { flex: "1", display: "flex", flexDirection: "column", gap: "14px" });
     const n = txt(num, {
-      color: "#45d6a8", fontSize: "64px", fontWeight: "900",
+      color: "#45d6a8", fontSize: "56px", fontWeight: "900",
       fontFamily: "'Segoe UI',sans-serif", letterSpacing: "-1px",
     });
     const l = txt(label, {
-      color: "#a6b8b0", fontSize: "26px",
+      color: "#a6b8b0", fontSize: "24px",
       fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
     });
     box.append(n, l);
@@ -350,7 +418,44 @@ SCENE_RENDERERS.compat = (scene, t, root) => {
     row.append(box);
   });
 
-  wrap.append(eyebrow, title, row);
+  // Right: mock device card showing a verified platform.
+  const card = el("div", {
+    flex: "1", background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)", borderRadius: "14px",
+    padding: "44px 42px", display: "flex", flexDirection: "column", gap: "20px",
+  });
+  const cardEyebrow = txt("已验证设备", {
+    color: "#45d6a8", fontSize: "20px", fontWeight: "700", letterSpacing: "4px",
+  });
+  const cpu = txt("Ryzen 7 8845HS", {
+    color: "#f1f7f4", fontSize: "42px", fontWeight: "900",
+    fontFamily: "'Segoe UI',sans-serif",
+  });
+  const plat = txt("Hawk Point · Radeon 780M", {
+    color: "#a6b8b0", fontSize: "24px",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+  });
+  const okRow = el("div", {
+    display: "flex", alignItems: "center", gap: "12px", marginTop: "6px",
+  });
+  const okMark = txt("✓", { color: "#45d6a8", fontSize: "26px", fontWeight: "900" });
+  const okText = txt("STAPM / Fast / Slow 全部可写", {
+    color: "#c9d6cf", fontSize: "22px",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+  });
+  okRow.append(okMark, okText);
+  const noteRow = txt("其他世代 → 保守 profile 只读兜底", {
+    color: "#a6b8b0", fontSize: "20px",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+  });
+  card.append(cardEyebrow, cpu, plat, okRow, noteRow);
+  const cardPop = clamp01((t - 0.5) / 0.6);
+  const cardEased = easeOut(cardPop);
+  card.style.opacity = String(cardEased);
+  card.style.transform = `translateY(${(1 - cardEased) * 30}px)`;
+
+  left.append(eyebrow, title, row);
+  wrap.append(left, card);
   root.append(wrap);
 };
 
@@ -359,8 +464,14 @@ SCENE_RENDERERS.a11y = (scene, t, root) => {
   const opacity = fadeSlide(scene, t);
   const wrap = el("div", {
     position: "absolute", inset: "0", opacity: String(opacity),
+    display: "flex", alignItems: "center",
+    padding: "0 110px 0 120px", gap: "80px",
+    background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
+  });
+
+  const left = el("div", {
     display: "flex", flexDirection: "column", justifyContent: "center",
-    padding: "0 120px", background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
+    width: "1050px", flexShrink: "0",
   });
 
   const eyebrow = txt("ACCESSIBILITY", {
@@ -372,9 +483,9 @@ SCENE_RENDERERS.a11y = (scene, t, root) => {
   const title = el("div", {});
   title.innerHTML = "高对比度<br>小窗也能读";
   Object.assign(title.style, {
-    color: "#f1f7f4", fontSize: "96px", fontWeight: "900", lineHeight: "1.1",
+    color: "#f1f7f4", fontSize: "88px", fontWeight: "900", lineHeight: "1.1",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
-    marginBottom: "48px",
+    marginBottom: "44px",
   });
   slideUp(title, t, 0.18);
 
@@ -383,11 +494,11 @@ SCENE_RENDERERS.a11y = (scene, t, root) => {
     "1366×768 / 200% 可滚动",
     "DPI 切换保留窗口状态",
   ];
-  const row = el("div", { display: "flex", gap: "16px", flexWrap: "wrap" });
+  const row = el("div", { display: "flex", gap: "14px", flexWrap: "wrap" });
   pills.forEach((p, i) => {
     const pill = txt(p, {
       border: "1px solid rgba(69,214,168,0.4)", color: "#45d6a8",
-      fontSize: "24px", fontWeight: "600", padding: "14px 26px",
+      fontSize: "22px", fontWeight: "600", padding: "13px 24px",
       borderRadius: "999px",
       fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
     });
@@ -395,7 +506,38 @@ SCENE_RENDERERS.a11y = (scene, t, root) => {
     row.append(pill);
   });
 
-  wrap.append(eyebrow, title, row);
+  // Right: contrast swatch pair (standard vs high-contrast).
+  const card = el("div", {
+    flex: "1", display: "flex", flexDirection: "column", gap: "20px",
+  });
+  const mkSwatch = (label, bg, fg, accentBg) => {
+    const box = el("div", {
+      background: bg, border: "1px solid rgba(255,255,255,0.12)",
+      borderRadius: "12px", padding: "26px 30px",
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+    });
+    const l = txt(label, {
+      color: fg, fontSize: "22px", fontWeight: "600",
+      fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+    });
+    const v = txt("10.02 W", {
+      color: accentBg, fontSize: "34px", fontWeight: "900",
+      fontFamily: "'Segoe UI',sans-serif",
+    });
+    box.append(l, v);
+    return box;
+  };
+  card.append(
+    mkSwatch("标准主题", "#10181d", "#a6b8b0", "#45d6a8"),
+    mkSwatch("高对比度", "#000000", "#ffffff", "#ffff00"),
+  );
+  const cardPop = clamp01((t - 0.5) / 0.6);
+  const cardEased = easeOut(cardPop);
+  card.style.opacity = String(cardEased);
+  card.style.transform = `translateY(${(1 - cardEased) * 30}px)`;
+
+  left.append(eyebrow, title, row);
+  wrap.append(left, card);
   root.append(wrap);
 };
 

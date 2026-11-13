@@ -21,6 +21,27 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-13 (media promo-html v1): rebuilt the promo video pipeline from
+GDI+ slides to HTML/CSS/JS scenes recorded frame-exact by Playwright
+(`media/promo-html/`): `index.html` + `src/engine.js` render seven scenes
+(hook / problem / ui-demo / safety / compat / a11y / closing) driven by
+`window.__seek(t)`; `build/record.js` screenshots 1,245 frames at 30 fps and
+injects the recorded GUI demo clip frame-by-frame into the ui-demo scene
+(every seek rebuilds the DOM, so the clip frame must be re-assigned every
+output frame -- an early "skip unchanged index" cache produced alternating
+blank frames). Audio: SAPI Huihui narration per scene + the seeded original
+music bed mixed by `build/make-audio.ps1`. Final render: 41.5 s, 1920x1080,
+3,419,008 bytes, SHA256
+`268558aa21bbb33cfc0c3286fcec3ad08abf132ef70aa95834f7a9058903922e`, full
+ffmpeg decode PASS, at
+`artifacts/media/promo-html-v1/amd-mobile-power-promo-2026-11-13.mp4`
+(local only; videos never enter git -- final assets go to a GitHub Release
+when approved). The demo clip was re-recorded at 200% DPI
+(`artifacts/media/live-demo/simple-demo-200.mp4`, 1200x720) after fixing the
+firmware-clamp fixture to fold simulated applies back into the telemetry
+read-back row (applying 10 W now shows 10.00 W everywhere instead of stale
+12.00 W values; commit `dbb7c5f`). Status: DRAFT_FOR_HUMAN_REVIEW.
+
 2026-11-13 (public sanitization + rename): the repository went public as
 `syttys123/amd-mobile-power`. Before publication every tracked blob and commit
 was scrubbed with `git filter-repo` (two passes):

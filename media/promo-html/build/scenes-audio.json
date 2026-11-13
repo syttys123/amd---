@@ -1,0 +1,9 @@
+[
+  {"id":"hook","duration":4.5,"narration":"同一台 AMD 轻薄本，插电、用电池、接充电宝，功耗表现常常不一致。"},
+  {"id":"problem","duration":5.5,"narration":"插电四十五瓦，用电池二十五瓦，接充电宝就说不准了。"},
+  {"id":"ui-demo","duration":11.0,"narration":"AMD Mobile Power 把 RyzenAdj 装进原生桌面工具。白天插电要性能，一键四十五瓦；夜间用电池求安静，切到十瓦。三档数值都能按自己的机型重新编辑保存。"},
+  {"id":"safety","duration":5.5,"narration":"默认只读，写入必回读。硬件访问由独立 worker 完成，固件钳制或失败会直接说明。"},
+  {"id":"compat","duration":5.0,"narration":"8845HS 已完成实机验证，其他世代使用保守配置兜底，并提供脱敏只读诊断。"},
+  {"id":"a11y","duration":5.0,"narration":"跟随系统高对比度，小屏高缩放也能完整滚动。"},
+  {"id":"closing","duration":5.0,"narration":"开源在 GitHub，谨慎折腾，欢迎共建。"}
+]
