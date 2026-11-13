@@ -1,6 +1,6 @@
 {
   "version": "1.0.30-native",
-  "generatedAt": "2026-11-14T06:10:00+08:00",
+  "generatedAt": "2026-11-14T07:32:00+08:00",
   "status": "DRAFT_FOR_HUMAN_REVIEW",
   "githubRelease": {
     "tag": "v1.0.30",
@@ -8,7 +8,7 @@
     "assets": [
       {
         "path": "artifacts/native-packages/amd-mobile-power-v1.0.30-win-x64-native-preview.zip",
-        "sizeBytes": 770245,
+        "sizeBytes": 771049,
         "sha256": "618c01442aac0715dade459f2f1a2e58a0471dcd1688096b0ca8765e7df44c3f"
       },
       {
@@ -41,7 +41,7 @@
       "sizeBytes": 312135,
       "sha256": "7fd4a0303ae8d2c4ad40cfcf8e18fd641196c1a869daf0c5fbb1c78221fb8997"
     },
-    "note": "1.0.30 keeps the 1.0.28 GUI binaries and UI, so the v9 video and review assets remain valid. Music attribution: Deliberate Thought by Kevin MacLeod, CC BY 4.0."
+    "note": "1.0.30 changes only state-file parsing; the UI is identical to 1.0.29/1.0.28, so the v9 video and review assets remain valid. Music attribution: Deliberate Thought by Kevin MacLeod, CC BY 4.0."
   },
   "copy": {
     "releaseNotes": "docs/release-notes-1.0.30-zh.md",
