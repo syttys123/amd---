@@ -3,12 +3,12 @@
   "Verification": "PASS",
   "WorkAreaFixture": "1366x728",
   "DpiFixture": 200,
-  "SimpleClient": "1183x689",
-  "SimpleScrollPosition": 15,
-  "AdvancedClient": "1333x672",
-  "AdvancedVerticalRange": "336/680",
-  "AdvancedHorizontalRange": "667/760",
+  "SimpleClient": "1179x681",
+  "SimpleScrollPosition": 19,
+  "AdvancedClient": "1327x660",
+  "AdvancedVerticalRange": "330/680",
+  "AdvancedHorizontalRange": "664/760",
   "SimpleImage": "D:\\amd-mobile-power\\artifacts\\verify\\small-viewport-200\\simple-200-1366x728.png",
   "AdvancedImage": "D:\\amd-mobile-power\\artifacts\\verify\\small-viewport-200\\advanced-200-1366x728.png",
-  "RecordedAt": "2026-11-13T02:39:55.7585402+08:00"
+  "RecordedAt": "2026-11-13T22:19:30.0042642+08:00"
 }
