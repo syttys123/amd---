@@ -345,14 +345,14 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
     border: "1px solid rgba(255,255,255,0.1)", borderRadius: "14px",
     padding: "44px 42px", display: "flex", flexDirection: "column", gap: "26px",
   });
-  const cardHead = txt("修改开关", {
+  const cardHead = txt("写入解锁", {
     color: "#f1f7f4", fontSize: "28px", fontWeight: "700",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
   const toggleRow = el("div", {
     display: "flex", alignItems: "center", justifyContent: "space-between",
   });
-  const toggleLabel = txt("只看不改 · 默认状态", {
+  const toggleLabel = txt("只读模式 · 默认", {
     color: "#a6b8b0", fontSize: "24px",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
@@ -370,8 +370,8 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
     height: "1px", background: "rgba(255,255,255,0.08)",
   });
   const checks = [
+    "解锁后才能修改功耗",
     "改完立刻检查是否生效",
-    "同一时间只动一处",
     "没生效会直接说明",
   ];
   card.append(cardHead, toggleRow, divider);
@@ -632,7 +632,14 @@ SCENE_RENDERERS.closing = (scene, t, root) => {
   });
   slideUp(note, t, 0.5);
 
-  wrap.append(eyebrow, title, repo, note);
+  const credit = txt(
+    "Music: Deliberate Thought — Kevin MacLeod (incompetech.com) · CC BY 4.0", {
+    color: "#5c6b65", fontSize: "16px",
+    fontFamily: "'Segoe UI',sans-serif", marginTop: "18px",
+  });
+  slideUp(credit, t, 0.62);
+
+  wrap.append(eyebrow, title, repo, note, credit);
   root.append(wrap);
 };
 
