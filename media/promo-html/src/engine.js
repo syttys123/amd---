@@ -271,6 +271,64 @@ SCENE_RENDERERS["ui-demo"] = (scene, t, root) => {
   img.src = window.__CLIP_POSTER__ || "";
   frameWrap.append(img);
 
+  // Synthetic pointer: the PrintWindow capture never includes the real
+  // cursor, so the demo draws one whose clicks line up with the recorded
+  // preset presses (25 W @2.0 s, 45 W @5.0 s, 10 W @8.0 s scene-local).
+  const clicks = [
+    { t: 2.0, x: 0.51, y: 0.535 },
+    { t: 5.0, x: 0.75, y: 0.535 },
+    { t: 8.0, x: 0.275, y: 0.535 },
+  ];
+  const idleStart = { x: 0.62, y: 0.78 };
+  const cursor = el("div", {
+    position: "absolute", left: "0", top: "0", zIndex: "5",
+    width: "30px", height: "34px", pointerEvents: "none",
+    filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.45))",
+  });
+  cursor.innerHTML =
+    '<svg width="30" height="34" viewBox="0 0 20 23">' +
+    '<path d="M2 2 L2 18 L6.5 14.2 L9.2 20.6 L12.4 19.1 L9.8 13 L16 12.4 Z" ' +
+    'fill="#ffffff" stroke="#0b1216" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+
+  // Cursor path: idle until the first click window, then ease to each
+  // button, arriving exactly on the click.
+  let segment = -1;
+  for (let i = 0; i < clicks.length; i++) {
+    if (t >= clicks[i].t - 0.6) segment = i;
+  }
+  let cx = idleStart.x;
+  let cy = idleStart.y;
+  if (segment >= 0) {
+    const from = segment === 0 ? idleStart : clicks[segment - 1];
+    const to = clicks[segment];
+    const p = clamp01((t - (to.t - 0.6)) / 0.6);
+    const eased = easeInOut(p);
+    cx = from.x + (to.x - from.x) * eased;
+    cy = from.y + (to.y - from.y) * eased;
+  }
+  const appear = clamp01((t - 0.55) / 0.3);
+  const press = clicks.some((c) => t >= c.t && t < c.t + 0.12) ? 0.86 : 1;
+  cursor.style.opacity = String(appear);
+  cursor.style.transform =
+    `translate(${cx * 1050}px, ${cy * 630}px) scale(${press})`;
+  frameWrap.append(cursor);
+
+  // Click ripple at each pressed button.
+  for (const click of clicks) {
+    const age = t - click.t;
+    if (age < 0 || age > 0.5) continue;
+    const phase = age / 0.5;
+    const ring = el("div", {
+      position: "absolute", left: "0", top: "0", zIndex: "4",
+      width: "56px", height: "56px", borderRadius: "50%",
+      border: "2px solid rgba(69,214,168,0.9)",
+      transform: `translate(${click.x * 1050 - 28}px, ${click.y * 630 - 28}px) scale(${0.45 + 1.1 * easeOut(phase)})`,
+      opacity: String((1 - phase) * 0.85),
+      pointerEvents: "none",
+    });
+    frameWrap.append(ring);
+  }
+
   const framePop = clamp01((t - 0.15) / 0.5);
   const frameEased = easeOut(framePop);
   frameWrap.style.opacity = String(frameEased);

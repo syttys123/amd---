@@ -21,6 +21,22 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-13 (media promo v5): copy rewritten in plain language (scenario
+mapping 45 W performance / 25 W quiet / 10 W endurance), added an
+auto-power-policy scene (plug -> 45 W, battery -> 10 W, one toggle), renamed
+the safety mock card to the app's real wording "写入解锁 / 只读模式 · 默认",
+and replaced the synthesized bed with a licensed track: "Deliberate Thought"
+by Kevin MacLeod (incompetech.com), CC BY 4.0, credited in the closing
+frame. The ui-demo clip now carries a synthetic pointer with click ripples
+aligned to the recorded preset presses (25 W @2.0 s, 45 W @5.0 s, 10 W
+@8.0 s scene-local), since PrintWindow captures never include the cursor.
+Final: 42.5 s, 1920x1080, `4,222,416` bytes, SHA256
+`0b84d7eba48ccf8f82f3c37127cf91125105eabdd8487e24748bc14d75b3cd45`,
+decode PASS, at
+`artifacts/media/promo-html-v1/amd-mobile-power-promo-2026-11-13-v5.mp4`
+(local only). Publish-time obligation: keep the CC BY 4.0 music credit in the
+video description.
+
 2026-11-13 (gui flicker fix + promo v2 subtitle cut): two user-reported
 defects fixed and the video rebuilt without narration.
 
