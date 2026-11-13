@@ -344,13 +344,13 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
   const wrap = el("div", {
     position: "absolute", inset: "0", opacity: String(opacity),
     display: "flex", alignItems: "center",
-    padding: "0 110px 0 120px", gap: "80px",
+    padding: "0 80px", gap: "50px",
     background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
   });
 
   const left = el("div", {
     display: "flex", flexDirection: "column", justifyContent: "center",
-    width: "1050px", flexShrink: "0",
+    width: "800px", flexShrink: "0",
   });
 
   const eyebrow = txt("安全第一", {
@@ -399,51 +399,31 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
 
   // Right: mock write-gate card (read-only by default, explicit unlock).
   const card = el("div", {
-    flex: "1", background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.1)", borderRadius: "14px",
-    padding: "44px 42px", display: "flex", flexDirection: "column", gap: "26px",
+    width: "820px", flexShrink: "0", background: "#0e1518",
+    border: "1px solid rgba(69,214,168,0.24)", borderRadius: "14px",
+    overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.45)",
+    display: "flex", flexDirection: "column",
   });
-  const cardHead = txt("默认只读", {
-    color: "#f1f7f4", fontSize: "28px", fontWeight: "700",
-    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
-  });
-  // The app has no in-window unlock switch: write access is a launch-time
-  // choice. Show the real state as a static status chip, not a toggle.
-  const toggleRow = el("div", {
+  const shotHead = el("div", {
     display: "flex", alignItems: "center", justifyContent: "space-between",
+    padding: "16px 20px", background: "rgba(255,255,255,0.035)",
   });
-  const toggleLabel = txt("启动时选择是否允许写入", {
-    color: "#a6b8b0", fontSize: "22px",
+  const shotTitle = txt("实机界面 · 写入解锁", {
+    color: "#f1f7f4", fontSize: "21px", fontWeight: "700",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
-  const toggle = txt("只读", {
-    background: "rgba(255,180,90,0.12)", border: "1px solid rgba(255,180,90,0.55)",
-    color: "#ffb45a", fontSize: "22px", fontWeight: "700",
-    padding: "8px 20px", borderRadius: "8px",
+  const shotBadge = txt("默认只读", {
+    color: "#45d6a8", fontSize: "16px", fontWeight: "700",
+    padding: "6px 12px", border: "1px solid rgba(69,214,168,0.45)",
+    borderRadius: "999px", background: "rgba(69,214,168,0.1)",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
-  toggleRow.append(toggleLabel, toggle);
-  const divider = el("div", {
-    height: "1px", background: "rgba(255,255,255,0.08)",
+  shotHead.append(shotTitle, shotBadge);
+  const shot = el("img", {
+    width: "100%", height: "auto", display: "block",
   });
-  const checks = [
-    "只看不改，不怕点错",
-    "允许写入后，改完立刻核对",
-    "没生效会直接说明",
-  ];
-  card.append(cardHead, toggleRow, divider);
-  checks.forEach((c) => {
-    const line = el("div", { display: "flex", gap: "14px", alignItems: "center" });
-    const mark = txt("✓", {
-      color: "#45d6a8", fontSize: "24px", fontWeight: "900",
-    });
-    const body = txt(c, {
-      color: "#c9d6cf", fontSize: "22px",
-      fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
-    });
-    line.append(mark, body);
-    card.append(line);
-  });
+  shot.src = "assets/unlock-dialog-real-2026-11-14.png";
+  card.append(shotHead, shot);
   const cardPop = clamp01((t - 0.5) / 0.6);
   const cardEased = easeOut(cardPop);
   card.style.opacity = String(cardEased);
@@ -460,13 +440,13 @@ SCENE_RENDERERS.compat = (scene, t, root) => {
   const wrap = el("div", {
     position: "absolute", inset: "0", opacity: String(opacity),
     display: "flex", alignItems: "center",
-    padding: "0 110px 0 120px", gap: "80px",
+    padding: "0 80px", gap: "60px",
     background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
   });
 
   const left = el("div", {
     display: "flex", flexDirection: "column", justifyContent: "center",
-    width: "1050px", flexShrink: "0",
+    width: "920px", flexShrink: "0",
   });
 
   const eyebrow = txt("兼容性", {
@@ -505,37 +485,33 @@ SCENE_RENDERERS.compat = (scene, t, root) => {
     row.append(box);
   });
 
-  // Right: mock device card showing a verified platform.
+  // Right: the real device/runtime panel from the shipped advanced UI.
   const card = el("div", {
-    flex: "1", background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.1)", borderRadius: "14px",
-    padding: "44px 42px", display: "flex", flexDirection: "column", gap: "20px",
+    width: "620px", flexShrink: "0", background: "#f7f7f8",
+    border: "1px solid rgba(69,214,168,0.28)", borderRadius: "14px",
+    overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.45)",
+    display: "flex", flexDirection: "column",
   });
-  const cardEyebrow = txt("已验证设备", {
-    color: "#45d6a8", fontSize: "20px", fontWeight: "700", letterSpacing: "4px",
+  const shotHead = el("div", {
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+    padding: "16px 20px", background: "#111a1e",
   });
-  const cpu = txt("Ryzen 7 8845HS", {
-    color: "#f1f7f4", fontSize: "42px", fontWeight: "900",
-    fontFamily: "'Segoe UI',sans-serif",
-  });
-  const plat = txt("Hawk Point · Radeon 780M", {
-    color: "#a6b8b0", fontSize: "24px",
+  const shotTitle = txt("实机界面 · 平台检测", {
+    color: "#f1f7f4", fontSize: "21px", fontWeight: "700",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
-  const okRow = el("div", {
-    display: "flex", alignItems: "center", gap: "12px", marginTop: "6px",
-  });
-  const okMark = txt("✓", { color: "#45d6a8", fontSize: "26px", fontWeight: "900" });
-  const okText = txt("STAPM / Fast / Slow 全部可写", {
-    color: "#c9d6cf", fontSize: "22px",
+  const shotBadge = txt("平台可写", {
+    color: "#45d6a8", fontSize: "16px", fontWeight: "700",
+    padding: "6px 12px", border: "1px solid rgba(69,214,168,0.45)",
+    borderRadius: "999px", background: "rgba(69,214,168,0.1)",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
-  okRow.append(okMark, okText);
-  const noteRow = txt("其他世代 → 保守 profile 只读兜底", {
-    color: "#a6b8b0", fontSize: "20px",
-    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+  shotHead.append(shotTitle, shotBadge);
+  const shot = el("img", {
+    width: "100%", height: "auto", display: "block",
   });
-  card.append(cardEyebrow, cpu, plat, okRow, noteRow);
+  shot.src = "assets/device-panel-real-2026-11-14.png";
+  card.append(shotHead, shot);
   const cardPop = clamp01((t - 0.5) / 0.6);
   const cardEased = easeOut(cardPop);
   card.style.opacity = String(cardEased);
@@ -552,13 +528,13 @@ SCENE_RENDERERS["auto-policy"] = (scene, t, root) => {
   const wrap = el("div", {
     position: "absolute", inset: "0", opacity: String(opacity),
     display: "flex", alignItems: "center",
-    padding: "0 110px 0 120px", gap: "90px",
+    padding: "0 80px", gap: "50px",
     background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
   });
 
   const left = el("div", {
     display: "flex", flexDirection: "column", justifyContent: "center",
-    width: "980px", flexShrink: "0",
+    width: "800px", flexShrink: "0",
   });
 
   const eyebrow = txt("全自动", {
@@ -582,64 +558,33 @@ SCENE_RENDERERS["auto-policy"] = (scene, t, root) => {
   });
   slideUp(sub, t, 0.34);
 
-  // Right: auto-policy card with an enabled toggle and two mapping rows.
+  // Right: the real advanced-mode policy panel, captured from the shipped UI.
   const card = el("div", {
-    flex: "1", background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.1)", borderRadius: "14px",
-    padding: "42px 44px", display: "flex", flexDirection: "column", gap: "26px",
+    width: "820px", flexShrink: "0", background: "#f7f7f8",
+    border: "1px solid rgba(69,214,168,0.28)", borderRadius: "14px",
+    overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.45)",
+    display: "flex", flexDirection: "column",
   });
-  const headRow = el("div", {
+  const shotHead = el("div", {
     display: "flex", alignItems: "center", justifyContent: "space-between",
+    padding: "16px 20px", background: "#111a1e",
   });
-  const headTitle = txt("自动电源策略", {
-    color: "#f1f7f4", fontSize: "28px", fontWeight: "700",
+  const shotTitle = txt("实机界面 · 高级模式", {
+    color: "#f1f7f4", fontSize: "21px", fontWeight: "700",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
-  const toggle = el("div", {
-    width: "72px", height: "38px", borderRadius: "19px",
-    background: "#45d6a8", position: "relative",
-  });
-  const knob = el("div", {
-    width: "30px", height: "30px", borderRadius: "50%",
-    background: "#0b1216", position: "absolute", right: "4px", top: "4px",
-  });
-  toggle.append(knob);
-  headRow.append(headTitle, toggle);
-
-  const divider = el("div", { height: "1px", background: "rgba(255,255,255,0.08)" });
-
-  const mkRow = (chip, chipColor, value) => {
-    const row = el("div", {
-      display: "flex", alignItems: "center", gap: "24px",
-    });
-    const tag = txt(chip, {
-      background: `${chipColor}22`, border: `1px solid ${chipColor}66`,
-      color: chipColor, fontSize: "24px", fontWeight: "700",
-      padding: "10px 22px", borderRadius: "10px",
-      fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
-    });
-    const arrow = txt("→", {
-      color: "#7d8f88", fontSize: "30px", fontWeight: "400",
-    });
-    const val = txt(`自动 ${value}`, {
-      color: "#f1f7f4", fontSize: "38px", fontWeight: "900",
-      fontFamily: "'Segoe UI',sans-serif",
-    });
-    row.append(tag, arrow, val);
-    return row;
-  };
-  const rowAc = mkRow("插上电源", "#45d6a8", "45 W");
-  const rowBattery = mkRow("电池供电", "#ffb45a", "10 W");
-  slideUp(rowAc, t, 0.5);
-  slideUp(rowBattery, t, 0.68);
-
-  const hint = txt("拔掉电源 → 自动省电   插上电源 → 自动满血", {
-    color: "#7d8f88", fontSize: "22px",
+  const shotBadge = txt("电池 10 W / 插电 45 W", {
+    color: "#45d6a8", fontSize: "16px", fontWeight: "700",
+    padding: "6px 12px", border: "1px solid rgba(69,214,168,0.45)",
+    borderRadius: "999px", background: "rgba(69,214,168,0.1)",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
-  slideUp(hint, t, 0.86);
-
-  card.append(headRow, divider, rowAc, rowBattery, hint);
+  shotHead.append(shotTitle, shotBadge);
+  const shot = el("img", {
+    width: "100%", height: "auto", display: "block",
+  });
+  shot.src = "assets/advanced-left-panel-real-2026-11-14.png";
+  card.append(shotHead, shot);
   const cardPop = clamp01((t - 0.35) / 0.6);
   const cardEased = easeOut(cardPop);
   card.style.opacity = String(cardEased);

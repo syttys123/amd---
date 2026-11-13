@@ -11,6 +11,10 @@ param(
     [string]$DpiFixture,
     [ValidateRange(5, 60)]
     [int]$UniformTargetWatts,
+    [ValidateRange(0, 60)]
+    [int]$PolicyBatteryWatts,
+    [ValidateRange(0, 60)]
+    [int]$PolicyAcWatts,
     [ValidateCount(3, 3)]
     [int[]]$PresetWatts = @(12, 25, 45),
     [switch]$BatteryOnly,
@@ -407,16 +411,40 @@ New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
 if ($BatteryOnly -and $UniformTargetWatts -gt 0) {
     throw "BatteryOnly and UniformTargetWatts cannot be combined."
 }
-if ($BatteryOnly -or $UniformTargetWatts -gt 0) {
+if (($PolicyBatteryWatts -gt 0) -xor ($PolicyAcWatts -gt 0)) {
+    throw "PolicyBatteryWatts and PolicyAcWatts must be provided together."
+}
+$hasCustomPolicy = (
+    $BatteryOnly -or
+    $UniformTargetWatts -gt 0 -or
+    ($PolicyBatteryWatts -gt 0 -and $PolicyAcWatts -gt 0)
+)
+if ($hasCustomPolicy) {
     $stateFileDirectory = Join-Path $stateDirectory "AmdMobilePower"
     New-Item -ItemType Directory -Path $stateFileDirectory -Force | Out-Null
-    $batteryWatts = if ($UniformTargetWatts -gt 0) { $UniformTargetWatts } else { 10 }
-    $acWatts = if ($UniformTargetWatts -gt 0) { $UniformTargetWatts } else { 45 }
+    $batteryWatts = if ($UniformTargetWatts -gt 0) {
+        $UniformTargetWatts
+    }
+    elseif ($PolicyBatteryWatts -gt 0) {
+        $PolicyBatteryWatts
+    }
+    else {
+        10
+    }
+    $acWatts = if ($UniformTargetWatts -gt 0) {
+        $UniformTargetWatts
+    }
+    elseif ($PolicyAcWatts -gt 0) {
+        $PolicyAcWatts
+    }
+    else {
+        45
+    }
     $presets = if ($UniformTargetWatts -gt 0) {
         @($UniformTargetWatts, $UniformTargetWatts, $UniformTargetWatts)
     }
     else {
-        @(12, 25, 45)
+        $PresetWatts
     }
     [ordered]@{
         powerPolicy = [ordered]@{
@@ -615,7 +643,7 @@ try {
         }
         [ordered]@{
             SchemaVersion = 1
-            CaptureMode = if ($UniformTargetWatts -gt 0 -or $BatteryOnly) {
+            CaptureMode = if ($hasCustomPolicy) {
                 "write-controls-visible-policy-seeded"
             }
             elseif ($ReadOnly) {
@@ -632,7 +660,19 @@ try {
             else {
                 $null
             }
-            PolicySeeded = [bool]($UniformTargetWatts -gt 0 -or $BatteryOnly)
+            PolicyBatteryWatts = if ($PolicyBatteryWatts -gt 0) {
+                $PolicyBatteryWatts
+            }
+            else {
+                $null
+            }
+            PolicyAcWatts = if ($PolicyAcWatts -gt 0) {
+                $PolicyAcWatts
+            }
+            else {
+                $null
+            }
+            PolicySeeded = [bool]$hasCustomPolicy
             BatteryOnly = [bool]$BatteryOnly
             FocusControlId = if ($FocusControlId -gt 0) { $FocusControlId } else { $null }
             ControlChecks = $controlChecks
@@ -661,7 +701,7 @@ finally {
         [AmdMobilePowerUiCapture]::PostMessage(
             $window,
             0x0111,
-            [UIntPtr]2,
+            [UIntPtr]::new(2),
             [IntPtr]::Zero) | Out-Null
     }
     if ($process) {

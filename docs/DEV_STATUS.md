@@ -1,6 +1,6 @@
 # Development Status
 
-Last updated: 2026-11-13
+Last updated: 2026-11-14
 
 ## Objective
 
@@ -20,6 +20,35 @@ after each meaningful change. Conversation history and compacted summaries are
 not authoritative.
 
 ## Latest Maintenance Milestone
+
+2026-11-14 (tray unlock, real-UI promo v8, and 8 W night setting):
+
+- Tray menu now exposes the same write gate as the header lock: `写入解锁…`
+  opens the consent dialog and `写入已解锁` is checked while writes are
+  enabled; selecting it again relocks and restarts the worker read-only.
+  This is the only new GUI behavior in the working tree; Rust unit tests
+  (24 lib + 22 main), release build, and Clippy `-D warnings` are clean.
+- `native/capture-rust-gui-redesign.ps1` now supports separate
+  `-PolicyBatteryWatts` / `-PolicyAcWatts` values, respects `-PresetWatts`
+  for policy-seeded captures, and uses a PowerShell 5.1-safe `UIntPtr` for
+  the cleanup exit message. This lets the promo capture the real
+  `10 W / 45 W` auto-policy state instead of a hand-built mock.
+- Promo v8 replaces the safety, auto-policy, and compatibility mock cards
+  with crops from the shipped 1.0.27 UI: the real consent dialog (checked
+  state), the real advanced preset + policy panel (`10 / 25 / 45 W`,
+  battery `10 W`, AC `45 W`, `已启用`), and the real device panel
+  (`Ryzen 7 8845HS`, `Hawk Point`, `平台可写`). The main preset scene still
+  uses the real recorded click demo. Final: 42.5 s, 1920x1080, 30 fps,
+  `4,411,500` bytes, SHA256
+  `6247aea09765850dba6f43601aaba9014ae6355b0c42e665b3aecdc3571a97f3`,
+  full decode PASS:
+  `artifacts/media/promo-html-v1/amd-mobile-power-promo-2026-11-14-v8.mp4`.
+- User requested an immediate night limit of `8 W` until 07:00. Hardware
+  read-back at 2026-11-14 02:12 confirms `STAPM 8.00 W`, `PPT Fast 8.00 W`,
+  `PPT Slow 8.00 W` on battery; the persisted policy has both battery and AC
+  targets at 8 W and is enabled, so unplug/replug does not raise the limit.
+  This is a temporary local setting, not a shipped schedule feature; no
+  public release or upload was performed.
 
 2026-11-14 (auto-policy fix, shipped as 1.0.27-native): user reported that
 after enabling the auto power policy, unplugging/replugging never wrote the
