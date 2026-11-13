@@ -4752,9 +4752,14 @@ fn start_apply(
         let text = match fixture {
             Some(UiFixture::FirmwareClamp) => {
                 thread::sleep(Duration::from_millis(500));
+                let clamp_note = if target.stapm_watts > 10 {
+                    "\n固件报告了钳制或 STAPM 警告。"
+                } else {
+                    ""
+                };
                 format!(
-                    "已应用 {} W / {} W / {} W。\n固件报告了钳制或 STAPM 警告。",
-                    target.stapm_watts, target.fast_watts, target.slow_watts
+                    "已应用 {} W / {} W / {} W。{}",
+                    target.stapm_watts, target.fast_watts, target.slow_watts, clamp_note
                 )
             }
             Some(_) => {
@@ -5346,6 +5351,27 @@ unsafe extern "system" fn window_proc(
             if !pointer.is_null() {
                 let text = Box::from_raw(pointer);
                 hold_status(app);
+                // Firmware-clamp fixture: fold the simulated apply back into
+                // the displayed telemetry so captures show a consistent
+                // apply -> read-back story (STAPM stays clamped at 10 W).
+                if app.ui_fixture == Some(UiFixture::FirmwareClamp) {
+                    if let Some(snapshot) = app.latest_snapshot.as_mut() {
+                        let applied = app.selected_target;
+                        let stapm_ceiling = 10.0_f64;
+                        let fast = applied.fast_watts as f64;
+                        let slow = applied.slow_watts as f64;
+                        let stapm = (applied.stapm_watts as f64).min(stapm_ceiling);
+                        snapshot.telemetry.target_watts = Some(applied.stapm_watts as f64);
+                        snapshot.telemetry.fast_value_watts = Some(fast);
+                        snapshot.telemetry.fast_limit_watts = Some(fast);
+                        snapshot.telemetry.slow_value_watts = Some(slow);
+                        snapshot.telemetry.slow_limit_watts = Some(slow);
+                        snapshot.telemetry.stapm_value_watts = Some(stapm + 0.02);
+                        snapshot.telemetry.stapm_limit_watts = Some(stapm_ceiling);
+                        snapshot.telemetry.has_firmware_clamp =
+                            (applied.stapm_watts as f64) > stapm_ceiling;
+                    }
+                }
                 if let Some(controls) = app.simple_controls {
                     let message = text.lines().next().unwrap_or(text.as_str());
                     let message = wide(message);
