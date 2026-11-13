@@ -17,3 +17,7 @@ dist/
 native/**/target/
 Temp/
 
+
+# promo-html build artifacts
+media/promo-html/build/frames*/
+media/promo-html/build/*.png
