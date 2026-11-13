@@ -31,6 +31,13 @@ hashes, review assets, and cover. Evidence:
 `docs/evidence/media/native-promo-1.0.23-draft-2026-11-13.json`. Status stays
 `DRAFT_FOR_HUMAN_REVIEW`; no upload or publication was performed.
 
+2026-11-13 (media 1.0.23 v2): re-rendered the draft again after visual review.
+Each scene now uses its own camera motion (zoom or pan) instead of a static
+card, and the presets scene overlays an animated `10 / 12 / 25 / 45 W` counter
+on the UI capture. Video SHA256
+`0ac11c87377ba296ea0c56c4bd1c360810bec305e29abeb4a06eb6adcabaedcb`,
+`23,769,552` bytes, `109.2 s`. `verify-media.ps1` PASS.
+
 2026-11-13 (visual QA): deployed `1.0.23-native` was captured in simple and
 advanced modes at 100% and 125% logical scaling with the worker-offline
 fixture. No truncated labels, overlapping controls, or clipped footers were

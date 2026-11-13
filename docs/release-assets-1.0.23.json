@@ -19,12 +19,12 @@
   },
   "bilibili": {
     "video": {
-      "path": "artifacts/media/amd-mobile-power-promo-1.0.23-2026-11-13/amd-mobile-power-intro-1.0.23-2026-11-13.mp4",
+      "path": "artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4",
       "durationSeconds": 109.2,
       "width": 1920,
       "height": 1080,
-      "sizeBytes": 26058446,
-      "sha256": "e1480a19841e6fc2dd713f34866c9ce17459b56b9915786461906277a3c804c1"
+      "sizeBytes": 23769552,
+      "sha256": "0ac11c87377ba296ea0c56c4bd1c360810bec305e29abeb4a06eb6adcabaedcb"
     },
     "cover": {
       "path": "docs/assets/bilibili-cover-1.0.23-2026-11-13.png",
@@ -37,8 +37,8 @@
       "path": "docs/assets/native-promo-1.0.23-contact-sheet-2026-11-13.png",
       "width": 1920,
       "height": 640,
-      "sizeBytes": 463695,
-      "sha256": "1d2e0075b112ac35b7acdabbbe21d25be08fe1071230b1911c6ef36dace8a6e9"
+      "sizeBytes": 481262,
+      "sha256": "0bf43d4d196dff2baba0ba5b0377509389ceebf226671841b084f998844216cc"
     },
     "note": "The 1.0.22 capture set is reused because 1.0.23 changes scroll behaviour only; no visible UI surface changed."
   },

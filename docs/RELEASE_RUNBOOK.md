@@ -61,7 +61,7 @@ gh release create v1.0.23-native `
 
 ## 3. B 站上传
 
-- 视频：`artifacts/media/amd-mobile-power-promo-1.0.23-2026-11-13/amd-mobile-power-intro-1.0.23-2026-11-13.mp4`
+- 视频：`artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4`
   （109.2 秒，1080p，SAPI 配音 + 原创配乐）。
 - 封面：`docs/assets/bilibili-cover-1.0.23-2026-11-13.png`（1146x717）。
 - 标题、简介、标签、置顶评论取自 `docs/NATIVE_LAUNCH_COPY_ZH.md`。

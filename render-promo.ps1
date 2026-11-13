@@ -734,14 +734,93 @@ for ($index = 0; $index -lt $sceneRecords.Count; $index++) {
     $fadeOutStart = [Math]::Max(0, $record.DurationSeconds - 0.3).ToString(
         "0.###",
         [Globalization.CultureInfo]::InvariantCulture)
+    # Per-scene camera motion so the cut does not feel like a plain slideshow.
+    # $frameCount must interpolate here, inside the loop.
+    $motion = switch ($record.Id) {
+        "live" {
+            @{
+                z = "1.1"
+                x = "(iw-iw/zoom)*0.05+(iw-iw/zoom)*0.2*on/$frameCount"
+                y = "(ih-ih/zoom)/2"
+            }
+            break
+        }
+        "presets" {
+            @{
+                z = "1.1"
+                x = "(iw-iw/zoom)*0.05+(iw-iw/zoom)*0.18*on/$frameCount"
+                y = "(ih-ih/zoom)/2"
+            }
+            break
+        }
+        "safety" {
+            @{
+                z = "max(1.02,1.12-0.1*on/$frameCount)"
+                x = "iw/2-(iw/zoom/2)"
+                y = "ih/2-(ih/zoom/2)"
+            }
+            break
+        }
+        "evidence" {
+            @{
+                z = "1.12"
+                x = "(iw-iw/zoom)/2"
+                y = "(ih-ih/zoom)*on/$frameCount"
+            }
+            break
+        }
+        "accessibility" {
+            @{
+                z = "min(1.14,1.04+0.1*on/$frameCount)"
+                x = "(iw-iw/zoom)*0.35"
+                y = "(ih-ih/zoom)/2"
+            }
+            break
+        }
+        "closing" {
+            @{
+                z = "min(1.05,1+0.05*on/$frameCount)"
+                x = "iw/2-(iw/zoom/2)"
+                y = "ih/2-(ih/zoom/2)"
+            }
+            break
+        }
+        default {
+            @{
+                z = "min(1.08,1+0.08*on/$frameCount)"
+                x = "iw/2-(iw/zoom/2)"
+                y = "ih/2-(ih/zoom/2)"
+            }
+            break
+        }
+    }
     [void]$filter.Append(
         "[$($videoInput):v]scale=1920:1080,format=rgba," +
-        "zoompan=z='min(1.04,1+0.04*on/($frameCount))':" +
-        "x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':" +
+        "zoompan=z='$($motion.z)':" +
+        "x='$($motion.x)':y='$($motion.y)':" +
         "d=$($frameCount):s=1920x1080:fps=$fps," +
         "trim=duration=$duration,setpts=PTS-STARTPTS," +
         "fade=t=in:st=0:d=0.25,fade=t=out:st=$($fadeOutStart):d=0.3," +
         "format=yuv420p[v$index];")
+    if ($record.Id -eq "presets") {
+        # Animated watt counter: makes the one-click preset claim visible.
+        $counterFont = "/Windows/Fonts/arialbd.ttf"
+        $counterColor = "0x45D6A8"
+        $steps = @(
+            @{ text = "10 W"; from = "1.6"; to = "4.1" },
+            @{ text = "12 W"; from = "4.4"; to = "6.9" },
+            @{ text = "25 W"; from = "7.2"; to = "9.7" },
+            @{ text = "45 W"; from = "10.0"; to = "12.6" }
+        )
+        foreach ($step in $steps) {
+            [void]$filter.Append(
+                "[v$index]drawtext=fontfile=${counterFont}:" +
+                "text='$($step.text)':fontsize=120:fontcolor=${counterColor}:" +
+                "box=1:boxcolor=black@0.35:boxborderw=18:" +
+                "x=140:y=880:enable='between(t,$($step.from),$($step.to))'" +
+                "[v$index];")
+        }
+    }
     [void]$filter.Append(
         "[$($audioInput):a]aresample=48000," +
         "pan=stereo|c0=c0|c1=c0," +

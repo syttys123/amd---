@@ -9,8 +9,10 @@ process and performs no hardware write.
 The current draft is 109.2 seconds at 1920x1080, 25 fps, with H.264 video, AAC
 stereo audio, Chinese narration, and simplified-Chinese captions. It uses the
 `1.0.22-native` capture set (layout identical to `1.0.23`) together with the
-high-contrast, worker-offline, and device-panel states. It is marked
-`DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
+high-contrast, worker-offline, and device-panel states. Each scene now uses its
+own camera motion (zoom or pan) instead of a static card, and the presets scene
+shows an animated `10 / 12 / 25 / 45 W` counter on top of the UI capture. It is
+marked `DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
 
 ![Promo draft cover](assets/native-promo-1.0.23-cover-2026-11-13.png)
 
@@ -23,13 +25,13 @@ Bilibili 1146x717 cover:
 Local render:
 
 ```text
-artifacts/media/amd-mobile-power-promo-1.0.23-2026-11-13/
-  amd-mobile-power-intro-1.0.23-2026-11-13.mp4
+artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/
+  amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4
 ```
 
-- Size: 26,058,446 bytes.
+- Size: 23,769,552 bytes.
 - SHA256:
-  `e1480a19841e6fc2dd713f34866c9ce17459b56b9915786461906277a3c804c1`.
+  `0ac11c87377ba296ea0c56c4bd1c360810bec305e29abeb4a06eb6adcabaedcb`.
 - Full-file FFmpeg decode: PASS.
 - Audio level: mean `-20.7 dB`, peak `-1.2 dB`.
 - Title, caption, and bullet safe-width checks: PASS.
@@ -42,8 +44,8 @@ Verify the local MP4 and every committed review/source hash without rerendering:
 
 ```powershell
 .\verify-media.ps1 `
-  -VideoPath .\artifacts\media\amd-mobile-power-promo-1.0.23-2026-11-13\amd-mobile-power-intro-1.0.23-2026-11-13.mp4 `
-  -ManifestPath .\artifacts\media\amd-mobile-power-promo-1.0.23-2026-11-13\promo-manifest.json `
+  -VideoPath .\artifacts\media\amd-mobile-power-promo-1.0.23-v2-2026-11-13\amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4 `
+  -ManifestPath .\artifacts\media\amd-mobile-power-promo-1.0.23-v2-2026-11-13\promo-manifest.json `
   -EvidencePath .\docs\evidence\media\native-promo-1.0.23-draft-2026-11-13.json
 ```
 
@@ -56,16 +58,16 @@ renderer, video cover, contact sheet, and the 1146x717 Bilibili cover.
 ```powershell
 .\render-promo.ps1 `
   -Storyboard .\media\promo-native\storyboard-1.0.23.json `
-  -OutputDirectory .\artifacts\media\amd-mobile-power-promo-1.0.23-2026-11-13 `
-  -OutputName amd-mobile-power-intro-1.0.23-2026-11-13.mp4 `
+  -OutputDirectory .\artifacts\media\amd-mobile-power-promo-1.0.23-v2-2026-11-13 `
+  -OutputName amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4 `
   -MusicPath .\artifacts\media\promo-music-bed-2026-11-12.wav
 ```
 
 The default output is written under the ignored `artifacts/media` directory:
 
 ```text
-artifacts/media/amd-mobile-power-promo-1.0.23-2026-11-13/
-  amd-mobile-power-intro-1.0.23-2026-11-13.mp4
+artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/
+  amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4
   captions-zh.srt
   cover-draft.png
   promo-manifest.json
@@ -92,3 +94,5 @@ or audio bound stops the render instead of producing an accepted draft.
   content appears.
 - The project owner reviews the final voice, pacing, claims, and cover before
   any authenticated upload.
+
+

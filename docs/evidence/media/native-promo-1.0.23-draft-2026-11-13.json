@@ -7,9 +7,9 @@
   "captureSetVersion": "1.0.22-native",
   "captureSetNote": "The 1.0.22 capture set is reused because 1.0.23 changes scroll behaviour only; no visible UI surface changed.",
   "video": {
-    "path": "artifacts/media/amd-mobile-power-promo-1.0.23-2026-11-13/amd-mobile-power-intro-1.0.23-2026-11-13.mp4",
-    "sha256": "e1480a19841e6fc2dd713f34866c9ce17459b56b9915786461906277a3c804c1",
-    "sizeBytes": 26058446,
+    "path": "artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4",
+    "sha256": "0ac11c87377ba296ea0c56c4bd1c360810bec305e29abeb4a06eb6adcabaedcb",
+    "sizeBytes": 23769552,
     "durationSeconds": 109.2,
     "width": 1920,
     "height": 1080,
@@ -22,7 +22,7 @@
   "narration": {
     "voice": "Microsoft Huihui Desktop",
     "rate": 3,
-    "captions": "artifacts/media/amd-mobile-power-promo-1.0.23-2026-11-13/captions-zh.srt",
+    "captions": "artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/captions-zh.srt",
     "captionsSha256": "881260906a3d8e178c91c3b3d13d5c3d3e99bc12060db8c4595b73fc3e957904"
   },
   "music": {
@@ -35,17 +35,17 @@
     "storyboard": "media/promo-native/storyboard-1.0.23.json",
     "storyboardSha256": "ee3218c66564677c00b190606f75d9bedb3ef79950dd4c4e40e0fef183f57a03",
     "renderer": "render-promo.ps1",
-    "rendererSha256": "519339f281e476d28bc95860ca4a3f9233d49ce4d2f2e42d00aa151efa24df51",
+    "rendererSha256": "2590b2c710291235f82c1572b6bc54fca84f623e661786d73df00a47e8af4f89",
     "musicGenerator": "media/promo-native/generate-music.py",
     "musicGeneratorSha256": "2531cfbf2c390a7a1d6d4d8905fe3d43426cb65fae83a1424c5f767992107656"
   },
   "reviewAssets": {
     "cover": "docs/assets/native-promo-1.0.23-cover-2026-11-13.png",
-    "coverSha256": "91e08408f8cfc29014caff5126fec88da28ef589fc13547b7ee3c331d57727bf",
+    "coverSha256": "af836ce77b6026b9a4444ffe158792679957553a25c2b71ff94b0639b3cf068d",
     "coverWidth": 1920,
     "coverHeight": 1080,
     "contactSheet": "docs/assets/native-promo-1.0.23-contact-sheet-2026-11-13.png",
-    "contactSheetSha256": "1d2e0075b112ac35b7acdabbbe21d25be08fe1071230b1911c6ef36dace8a6e9",
+    "contactSheetSha256": "0bf43d4d196dff2baba0ba5b0377509389ceebf226671841b084f998844216cc",
     "contactSheetWidth": 1920,
     "contactSheetHeight": 640
   },
@@ -66,6 +66,8 @@
     "height": 1080,
     "meanVolumeDb": -20.7,
     "maxVolumeDb": -1.2,
+    "perSceneCameraMotion": true,
+    "presetsAnimatedWattCounter": true,
     "noApplicationProcess": true,
     "noHardwareWrite": true,
     "noLoginOrUpload": true,
