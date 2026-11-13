@@ -59,6 +59,9 @@ Markdown document records the decisions that apply to AMD Mobile Power.
 | `LICENSING_REVIEW.md` | Engineering redistribution review and release license gates |
 | `ROADMAP.md` | Milestones and release gates |
 | `RELEASE_CHECKLIST.md` | Final publication checklist |
+| `RELEASE_RUNBOOK.md` | Offline GitHub tag/Release and Bilibili upload procedure |
+| `release-notes-1.0.29-zh.md` | Current public GitHub Release body draft |
+| `release-assets-1.0.29.json` | Current package, video, cover, and copy manifest |
 | `RELEASE_CANDIDATE_ZH.md` | Legacy .NET 1.0.4 package and historical review |
 | `NATIVE_RELEASE_CANDIDATE_1.0.29_ZH.md` | Current native 1.0.29 package, evidence, and open-gate review |
 | `NATIVE_RELEASE_CANDIDATE_1.0.28_ZH.md` | Historical native 1.0.28 review snapshot |

@@ -160,11 +160,13 @@ hash manifest under `artifacts/media`.
 The output is intentionally marked `DRAFT_FOR_HUMAN_REVIEW`. Rendering the file
 does not satisfy the publication gate and does not log in to GitHub or Bilibili.
 
-Current draft status: the native `1.0.23` draft is rendered at 109.2 seconds
-in 1920x1080 with Chinese narration and captions, using the final GUI,
-high-contrast, worker-offline, and device-panel captures. The native cover,
-contact sheet, and Bilibili cover are committed; the MP4 remains under ignored
-`artifacts/media`. Project-owner review is still pending.
+Current draft status: the native v9 cut runs 42.5 seconds at 1920x1080 and
+30 fps. It has no synthetic voice; simplified-Chinese subtitles are burned in
+over a licensed music bed (Kevin MacLeod — Deliberate Thought, CC BY 4.0). The
+main interaction scene is a real GUI recording, and the safety, auto-policy,
+and device scenes use real captures. The cover, 8-frame contact sheet, and
+Bilibili cover are committed; the MP4 remains under ignored `artifacts/media`.
+Project-owner review is still pending.
 
 Review-ready GitHub Release and Bilibili title, description, tag, pinned-comment,
 and cover-text drafts are kept in `LAUNCH_COPY_ZH.md`. That document is marked

@@ -1,90 +1,79 @@
 # Promotional Video Draft
 
-The native development-preview video is generated from the reviewed screenshots,
-plus one pre-recorded GUI fixture clip for the presets scene. Rendering itself
-starts no application process and performs no hardware write.
+The current promotional video is the 42.5-second v9 cut generated from the
+HTML/Playwright pipeline in `media/promo-html`. The main interaction scene is a
+screen recording of the real GUI; the consent dialog, advanced policy panel,
+and device panel are real 1.0.28/1.0.29 captures. Only the pointer, captions,
+transitions, and music are composited. Rendering and reviewing the video never
+write power limits.
 
 ## Current Draft
 
-The current draft is 109.2 seconds at 1920x1080, 25 fps, with H.264 video, AAC
-stereo audio, Chinese narration, and simplified-Chinese captions. It uses the
-`1.0.22-native` capture set (layout identical to `1.0.23`) together with the
-high-contrast, worker-offline, and device-panel states. Each scene uses its own
-camera motion (zoom or pan) instead of a static card, and the presets scene
-plays a recorded GUI clip (`25 -> 12 -> 45 W` preset clicks under the
-read-only `firmware-clamp` fixture) filling its card edge to edge. A thin
-accent progress bar runs along the bottom of the whole video. It is marked
-`DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
-
-![Promo draft cover](assets/native-promo-1.0.23-cover-2026-11-13.png)
-
-![Seven-scene review contact sheet](assets/native-promo-1.0.23-contact-sheet-2026-11-13.png)
-
-Bilibili 1146x717 cover:
-
-![Bilibili launch cover](assets/bilibili-cover-1.0.23-2026-11-13.png)
+- Duration: 42.5 seconds.
+- Format: 1920x1080, 30 fps, H.264 video and AAC stereo audio (48 kHz).
+- Size: 4,426,857 bytes.
+- SHA256:
+  `ca887aa5ec3b55157e91206781d15f502e3fdede7c3c7e3907621ac331863023`.
+- Scenes: 7 (hook, three-preset explanation, live UI demo, auto policy, write
+  unlock safety, compatibility/diagnostics, closing).
+- Narration: none. Simplified-Chinese subtitles are burned into the video.
+- Music: `Deliberate Thought` by Kevin MacLeod (incompetech.com), CC BY 4.0.
+  The attribution must stay in any public description.
+- Status: `DRAFT_FOR_HUMAN_REVIEW`; not approved for upload.
 
 Local render:
 
 ```text
-artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/
-  amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4
+artifacts/media/promo-html-v1/amd-mobile-power-promo-2026-11-14-v9.mp4
 ```
-
-- Size: 23,804,272 bytes.
-- SHA256:
-  `42aef6cb3d9ea11ac512e26049a269c4f2ccca87e4da71986ac42050ac26d1ce`.
-- Full-file FFmpeg decode: PASS.
-- Audio level: mean `-20.7 dB`, peak `-1.2 dB`.
-- Title, caption, and bullet safe-width checks: PASS.
-- Scene count: 7.
 
 Machine-readable evidence:
-`docs/evidence/media/native-promo-1.0.23-draft-2026-11-13.json`.
+`docs/evidence/media/native-promo-1.0.29-draft-2026-11-14.json`
+(1.0.29 reuses the identical 1.0.28 UI capture set).
 
-Verify the local MP4 and every committed review/source hash without rerendering:
+## Review Assets
+
+![Contact sheet](assets/native-promo-1.0.28-contact-sheet-2026-11-14.png)
+
+Bilibili 1146x717 cover:
+
+![Bilibili launch cover](assets/bilibili-cover-1.0.28-2026-11-14.png)
+
+- Contact sheet: 1920x540, 8 frames, SHA256
+  `7fd4a0303ae8d2c4ad40cfcf8e18fd641196c1a869daf0c5fbb1c78221fb8997`.
+- Cover: 1146x717, text-safe-width PASS, SHA256
+  `89ea363925d947cc1bede51440a6dc9f7e61cf3f302494e738da1a9b62be45ad`.
+
+## Verification
+
+The evidence file records the video hash, codecs, dimensions, frame rate,
+duration, full-decode result, scene count, and the music licence. Re-check a
+local file without editing it:
 
 ```powershell
-.\verify-media.ps1 `
-  -VideoPath .\artifacts\media\amd-mobile-power-promo-1.0.23-v2-2026-11-13\amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4 `
-  -ManifestPath .\artifacts\media\amd-mobile-power-promo-1.0.23-v2-2026-11-13\promo-manifest.json `
-  -EvidencePath .\docs\evidence\media\native-promo-1.0.23-draft-2026-11-13.json
+ffprobe -v error -show_entries `
+  format=duration,size -show_entries `
+  stream=codec_name,width,height,r_frame_rate,sample_rate,channels `
+  -of json artifacts\media\promo-html-v1\amd-mobile-power-promo-2026-11-14-v9.mp4
+ffmpeg -v error -i artifacts\media\promo-html-v1\amd-mobile-power-promo-2026-11-14-v9.mp4 -f null -
+Get-FileHash `
+  artifacts\media\promo-html-v1\amd-mobile-power-promo-2026-11-14-v9.mp4 `
+  -Algorithm SHA256
 ```
 
-The verifier checks the manifest, evidence, SHA256, codecs, dimensions, frame
-rate, duration, full decode, mean/peak audio levels, captions, storyboard,
-renderer, video cover, contact sheet, and the 1146x717 Bilibili cover.
+The full decode must produce no output and exit with code 0.
 
-## Render
+## Rebuild Notes
 
-```powershell
-.\render-promo.ps1 `
-  -Storyboard .\media\promo-native\storyboard-1.0.23.json `
-  -OutputDirectory .\artifacts\media\amd-mobile-power-promo-1.0.23-v2-2026-11-13 `
-  -OutputName amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4 `
-  -MusicPath .\artifacts\media\promo-music-bed-2026-11-12.wav
-```
+The HTML pipeline lives in `media/promo-html`:
 
-The default output is written under the ignored `artifacts/media` directory:
-
-```text
-artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/
-  amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4
-  captions-zh.srt
-  cover-draft.png
-  promo-manifest.json
-  review/
-    review-01-hook.png ... review-07-closing.png
-    contact-sheet.png
-```
-
-Generated scene PNGs and WAV files are retained by default for review. Use
-`-CleanWorkingFiles` when only the final MP4, captions, cover, manifest, and
-review frames are needed.
-
-The renderer enforces scene text bounds before encoding and runs full-decode,
-mean-volume, and peak-volume checks before writing the manifest. A failed text
-or audio bound stops the render instead of producing an accepted draft.
+- `index.html` and `src/scenes.js` define scene order, durations, and subtitle
+  text.
+- `build/record.js` drives Chromium through Playwright and records frames.
+- `build/make-audio.ps1` muxes the licensed music bed (and optional SAPI voice,
+  which v9 does not use) against the scene timeline.
+- Frames are encoded with FFmpeg; the historical working files stay under the
+  ignored `media/promo-html/build` directory.
 
 ## Review Gate
 
@@ -94,5 +83,5 @@ or audio bound stops the render instead of producing an accepted draft.
 - It does not imply that development builds are ready for unsupervised writes.
 - No terminal, personal path, account name, notification, or unrelated desktop
   content appears.
-- The project owner reviews the final voice, pacing, claims, and cover before
+- The project owner reviews pacing, subtitles, music, claims, and cover before
   any authenticated upload.

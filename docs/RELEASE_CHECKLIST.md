@@ -1,27 +1,26 @@
 # Release Checklist
 
-Release under review: `1.0.23-native`
+Release under review: `1.0.29-native`
 
 ## Source And Build
 
 - [x] Tracked worktree is clean before the package build.
-- [x] Rust tests pass: 46/46 (22 GUI tests + 24 library tests).
+- [x] Rust tests pass: 47/47 (23 GUI tests + 24 library tests).
 - [x] Rust probe tests pass: 7/7.
 - [x] Rust formatting and Clippy with `-D warnings` pass.
 - [x] C++ power-limit and power-policy tests pass.
 - [x] Release build completes with the packaged icon present.
-- [x] `native\verify-release.ps1 -Version 1.0.23-native -VerifyReproducibility
+- [x] `native\verify-release.ps1 -Version 1.0.29 -VerifyReproducibility
   -VerifyShellIntegration -ExecuteNoChangePolicy -VerifyWorkerHang
   -AllowBatteryWriteGuard`
   passes (AC session; the guard remained enabled).
 - [x] Package source commit and final SHA256 match the clean evidence.
-      Package SHA256 `42f6cf9172f3db6d0a2ac81bfffbab4b38b1f5a1423ff64b7b020855fce29f79`,
-      source commit `2033052dfb0e3fd0a427ea08adab12302b4addfc`.
-- [x] Rebuild from the same tree is byte-identical: GUI `e18c4213`, worker
-      `67af1d41`, probe `9750418f`, ZIP `42f6cf91`.
-- [ ] Hosted Windows CI passes for the release commit.
-      Current blocker: GitHub Actions billing/spending-limit failure before job
-      startup. Local release gates pass.
+      Package SHA256 `c6b54d84f3f1bdba67407fe72a1f4465913e554defa1577e5c02c7373b5db640`,
+      source commit `ee40565b66f6f8f0f52b362135604228fd2f7433`.
+- [x] Rebuild from the same tree is byte-identical: GUI `d46f885e`, worker
+      `67af1d41`, probe `9750418f`, ZIP `c6b54d84`.
+- [x] Hosted Windows CI passes for the release commit
+      (run `43514695587`, commit `5cfc357`).
 
 ## Hardware Evidence
 
@@ -62,12 +61,12 @@ Release under review: `1.0.23-native`
 
 ## Release Media
 
-- [x] Seven-scene promo draft rendered at 1920x1080, 109.2 s, with voice,
-      original seeded music, captions, and contact sheet.
-- [x] `verify-media.ps1` passes (full decode, volume, evidence hashes, review
-      assets, and Bilibili cover).
-- [x] 1.0.22 GUI, high-contrast, worker-offline, device-panel, contact-sheet,
-      and Bilibili-cover assets are archived.
+- [x] Seven-scene promo v9 rendered at 1920x1080, 30 fps, 42.5 s, with burned-in
+      captions, licensed music, and a real GUI recording.
+- [x] Full FFmpeg decode, media evidence hashes, 8-frame contact sheet, and the
+      1146x717 Bilibili cover are verified.
+- [x] Real 1.0.28/1.0.29 GUI, consent-dialog, auto-policy, and device-panel
+      captures are archived with the media evidence.
 - [ ] Owner reviews pacing, voice, claims, and cover.
 - [ ] Public GitHub Release and Bilibili upload (require explicit approval and
       an authenticated session).
@@ -75,7 +74,8 @@ Release under review: `1.0.23-native`
 ## Safety And Licensing
 
 - [x] The portable package starts read-only by default.
-- [x] Hardware writes require the explicit write-control flag.
+- [x] Hardware writes require the in-app lock or tray unlock consent; the CLI
+      flag remains available for scripted starts.
 - [x] Every write has a read-back, and Fast/Slow failures attempt restoration.
 - [x] Existing process, mutex, and scheduled-task owners are documented.
 - [x] The driver bootstrap reuses an existing valid WinRing0 service instead of
