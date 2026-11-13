@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "evidenceType": "hosted-windows-ci-run",
   "workflow": "build",
-  "runId": 43521016700,
-  "jobId": 132214986115,
+  "runId": 43525105775,
+  "jobId": 132228787656,
   "jobName": "windows-native",
-  "commit": "a5b573a73a55622a51e3776598a57013e0ccec91",
+  "commit": "dd537f72ac6228be53ccd5b4ee9ed057baeb94be",
   "branch": "main",
   "conclusion": "success",
-  "url": "https://github.com/syttys123/amd-mobile-power/actions/runs/43521016700",
+  "url": "https://github.com/syttys123/amd-mobile-power/actions/runs/43525105775",
   "steps": [
     { "name": "Set up job", "conclusion": "success" },
     { "name": "Run actions/checkout@v4", "conclusion": "success" },
@@ -23,5 +23,5 @@
     { "name": "Upload native portable package", "conclusion": "success" }
   ],
   "note": "Observed through the public workflow/job pages; no GitHub login or token was used. The readiness gate requires a successful run whose commit is an ancestor of HEAD and no native/, .github/, Cargo, or build-script changes since that commit.",
-  "observedAt": "2026-11-14T06:46:00+08:00"
+  "observedAt": "2026-11-14T07:15:00+08:00"
 }
