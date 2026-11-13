@@ -1964,6 +1964,14 @@ Connectivity evidence (2026-11-13 03:40): direct `git push` and both direct and
 1.1.1.1 all fail with `schannel: failed to receive handshake` / `000`, while
 baidu.com returns `200`. The FlClash core is running and listening on 7890, so
 the failure is at the upstream node rather than the local proxy port.
+
+Resolution (2026-11-13 03:45): connectivity recovered intermittently and
+`git push origin main` succeeded
+(`ad4b8b9..763adfa`). `git ls-remote` now reports the remote branch at
+`763adfad9db12efccb5102509bb3c3b813f131cf`, matching local `HEAD`, so the whole
+backlog of local commits is pushed. The hosted workflow was triggered by the
+push but its run status could not be inspected because `api.github.com` still
+failed TLS from this host.
 Keep the pre-promotion `C:\RyzenAdj` backup until the public release gates are
 closed, and never promote a dirty or write-unverified native package.
 
