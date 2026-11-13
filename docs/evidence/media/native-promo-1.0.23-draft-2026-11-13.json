@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "evidenceType": "development-preview-video-draft",
-  "capturedAt": "2026-11-13T14:26:00+08:00",
+  "capturedAt": "2026-11-13T14:45:00+08:00",
   "status": "DRAFT_FOR_HUMAN_REVIEW",
   "version": "1.0.23-native",
   "captureSetVersion": "1.0.22-native",
   "captureSetNote": "The 1.0.22 capture set is reused for stills; the presets scene is a live fixture clip recorded from the deployed 1.0.23 GUI (select-only preset staging).",
   "video": {
     "path": "artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4",
-    "sha256": "3e429a16feef7d5310d3f4c2b9c86bb2d15736b5262e29ca95222a77d7e90a4e",
-    "sizeBytes": 23748047,
+    "sha256": "42aef6cb3d9ea11ac512e26049a269c4f2ccca87e4da71986ac42050ac26d1ce",
+    "sizeBytes": 23804272,
     "durationSeconds": 109.2,
     "width": 1920,
     "height": 1080,
@@ -41,14 +41,14 @@
   },
   "liveDemoClip": {
     "path": "artifacts/media/live-demo/presets-demo.mp4",
-    "sha256": "f1f36d67e1371881bd85121ecb207f4ea11647493aaea6471586f03ba489f7c7",
-    "durationSeconds": 9.5,
+    "sha256": "fd15d4f51cb65a0aece61ad266dd7ba7b1225a32125c09628b879f595147e505",
+    "durationSeconds": 13.5,
     "recorder": "media/promo-native/capture-live-demo.ps1",
-    "recorderSha256": "0a21bfe4090d4fbeb797fc2b1db8cb5e7c6ef74b6be29c27442a1d5eb02f48bc",
+    "recorderSha256": "fdfecd14ebb104889848db69446c884f1938edf23400c08d6c6901bcada128e3",
     "sourceBuild": "1.0.23-native (deployed C:\\RyzenAdj build)",
     "fixture": "firmware-clamp",
     "dpiFixture": 125,
-    "note": "Client-only PrintWindow capture (PW_CLIENTONLY|PW_RENDERFULLCONTENT) in a per-monitor DPI aware helper; scripted WM_COMMAND preset clicks 25/12/45 W in advanced mode, no mode switch after, no hardware access or write."
+    "note": "Client-only PrintWindow capture (PW_CLIENTONLY|PW_RENDERFULLCONTENT) in a per-monitor DPI aware helper; scripted preset clicks 25/12/45 W with fixture-simulated apply feedback, then preset 1 edited to 10 W and saved. No hardware access or write."
   },
   "reviewAssets": {
     "cover": "docs/assets/native-promo-1.0.23-cover-2026-11-13.png",
@@ -56,7 +56,7 @@
     "coverWidth": 1920,
     "coverHeight": 1080,
     "contactSheet": "docs/assets/native-promo-1.0.23-contact-sheet-2026-11-13.png",
-    "contactSheetSha256": "4b02d85ec850293741540362b194eeaa7c10c2982138bf271804be089475e00a",
+    "contactSheetSha256": "576ed6ac2cad4fb8a58c8bf40e9e52f84d3009348ad06f3c5be2d3cbf067b8f1",
     "contactSheetWidth": 1920,
     "contactSheetHeight": 640
   },

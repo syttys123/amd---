@@ -24,16 +24,19 @@ not authoritative.
 2026-11-13 (media 1.0.23 v2 live-demo): the presets scene no longer overlays
 an animated counter on a static capture; it now plays a real recorded GUI
 clip filling the screenshot card edge to edge (`25 -> 12 -> 45 W` preset
-selection in advanced mode), recorded from the deployed `1.0.23` build under
-the read-only `firmware-clamp` fixture at 125% DPI. New tooling:
+clicks, then preset 1 edited to `10 W` and saved so the row reads
+`10 / 25 / 45 W`), captured under the read-only `firmware-clamp` fixture at
+125% DPI. UI fixtures now simulate the apply answer instead of failing
+(`firmware-clamp` reports "已应用 … 固件报告了钳制或 STAPM 警告"), so captures
+show the real apply/read-back flow without hardware. New tooling:
 `media/promo-native/capture-live-demo.ps1` (PrintWindow recorder; the capture
 process must be per-monitor DPI aware and must use PW_CLIENTONLY, or the
 window measures wrong and renders with a left border strip and a cropped
 bottom row), and `render-promo.ps1` learned storyboard `"video"` scenes (slide
 base + clip cover-composited into the card area, freeze last frame if
 narration runs long). Video SHA256
-`3e429a16feef7d5310d3f4c2b9c86bb2d15736b5262e29ca95222a77d7e90a4e`,
-`23,748,047` bytes, `109.2 s`; `verify-media.ps1` PASS.
+`42aef6cb3d9ea11ac512e26049a269c4f2ccca87e4da71986ac42050ac26d1ce`,
+`23,804,272` bytes, `109.2 s`; `verify-media.ps1` PASS.
 
 2026-11-13 (gui): quick-preset clicks now apply immediately in advanced mode
 too, matching simple mode, instead of only staging the target field

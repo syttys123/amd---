@@ -4740,10 +4740,32 @@ fn format_apply_result(
     }
 }
 
-fn start_apply(hwnd_address: usize, pipe_name: String, target: PowerLimitTarget) {
+fn start_apply(
+    hwnd_address: usize,
+    pipe_name: String,
+    target: PowerLimitTarget,
+    fixture: Option<UiFixture>,
+) {
     thread::spawn(move || {
-        let result = WorkerClient::new(pipe_name).apply_target(target);
-        let text = format_apply_result(target, result);
+        // UI fixtures never touch hardware: simulate the firmware answer so
+        // screenshot/video captures show the real apply -> read-back flow.
+        let text = match fixture {
+            Some(UiFixture::FirmwareClamp) => {
+                thread::sleep(Duration::from_millis(500));
+                format!(
+                    "已应用 {} W / {} W / {} W。\n固件报告了钳制或 STAPM 警告。",
+                    target.stapm_watts, target.fast_watts, target.slow_watts
+                )
+            }
+            Some(_) => {
+                thread::sleep(Duration::from_millis(500));
+                "应用失败。\n当前界面为夹具状态，未连接硬件 worker。".to_owned()
+            }
+            None => {
+                let result = WorkerClient::new(pipe_name).apply_target(target);
+                format_apply_result(target, result)
+            }
+        };
         unsafe {
             let pointer = Box::into_raw(Box::new(text));
             let hwnd = hwnd_address as HWND;
@@ -4799,7 +4821,7 @@ unsafe fn start_preset_apply(app: &mut GuiApp, hwnd: HWND, index: usize) {
         SetWindowTextW(app.status_label, text.as_ptr());
     }
     update_write_availability(app, hwnd);
-    start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target);
+    start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target, app.ui_fixture);
 }
 
 unsafe fn apply_profile_to_presets(app: &mut GuiApp, hwnd: HWND, profile: &ProfilePayload) {
@@ -5446,7 +5468,7 @@ unsafe extern "system" fn window_proc(
                         }
                         update_write_availability(app, hwnd);
                         InvalidateRect(hwnd, std::ptr::null(), 0);
-                        start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target);
+                        start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target, app.ui_fixture);
                     }
                 }
                 PRESET_12 | PRESET_25 | PRESET_45 if app.write_enabled => {
@@ -5510,7 +5532,7 @@ unsafe extern "system" fn window_proc(
                         SetWindowTextW(app.status_label, text.as_ptr());
                     }
                     update_write_availability(app, hwnd);
-                    start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target);
+                    start_apply(hwnd as usize, app.worker_pipe.clone(), app.selected_target, app.ui_fixture);
                 }
                 POLICY_SAVE if app.write_enabled && !app.policy_in_flight => {
                     if let Some(controls) = app.policy_controls {

@@ -31,9 +31,9 @@ artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/
   amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4
 ```
 
-- Size: 23,748,047 bytes.
+- Size: 23,804,272 bytes.
 - SHA256:
-  `3e429a16feef7d5310d3f4c2b9c86bb2d15736b5262e29ca95222a77d7e90a4e`.
+  `42aef6cb3d9ea11ac512e26049a269c4f2ccca87e4da71986ac42050ac26d1ce`.
 - Full-file FFmpeg decode: PASS.
 - Audio level: mean `-20.7 dB`, peak `-1.2 dB`.
 - Title, caption, and bullet safe-width checks: PASS.

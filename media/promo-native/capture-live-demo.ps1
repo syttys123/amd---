@@ -5,7 +5,7 @@ param(
     [string]$ClipPath,
     [string]$UiFixture = "firmware-clamp",
     [int]$DpiFixture = 125,
-    [double]$DurationSeconds = 9.5,
+    [double]$DurationSeconds = 13.5,
     [int]$Fps = 10
 )
 
@@ -50,6 +50,13 @@ public static class AmdMobilePowerLiveDemo {
     [DllImport("user32.dll")]
     public static extern IntPtr SendMessage(
         IntPtr hwnd, uint message, UIntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "SendMessageW")]
+    public static extern IntPtr SendMessageText(
+        IntPtr hwnd, uint message, UIntPtr wParam, string lParam);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetDlgItem(IntPtr hwnd, int id);
 
     [DllImport("user32.dll")]
     public static extern bool PostMessage(
@@ -197,10 +204,15 @@ try {
     # Timed interaction script: select each preset in advanced mode, then switch
     # to simple mode with the 45 W selection kept. Nothing writes hardware
     # because the fixture is read-only UI state.
+    # Timeline: switch presets, then edit preset 1 to 10 W and save it so the
+    # demo matches the 10 / 25 / 45 W headline. The fixture writes only the
+    # isolated state file under the throwaway LOCALAPPDATA.
     $timeline = @(
-        @{ At = 1.0; Command = 102 },
-        @{ At = 3.0; Command = 101 },
-        @{ At = 5.2; Command = 103 }
+        @{ At = 1.2; Action = "command"; Command = 102 },
+        @{ At = 4.0; Action = "command"; Command = 101 },
+        @{ At = 6.6; Action = "command"; Command = 103 },
+        @{ At = 9.2; Action = "set_text"; Control = 301; Text = "10" },
+        @{ At = 10.0; Action = "command"; Command = 106 }
     )
 
     $watch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -211,10 +223,24 @@ try {
         $elapsed = $watch.Elapsed.TotalSeconds
         foreach ($step in $timeline) {
             if (-not $step.ContainsKey("Done") -and $elapsed -ge $step.At) {
-                [AmdMobilePowerLiveDemo]::SendMessage(
-                    $window, 0x0111,
-                    [System.UIntPtr]::new([uint32]$step.Command),
-                    [IntPtr]::Zero) | Out-Null
+                switch ($step.Action) {
+                    "command" {
+                        [AmdMobilePowerLiveDemo]::SendMessage(
+                            $window, 0x0111,
+                            [System.UIntPtr]::new([uint32]$step.Command),
+                            [IntPtr]::Zero) | Out-Null
+                    }
+                    "set_text" {
+                        $control = [AmdMobilePowerLiveDemo]::GetDlgItem(
+                            $window, [int]$step.Control)
+                        if ($control -ne [IntPtr]::Zero) {
+                            [AmdMobilePowerLiveDemo]::SendMessageText(
+                                $control, 0x000C,
+                                [System.UIntPtr]::Zero,
+                                [string]$step.Text) | Out-Null
+                        }
+                    }
+                }
                 $step.Done = $true
             }
         }
