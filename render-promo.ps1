@@ -664,6 +664,14 @@ for ($index = 0; $index -lt $story.scenes.Count; $index++) {
     $scene = $story.scenes[$index]
     $slidePath = Join-Path $frameDirectory ("scene-{0:00}-{1}.png" -f ($index + 1), $scene.id)
     $audioPath = Join-Path $audioDirectory ("scene-{0:00}-{1}.wav" -f ($index + 1), $scene.id)
+    $videoClipPath = $null
+    if ($scene.PSObject.Properties.Name -contains "video") {
+        $videoClipPath = Resolve-ProjectPath $scene.video
+        if (-not (Test-Path -LiteralPath $videoClipPath)) {
+            throw "Scene video not found: $videoClipPath"
+        }
+        $clipDuration = Get-AudioDuration $videoClipPath
+    }
     Render-Slide -Scene $scene -SceneIndex $index -OutputPath $slidePath
 
     $synthesizer = [System.Speech.Synthesis.SpeechSynthesizer]::new()
@@ -680,6 +688,11 @@ for ($index = 0; $index -lt $story.scenes.Count; $index++) {
 
     $audioDuration = Get-AudioDuration $audioPath
     $sceneDuration = [Math]::Max(8.0, $audioDuration + 1.0)
+    if ($videoClipPath) {
+        # A recorded clip anchors the scene: never cut it shorter and freeze
+        # the last frame if narration runs past the recording.
+        $sceneDuration = [Math]::Max($sceneDuration, $clipDuration)
+    }
     $sceneEnd = $currentStart + $sceneDuration
     $sceneRecords += [pscustomobject]@{
         Index = $index + 1
@@ -687,6 +700,8 @@ for ($index = 0; $index -lt $story.scenes.Count; $index++) {
         Layout = $scene.layout
         Title = ($scene.title -replace "`n", " / ")
         Slide = $slidePath
+        VideoClip = $videoClipPath
+        VideoClipDurationSeconds = $clipDuration
         Audio = $audioPath
         AudioDurationSeconds = $audioDuration
         DurationSeconds = $sceneDuration
@@ -706,6 +721,7 @@ $captions.ToString().TrimEnd() + "`n" |
 $arguments = [Collections.Generic.List[string]]::new()
 $arguments.Add("-y")
 $musicInputIndex = -1
+$inputIndex = 0
 foreach ($record in $sceneRecords) {
     $arguments.Add("-loop")
     $arguments.Add("1")
@@ -713,11 +729,21 @@ foreach ($record in $sceneRecords) {
     $arguments.Add("$fps")
     $arguments.Add("-i")
     $arguments.Add($record.Slide)
+    $record | Add-Member -NotePropertyName SlideInput -NotePropertyValue $inputIndex
+    $inputIndex++
+    if ($record.VideoClip) {
+        $arguments.Add("-i")
+        $arguments.Add($record.VideoClip)
+        $record | Add-Member -NotePropertyName ClipInput -NotePropertyValue $inputIndex
+        $inputIndex++
+    }
     $arguments.Add("-i")
     $arguments.Add($record.Audio)
+    $record | Add-Member -NotePropertyName AudioInput -NotePropertyValue $inputIndex
+    $inputIndex++
 }
 if ($null -ne $musicResolved) {
-    $musicInputIndex = $sceneRecords.Count * 2
+    $musicInputIndex = $inputIndex
     $arguments.Add("-stream_loop")
     $arguments.Add("-1")
     $arguments.Add("-i")
@@ -729,8 +755,8 @@ for ($index = 0; $index -lt $sceneRecords.Count; $index++) {
     $record = $sceneRecords[$index]
     $duration = $record.DurationSeconds.ToString("0.###", [Globalization.CultureInfo]::InvariantCulture)
     $frameCount = [int][Math]::Ceiling($record.DurationSeconds * $fps)
-    $videoInput = $index * 2
-    $audioInput = $videoInput + 1
+    $videoInput = $record.SlideInput
+    $audioInput = $record.AudioInput
     $fadeOutStart = [Math]::Max(0, $record.DurationSeconds - 0.3).ToString(
         "0.###",
         [Globalization.CultureInfo]::InvariantCulture)
@@ -794,15 +820,33 @@ for ($index = 0; $index -lt $sceneRecords.Count; $index++) {
             break
         }
     }
-    [void]$filter.Append(
-        "[$($videoInput):v]scale=1920:1080,format=rgba," +
-        "zoompan=z='$($motion.z)':" +
-        "x='$($motion.x)':y='$($motion.y)':" +
-        "d=$($frameCount):s=1920x1080:fps=$fps," +
-        "trim=duration=$duration,setpts=PTS-STARTPTS," +
-        "fade=t=in:st=0:d=0.25,fade=t=out:st=$($fadeOutStart):d=0.3," +
-        "format=yuv420p[v$index];")
-    if ($record.Id -eq "presets") {
+    if ($record.VideoClip) {
+        # Recorded interaction clips fill the slide's card (880,180,900x780)
+        # edge to edge: the window chrome is the card, so no inner seam or
+        # leftover padding shows. The clip keeps the advanced-mode aspect, so
+        # the cover crop only trims a few pixels. overlay's default eof_action
+        # repeats the last clip frame if narration runs longer.
+        [void]$filter.Append(
+            "[$($videoInput):v]scale=1920:1080,format=rgba[bg$index];" +
+            "[$($record.ClipInput):v]fps=$fps," +
+            "scale=900:780:force_original_aspect_ratio=increase," +
+            "crop=900:780,format=rgba[fg$index];" +
+            "[bg$index][fg$index]overlay=x=880:y=180:eval=frame," +
+            "trim=duration=$duration,setpts=PTS-STARTPTS," +
+            "fade=t=in:st=0:d=0.25,fade=t=out:st=$($fadeOutStart):d=0.3," +
+            "format=yuv420p[v$index];")
+    }
+    else {
+        [void]$filter.Append(
+            "[$($videoInput):v]scale=1920:1080,format=rgba," +
+            "zoompan=z='$($motion.z)':" +
+            "x='$($motion.x)':y='$($motion.y)':" +
+            "d=$($frameCount):s=1920x1080:fps=$fps," +
+            "trim=duration=$duration,setpts=PTS-STARTPTS," +
+            "fade=t=in:st=0:d=0.25,fade=t=out:st=$($fadeOutStart):d=0.3," +
+            "format=yuv420p[v$index];")
+    }
+    if ($record.Id -eq "presets" -and -not $record.VideoClip) {
         # Animated watt counter: makes the one-click preset claim visible.
         $counterFont = "/Windows/Fonts/arialbd.ttf"
         $counterColor = "0x45D6A8"
@@ -1116,7 +1160,7 @@ $manifest = [ordered]@{
     safety = @(
         "No application process was started during rendering.",
         "No hardware write, driver change, login, upload, or publication occurred.",
-        "Only verified repository screenshots are used.",
+        "Only verified repository screenshots and locally recorded fixture clips are used.",
         "The video is a development preview and is not approved for publication."
     )
 }
