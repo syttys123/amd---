@@ -80,6 +80,16 @@ not authoritative.
   targets at 8 W and is enabled, so unplug/replug does not raise the limit.
   This is a temporary local setting, not a shipped schedule feature; no
   public release or upload was performed.
+- The revert is owned by the local one-off scheduled task
+  `AmdMobilePower NightRevert 20261114` (06:59) running
+  `C:\Users\SYT\AppData\Local\AmdMobilePower\maintenance\revert-night-8w-to-10w.ps1`.
+  The helper writes 10 W through the running worker pipe, verifies the
+  read-back, mirrors the value into `rust-ui-state.json`, restarts the GUI so
+  its panel agrees with the worker, and verifies the target again. It was
+  rehearsed twice at 04:15 with `-Watts 8` (no `-NoRestart` on the second run)
+  and returned `OK` with `stapm=8 fast=8 slow=8 line=battery` before and after
+  the restart, so the 05:00-07:00 window stays at 8 W. The matching Codex
+  heartbeat verifies the 06:59 run and deletes itself.
 
 2026-11-14 (auto-policy fix, shipped as 1.0.27-native): user reported that
 after enabling the auto power policy, unplugging/replugging never wrote the
