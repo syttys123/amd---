@@ -341,15 +341,24 @@ function Export-GuiDiagnostics {
         -not [AmdMobilePowerRustGuiNative]::IsWindowEnabled($exportButton)) {
         throw "Rust GUI diagnostics export button is not usable."
     }
+    $diagnosticsDirectory = Join-Path `
+        $LocalAppDataRoot `
+        "AmdMobilePower\diagnostics"
+    # A previous export would otherwise stay "newest" until the next write
+    # lands, which made the policy-toggle checks read a stale snapshot.
+    $existingDiagnostics = @(
+        Get-ChildItem `
+            -LiteralPath $diagnosticsDirectory `
+            -Filter "native-gui-diagnostics-*.json" `
+            -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty FullName
+    )
     [AmdMobilePowerRustGuiNative]::SendMessage(
         $exportButton,
         0x00F5,
         [UIntPtr]107,
         [IntPtr]::Zero) | Out-Null
 
-    $diagnosticsDirectory = Join-Path `
-        $LocalAppDataRoot `
-        "AmdMobilePower\diagnostics"
     $diagnosticsPath = $null
     Wait-Until `
         -Description "diagnostics export" `
@@ -358,6 +367,7 @@ function Export-GuiDiagnostics {
                 -LiteralPath $diagnosticsDirectory `
                 -Filter "native-gui-diagnostics-*.json" `
                 -ErrorAction SilentlyContinue |
+                Where-Object { $existingDiagnostics -notcontains $_.FullName } |
                 Sort-Object LastWriteTimeUtc -Descending |
                 Select-Object -First 1 -ExpandProperty FullName
             [bool]$script:diagnosticsPath
