@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "development-preview-video-draft",
+  "capturedAt": "2026-11-14T05:50:00+08:00",
+  "status": "DRAFT_FOR_HUMAN_REVIEW",
+  "version": "1.0.29-native",
+  "video": {
+    "path": "artifacts/media/promo-html-v1/amd-mobile-power-promo-2026-11-14-v9.mp4",
+    "sha256": "ca887aa5ec3b55157e91206781d15f502e3fdede7c3c7e3907621ac331863023",
+    "sizeBytes": 4426857,
+    "durationSeconds": 42.5,
+    "width": 1920,
+    "height": 1080,
+    "frameRate": "30/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "sampleRate": "48000",
+    "channels": 2
+  },
+  "narration": {
+    "style": "burned-in Chinese subtitles, no synthetic voice",
+    "reason": "Earlier TTS narration did not meet the project owner's bar; v9 uses captions plus a licensed music bed."
+  },
+  "music": {
+    "path": "artifacts/media/music-licensed/deliberate-thought.mp3",
+    "sha256": "243d5543c930bf54e95868bab9da860e67ce8835e3698881fda287bc58cc343f",
+    "title": "Deliberate Thought",
+    "artist": "Kevin MacLeod (incompetech.com)",
+    "license": "CC BY 4.0",
+    "attributionRequired": true
+  },
+  "source": {
+    "renderer": "media/promo-html",
+    "rendererIndex": "media/promo-html/index.html",
+    "rendererIndexSha256": "caae8b136f6a77812e50ff66a0802f3ed16d13802de79442f787a97331647d48",
+    "sceneDefinition": "media/promo-html/src/scenes.js",
+    "sceneDefinitionSha256": "cd5f120cc1d82312f4e72f5c1dcd2e657f7323b7713d32cc98fac0388f1f20e1",
+    "recorder": "media/promo-html/build/record.js",
+    "recorderSha256": "ea0aeca5d248d827e22c2a6cf1fe9e9b9c963330ab79663f4fdc5aa4209dbe73",
+    "audioMixer": "media/promo-html/build/make-audio.ps1",
+    "audioMixerSha256": "ec81dd707d5085a32023049503135e8bbb29c5dae59b52ffb4ea414a85de7493",
+    "sceneCount": 7
+  },
+  "liveFootage": {
+    "sourceBuild": "1.0.28-native (deployed C:\\RyzenAdj build)",
+    "mainScene": "real GUI screen recording of preset clicks and apply feedback",
+    "stills": "real 1.0.28 consent dialog, advanced policy panel, and device panel captures",
+    "note": "Only the pointer, captions, and transitions are composited; the application frames are real captures."
+  },
+  "reviewAssets": {
+    "cover": "docs/assets/bilibili-cover-1.0.28-2026-11-14.png",
+    "coverSha256": "89ea363925d947cc1bede51440a6dc9f7e61cf3f302494e738da1a9b62be45ad",
+    "contactSheet": "docs/assets/native-promo-1.0.28-contact-sheet-2026-11-14.png",
+    "contactSheetSha256": "7fd4a0303ae8d2c4ad40cfcf8e18fd641196c1a869daf0c5fbb1c78221fb8997",
+    "contactSheetWidth": 1920,
+    "contactSheetHeight": 540
+  },
+  "bilibiliCover": {
+    "path": "docs/assets/bilibili-cover-1.0.28-2026-11-14.png",
+    "sha256": "89ea363925d947cc1bede51440a6dc9f7e61cf3f302494e738da1a9b62be45ad",
+    "sizeBytes": 143241,
+    "width": 1146,
+    "height": 717,
+    "renderer": "render-launch-cover.ps1",
+    "textSafeWidth": "PASS"
+  },
+  "verification": {
+    "ffmpegFullDecode": "PASS",
+    "textSafeWidth": "PASS",
+    "sceneCount": 7,
+    "width": 1920,
+    "height": 1080,
+    "durationSeconds": 42.5,
+    "bottomProgressBar": true,
+    "noApplicationProcess": true,
+    "noHardwareWrite": true,
+    "noLoginOrUpload": true,
+    "noExternalSamples": true
+  },
+  "limitations": [
+    "This is a development-preview draft, not a public release video.",
+    "The project owner has not reviewed final pacing, claims, subtitles, or cover.",
+    "No authenticated GitHub or Bilibili upload was performed.",
+    "CC BY 4.0 attribution for Deliberate Thought must ship with any public upload."
+  ],
+  "captureSetVersion": "1.0.28-native",
+  "captureSetNote": "1.0.29 changes only the packaged README; the GUI, worker, and probe binaries and the whole UI are identical to 1.0.28, so the v9 video and stills remain valid."
+}

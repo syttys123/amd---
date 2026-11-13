@@ -60,13 +60,15 @@ Markdown document records the decisions that apply to AMD Mobile Power.
 | `ROADMAP.md` | Milestones and release gates |
 | `RELEASE_CHECKLIST.md` | Final publication checklist |
 | `RELEASE_CANDIDATE_ZH.md` | Legacy .NET 1.0.4 package and historical review |
-| `NATIVE_RELEASE_CANDIDATE_1.0.28_ZH.md` | Current native 1.0.28 package, evidence, and open-gate review |
+| `NATIVE_RELEASE_CANDIDATE_1.0.29_ZH.md` | Current native 1.0.29 package, evidence, and open-gate review |
+| `NATIVE_RELEASE_CANDIDATE_1.0.28_ZH.md` | Historical native 1.0.28 review snapshot |
 | `NATIVE_RELEASE_CANDIDATE_ZH.md` | Historical native 1.0.23 review snapshot |
 | `INTRODUCTION_ZH.md` | Chinese project introduction draft |
 | `MEDIA_PLAN.md` | Screenshot, video, and Bilibili preparation plan |
 | `PROMO_VIDEO.md` | Current video draft, render command, hashes, and media verification |
 | `LAUNCH_COPY_ZH.md` | Review-only GitHub release and Bilibili publication copy |
-| `NATIVE_LAUNCH_COPY_1.0.28_ZH.md` | Current review-only native 1.0.28 GitHub and Bilibili copy |
+| `NATIVE_LAUNCH_COPY_1.0.29_ZH.md` | Current review-only native 1.0.29 GitHub and Bilibili copy |
+| `NATIVE_LAUNCH_COPY_1.0.28_ZH.md` | Historical native 1.0.28 launch copy |
 | `NATIVE_LAUNCH_COPY_ZH.md` | Historical native 1.0.23 launch-copy snapshot |
 
 ## Status Rules

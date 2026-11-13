@@ -1,0 +1,17 @@
+{
+  "Version": "1.0.29",
+  "SourcePackageCommit": "ee40565b66f6f8f0f52b362135604228fd2f7433",
+  "Verification": "PASS",
+  "InstallDirectoryCreated": true,
+  "InstallMarkerCreated": true,
+  "StartMenuShortcutCreated": true,
+  "StartupShortcutCreated": true,
+  "UninstallEntryCreated": true,
+  "UninstallEntryVersion": "1.0.29",
+  "Cleanup": "PASS",
+  "ResidualInstallDirectory": false,
+  "ResidualStartMenuShortcut": false,
+  "ResidualStartupShortcut": false,
+  "ResidualUninstallEntry": false,
+  "RecordedAt": "2026-11-14T05:43:21.5031713+08:00"
+}

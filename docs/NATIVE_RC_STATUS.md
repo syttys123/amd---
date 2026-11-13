@@ -3,9 +3,10 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.28-native`
-(source commit `f64812e`, tray write gate, packaged GUI/tray verification,
-and the 8 W night window). `1.0.27-native` is preserved as
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.29-native`
+(source commit `ee40565`, identical GUI/worker/probe binaries with the
+corrected packaged README). `1.0.28-native` is preserved as
+`C:\RyzenAdj.before-20261114-054523` and `1.0.27-native` as
 `C:\RyzenAdj.before-20261114-025845`. `1.0.23-native` shipped the maximize
 scroll clamp, page-step alignment, and fractional-DPI header alignment;
 `1.0.22-native` is preserved as
