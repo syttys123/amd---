@@ -53,8 +53,8 @@ not authoritative.
   `LocalReadiness=PASS`, `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`,
   empty `BlockersFromLocalChecks`. Evidence:
   `docs/evidence/release/native-publication-readiness-2026-11-14.json`.
-- Hosted Windows CI is green on the native-only workflow: run `43508260731`
-  (commit `d667566`) passed PowerShell syntax, documentation links, Rust
+- Hosted Windows CI is green on the native-only workflow: run `43509158502`
+  (commit `4f91e4e`) passed PowerShell syntax, documentation links, Rust
   fmt/clippy, RyzenAdj build, native build/tests, byte-reproducible package,
   headless probe self-test, and artifact upload. Evidence:
   `docs/evidence/build/hosted-ci-2026-11-14.json`. The readiness gate now
