@@ -49,6 +49,14 @@ worker 候选 `1.0.28-native` 的可复核资产、验证边界和仍需人工�
 - 打包版只读启动、诊断导出、模式切换、预设编辑、最小窗口边界：PASS。
 - 部署版托盘菜单运行时检查：`简洁模式`、`写入已解锁` 勾选正确，
   预设 `10 / 25 / 45 W` 存在，关闭菜单后进程仍响应。
+- 打包版 GUI 独立验证：从发布 ZIP 解包后运行，GUI/worker 哈希与部署记录
+  一致；关闭到托盘、托盘恢复、单实例唤醒、模式切换、写入控件、预设编辑、
+  最小窗口边界、最大化滚动全部 PASS；验证结束后自动恢复原本运行的托盘应用。
+- 发布就绪门禁：`LocalReadiness=PASS`、
+  `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`，本地阻塞项为空。
+- 托管 Windows CI：run `43509158502`（commit `4f91e4e`）全部步骤 success，
+  覆盖 PowerShell 语法、文档链接、Rust fmt/clippy、RyzenAdj 构建、原生
+  测试、可复现包、探针自检与产物上传。
 
 ## 硬件边界
 
@@ -73,7 +81,20 @@ worker 候选 `1.0.28-native` 的可复核资产、验证边界和仍需人工�
 - `docs/evidence/ui/native-maximize-scroll-2026-11-14.json`
 - `docs/evidence/ui/native-workarea-200-1366x768-2026-11-14.json`
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-14.json`
+- `docs/evidence/ui/native-packaged-1.0.28-ui-2026-11-14.json`
+- `docs/evidence/media/native-promo-1.0.28-draft-2026-11-14.json`
 - `docs/evidence/build/reproducibility-2026-11-14.json`
+- `docs/evidence/build/hosted-ci-2026-11-14.json`
+- `docs/evidence/release/native-publication-readiness-2026-11-14.json`
+
+## 发布就绪
+
+- 审查包：`artifacts/native-release-review/v1.0.28`，29 个文件，
+  `SHA256SUMS.txt` 全部校验通过。
+- 审查包内含安装包、`release-gate.json`、`clean-package.json`、
+  `shell-integration.json`、`deployment.json`、`packaged-ui.json`、
+  功耗策略证据、DPI 截图、宣传片、封面、联系表和发布文案。
+- 未创建 GitHub Release，未上传 B 站，未使用账号登录。
 
 ## 本地部署
 
@@ -95,6 +116,11 @@ worker 候选 `1.0.28-native` 的可复核资产、验证边界和仍需人工�
   `artifacts/media/promo-html-v1/amd-mobile-power-promo-2026-11-14-v9.mp4`
 - SHA256:
   `ca887aa5ec3b55157e91206781d15f502e3fdede7c3c7e3907621ac331863023`
+- 媒体证据：`docs/evidence/media/native-promo-1.0.28-draft-2026-11-14.json`
+- B 站封面：`docs/assets/bilibili-cover-1.0.28-2026-11-14.png`
+  （1146x717，文字安全宽度 PASS）
+- 联系表：`docs/assets/native-promo-1.0.28-contact-sheet-2026-11-14.png`
+  （1920x540，8 帧）
 - 音乐：Kevin MacLeod — Deliberate Thought，CC BY 4.0；发布描述必须保留署名。
 - 状态：`DRAFT_FOR_HUMAN_REVIEW`，未上传。
 
@@ -102,6 +128,7 @@ worker 候选 `1.0.28-native` 的可复核资产、验证边界和仍需人工�
 
 - [ ] 第二台物理 AMD 笔记本只读证据（当前无第二台设备）。
 - [ ] 真实显示器切换的 100%/150% 会话证据（当前使用逻辑 DPI 夹具）。
+- [ ] 干净 Windows 环境下的 WinRing0/驱动基线证据。
 - [ ] 项目所有者审片：节奏、字幕、音乐、封面和文案。
 - [ ] GitHub Release 发布需要明确授权。
 - [ ] B 站上传需要账号会话和明确授权。
