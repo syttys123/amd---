@@ -3,36 +3,36 @@ window.__SCENES__ = [
   {
     id: "hook",
     duration: 4.5,
-    narration: "同一台 AMD 轻薄本，插电、用电池、接充电宝，功耗表现常常不一致。",
+    narration: "同一台笔记本，插电和用电池的时候，性能和续航差别往往很大。",
   },
   {
     id: "problem",
     duration: 5.5,
-    narration: "插电四十五瓦，用电池二十五瓦，接充电宝就说不准了。",
+    narration: "插电想要性能，选四十五瓦；嫌风扇吵想要安静，选二十五瓦；只用电池时二十五瓦够用，想更久续航就选十瓦。",
   },
   {
     id: "ui-demo",
     duration: 11.0,
-    narration: "AMD Mobile Power 把 RyzenAdj 装进原生桌面工具。白天插电要性能，一键四十五瓦；夜间用电池求安静，切到十瓦。三档数值都能按自己的机型重新编辑保存。",
+    narration: "三个按钮，点一下立刻切换。现在用了多少瓦、温度多少、上限多少，都实时显示在界面上。",
+  },
+  {
+    id: "auto-policy",
+    duration: 6.0,
+    narration: "嫌手动切换麻烦，可以打开自动策略：插上电源自动切到高性能，拔掉电源自动切到省电。",
   },
   {
     id: "safety",
     duration: 5.5,
-    narration: "默认只读，写入必回读。硬件访问由独立 worker 完成，固件钳制或失败会直接说明。",
+    narration: "默认只能看，不能改，不怕点错。真正修改之后会自动核对，没有生效界面会直接告诉你。",
   },
   {
     id: "compat",
     duration: 5.0,
-    narration: "8845HS 已完成实机验证，其他世代使用保守配置兜底，并提供脱敏只读诊断。",
-  },
-  {
-    id: "a11y",
-    duration: 5.0,
-    narration: "跟随系统高对比度，小屏高缩放也能完整滚动。",
+    narration: "已经实测过的型号可以直接用，其他 AMD 型号会先做安全检测，再决定能不能修改。",
   },
   {
     id: "closing",
     duration: 5.0,
-    narration: "开源在 GitHub，谨慎折腾，欢迎共建。",
+    narration: "项目完全开源免费，欢迎去 GitHub 下载试用，也欢迎告诉我们你的机型。",
   },
 ];

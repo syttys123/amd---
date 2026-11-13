@@ -118,22 +118,23 @@ SCENE_RENDERERS.hook = (scene, t, root) => {
     width: "1150px", flexShrink: "0",
   });
 
-  const eyebrow = txt("OPEN SOURCE · NATIVE WINDOWS APP", {
+  const eyebrow = txt("给 AMD 笔记本的功耗开关", {
     color: "#45d6a8", fontSize: "26px", fontWeight: "700",
-    letterSpacing: "6px", marginBottom: "28px", fontFamily: "'Segoe UI',sans-serif",
+    letterSpacing: "6px", marginBottom: "28px",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
   slideUp(eyebrow, t, 0.1);
 
   const title = el("div", {});
-  title.innerHTML = "AMD 轻薄本<br>功耗一手掌握";
+  title.innerHTML = "想快就快<br>想省就省";
   Object.assign(title.style, {
-    color: "#f1f7f4", fontSize: "108px", fontWeight: "900", lineHeight: "1.08",
+    color: "#f1f7f4", fontSize: "118px", fontWeight: "900", lineHeight: "1.1",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
-    letterSpacing: "-1px", marginBottom: "32px",
+    letterSpacing: "0px", marginBottom: "32px",
   });
   slideUp(title, t, 0.22);
 
-  const sub = txt("原生 GUI · 实时回读 · 三档预设 · 开源", {
+  const sub = txt("AMD 笔记本 · 功耗开关 · 插电电池一键切换", {
     color: "#a6b8b0", fontSize: "34px", fontWeight: "400",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
@@ -178,14 +179,14 @@ SCENE_RENDERERS.problem = (scene, t, root) => {
     padding: "0 120px", background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
   });
 
-  const eyebrow = txt("THE PROBLEM", {
+  const eyebrow = txt("三种场景 三种功率", {
     color: "#45d6a8", fontSize: "24px", fontWeight: "700",
     letterSpacing: "6px", marginBottom: "32px",
   });
   slideUp(eyebrow, t, 0.05);
 
   const title = el("div", {});
-  title.innerHTML = "同一台电脑<br>三种功耗性格";
+  title.innerHTML = "按需选瓦数<br>各有各的爽";
   Object.assign(title.style, {
     color: "#f1f7f4", fontSize: "96px", fontWeight: "900", lineHeight: "1.1",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
@@ -194,16 +195,16 @@ SCENE_RENDERERS.problem = (scene, t, root) => {
   slideUp(title, t, 0.18);
 
   const cards = [
-    { label: "插电", value: "45 W", tone: "#45d6a8", delay: 0.5 },
-    { label: "电池", value: "25 W", tone: "#ffb45a", delay: 0.68 },
-    { label: "充电宝", value: "???", tone: "#e06c6c", delay: 0.86 },
+    { label: "插电 · 性能", value: "45 W", hint: "畅玩 · 剪辑", tone: "#45d6a8", delay: 0.5 },
+    { label: "安静 · 办公", value: "25 W", hint: "风扇更安静", tone: "#ffb45a", delay: 0.68 },
+    { label: "电池 · 长续航", value: "10 W", hint: "撑得更久", tone: "#7fb2ff", delay: 0.86 },
   ];
   const row = el("div", { display: "flex", gap: "36px" });
   for (const card of cards) {
     const box = el("div", {
       flex: "1", background: "rgba(255,255,255,0.04)",
       border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px",
-      padding: "44px 40px", display: "flex", flexDirection: "column", gap: "18px",
+      padding: "40px 40px 34px", display: "flex", flexDirection: "column", gap: "14px",
     });
     const label = txt(card.label, {
       color: "#a6b8b0", fontSize: "26px", fontWeight: "500",
@@ -213,7 +214,11 @@ SCENE_RENDERERS.problem = (scene, t, root) => {
       color: card.tone, fontSize: "72px", fontWeight: "900",
       fontFamily: "'Segoe UI',sans-serif", letterSpacing: "-1px",
     });
-    box.append(label, value);
+    const hint = txt(card.hint, {
+      color: "#7d8f88", fontSize: "24px", fontWeight: "400",
+      fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+    });
+    box.append(label, value, hint);
     slideUp(box, t, card.delay);
     row.append(box);
   }
@@ -245,7 +250,7 @@ SCENE_RENDERERS["ui-demo"] = (scene, t, root) => {
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
     marginBottom: "28px",
   });
-  const sub = txt("预设可编辑 · 应用即回读", {
+  const sub = txt("当前功耗 · 温度 · 上限 实时可见", {
     color: "#a6b8b0", fontSize: "26px",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
@@ -290,14 +295,14 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
     width: "1050px", flexShrink: "0",
   });
 
-  const eyebrow = txt("FAIL CLOSED BY DESIGN", {
+  const eyebrow = txt("安全第一", {
     color: "#45d6a8", fontSize: "24px", fontWeight: "700",
     letterSpacing: "6px", marginBottom: "32px",
   });
   slideUp(eyebrow, t, 0.05);
 
   const title = el("div", {});
-  title.innerHTML = "默认只读<br>写入必回读";
+  title.innerHTML = "默认只读<br>不怕点错";
   Object.assign(title.style, {
     color: "#f1f7f4", fontSize: "88px", fontWeight: "900", lineHeight: "1.1",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
@@ -306,9 +311,9 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
   slideUp(title, t, 0.18);
 
   const items = [
-    ["默认只读", "不申请权限也能看功耗"],
-    ["worker 隔离", "硬件访问独立进程"],
-    ["回读确认", "钳制失败直接提示"],
+    ["只看不改", "默认什么都不会动"],
+    ["自动核对", "改完立刻检查是否生效"],
+    ["说清楚", "没生效会直接提示"],
   ];
   const list = el("div", { display: "flex", flexDirection: "column", gap: "20px" });
   items.forEach(([head, body], i) => {
@@ -340,14 +345,14 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
     border: "1px solid rgba(255,255,255,0.1)", borderRadius: "14px",
     padding: "44px 42px", display: "flex", flexDirection: "column", gap: "26px",
   });
-  const cardHead = txt("写入控制", {
+  const cardHead = txt("修改开关", {
     color: "#f1f7f4", fontSize: "28px", fontWeight: "700",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
   const toggleRow = el("div", {
     display: "flex", alignItems: "center", justifyContent: "space-between",
   });
-  const toggleLabel = txt("默认只读", {
+  const toggleLabel = txt("只看不改 · 默认状态", {
     color: "#a6b8b0", fontSize: "24px",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
@@ -365,9 +370,9 @@ SCENE_RENDERERS.safety = (scene, t, root) => {
     height: "1px", background: "rgba(255,255,255,0.08)",
   });
   const checks = [
-    "每次写入强制回读",
-    "同一时刻仅一个硬件所有者",
-    "钳制 / 失败明示，不静默跳过",
+    "改完立刻检查是否生效",
+    "同一时间只动一处",
+    "没生效会直接说明",
   ];
   card.append(cardHead, toggleRow, divider);
   checks.forEach((c) => {
@@ -407,14 +412,14 @@ SCENE_RENDERERS.compat = (scene, t, root) => {
     width: "1050px", flexShrink: "0",
   });
 
-  const eyebrow = txt("EVIDENCE FIRST", {
+  const eyebrow = txt("兼容性", {
     color: "#45d6a8", fontSize: "24px", fontWeight: "700",
     letterSpacing: "6px", marginBottom: "32px",
   });
   slideUp(eyebrow, t, 0.05);
 
   const title = el("div", {});
-  title.innerHTML = "多世代探测<br>证据优先";
+  title.innerHTML = "多种 AMD<br>轻薄本可用";
   Object.assign(title.style, {
     color: "#f1f7f4", fontSize: "88px", fontWeight: "900", lineHeight: "1.1",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
@@ -423,9 +428,9 @@ SCENE_RENDERERS.compat = (scene, t, root) => {
   slideUp(title, t, 0.18);
 
   const stats = [
-    ["8845HS", "已实机验证"],
-    ["多世代", "保守 profile"],
-    ["脱敏诊断", "只读收集"],
+    ["8845HS", "已实测可用"],
+    ["其他型号", "先安全检测"],
+    ["诊断", "一键导出"],
   ];
   const row = el("div", { display: "flex", gap: "36px" });
   stats.forEach(([num, label], i) => {
@@ -484,84 +489,106 @@ SCENE_RENDERERS.compat = (scene, t, root) => {
   root.append(wrap);
 };
 
-SCENE_RENDERERS.a11y = (scene, t, root) => {
+SCENE_RENDERERS["auto-policy"] = (scene, t, root) => {
   root.innerHTML = "";
   const opacity = fadeSlide(scene, t);
   const wrap = el("div", {
     position: "absolute", inset: "0", opacity: String(opacity),
     display: "flex", alignItems: "center",
-    padding: "0 110px 0 120px", gap: "80px",
+    padding: "0 110px 0 120px", gap: "90px",
     background: "linear-gradient(180deg,#0b1216 0%,#0c1418 100%)",
   });
 
   const left = el("div", {
     display: "flex", flexDirection: "column", justifyContent: "center",
-    width: "1050px", flexShrink: "0",
+    width: "980px", flexShrink: "0",
   });
 
-  const eyebrow = txt("ACCESSIBILITY", {
+  const eyebrow = txt("全自动", {
     color: "#45d6a8", fontSize: "24px", fontWeight: "700",
     letterSpacing: "6px", marginBottom: "32px",
   });
   slideUp(eyebrow, t, 0.05);
 
   const title = el("div", {});
-  title.innerHTML = "高对比度<br>小窗也能读";
+  title.innerHTML = "也可以<br>全自动";
   Object.assign(title.style, {
-    color: "#f1f7f4", fontSize: "88px", fontWeight: "900", lineHeight: "1.1",
+    color: "#f1f7f4", fontSize: "96px", fontWeight: "900", lineHeight: "1.1",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
-    marginBottom: "44px",
+    marginBottom: "40px",
   });
   slideUp(title, t, 0.18);
 
-  const pills = [
-    "跟随 Windows 高对比度",
-    "1366×768 / 200% 可滚动",
-    "DPI 切换保留窗口状态",
-  ];
-  const row = el("div", { display: "flex", gap: "14px", flexWrap: "wrap" });
-  pills.forEach((p, i) => {
-    const pill = txt(p, {
-      border: "1px solid rgba(69,214,168,0.4)", color: "#45d6a8",
-      fontSize: "22px", fontWeight: "600", padding: "13px 24px",
-      borderRadius: "999px",
-      fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
-    });
-    slideUp(pill, t, 0.42 + i * 0.14);
-    row.append(pill);
+  const sub = txt("设置一次，之后按电源状态自动切换", {
+    color: "#a6b8b0", fontSize: "28px",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
+  slideUp(sub, t, 0.34);
 
-  // Right: contrast swatch pair (standard vs high-contrast).
+  // Right: auto-policy card with an enabled toggle and two mapping rows.
   const card = el("div", {
-    flex: "1", display: "flex", flexDirection: "column", gap: "20px",
+    flex: "1", background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)", borderRadius: "14px",
+    padding: "42px 44px", display: "flex", flexDirection: "column", gap: "26px",
   });
-  const mkSwatch = (label, bg, fg, accentBg) => {
-    const box = el("div", {
-      background: bg, border: "1px solid rgba(255,255,255,0.12)",
-      borderRadius: "12px", padding: "26px 30px",
-      display: "flex", alignItems: "center", justifyContent: "space-between",
+  const headRow = el("div", {
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+  });
+  const headTitle = txt("自动电源策略", {
+    color: "#f1f7f4", fontSize: "28px", fontWeight: "700",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+  });
+  const toggle = el("div", {
+    width: "72px", height: "38px", borderRadius: "19px",
+    background: "#45d6a8", position: "relative",
+  });
+  const knob = el("div", {
+    width: "30px", height: "30px", borderRadius: "50%",
+    background: "#0b1216", position: "absolute", right: "4px", top: "4px",
+  });
+  toggle.append(knob);
+  headRow.append(headTitle, toggle);
+
+  const divider = el("div", { height: "1px", background: "rgba(255,255,255,0.08)" });
+
+  const mkRow = (chip, chipColor, value) => {
+    const row = el("div", {
+      display: "flex", alignItems: "center", gap: "24px",
     });
-    const l = txt(label, {
-      color: fg, fontSize: "22px", fontWeight: "600",
+    const tag = txt(chip, {
+      background: `${chipColor}22`, border: `1px solid ${chipColor}66`,
+      color: chipColor, fontSize: "24px", fontWeight: "700",
+      padding: "10px 22px", borderRadius: "10px",
       fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
     });
-    const v = txt("10.02 W", {
-      color: accentBg, fontSize: "34px", fontWeight: "900",
+    const arrow = txt("→", {
+      color: "#7d8f88", fontSize: "30px", fontWeight: "400",
+    });
+    const val = txt(`自动 ${value}`, {
+      color: "#f1f7f4", fontSize: "38px", fontWeight: "900",
       fontFamily: "'Segoe UI',sans-serif",
     });
-    box.append(l, v);
-    return box;
+    row.append(tag, arrow, val);
+    return row;
   };
-  card.append(
-    mkSwatch("标准主题", "#10181d", "#a6b8b0", "#45d6a8"),
-    mkSwatch("高对比度", "#000000", "#ffffff", "#ffff00"),
-  );
-  const cardPop = clamp01((t - 0.5) / 0.6);
+  const rowAc = mkRow("插上电源", "#45d6a8", "45 W");
+  const rowBattery = mkRow("电池供电", "#ffb45a", "10 W");
+  slideUp(rowAc, t, 0.5);
+  slideUp(rowBattery, t, 0.68);
+
+  const hint = txt("拔掉电源 → 自动省电   插上电源 → 自动满血", {
+    color: "#7d8f88", fontSize: "22px",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+  });
+  slideUp(hint, t, 0.86);
+
+  card.append(headRow, divider, rowAc, rowBattery, hint);
+  const cardPop = clamp01((t - 0.35) / 0.6);
   const cardEased = easeOut(cardPop);
   card.style.opacity = String(cardEased);
   card.style.transform = `translateY(${(1 - cardEased) * 30}px)`;
 
-  left.append(eyebrow, title, row);
+  left.append(eyebrow, title, sub);
   wrap.append(left, card);
   root.append(wrap);
 };
@@ -577,14 +604,14 @@ SCENE_RENDERERS.closing = (scene, t, root) => {
     textAlign: "center",
   });
 
-  const eyebrow = txt("OPEN SOURCE · SAFETY FIRST", {
+  const eyebrow = txt("开源 · 免费", {
     color: "#45d6a8", fontSize: "24px", fontWeight: "700",
     letterSpacing: "6px", marginBottom: "32px",
   });
   slideUp(eyebrow, t, 0.05);
 
   const title = el("div", {});
-  title.innerHTML = "谨慎折腾<br>欢迎共建";
+  title.innerHTML = "欢迎试用<br>欢迎反馈";
   Object.assign(title.style, {
     color: "#f1f7f4", fontSize: "108px", fontWeight: "900", lineHeight: "1.1",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
@@ -599,7 +626,7 @@ SCENE_RENDERERS.closing = (scene, t, root) => {
   slideUp(repo, t, 0.38);
 
   const note = txt(
-    "提交 issue 前请附上脱敏诊断 · 折腾硬件有风险，请从保守数值开始", {
+    "开源免费 · 下载即用 · 欢迎告诉我们你的机型", {
     color: "#a6b8b0", fontSize: "24px",
     fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
   });
