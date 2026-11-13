@@ -5,6 +5,8 @@ param(
     [string]$ClipPath,
     [string]$UiFixture = "firmware-clamp",
     [int]$DpiFixture = 125,
+    [ValidateSet("advanced", "simple")]
+    [string]$Mode = "advanced",
     [double]$DurationSeconds = 13.5,
     [int]$Fps = 10
 )
@@ -130,8 +132,8 @@ New-Item -ItemType Directory -Path $stateFileDirectory -Force | Out-Null
 # Launching straight into --advanced-mode leaves the window at its creation
 # size and the advanced content strip stays clipped.
 [ordered]@{
-    presets = @(12, 25, 45)
-    mode = "simple"
+    presets = @(10, 25, 45)
+    mode = $Mode
     topMost = $false
 } | ConvertTo-Json | Set-Content `
     -LiteralPath (Join-Path $stateFileDirectory "rust-ui-state.json") `
@@ -170,50 +172,62 @@ try {
     [AmdMobilePowerLiveDemo]::SetForegroundWindow($window) | Out-Null
     Start-Sleep -Milliseconds 400
 
-    # Switch to advanced mode through the GUI command so apply_view_mode
-    # sizes the window itself (780x680 logical scaled by the DPI fixture) and
-    # resets scroll offsets, exactly like the verified screenshot capture.
-    # In this DPI-aware process the client reports device pixels, so the
-    # threshold stays a logical lower bound.
-    [AmdMobilePowerLiveDemo]::SendMessage(
-        $window, 0x0111,
-        [System.UIntPtr]::new(109),
-        [IntPtr]::Zero) | Out-Null
-    $fixtureScale = $DpiFixture / 100.0
-    $targetClientWidth = [int][Math]::Round(780 * $fixtureScale)
-    $targetClientHeight = [int][Math]::Round(680 * $fixtureScale)
-    $minClientWidth = [int][Math]::Round(760 * $fixtureScale)
-    $minClientHeight = [int][Math]::Round(660 * $fixtureScale)
-    $resizeDeadline = [DateTime]::UtcNow.AddSeconds(5)
-    $measured = New-Object AmdMobilePowerLiveDemo+RECT
-    do {
-        Start-Sleep -Milliseconds 100
-        [AmdMobilePowerLiveDemo]::GetClientRect($window, [ref]$measured) | Out-Null
-    } while (($measured.Right -lt $minClientWidth -or
-            $measured.Bottom -lt $minClientHeight) -and
-        [DateTime]::UtcNow -lt $resizeDeadline)
-    if ($measured.Right -lt $minClientWidth -or
-        $measured.Bottom -lt $minClientHeight) {
-        throw ("Advanced client is too small for the demo: " +
-            "$($measured.Right)x$($measured.Bottom), need at least " +
-            "${minClientWidth}x${minClientHeight}")
+    if ($Mode -eq "advanced") {
+        # Switch to advanced mode through the GUI command so apply_view_mode
+        # sizes the window itself (780x680 logical scaled by the DPI fixture)
+        # and resets scroll offsets, exactly like the verified screenshot
+        # capture. In this DPI-aware process the client reports device
+        # pixels, so the threshold stays a logical lower bound.
+        [AmdMobilePowerLiveDemo]::SendMessage(
+            $window, 0x0111,
+            [System.UIntPtr]::new(109),
+            [IntPtr]::Zero) | Out-Null
+        $fixtureScale = $DpiFixture / 100.0
+        $minClientWidth = [int][Math]::Round(760 * $fixtureScale)
+        $minClientHeight = [int][Math]::Round(660 * $fixtureScale)
+        $resizeDeadline = [DateTime]::UtcNow.AddSeconds(5)
+        $measured = New-Object AmdMobilePowerLiveDemo+RECT
+        do {
+            Start-Sleep -Milliseconds 100
+            [AmdMobilePowerLiveDemo]::GetClientRect(
+                $window, [ref]$measured) | Out-Null
+        } while (($measured.Right -lt $minClientWidth -or
+                $measured.Bottom -lt $minClientHeight) -and
+            [DateTime]::UtcNow -lt $resizeDeadline)
+        if ($measured.Right -lt $minClientWidth -or
+            $measured.Bottom -lt $minClientHeight) {
+            throw ("Advanced client is too small for the demo: " +
+                "$($measured.Right)x$($measured.Bottom), need at least " +
+                "${minClientWidth}x${minClientHeight}")
+        }
+        [AmdMobilePowerLiveDemo]::SetForegroundWindow($window) | Out-Null
+        Start-Sleep -Milliseconds 400
     }
-    [AmdMobilePowerLiveDemo]::SetForegroundWindow($window) | Out-Null
-    Start-Sleep -Milliseconds 400
 
-    # Timed interaction script: select each preset in advanced mode, then switch
-    # to simple mode with the 45 W selection kept. Nothing writes hardware
-    # because the fixture is read-only UI state.
-    # Timeline: switch presets, then edit preset 1 to 10 W and save it so the
-    # demo matches the 10 / 25 / 45 W headline. The fixture writes only the
-    # isolated state file under the throwaway LOCALAPPDATA.
-    $timeline = @(
-        @{ At = 1.2; Action = "command"; Command = 102 },
-        @{ At = 4.0; Action = "command"; Command = 101 },
-        @{ At = 6.6; Action = "command"; Command = 103 },
-        @{ At = 9.2; Action = "set_text"; Control = 301; Text = "10" },
-        @{ At = 10.0; Action = "command"; Command = 106 }
-    )
+    # Timed interaction script. Nothing writes hardware because the fixture
+    # only simulates apply/read-back. Presets seed as 10/25/45 W so the demo
+    # matches the 10 / 25 / 45 W headline.
+    if ($Mode -eq "advanced") {
+        # Select each preset card in turn, then edit preset 1 and save so the
+        # row still reads 10 / 25 / 45 W at the end.
+        $timeline = @(
+            @{ At = 1.2; Action = "command"; Command = 102 },
+            @{ At = 4.0; Action = "command"; Command = 101 },
+            @{ At = 6.6; Action = "command"; Command = 103 },
+            @{ At = 9.2; Action = "set_text"; Control = 301; Text = "12" },
+            @{ At = 10.0; Action = "set_text"; Control = 301; Text = "10" },
+            @{ At = 10.8; Action = "command"; Command = 106 }
+        )
+    }
+    else {
+        # Simple mode: a short settle, then 25 -> 45 -> 10 with a pause on
+        # each selection so the target field and apply result are readable.
+        $timeline = @(
+            @{ At = 1.6; Action = "command"; Command = 102 },
+            @{ At = 4.6; Action = "command"; Command = 103 },
+            @{ At = 7.6; Action = "command"; Command = 101 }
+        )
+    }
 
     $watch = [System.Diagnostics.Stopwatch]::StartNew()
     $frameIndex = 0
