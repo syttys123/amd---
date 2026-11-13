@@ -433,6 +433,9 @@ struct GuiApp {
     policy_profile_applied: bool,
     latest_snapshot: Option<SnapshotPayload>,
     latest_policy: Option<PowerPolicyState>,
+    /// Whether the saved auto-policy was already handed to the current
+    /// worker. Reset whenever the worker process is replaced.
+    policy_synced: bool,
     worker_error: Option<String>,
     status_hold_until: Instant,
     view_mode: state::UiMode,
@@ -492,6 +495,7 @@ impl GuiApp {
             policy_profile_applied: false,
             latest_snapshot: None,
             latest_policy: None,
+            policy_synced: false,
             worker_error: None,
             status_hold_until: Instant::now(),
             view_mode: window_preferences.mode,
@@ -2947,7 +2951,10 @@ fn start_worker(options: &Options) -> Result<Option<Child>, String> {
         .arg("--pipe-name")
         .arg(&options.pipe_name)
         .arg("--enable-hardware");
-    if options.enable_write_controls {
+    // The privileged worker decides at launch whether it accepts writes and
+    // whether it runs the auto-policy ticker, so the persisted unlock state
+    // must reach it exactly like the launch flag does.
+    if options.enable_write_controls || state::load_write_unlocked() {
         command.arg("--enable-write-controls");
     }
     let child = command
@@ -3008,6 +3015,7 @@ fn try_restart_worker(app: &mut GuiApp) -> bool {
     {
         Ok(child) => {
             app.worker_child = Some(child);
+            app.policy_synced = false;
             true
         }
         Err(_) => false,
@@ -4734,6 +4742,7 @@ unsafe fn toggle_write_unlock(app: &mut GuiApp, hwnd: HWND) {
             }
             app.worker_child = None;
             app.worker_error = None;
+            app.policy_synced = false;
             let restarted = try_restart_worker(app);
             note = if restarted {
                 "后台服务已重启".to_owned()
@@ -5402,6 +5411,27 @@ unsafe extern "system" fn window_proc(
                 app.latest_snapshot = update.snapshot;
                 app.latest_policy = update.policy;
                 app.worker_error = update.worker_error;
+                // A freshly (re)started worker has no policy settings and no
+                // policy ticker; hand it the saved policy once it reports a
+                // healthy snapshot so auto switching survives restarts.
+                if !app.policy_synced
+                    && app.write_enabled
+                    && app.worker_error.is_none()
+                    && !app.policy_in_flight
+                    && app.ui_fixture.is_none()
+                {
+                    app.policy_synced = true;
+                    if let Some(settings) = state::load_power_policy() {
+                        if settings.enabled {
+                            app.policy_in_flight = true;
+                            start_policy_save(
+                                hwnd as usize,
+                                app.worker_pipe.clone(),
+                                settings,
+                            );
+                        }
+                    }
+                }
                 update_simple_view(app);
                 InvalidateRect(hwnd, std::ptr::null(), 0);
             }
