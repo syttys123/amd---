@@ -67,10 +67,15 @@ fn state_path() -> Option<PathBuf> {
     )
 }
 
+fn decode_state(contents: &str) -> Option<PersistedUiState> {
+    // Notepad and PowerShell 5.1 write UTF-8 with a BOM; serde_json rejects it.
+    serde_json::from_str::<PersistedUiState>(contents.trim_start_matches('\u{feff}')).ok()
+}
+
 fn load_state() -> Option<PersistedUiState> {
     let path = state_path()?;
     let contents = std::fs::read_to_string(path).ok()?;
-    serde_json::from_str::<PersistedUiState>(&contents).ok()
+    decode_state(&contents)
 }
 
 pub fn load_power_policy() -> Option<PowerPolicySettings> {
@@ -157,6 +162,14 @@ fn update_state(update: impl FnOnce(&mut PersistedUiState)) -> Result<(), String
 mod tests {
     use super::{default_presets, sanitize_presets, PersistedUiState, UiMode, WindowPreferences};
     use crate::worker::{PowerLimitTarget, PowerPolicySettings};
+
+    #[test]
+    fn state_with_utf8_bom_is_accepted() {
+        let decoded = super::decode_state("\u{feff}{\"presets\":[10,25,45]}")
+            .expect("BOM-prefixed state must parse");
+
+        assert_eq!(decoded.presets, [10, 25, 45]);
+    }
 
     #[test]
     fn persisted_state_round_trips_policy_settings() {
