@@ -41,6 +41,8 @@ not authoritative.
   `10/10/10 W`, presets `10/25/45`, write unlocked.
 - Packaged GUI evidence:
   `docs/evidence/ui/native-packaged-1.0.30-ui-2026-11-14.json`.
+- Hosted Windows CI run `43527570945` (commit `b2e051c`) is green for 1.0.30;
+  the readiness gate reports `HostedCi=Verification PASS`.
 
 2026-11-14 (verifier guard for Windows PowerShell 5.1):
 

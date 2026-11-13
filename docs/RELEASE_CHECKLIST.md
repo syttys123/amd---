@@ -20,7 +20,7 @@ Release under review: `1.0.30-native`
 - [x] Rebuild from the same tree is byte-identical: GUI `213a96fd`, worker
       `67af1d41`, probe `9750418f`, ZIP `618c0144`.
 - [x] Hosted Windows CI passes for the release commit
-      (run `43514695587`, commit `5cfc357`).
+      (run `43527570945`, commit `b2e051c`).
 
 ## Hardware Evidence
 
