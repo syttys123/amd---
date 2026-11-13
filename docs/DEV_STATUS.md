@@ -21,6 +21,30 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-13 (gui flicker fix + promo v2 subtitle cut): two user-reported
+defects fixed and the video rebuilt without narration.
+
+- Button-press white flash: the five full-window `InvalidateRect(..., TRUE)`
+  calls erased the client with the light `COLOR_WINDOW` brush before the
+  double-buffered repaint, so every preset click / status update flashed
+  white for 2-3 frames (visible in captures as YAVG ~219 frames). All five
+  now invalidate without erase; `paint_window` already repaints every pixel
+  from its memory DC. A `WM_ERASEBKGND => 1` arm was tried first and
+  reverted: on this window it silently broke owner-draw button text (white
+  boxes), verified with a live window capture.
+- Promo v2 (subtitles, no voice): the SAPI narration is gone; each scene's
+  sentence is burned in as a bottom caption band (`drawCaption` in
+  `media/promo-html/src/engine.js`) over the seeded music bed at
+  loudnorm I=-20 (mean -23.0 dB). The ui-demo clip was re-recorded from the
+  flicker-fixed build, so no white frames remain anywhere (signalstats YAVG
+  never exceeds 150). Final: 41.5 s, 1920x1080, `4,063,618` bytes, SHA256
+  `cf8f03c839f02f1c2ea10381a80c1c050c51a980598138c5d0d2a2c7b8812450`,
+  full decode PASS, at
+  `artifacts/media/promo-html-v1/amd-mobile-power-promo-2026-11-13-v2.mp4`
+  (local only). The 24+22 Rust tests pass. The C-drive deployment still runs
+  `1.0.25-native`; promoting the flicker fix requires the full release gate
+  (package build, verify-release, DPI fixtures, hardware smoke) first.
+
 2026-11-13 (media promo-html v1): rebuilt the promo video pipeline from
 GDI+ slides to HTML/CSS/JS scenes recorded frame-exact by Playwright
 (`media/promo-html/`): `index.html` + `src/engine.js` render seven scenes
