@@ -1,5 +1,8 @@
 # Native Launch Copy
 
+> Historical snapshot for `1.0.23-native`. Current launch copy:
+> [NATIVE_LAUNCH_COPY_1.0.28_ZH.md](NATIVE_LAUNCH_COPY_1.0.28_ZH.md).
+
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 本文只准备原生候选 `1.0.23-native` 的 GitHub 与 B 站文案，不代表已经批准公开。

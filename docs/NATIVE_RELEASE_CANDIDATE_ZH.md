@@ -1,5 +1,8 @@
 # Native Release Candidate Review
 
+> Historical snapshot for `1.0.23-native`. Current candidate:
+> [NATIVE_RELEASE_CANDIDATE_1.0.28_ZH.md](NATIVE_RELEASE_CANDIDATE_1.0.28_ZH.md).
+
 状态：`DRAFT_FOR_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文只汇总原生 Rust GUI + C++

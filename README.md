@@ -6,16 +6,16 @@ AMD thin-and-light laptops. It uses a Rust GUI and a separate C++ worker so the
 UI and hardware access stay behind a narrow named-pipe contract.
 
 > Status: no public release yet. The current stable-local candidate is
-> `1.0.23-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
+> `1.0.28-native`, validated on one MECHREVO WUJIE15 PRO with a Ryzen 7 8845HS.
 > Its GUI, probe, worker, and portable ZIP rebuild byte-identically from the
 > same commit. Local publication readiness is `PASS`; the release remains
 > `READY_FOR_HUMAN_REVIEW`.
 > Broader AMD generation support remains experimental until each device has
 > read-only and supervised write evidence.
 
-![Native simple mode](assets/native-gui-1.0.22-simple-2026-11-13.png)
+![Native simple mode](assets/native-gui-1.0.28-simple-2026-11-14.png)
 
-![Native advanced mode](assets/native-gui-1.0.22-advanced-2026-11-13.png)
+![Native advanced mode](assets/native-gui-1.0.28-advanced-2026-11-14.png)
 
 ## Current Capabilities
 
@@ -27,9 +27,10 @@ UI and hardware access stay behind a narrow named-pipe contract.
 - Automatic RyzenAdj family detection and a catalog of conservative fallbacks
   for every family `0-15`. Only `8845HS + PM table 4c0009` is currently marked
   verified.
-- Read-only by default. Hardware writes require the explicit
-  `--enable-write-controls` launch flag, and every write is followed by a
-  read-back.
+- Read-only by default. Hardware writes require clicking the lock button in
+  the header or tray menu and accepting the disclaimer/operation notice;
+  that consent is persisted, and clicking the lock again relocks immediately.
+  Every write is followed by a read-back.
 - Worker supervision: if the worker process exits, the GUI respawns it with a
   bounded backoff, reconnects, and resumes telemetry without a manual restart.
   If it stops answering for 30 seconds, the GUI replaces it from a background
@@ -63,22 +64,22 @@ Ryzen Master processes. The application intentionally refuses to become a
 second hardware owner.
 
 The local stable deployment on this development laptop exposes editable
-presets `10 / 25 / 45 W` with a `45 W` ceiling and a `10 W` target on both
-power lines. `10 W` is the manual night preset; daytime switching is one
-click. That local choice does not change the portable package's read-only
-default.
+presets `10 / 25 / 45 W` with a `45 W` ceiling. The current night policy is
+`8 W` on both power lines; `10 W` remains the normal low-power preset.
+Daytime switching is one click. That local choice does not change the portable
+package's read-only default.
 
 ## Portable Quick Start
 
 Current review candidate:
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.28-win-x64-native-preview.zip
 ```
 
-- Size: `760,850` bytes
+- Size: `769,919` bytes
 - SHA256:
-  `42f6cf9172f3db6d0a2ac81bfffbab4b38b1f5a1423ff64b7b020855fce29f79`
+  `3a60bd0373120889d6a7bedd11e42f87df7a398288eea95354b20cab4998f593`
 
 1. Extract the complete ZIP to a writable directory.
 2. On a fresh Windows host, open an elevated PowerShell in the extracted
@@ -94,8 +95,9 @@ powershell -ExecutionPolicy Bypass -File .\install-driver-bootstrap.ps1
 .\amd-mobile-power-gui.exe
 ```
 
-The default launch is read-only. A deliberate write-control session can be
-started with:
+The default launch is read-only. Click the lock button when you are ready to
+enable writes; the app shows the disclaimer and operating notice first. The
+development/fixture-only launch flag remains available as:
 
 ```powershell
 .\amd-mobile-power-gui.exe --enable-write-controls --simple-mode
@@ -150,11 +152,12 @@ git submodule update --init --recursive
 .\native\verify-native.ps1 -NoBuild -VerifyHardware -VerifyRustGui `
   -VerifyRustWorker -VerifyWriteGuard
 .\native\verify-release.ps1 `
-  -Version 1.0.23-native `
+  -Version 1.0.28 `
   -VerifyReproducibility `
   -VerifyShellIntegration `
   -ExecuteNoChangePolicy `
-  -VerifyWorkerHang
+  -VerifyWorkerHang `
+  -AllowBatteryWriteGuard
 ```
 
 The release gate writes package, shell, DPI, hardware-policy, deployment, and
@@ -170,10 +173,10 @@ conservative values and restore the previous state.
 - [docs/PACKAGING.md](docs/PACKAGING.md): package, driver, install, and uninstall.
 - [docs/BUILDING.md](docs/BUILDING.md): build and verification commands.
 - [docs/SECURITY.md](docs/SECURITY.md): hardware and driver safety boundaries.
-- [docs/NATIVE_RELEASE_CANDIDATE_ZH.md](docs/NATIVE_RELEASE_CANDIDATE_ZH.md):
-  Chinese review dossier.
-- [docs/NATIVE_LAUNCH_COPY_ZH.md](docs/NATIVE_LAUNCH_COPY_ZH.md): review-only
-  GitHub and Bilibili launch copy. It is not publication approval.
+- [docs/NATIVE_RELEASE_CANDIDATE_1.0.28_ZH.md](docs/NATIVE_RELEASE_CANDIDATE_1.0.28_ZH.md):
+  current Chinese review dossier.
+- [docs/NATIVE_LAUNCH_COPY_1.0.28_ZH.md](docs/NATIVE_LAUNCH_COPY_1.0.28_ZH.md):
+  current review-only GitHub and Bilibili copy. It is not publication approval.
 
 ## License
 
