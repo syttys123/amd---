@@ -21,6 +21,37 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-13 (in-app write unlock, shipped as 1.0.26-native): the read-only
+default was previously only liftable via the `--enable-write-controls`
+launch flag, which normal shortcuts never pass. The header now has a lock
+button (`WRITE_UNLOCK = 111`) that shows a consent dialog before enabling
+writes: liability notice plus operating notes, a checkbox that must be
+ticked before the confirm button enables, and confirmation. On confirm the
+GUI flips `write_enabled`, persists `writeUnlocked` in the UI state, and
+replaces its owned worker with one launched with `--enable-write-controls`
+(an externally-started worker reports that the app must be relaunched).
+Clicking the lock again relocks immediately and restarts the worker
+read-only. Implementation: `native/rust-gui/src/unlock_dialog.rs` (own popup
+class, GDI painted, owner-draw buttons; deliberately not TaskDialogIndirect
+because the manifest does not activate comctl32 v6), state persistence in
+`state.rs`, header wiring in `main.rs`.
+
+- Tests: 24 lib + 22 main pass; Clippy clean; packaged GUI
+  `verify-rust-gui -VerifyWorker -VerifyWriteControls` PASS (ViewModes /
+  TopMost / WriteControls / preset editing / bounds / scroll).
+- Packaging: `1.0.26`, 766,832 bytes, SHA256
+  `15dda8a4067518e333131c77cbd8d8d76686c5887b800b190a6847e124ff82c8`,
+  release gate PASS (shell integration, hardware no-change policy 10/10/10
+  read-back, 100/125/150% DPI fixtures, 1366x768/200% work area, maximize
+  scroll), reproducibility PASS (byte-identical rebuilds).
+- Test fix: `verify-maximize-scroll.ps1` hard-coded device-pixel geometry
+  (796x460) and a 440 px threshold, which fails on a non-100% scaled desktop;
+  it now scales both by `GetDpiForWindow`.
+- Deployed to `C:\RyzenAdj` (rollback `C:\RyzenAdj.before-20261113-224640`).
+  The desktop shortcut now passes only `--simple-mode --max-target-watts 45`;
+  launches start read-only and the lock button unlocks after consent, with
+  the choice persisted for later launches.
+
 2026-11-13 (media promo v5): copy rewritten in plain language (scenario
 mapping 45 W performance / 25 W quiet / 10 W endurance), added an
 auto-power-policy scene (plug -> 45 W, battery -> 10 W, one toggle), renamed
