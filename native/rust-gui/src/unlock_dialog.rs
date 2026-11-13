@@ -197,7 +197,7 @@ unsafe extern "system" fn dialog_proc(
             GetClientRect(hwnd, &mut client);
             FillRect(hdc, &client, s.brush);
             SetBkMode(hdc, TRANSPARENT as i32);
-            let mut draw = |text: &str, font: HGDIOBJ, color: u32, x: i32, y: i32, w: i32, h: i32| {
+            let draw = |text: &str, font: HGDIOBJ, color: u32, x: i32, y: i32, w: i32, h: i32| {
                 let value = wide(text);
                 let old = windows_sys::Win32::Graphics::Gdi::SelectObject(hdc, font);
                 SetTextColor(hdc, color);
@@ -395,6 +395,12 @@ unsafe fn ensure_class(instance: HINSTANCE) -> bool {
 
 /// Shows the consent dialog modally over `parent`. Returns true only when the
 /// user ticked the checkbox and clicked the confirm button.
+/// Shows the modal consent dialog.
+///
+/// # Safety
+///
+/// `parent` must be a live window handle owned by the calling UI thread.
+/// `percent` must be a positive DPI scale percentage used for dialog metrics.
 pub unsafe fn show_unlock_dialog(parent: HWND, percent: i32) -> bool {
     let instance = GetModuleHandleW(std::ptr::null());
     if instance.is_null() || !ensure_class(instance) {

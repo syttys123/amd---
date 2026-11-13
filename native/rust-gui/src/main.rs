@@ -114,6 +114,7 @@ const MENU_EXIT: usize = 2;
 const MENU_SIMPLE_MODE: usize = 3;
 const MENU_ADVANCED_MODE: usize = 4;
 const MENU_TOPMOST: usize = 5;
+const MENU_WRITE: usize = 6;
 const PRESET_12: usize = 101;
 const PRESET_25: usize = 102;
 const PRESET_45: usize = 103;
@@ -5091,12 +5092,18 @@ unsafe fn show_tray_menu(hwnd: HWND, app: &GuiApp) {
     let simple_text = wide("简洁模式");
     let advanced_text = wide("高级模式");
     let topmost_text = wide("窗口置顶");
+    let write_text = wide(if app.write_enabled {
+        "写入已解锁"
+    } else {
+        "写入解锁…"
+    });
     let exit_text = wide("退出");
     AppendMenuW(menu, MF_STRING, MENU_SHOW, show_text.as_ptr());
     AppendMenuW(menu, MF_SEPARATOR, 0, std::ptr::null());
     AppendMenuW(menu, MF_STRING, MENU_SIMPLE_MODE, simple_text.as_ptr());
     AppendMenuW(menu, MF_STRING, MENU_ADVANCED_MODE, advanced_text.as_ptr());
     AppendMenuW(menu, MF_STRING, MENU_TOPMOST, topmost_text.as_ptr());
+    AppendMenuW(menu, MF_STRING, MENU_WRITE, write_text.as_ptr());
     CheckMenuItem(
         menu,
         MENU_SIMPLE_MODE as u32,
@@ -5119,6 +5126,15 @@ unsafe fn show_tray_menu(hwnd: HWND, app: &GuiApp) {
         menu,
         MENU_TOPMOST as u32,
         if app.top_most {
+            MF_CHECKED
+        } else {
+            MF_UNCHECKED
+        },
+    );
+    CheckMenuItem(
+        menu,
+        MENU_WRITE as u32,
+        if app.write_enabled {
             MF_CHECKED
         } else {
             MF_UNCHECKED
@@ -5608,7 +5624,7 @@ unsafe extern "system" fn window_proc(
                 MENU_TOPMOST | TOPMOST_TOGGLE => {
                     toggle_topmost(app, hwnd);
                 }
-                WRITE_UNLOCK => {
+                MENU_WRITE | WRITE_UNLOCK => {
                     toggle_write_unlock(app, hwnd);
                 }
                 POLICY_ENABLED if app.write_enabled => {
