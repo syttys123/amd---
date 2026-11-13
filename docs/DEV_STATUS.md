@@ -21,6 +21,43 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (publication readiness gate is green for human review):
+
+- `native/verify-publication-readiness.ps1` now resolves the real desktop
+  shortcut through `[Environment]::GetFolderPath('Desktop')`, accepts the
+  `v<version>-native-deployment-<date>.json` evidence name that the promote
+  script actually writes, and accepts a fresh packaged-GUI verification whose
+  GUI hash matches the deployment record instead of trusting only a stored
+  `UiVerification` flag. The published evidence still redacts the user-home
+  prefix as `<USER_HOME>`.
+- `native/prepare-release-review.ps1` no longer pins the 2026-11-11 media or
+  the 2026-11-12 DPI evidence. It resolves the newest promo video, the
+  per-version media evidence and launch copy, and the newest DPI fixture set;
+  it also adds `packaged-ui.json` and `deployment.json` to the review bundle
+  when those records exist.
+- New evidence: `docs/evidence/ui/native-packaged-1.0.28-ui-2026-11-14.json`
+  (packaged GUI, tray, mode, write-control checks; `BackgroundGuiRelaunched 1`),
+  `docs/evidence/media/native-promo-1.0.28-draft-2026-11-14.json` (v9 video,
+  42.5 s, full decode PASS, CC BY 4.0 music attribution), and refreshed
+  `docs/evidence/packaging/v1.0.28-native-deployment-2026-11-14.json`.
+- `native/verify-rust-gui.ps1` used to `Stop-Process` every
+  `amd-mobile-power-gui` before testing because the GUI owns a machine-wide
+  single-instance mutex; that closed the user's deployed tray app. It now
+  records the running GUI command lines, runs the check, and relaunches them
+  in `finally`. Verified live: deployed GUI PID `12572` was replaced by
+  `49444`, `C:\RyzenAdj` still reports `8/8/8 W` on battery, and the packaged
+  UI evidence recorded `BackgroundGuiRelaunched 1`.
+- Review bundle:
+  `artifacts/native-release-review/v1.0.28` (29 files, SHA256SUMS verified).
+  `native/verify-publication-readiness.ps1 -Version 1.0.28` reports
+  `LocalReadiness=PASS`, `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`,
+  empty `BlockersFromLocalChecks`. Evidence:
+  `docs/evidence/release/native-publication-readiness-2026-11-14.json`.
+- Open human/external gates unchanged: second AMD device, real system DPI
+  sessions at 100/150%, hosted Windows CI, clean Windows WinRing0 baseline,
+  human video/claim review, explicit public-release approval, and the
+  authenticated Bilibili upload.
+
 2026-11-14 (1.0.28-native shipped to the stable-local deployment):
 
 - Added the tray-menu write gate: `写入解锁…` opens the same consent dialog as

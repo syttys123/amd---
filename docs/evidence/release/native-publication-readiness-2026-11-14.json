@@ -1,0 +1,80 @@
+{
+  "SchemaVersion": 1,
+  "Version": "1.0.28",
+  "Package": "amd-mobile-power-v1.0.28-win-x64-native-preview.zip",
+  "PackageSHA256": "3a60bd0373120889d6a7bedd11e42f87df7a398288eea95354b20cab4998f593",
+  "LocalDeployment": "C:\\RyzenAdj",
+  "Checks": {
+    "PackageHash": true,
+    "PackageVerification": true,
+    "NoChangePolicy": true,
+    "PackagedUi": true,
+    "LocalDeployment": true,
+    "DeployedProbe": true,
+    "DeployedIcon": true,
+    "DesktopShortcut": true,
+    "ShortcutArguments": true,
+    "ShortcutLaunch": true,
+    "CompatibilityIndex": true,
+    "MediaDraft": true,
+    "ReviewBundle": true
+  },
+  "LocalReadiness": "PASS",
+  "PublicReleaseReadiness": "READY_FOR_HUMAN_REVIEW",
+  "DesktopShortcut": {
+    "Path": "<USER_HOME>\\Desktop\\功耗设置 5-60W.lnk",
+    "Arguments": "--simple-mode --max-target-watts 45",
+    "RejectedArguments": [],
+    "Launch": {
+      "Arguments": "--simple-mode --max-target-watts 45 --pipe-name AmdMobilePower.Worker.readiness.d56fe6b5",
+      "WindowReady": false,
+      "ExitedEarly": true,
+      "ExitCode": 0,
+      "StandardError": "",
+      "Note": "GUI exited immediately; exit code 0 means the arguments parsed and another instance owns the single-instance mutex."
+    }
+  },
+  "OpenGates": {
+    "SecondAmdDevice": "PENDING",
+    "DpiLayoutFixtures100And150": "PASS",
+    "Dpi100And150SystemSessions": "PENDING",
+    "HostedWindowsCi": "PENDING",
+    "CleanWindowsWinRing0Baseline": "PENDING",
+    "HumanVideoAndClaimReview": "PENDING",
+    "ExplicitPublicReleaseApproval": "PENDING",
+    "BilibiliAuthenticatedUpload": "PENDING"
+  },
+  "DpiFixtures": {
+    "Evidence": "docs/evidence/ui/native-dpi-100-125-150-2026-11-14.json",
+    "Verification": "PASS",
+    "Scales": [
+      {
+        "Scale": 100,
+        "SimpleClientSize": "600x360",
+        "AdvancedClientSize": "780x680",
+        "SimpleImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-100\\native-dpi-100-simple-2026-11-11.png",
+        "AdvancedImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-100\\native-dpi-100-advanced-2026-11-11.png",
+        "Evidence": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-100\\capture-100.json"
+      },
+      {
+        "Scale": 125,
+        "SimpleClientSize": "750x450",
+        "AdvancedClientSize": "975x850",
+        "SimpleImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-125\\native-dpi-125-simple-2026-11-11.png",
+        "AdvancedImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-125\\native-dpi-125-advanced-2026-11-11.png",
+        "Evidence": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-125\\capture-125.json"
+      },
+      {
+        "Scale": 150,
+        "SimpleClientSize": "900x540",
+        "AdvancedClientSize": "1170x1020",
+        "SimpleImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-150\\native-dpi-150-simple-2026-11-11.png",
+        "AdvancedImage": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-150\\native-dpi-150-advanced-2026-11-11.png",
+        "Evidence": "D:\\amd-mobile-power\\artifacts\\verify\\dpi-fixtures-2026-11-12\\scale-150\\capture-150.json"
+      }
+    ]
+  },
+  "BlockersFromLocalChecks": [],
+  "Note": "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check. The shortcut launch audit runs the deployed GUI with an isolated LOCALAPPDATA and a unique worker pipe, then stops it.",
+  "RecordedAt": "2026-11-14T05:03:52.8538281+08:00"
+}

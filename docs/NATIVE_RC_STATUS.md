@@ -3,9 +3,12 @@
 Status: `STABLE_LOCAL_DEPLOYED`
 
 This document tracks the native Rust GUI + C++ worker package and its
-stable-local deployment. `C:\RyzenAdj` currently holds `1.0.23-native`
-(commit `2033052`, maximize scroll clamp, page-step alignment, and
-fractional-DPI header alignment). `1.0.22-native` is preserved as
+stable-local deployment. `C:\RyzenAdj` currently holds `1.0.28-native`
+(source commit `f64812e`, tray write gate, packaged GUI/tray verification,
+and the 8 W night window). `1.0.27-native` is preserved as
+`C:\RyzenAdj.before-20261114-025845`. `1.0.23-native` shipped the maximize
+scroll clamp, page-step alignment, and fractional-DPI header alignment;
+`1.0.22-native` is preserved as
 `C:\RyzenAdj.before-20261113-024133`, `1.0.21-native` as
 `C:\RyzenAdj.before-20261113-012141`, `1.0.20-native` as
 `C:\RyzenAdj.before-20261113-004532`, `1.0.19-native` as
@@ -39,7 +42,7 @@ candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
 The current local publication readiness gate is `PASS` with all 13 checks true,
 with
 `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW` and no local blockers. Evidence:
-`docs/evidence/release/native-publication-readiness-2026-11-13.json`.
+`docs/evidence/release/native-publication-readiness-2026-11-14.json`.
 
 Note (2026-11-12): `1.0.18-native` is the first package gated with
 `-VerifyWorkerHang`, which runs the maintained hang verifier against the
