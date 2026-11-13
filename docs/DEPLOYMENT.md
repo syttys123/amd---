@@ -3,18 +3,22 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable-local native deployment (`1.0.28-native`,
-  commit `f64812e`, tray write gate and simplified writable-field wording).
-  Rollback for `1.0.27-native`: `C:\RyzenAdj.before-20261114-025845`.
-  `1.0.28` package SHA256:
-  `3a60bd0373120889d6a7bedd11e42f87df7a398288eea95354b20cab4998f593`;
+- `C:\RyzenAdj`: current stable-local native deployment (`1.0.30-native`,
+  source commit `2f04605`, BOM-tolerant persisted state loading).
+  Rollback for `1.0.29-native`: `C:\RyzenAdj.before-20261114-072507`.
+  `1.0.30` package SHA256:
+  `618c01442aac0715dade459f2f1a2e58a0471dcd1688096b0ca8765e7df44c3f`;
   release gate:
-  `docs/evidence/packaging/v1.0.28-release-gate-2026-11-14.json`;
+  `docs/evidence/packaging/v1.0.30-release-gate-2026-11-14.json`;
   deployment evidence:
-  `docs/evidence/packaging/v1.0.28-native-deployment-2026-11-14.json`.
-  Live read-back after the fresh launch: battery `8/8/8 W`, policy enabled,
-  presets `10 / 25 / 45 W`, ceiling `45 W`.
+  `docs/evidence/packaging/v1.0.30-native-deployment-2026-11-14.json`.
+  Deployment verification started and ended at `10/10/10 W` on AC with the
+  policy armed, presets `10 / 25 / 45 W`, and ceiling `45 W`. Temporary local
+  user caps are runtime state and are not part of the release package.
   Previous deployment history follows.
+  `1.0.29-native` remains at `C:\RyzenAdj.before-20261114-072507`;
+  `1.0.28-native` at `C:\RyzenAdj.before-20261114-054523`;
+  `1.0.27-native` at `C:\RyzenAdj.before-20261114-025845`.
   `1.0.22-native` remains at `C:\RyzenAdj.before-20261113-024133`;
   `1.0.21-native` at `C:\RyzenAdj.before-20261113-012141`;
   `1.0.20-native` at `C:\RyzenAdj.before-20261113-004532`;
@@ -39,15 +43,51 @@
 
 ## Promotion Rules
 
-A build may be copied to `C:\RyzenAdj` only when:
+The native Rust GUI + C++ worker line may be copied to `C:\RyzenAdj` only when:
 
-1. `dotnet build AmdMobilePower.sln -c Release` passes with zero warnings.
-2. `dotnet test --solution AmdMobilePower.sln -c Release` passes.
-3. The release package contains no machine-specific logs or modes.
-4. GUI launch, taskbar icon, tray close/reopen, and single-instance behavior pass.
-5. The worker starts and reports healthy telemetry.
-6. A power-mode smoke test writes a safe value and restores the previous value.
-7. The previous stable deployment has a recoverable backup.
+1. The tracked worktree is clean before the release build. New unreviewed
+   evidence files under `docs/evidence/` are the only exception accepted by
+   `verify-release.ps1`.
+2. Rust tests, probe tests, C++ tests, formatting, Clippy with `-D warnings`,
+   the packed icon check, and the release build pass.
+3. `native\verify-release.ps1` produces a PASS release-gate record covering the
+   portable package, shell integration, no-change power policy, worker-hang
+   recovery, DPI fixtures, work-area fixtures, and byte reproducibility.
+4. The package source commit and SHA256 match the clean-package and release-gate
+   evidence.
+5. A current-value hardware probe reads and restores a safe power policy and
+   leaves no second hardware owner running.
+6. The previous stable deployment has a recoverable timestamped backup.
+
+The reviewed gate command is:
+
+```powershell
+.\native\verify-release.ps1 `
+  -Version 1.0.30 `
+  -VerifyReproducibility `
+  -VerifyShellIntegration `
+  -ExecuteNoChangePolicy `
+  -VerifyWorkerHang `
+  -AllowBatteryWriteGuard
+```
+
+Promotion itself is a dry run followed by an explicit apply:
+
+```powershell
+.\native\promote-stable-deployment.ps1 `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.30-win-x64-native-preview.zip `
+  -TargetDirectory C:\RyzenAdj `
+  -GuiArguments "--simple-mode --max-target-watts 45"
+
+.\native\promote-stable-deployment.ps1 `
+  -PackagePath .\artifacts\native-packages\amd-mobile-power-v1.0.30-win-x64-native-preview.zip `
+  -TargetDirectory C:\RyzenAdj `
+  -GuiArguments "--simple-mode --max-target-watts 45" `
+  -Apply -NoLaunch
+```
+
+The helper writes deployment evidence and rolls back on failure. Run the
+publication-readiness verifier after promotion.
 
 ## Promotion Flow
 

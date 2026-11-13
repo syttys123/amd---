@@ -21,6 +21,22 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (release documentation and publication gate reconciled):
+
+- Re-ran `native/verify-publication-readiness.ps1 -Version 1.0.30`:
+  `LocalReadiness=PASS`, `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`,
+  `HostedCi=Verification PASS`, and no local blockers.
+- Corrected stale release documentation that still described 1.0.23 or 1.0.28
+  as the current deployment, said the deployed policy was disabled, or listed
+  the old shortcut without `--max-target-watts 45`.
+- `docs/DEPLOYMENT.md` now documents the 1.0.30 promotion gates, rollback
+  directory, current package evidence, and the dry-run/apply promotion flow.
+  `docs/NATIVE_RC_STATUS.md` now points at the 1.0.30 candidate, review bundle,
+  evidence set, and current open gates.
+- `native/verify-docs.ps1` passed (50 Markdown files, 39 relative links). No
+  native payload or package hash changed; public publication and Bilibili
+  upload remain unapproved human gates.
+
 2026-11-14 (1.0.30-native tolerates a UTF-8 BOM in the state file):
 
 - Root cause of the 07:00 state reset: Windows PowerShell 5.1 writes UTF-8 with
@@ -2334,49 +2350,30 @@ Historical development screenshots:
 
 ## In Progress
 
-- GitHub Actions jobs currently fail before the first step because the
-  repository account has failed recent payments or needs a higher spending
-  limit. This is external account state, not a source failure. The local
-  `verify-release.ps1` gate passes.
 - Verify WinRing0 behavior under a clean Windows security baseline and document
   any driver-blocking failures.
 - Add more AMD generation profiles and verify a second physical laptop when
   available.
 - Obtain read-only capability evidence from a second physical AMD laptop.
-- Resolve GitHub Actions account billing/visibility and complete final public
-  release review.
 - Broaden the packaged native worker's hardware matrix beyond the 8845HS and
   collect a second-device write/read-back smoke test; keep the
   `C:\RyzenAdj.before-20261111-223017` backup as the .NET stable fallback.
 - The native UI now has deterministic 100%/125%/150% logical layout fixtures;
   final monitor-transition evidence in real 100% and 150% Windows sessions is
   still pending. The current display session is 125%.
+- Complete human review of the v9 promotional video, cover, claims, and launch
+  copy.
+- Obtain explicit owner approval and an authenticated session before creating
+  the public GitHub Release or uploading to Bilibili.
+
 ## Next Concrete Task
 
-Complete real 100% and 150% Windows-session DPI checks, restore GitHub
-connectivity so the local commits and hosted CI can run, and complete the
-final human review for public release.
-
-Connectivity evidence (2026-11-13 03:40): direct `git push` and both direct and
-`http://127.0.0.1:7890` `curl` requests to github.com, google.com, and
-1.1.1.1 all fail with `schannel: failed to receive handshake` / `000`, while
-baidu.com returns `200`. The FlClash core is running and listening on 7890, so
-the failure is at the upstream node rather than the local proxy port.
-
-Resolution (2026-11-13 03:45): connectivity recovered intermittently and
-`git push origin main` succeeded
-(`ad4b8b9..763adfa`). `git ls-remote` now reports the remote branch at
-`763adfad9db12efccb5102509bb3c3b813f131cf`, matching local `HEAD`, so the whole
-backlog of local commits is pushed. The hosted workflow was triggered by the
-push but its run status could not be inspected because `api.github.com` still
-failed TLS from this host.
-
-Visibility check (2026-11-13 03:50): unauthenticated requests to
-`https://github.com/syttys123/amd-mobile-power` return `404`, so the repository is still
-private. No tag or GitHub Release has been created; the release runbook remains
-the next step after the owner approves public publication.
-Keep the pre-promotion `C:\RyzenAdj` backup until the public release gates are
-closed, and never promote a dirty or write-unverified native package.
+Run the real OS-level 100% and 150% DPI sessions on hardware, complete the
+clean-Windows WinRing0 baseline, and collect read-only evidence from a second
+AMD device when one is available. Then finish human review of the release
+media and obtain explicit approval before public GitHub or Bilibili
+publication. Keep the pre-promotion `C:\RyzenAdj` backup until those gates
+close, and never promote a dirty or write-unverified native package.
 
 The native GUI is now the stable-local deployment for the verified 8845HS
 platform. The `.NET` `1.0.4` directory is retained as the fallback.

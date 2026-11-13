@@ -64,10 +64,9 @@ Ryzen Master processes. The application intentionally refuses to become a
 second hardware owner.
 
 The local stable deployment on this development laptop exposes editable
-presets `10 / 25 / 45 W` with a `45 W` ceiling. The current night policy is
-`8 W` on both power lines; `10 W` remains the normal low-power preset.
-Daytime switching is one click. That local choice does not change the portable
-package's read-only default.
+presets `10 / 25 / 45 W` with a `45 W` ceiling. Local power-policy targets and
+temporary user caps are kept outside the package and do not change the
+portable build's read-only default.
 
 ## Portable Quick Start
 

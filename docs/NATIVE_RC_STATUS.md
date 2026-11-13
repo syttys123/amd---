@@ -37,12 +37,12 @@ previous native `1.0.17-native` build is preserved as
 `C:\RyzenAdj.before-20261111-232010`, and the .NET `1.0.4` package as
 `C:\RyzenAdj.before-20261111-223017`.
 
-Decision (2026-11-13): the native line has a hardware-gated stable-local
-candidate for the verified 8845HS platform, and `C:\RyzenAdj` now contains the
-`1.0.23-native` package. Broader AMD generation support remains experimental.
+Decision (2026-11-14): the native line has a hardware-gated stable-local
+candidate for the verified 8845HS platform, and `C:\RyzenAdj` contains the
+`1.0.30-native` package. Broader AMD generation support remains experimental.
 The current local publication readiness gate is `PASS` with all 13 checks true,
-with
-`PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW` and no local blockers. Evidence:
+with `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW` and no local blockers.
+Evidence:
 `docs/evidence/release/native-publication-readiness-2026-11-14.json`.
 
 Note (2026-11-12): `1.0.18-native` is the first package gated with
@@ -72,10 +72,10 @@ logical DPI layout fixtures executed against the packaged GUI.
 read-only `getProfiles`, complete-catalog compatibility reports, and
 report-import validation. Every RyzenAdj family `0-15` maps to exactly one
 conservative fallback while `8845HS + 4c0009` remains the sole verified device
-profile. Worker version is `0.6.0-native`. The local shortcut launches with
-`--enable-write-controls --simple-mode --max-target-watts 45`; saved presets
-are `10/25/45 W`, the automatic battery/AC policy keeps `10/10/10 W` on both
-lines, and `10 W` is the manual night preset. `1.0.3-native` added per-monitor DPI awareness, a
+profile. Worker version is `0.6.0-native`. The reviewed local shortcut launches
+with `--simple-mode --max-target-watts 45`; saved presets are `10/25/45 W`,
+the automatic battery/AC policy is armed, and temporary local caps are runtime
+state rather than package defaults. `1.0.3-native` added per-monitor DPI awareness, a
 resizable native window, hand cursors, a protected metric band, and the
 uniform policy. `1.0.2-native` added the embedded
 PE icon (`RT_ICON` + `RT_GROUP_ICON` 1). `1.0.1-native` fixed the desktop
@@ -100,33 +100,32 @@ accessibility settings.
 ## Current Candidate
 
 ```text
-artifacts/native-packages/amd-mobile-power-v1.0.23-native-win-x64-native-preview.zip
+artifacts/native-packages/amd-mobile-power-v1.0.30-win-x64-native-preview.zip
 ```
 
-- Size: `760,850` bytes.
+- Size: `771,049` bytes.
 - SHA256:
-  `42f6cf9172f3db6d0a2ac81bfffbab4b38b1f5a1423ff64b7b020855fce29f79`.
-- Source commit: `2033052dfb0e3fd0a427ea08adab12302b4addfc`.
+  `618c01442aac0715dade459f2f1a2e58a0471dcd1688096b0ca8765e7df44c3f`.
+- Source commit: `2f04605d620a84a0c06b3662e99de0e7a8b6fcbd`.
 - Working tree at build time: clean.
-- Reproducibility: GUI `e18c4213`, probe `9750418f`, worker `67af1d41`, and the
+- Reproducibility: GUI `213a96fd`, probe `9750418f`, worker `67af1d41`, and the
   ZIP itself are byte-identical across two builds.
 - Policy write verification: same-value AC probe at `10/10/10 W`.
-- Worker-hang replacement: PASS on 2026-11-13 (`35.3 s`, 21 responsive
+- Worker-hang replacement: PASS on 2026-11-14 (`33.8 s`, 18 responsive
   samples, 0 failures, policy restored to `10/10/10 W`).
-- Supersedes `1.0.22-native` (package
-  `500224c715e834e14a0134af681cf17171d24fb747d57515175688317fab3e76`,
-  source `b688e50a337c399537ede69c42570d5c3b3013e0`); `1.0.23-native`
-  re-lays out on `SIZE_MAXIMIZED` so a scrolled advanced page clamps its
-  offset, pages by exactly one viewport, and keeps header controls aligned at
-  fractional DPI.
+- Rust tests: `48/48` (`25` library + `23` GUI); probe self-tests: `7/7`.
+- Hosted Windows CI: run `43527570945` on commit `b2e051c` passed every step.
+- Supersedes `1.0.29-native`; the payload change is BOM-tolerant persisted
+  state loading. GUI layout and worker/probe behavior are otherwise unchanged
+  from the 1.0.28/1.0.29 capture set.
 
 Local review bundle:
 
 ```text
-artifacts/native-release-review/v1.0.23-native
+artifacts/native-release-review/v1.0.30
 ```
 
-The bundle is `REVIEW_ONLY` and is not a public release.
+The bundle is `REVIEW_ONLY`, contains 33 files, and is not a public release.
 
 Historical candidate `1.0.7-native` remains recorded with package SHA256
 `a018e1af1a82a5be1dc1cee4fa54cf419d35a778cd056a16a5a35a34262635c4`
@@ -167,9 +166,10 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 - Rust GUI lifecycle, three Win32 minimize/restore cycles, close-to-tray, tray
   restore, single-instance wake-up, diagnostics export, view switching,
   topmost, and editable preset persistence.
-- Rust unit tests: 44/44 passed, including a contract test that parses every
+- Rust unit tests: 48/48 passed, including a contract test that parses every
   entry in `native/gui-cli-contract.json` and a regression test for the
   desktop shortcut arguments and uniform 10 W policy.
+- Rust probe tests: 7/7 passed.
 - Rust formatting and Clippy with `-D warnings`.
 - C++ power-limit policy and battery/AC policy tests.
 - Read-only hardware capability and telemetry probe on Ryzen 7 8845HS on AC:
@@ -284,6 +284,16 @@ and source commit `ddb7d9cba3195f4a16df1299215a9e26cd18544f`.
 
 ## Evidence
 
+- `docs/evidence/packaging/v1.0.30-release-gate-2026-11-14.json`
+- `docs/evidence/packaging/v1.0.30-clean-2026-11-14.json`
+- `docs/evidence/packaging/v1.0.30-shell-integration-2026-11-14.json`
+- `docs/evidence/packaging/v1.0.30-native-deployment-2026-11-14.json`
+- `docs/evidence/hardware/v1.0.30-power-policy-no-change-2026-11-14.json`
+- `docs/evidence/hardware/v1.0.30-worker-hang-2026-11-14.json`
+- `docs/evidence/ui/native-packaged-1.0.30-ui-2026-11-14.json`
+- `docs/evidence/build/reproducibility-1.0.30-2026-11-14.json`
+- `docs/evidence/build/hosted-ci-2026-11-14.json`
+- `docs/evidence/release/native-publication-readiness-2026-11-14.json`
 - `docs/evidence/packaging/v1.0.23-native-clean-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.23-native-release-gate-2026-11-13.json`
 - `docs/evidence/packaging/v1.0.23-native-shell-integration-2026-11-13.json`
@@ -388,10 +398,9 @@ Superseded candidates keep their exact historical package and evidence.
 - Logical UI layout fixtures now pass at 100%, 125%, and 150% without changing
   system settings; repeat the matrix in real 100%/150% Windows sessions, plus
   focused-input states.
-- Observe a successful hosted Windows CI run. The current external blocker is
-  the repository account billing/spending limit.
 - Verify WinRing0 behavior under a clean Windows security baseline.
-- Final human review before any promotion or public release.
+- Complete human review of the video, claims, cover, and public-release copy.
+- Obtain explicit owner approval for the GitHub Release and Bilibili upload.
 
 ## Promotion Rule
 
