@@ -1,8 +1,8 @@
 {
   "SchemaVersion": 1,
-  "Version": "1.0.29",
-  "Package": "amd-mobile-power-v1.0.29-win-x64-native-preview.zip",
-  "PackageSHA256": "c6b54d84f3f1bdba67407fe72a1f4465913e554defa1577e5c02c7373b5db640",
+  "Version": "1.0.30",
+  "Package": "amd-mobile-power-v1.0.30-win-x64-native-preview.zip",
+  "PackageSHA256": "618c01442aac0715dade459f2f1a2e58a0471dcd1688096b0ca8765e7df44c3f",
   "LocalDeployment": "C:\\RyzenAdj",
   "Checks": {
     "PackageHash": true,
@@ -26,7 +26,7 @@
     "Arguments": "--simple-mode --max-target-watts 45",
     "RejectedArguments": [],
     "Launch": {
-      "Arguments": "--simple-mode --max-target-watts 45 --pipe-name AmdMobilePower.Worker.readiness.55830d4b",
+      "Arguments": "--simple-mode --max-target-watts 45 --pipe-name AmdMobilePower.Worker.readiness.53edc21d",
       "WindowReady": false,
       "ExitedEarly": true,
       "ExitCode": 0,
@@ -38,7 +38,7 @@
     "SecondAmdDevice": "PENDING",
     "DpiLayoutFixtures100And150": "PASS",
     "Dpi100And150SystemSessions": "PENDING",
-    "HostedWindowsCi": "PASS",
+    "HostedWindowsCi": "PENDING",
     "CleanWindowsWinRing0Baseline": "PENDING",
     "HumanVideoAndClaimReview": "PENDING",
     "ExplicitPublicReleaseApproval": "PENDING",
@@ -76,11 +76,11 @@
   },
   "HostedCi": {
     "Evidence": "docs/evidence/build/hosted-ci-2026-11-14.json",
-    "Verification": "PASS",
+    "Verification": "PENDING",
     "RunId": 43525105775,
     "Commit": "dd537f72ac6228be53ccd5b4ee9ed057baeb94be"
   },
   "BlockersFromLocalChecks": [],
   "Note": "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check. The shortcut launch audit runs the deployed GUI with an isolated LOCALAPPDATA and a unique worker pipe, then stops it.",
-  "RecordedAt": "2026-11-14T07:15:42.3425797+08:00"
+  "RecordedAt": "2026-11-14T07:29:09.9092405+08:00"
 }
