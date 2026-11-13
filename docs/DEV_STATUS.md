@@ -62,12 +62,12 @@ whole video. Video SHA256
 `990087053389a1f3f3cccc7db729357c5bb72a06878f984035f125bf75787036`,
 `24,145,236` bytes, `109.2 s`. `verify-media.ps1` PASS.
 
-2026-11-13 (media 1.0.23 v3 candidate): rendered an alternate voice draft with
-`Microsoft Yaoyao` at rate 2 so the owner can compare narration quality before
-choosing the public take: `111 s`, `24,413,847` bytes, SHA256
-`f1bfddea46a45a8fa7bea4ad2e4af03de16196f19c4babfc73d022c3a0e32707`.
-This draft predates the live-demo presets scene, so it still shows the animated
-watt counter; re-render it from the same storyboard after the voice choice.
+2026-11-13 (media 1.0.23 v4 candidate): re-rendered the alternate voice draft
+with `Microsoft Yaoyao` at rate 2 on the same live-demo storyboard, so both
+narration takes can be compared frame for frame: `111 s`, `24,078,681` bytes,
+SHA256 `d7bd7b71254fec708f536751c3e405a2365d4676093dce9c652d0892e8b99638`.
+Path: `artifacts/media/amd-mobile-power-promo-1.0.23-v4-yaoyao-2026-11-13/`.
+The earlier animated-counter Yaoyao draft (v3) is superseded.
 Path: `artifacts/media/amd-mobile-power-promo-1.0.23-v3-yaoyao-2026-11-13/`.
 Isolated voice samples (same sentence, rate 3 vs 1/2) live under
 `artifacts/media/voice-samples/`. The `v2` Huihui draft stays the default
