@@ -170,6 +170,13 @@ not authoritative.
   and returned `OK` with `stapm=8 fast=8 slow=8 line=battery` before and after
   the restart, so the 05:00-07:00 window stays at 8 W. The matching Codex
   heartbeat verifies the 06:59 run and deletes itself.
+- The helper now speaks the worker named-pipe protocol directly instead of
+  passing JSON through `probe.exe --payload-json`: the scheduled task runs
+  under Windows PowerShell 5.1, which strips the embedded quotes from native
+  command arguments and made the first version fail at 06:25. Re-verified under
+  `powershell.exe` 5.1 on 1.0.29 at 06:33: policy apply, read-back, state
+  mirror, GUI restart, and post-restart read-back all returned `OK` at
+  `8/8/8 W`, so the 06:59 task exercises the same path with `10 W`.
 
 2026-11-14 (auto-policy fix, shipped as 1.0.27-native): user reported that
 after enabling the auto power policy, unplugging/replugging never wrote the
