@@ -53,8 +53,8 @@ not authoritative.
   (`docs/evidence/ui/native-packaged-1.0.29-ui-2026-11-14.json`), review bundle
   `artifacts/native-release-review/v1.0.29` (29 files), and publication
   readiness `LocalReadiness=PASS` with no local blockers.
-- Hosted Windows CI is green for this candidate: run `43514695587`
-  (commit `5cfc357`) passed all native-workflow steps; the readiness gate now
+- Hosted Windows CI is green for this candidate: run `43517140523`
+  (commit `a1b31fb`) passed all native-workflow steps; the readiness gate now
   reports `HostedCi=Verification PASS` for 1.0.29.
 
 2026-11-14 (publication readiness gate is green for human review):
