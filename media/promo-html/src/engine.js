@@ -45,8 +45,33 @@ function sceneAt(time) {
 
 function renderScene(scene, localTime, root) {
   const renderer = SCENE_RENDERERS[scene.id];
-  if (!renderer) return;
-  renderer(scene, localTime, root);
+  if (renderer) renderer(scene, localTime, root);
+  if (scene.narration) drawCaption(scene, localTime, root);
+}
+
+// Burned-in subtitle band: the video has no voice track, so the narration
+// text carries the story. Fades in shortly after the scene cut and out
+// before the next one.
+function drawCaption(scene, t, root) {
+  const fadeIn = clamp01((t - 0.45) / 0.35);
+  const fadeOut = clamp01((scene.duration - 0.35 - t) / 0.35);
+  const fade = Math.min(fadeIn, fadeOut);
+  if (fade <= 0) return;
+  const band = el("div", {
+    position: "absolute", left: "0", right: "0", bottom: "0",
+    padding: "34px 120px 36px", display: "flex", justifyContent: "center",
+    background:
+      "linear-gradient(180deg, rgba(8,14,17,0) 0%, rgba(8,14,17,0.78) 45%, rgba(8,14,17,0.88) 100%)",
+    opacity: String(fade),
+  });
+  const text = txt(scene.narration, {
+    color: "#e8f0ec", fontSize: "31px", fontWeight: "500",
+    fontFamily: "'Microsoft YaHei UI','Segoe UI',sans-serif",
+    letterSpacing: "0.5px", textAlign: "center", lineHeight: "1.55",
+    maxWidth: "1620px",
+  });
+  band.append(text);
+  root.append(band);
 }
 
 const SCENE_RENDERERS = {};

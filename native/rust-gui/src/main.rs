@@ -3149,7 +3149,7 @@ unsafe fn apply_ui_fixture(app: &mut GuiApp, hwnd: HWND, fixture: UiFixture) {
         }
     }
     update_simple_view(app);
-    InvalidateRect(hwnd, std::ptr::null(), 1);
+    InvalidateRect(hwnd, std::ptr::null(), 0);
     UpdateWindow(hwnd);
 }
 
@@ -4613,7 +4613,7 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
         }
     }
 
-    InvalidateRect(hwnd, std::ptr::null(), 1);
+    InvalidateRect(hwnd, std::ptr::null(), 0);
     UpdateWindow(hwnd);
     update_simple_view(app);
     app.layout_in_progress = false;
@@ -5095,7 +5095,7 @@ unsafe extern "system" fn window_proc(
         }
         WM_SYSCOLORCHANGE | WM_SETTINGCHANGE => {
             refresh_high_contrast(app.ui_fixture == Some(UiFixture::HighContrast));
-            InvalidateRect(hwnd, std::ptr::null(), 1);
+            InvalidateRect(hwnd, std::ptr::null(), 0);
             0
         }
         WM_CLOSE => {
@@ -5382,7 +5382,7 @@ unsafe extern "system" fn window_proc(
                     SetWindowTextW(app.status_label, wide_text.as_ptr());
                 }
                 update_simple_view(app);
-                InvalidateRect(hwnd, std::ptr::null(), 1);
+                InvalidateRect(hwnd, std::ptr::null(), 0);
             }
             0
         }
@@ -5401,7 +5401,7 @@ unsafe extern "system" fn window_proc(
                     let wide_text = wide(&text);
                     SetWindowTextW(app.status_label, wide_text.as_ptr());
                 }
-                InvalidateRect(hwnd, std::ptr::null(), 1);
+                InvalidateRect(hwnd, std::ptr::null(), 0);
             }
             0
         }
