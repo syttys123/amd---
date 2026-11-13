@@ -3,8 +3,18 @@
 ## Directory Roles
 
 - `D:\amd-mobile-power`: development repository and source of truth.
-- `C:\RyzenAdj`: current stable-local native deployment (`1.0.23-native`,
-  commit `2033052`, maximize scroll clamp and paging fixes).
+- `C:\RyzenAdj`: current stable-local native deployment (`1.0.28-native`,
+  commit `f64812e`, tray write gate and simplified writable-field wording).
+  Rollback for `1.0.27-native`: `C:\RyzenAdj.before-20261114-025845`.
+  `1.0.28` package SHA256:
+  `3a60bd0373120889d6a7bedd11e42f87df7a398288eea95354b20cab4998f593`;
+  release gate:
+  `docs/evidence/packaging/v1.0.28-release-gate-2026-11-14.json`;
+  deployment evidence:
+  `docs/evidence/packaging/v1.0.28-native-deployment-2026-11-14.json`.
+  Live read-back after the fresh launch: battery `8/8/8 W`, policy enabled,
+  presets `10 / 25 / 45 W`, ceiling `45 W`.
+  Previous deployment history follows.
   `1.0.22-native` remains at `C:\RyzenAdj.before-20261113-024133`;
   `1.0.21-native` at `C:\RyzenAdj.before-20261113-012141`;
   `1.0.20-native` at `C:\RyzenAdj.before-20261113-004532`;

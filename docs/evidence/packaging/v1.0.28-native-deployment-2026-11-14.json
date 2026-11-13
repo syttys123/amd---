@@ -1,0 +1,30 @@
+{
+  "Verification": "PASS",
+  "Version": "1.0.28",
+  "Package": "D:\\amd-mobile-power\\artifacts\\native-packages\\amd-mobile-power-v1.0.28-win-x64-native-preview.zip",
+  "PackageSHA256": "3a60bd0373120889d6a7bedd11e42f87df7a398288eea95354b20cab4998f593",
+  "PackageSize": 769919,
+  "SourceCommit": "f64812e6fb873ef72df81e8b324f2172d51aa506",
+  "Target": "C:\\RyzenAdj",
+  "Rollback": "C:\\RyzenAdj.before-20261114-025845",
+  "DeployedGuiSHA256": "d46f885e44aa53355739005a875d107bff58b83a23da4639991be6fd7f538245",
+  "DeployedWorkerSHA256": "67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1",
+  "DeployedProbeSHA256": "9750418f15ebce2d70e750e845cfa5408751a96b178d60bbaa168155322a615e",
+  "GuiArguments": "--simple-mode --max-target-watts 45",
+  "Shortcut": "<USER_HOME>\\Desktop\\功耗设置 5-60W.lnk",
+  "ReleaseGateEvidence": "docs/evidence/packaging/v1.0.28-release-gate-2026-11-14.json",
+  "LiveState": {
+    "PowerLine": "battery",
+    "StapmLimitWatts": 8.0,
+    "FastLimitWatts": 8.0,
+    "SlowLimitWatts": 8.0,
+    "FirmwareClamp": false,
+    "PolicyEnabled": true,
+    "BatteryTargetWatts": "8/8/8",
+    "AcTargetWatts": "8/8/8",
+    "PresetsWatts": "10/25/45",
+    "MaxTargetWatts": 45,
+    "WriteUnlocked": true
+  },
+  "RecordedAt": "2026-11-14T03:10:12.838+08:00"
+}

@@ -30,6 +30,8 @@
 
 - [x] Migrate the current WinForms layout.
 - [x] Add tray menu, close-to-tray, and single-instance wake-up.
+- [x] Add in-app write unlock with a consent dialog and persisted state.
+- [x] Expose the same write unlock/relock flow from the tray menu.
 - [x] Show effective limits and firmware clamps.
 - [x] Add editable presets and profile-aware ranges.
 - [x] Add worker connection state and automatic restart after conflicts clear.

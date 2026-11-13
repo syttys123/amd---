@@ -21,7 +21,34 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
-2026-11-14 (tray unlock, real-UI promo v8, and 8 W night setting):
+2026-11-14 (1.0.28-native shipped to the stable-local deployment):
+
+- Added the tray-menu write gate: `写入解锁…` opens the same consent dialog as
+  the header lock, `写入已解锁` is checked while writes are enabled, and
+  selecting it again relocks and restarts the worker read-only.
+- Replaced the awkward advanced-panel capability sentence
+  `STAPM 是 · Fast 是 · Slow 是` with `可写：STAPM / Fast / Slow` (or the
+  subset actually supported), and added a unit test covering full, partial,
+  and unsupported field sets.
+- Verified 24 library tests, 23 main tests, and Clippy with `-D warnings`.
+  The full release gate passed: clean package, shell integration, worker-hang
+  recovery, no-change battery policy, 100/125/150% DPI, 1366x768 at 200%
+  work area, maximize-scroll regression, and byte-identical reproducibility.
+- Package: `1.0.28`, 769,919 bytes, SHA256
+  `3a60bd0373120889d6a7bedd11e42f87df7a398288eea95354b20cab4998f593`,
+  source commit `f64812e6fb873ef72df81e8b324f2172d51aa506`; gate evidence
+  `docs/evidence/packaging/v1.0.28-release-gate-2026-11-14.json`.
+- Promoted to `C:\RyzenAdj`. Previous stable
+  `1.0.27-native` is recoverable at
+  `C:\RyzenAdj.before-20261114-025845`; deployed GUI SHA256
+  `d46f885e44aa53355739005a875d107bff58b83a23da4639991be6fd7f538245`.
+  The desktop shortcut remains
+  `--simple-mode --max-target-watts 45`.
+- Fresh 1.0.28 launch on battery reports `8.00 / 8.00 / 8.00 W`, policy
+  enabled, write unlock persisted, presets `10 / 25 / 45 W`, and no firmware
+  clamp. The temporary night setting remains 8 W until 07:00.
+
+2026-11-14 (tray unlock, real-UI promo v9, and 8 W night setting):
 
 - Tray menu now exposes the same write gate as the header lock: `写入解锁…`
   opens the consent dialog and `写入已解锁` is checked while writes are
@@ -33,16 +60,16 @@ not authoritative.
   for policy-seeded captures, and uses a PowerShell 5.1-safe `UIntPtr` for
   the cleanup exit message. This lets the promo capture the real
   `10 W / 45 W` auto-policy state instead of a hand-built mock.
-- Promo v8 replaces the safety, auto-policy, and compatibility mock cards
-  with crops from the shipped 1.0.27 UI: the real consent dialog (checked
+- Promo v9 replaces the safety, auto-policy, and compatibility mock cards
+  with crops from the shipped 1.0.28 UI: the real consent dialog (checked
   state), the real advanced preset + policy panel (`10 / 25 / 45 W`,
   battery `10 W`, AC `45 W`, `已启用`), and the real device panel
-  (`Ryzen 7 8845HS`, `Hawk Point`, `平台可写`). The main preset scene still
-  uses the real recorded click demo. Final: 42.5 s, 1920x1080, 30 fps,
-  `4,411,500` bytes, SHA256
-  `6247aea09765850dba6f43601aaba9014ae6355b0c42e665b3aecdc3571a97f3`,
+  (`Ryzen 7 8845HS`, `Hawk Point`, `可写：STAPM / Fast / Slow`). The main
+  preset scene still uses the real recorded click demo. Final: 42.5 s,
+  1920x1080, 30 fps, `4,426,857` bytes, SHA256
+  `ca887aa5ec3b55157e91206781d15f502e3fdede7c3c7e3907621ac331863023`,
   full decode PASS:
-  `artifacts/media/promo-html-v1/amd-mobile-power-promo-2026-11-14-v8.mp4`.
+  `artifacts/media/promo-html-v1/amd-mobile-power-promo-2026-11-14-v9.mp4`.
 - User requested an immediate night limit of `8 W` until 07:00. Hardware
   read-back at 2026-11-14 02:12 confirms `STAPM 8.00 W`, `PPT Fast 8.00 W`,
   `PPT Slow 8.00 W` on battery; the persisted policy has both battery and AC
