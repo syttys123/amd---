@@ -1,6 +1,6 @@
 {
   "version": "1.0.23-native",
-  "generatedAt": "2026-11-13T03:10:00+08:00",
+  "generatedAt": "2026-11-13T14:26:00+08:00",
   "status": "DRAFT_FOR_HUMAN_REVIEW",
   "githubRelease": {
     "tag": "v1.0.23-native",
@@ -23,8 +23,8 @@
       "durationSeconds": 109.2,
       "width": 1920,
       "height": 1080,
-      "sizeBytes": 24145236,
-      "sha256": "990087053389a1f3f3cccc7db729357c5bb72a06878f984035f125bf75787036"
+      "sizeBytes": 23748047,
+      "sha256": "3e429a16feef7d5310d3f4c2b9c86bb2d15736b5262e29ca95222a77d7e90a4e"
     },
     "cover": {
       "path": "docs/assets/bilibili-cover-1.0.23-2026-11-13.png",
@@ -37,10 +37,10 @@
       "path": "docs/assets/native-promo-1.0.23-contact-sheet-2026-11-13.png",
       "width": 1920,
       "height": 640,
-      "sizeBytes": 481027,
-      "sha256": "5a93d67c7652e8bbd8d37083dcce1c8e669ad34bdbb7a29b743df96f611e0ce2"
+      "sizeBytes": 485521,
+      "sha256": "4b02d85ec850293741540362b194eeaa7c10c2982138bf271804be089475e00a"
     },
-    "note": "The 1.0.22 capture set is reused because 1.0.23 changes scroll behaviour only; no visible UI surface changed."
+    "note": "Stills reuse the 1.0.22 capture set; the presets scene is a live fixture clip recorded from the deployed 1.0.23 GUI with no hardware write."
   },
   "copy": {
     "releaseNotes": "docs/release-notes-1.0.23-zh.md",

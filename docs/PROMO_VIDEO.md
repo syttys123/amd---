@@ -1,19 +1,20 @@
 # Promotional Video Draft
 
 The native development-preview video is generated from the reviewed screenshots,
-not from live hardware during rendering. Rendering starts no application
-process and performs no hardware write.
+plus one pre-recorded GUI fixture clip for the presets scene. Rendering itself
+starts no application process and performs no hardware write.
 
 ## Current Draft
 
 The current draft is 109.2 seconds at 1920x1080, 25 fps, with H.264 video, AAC
 stereo audio, Chinese narration, and simplified-Chinese captions. It uses the
 `1.0.22-native` capture set (layout identical to `1.0.23`) together with the
-high-contrast, worker-offline, and device-panel states. Each scene now uses its
-own camera motion (zoom or pan) instead of a static card, and the presets scene
-shows an animated `10 / 12 / 25 / 45 W` counter on top of the UI capture. A
-thin accent progress bar runs along the bottom of the whole video. It is
-marked `DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
+high-contrast, worker-offline, and device-panel states. Each scene uses its own
+camera motion (zoom or pan) instead of a static card, and the presets scene
+plays a recorded GUI clip (`25 -> 12 -> 45 W` preset clicks under the
+read-only `firmware-clamp` fixture) filling its card edge to edge. A thin
+accent progress bar runs along the bottom of the whole video. It is marked
+`DRAFT_FOR_HUMAN_REVIEW`; it is not approved for upload.
 
 ![Promo draft cover](assets/native-promo-1.0.23-cover-2026-11-13.png)
 
@@ -30,9 +31,9 @@ artifacts/media/amd-mobile-power-promo-1.0.23-v2-2026-11-13/
   amd-mobile-power-intro-1.0.23-v2-2026-11-13.mp4
 ```
 
-- Size: 24,145,236 bytes.
+- Size: 23,748,047 bytes.
 - SHA256:
-  `990087053389a1f3f3cccc7db729357c5bb72a06878f984035f125bf75787036`.
+  `3e429a16feef7d5310d3f4c2b9c86bb2d15736b5262e29ca95222a77d7e90a4e`.
 - Full-file FFmpeg decode: PASS.
 - Audio level: mean `-20.7 dB`, peak `-1.2 dB`.
 - Title, caption, and bullet safe-width checks: PASS.
