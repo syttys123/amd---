@@ -214,6 +214,19 @@ Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs\THIRD_PARTY_NOTICES.md")
     -Destination (Join-Path $stage "THIRD_PARTY_NOTICES.md") -Force
 Copy-Item -LiteralPath (Join-Path $root "portable-README.txt") `
     -Destination (Join-Path $stage "README.txt") -Force
+$packagedReadme = Get-Content `
+    -LiteralPath (Join-Path $stage "README.txt") `
+    -Raw `
+    -Encoding UTF8
+foreach ($requiredReadmeText in @(
+    "10 / 25 / 45 W",
+    "--enable-write-controls",
+    "%LOCALAPPDATA%\AmdMobilePower"
+)) {
+    if (-not $packagedReadme.Contains($requiredReadmeText)) {
+        throw "Packaged README.txt is missing required text: $requiredReadmeText"
+    }
+}
 Copy-Item -LiteralPath (Join-Path $root "collect-native-diagnostics.ps1") `
     -Destination (Join-Path $stage "collect-native-diagnostics.ps1") -Force
 Copy-Item -LiteralPath (Join-Path $root "install-preview.ps1") `

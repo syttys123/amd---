@@ -65,7 +65,7 @@ if ($AllowBatteryWriteGuard) {
 
 $reproducibilityEvidencePath = Join-Path `
     $repositoryRoot `
-    "docs\evidence\build\reproducibility-$(Get-Date -Format 'yyyy-MM-dd').json"
+    "docs\evidence\build\reproducibility-$Version-$(Get-Date -Format 'yyyy-MM-dd').json"
 $reproducibilityStatus = "Skipped"
 if ($VerifyReproducibility) {
     $reproOutput = & (Join-Path $root "verify-reproducibility.ps1") `

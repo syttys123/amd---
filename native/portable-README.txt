@@ -20,14 +20,19 @@ terminate the application.
 Write controls
 --------------
 
-Run:
+The GUI always starts read-only. To change power limits, click the lock button
+in the header or choose `写入解锁…` from the tray menu, read the disclaimer and
+operation notes, tick the acknowledgement, and confirm. The same control locks
+the app again and restarts the worker read-only.
 
-  amd-mobile-power-gui.exe --enable-write-controls
-
-This exposes the editable preset buttons, the target field, and Apply. The
-worker only accepts writes when the GUI starts it with the explicit
-write-controls flag. Every write is followed by a read-back; Fast/Slow failures
+Once unlocked, the simple view shows three editable quick presets
+(`10 / 25 / 45 W` by default), a target field, and Apply. The battery/AC auto
+policy can be enabled separately so unplugging or reconnecting applies the
+stored target. Every write is followed by a read-back; Fast/Slow failures
 attempt to restore the previous limits.
+
+The `--enable-write-controls` flag still exists for scripted starts; the in-app
+unlock is the normal path and is persisted across restarts.
 
 Two optional arguments make a deployment deterministic:
 
@@ -35,6 +40,9 @@ Two optional arguments make a deployment deterministic:
   --uniform-target-watts 10    force battery and AC to the same 10/10/10 W target
 
 Both are persisted into the saved policy, so a restart keeps the same limit.
+
+Window mode, presets, policy, and the write-unlock state live in
+`%LOCALAPPDATA%\AmdMobilePower`. Delete that folder to return to defaults.
 
 Headless compatibility report
 -----------------------------
