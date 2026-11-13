@@ -36,6 +36,11 @@ not authoritative.
 - `native/verify-docs.ps1` passed (50 Markdown files, 39 relative links). No
   native payload or package hash changed; public publication and Bilibili
   upload remain unapproved human gates.
+- Regenerated `artifacts/native-release-review/v1.0.30` with
+  `-IncludeMedia`: 33 files, 32 SHA256 entries verified, and the bundled
+  README, `NATIVE_RC_STATUS.md`, and `RELEASE_CHECKLIST.md` match the current
+  source documents. The refreshed readiness check remains `LocalReadiness=PASS`
+  with no local blockers.
 
 2026-11-14 (1.0.30-native tolerates a UTF-8 BOM in the state file):
 
