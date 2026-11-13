@@ -21,6 +21,21 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (verifier guard for Windows PowerShell 5.1):
+
+- Reproduced at 06:41: Windows PowerShell 5.1 removes the quotes from JSON
+  passed to native commands, so `probe.exe --payload-json` receives
+  `{settings:{...}}` and fails with `key must be a string`. The packaged
+  night-revert helper already avoids this by speaking the named-pipe protocol
+  directly.
+- `native/verify-write-controls.ps1` and `native/verify-power-policy.ps1` now
+  refuse to start below PowerShell 7 with an explicit message instead of
+  producing a confusing probe error. `docs/HARDWARE_TEST_PROCEDURE.md` and
+  `native/README.md` tell hardware testers to use `pwsh`.
+- Next concrete task: move these two verifiers onto a shared named-pipe client
+  so 5.1 works without the guard, then repeat their supervised no-change tests
+  on hardware.
+
 2026-11-14 (1.0.29-native ships corrected package documentation):
 
 - The packaged `README.txt` still told users to start the GUI with

@@ -7,6 +7,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    throw ("This verifier passes JSON to the probe. Run it with PowerShell 7 " +
+        "(pwsh): Windows PowerShell 5.1 strips quotes from native-command " +
+        "arguments, so --payload-json arrives malformed.")
+}
+
 $root = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $root
 $workerExecutable = Join-Path `

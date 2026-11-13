@@ -48,6 +48,10 @@ intentionally changing the thermal load.
 
 ## AC/Battery Policy Verification
 
+Run these verifiers with PowerShell 7 (`pwsh`). Windows PowerShell 5.1 strips
+the quotes from JSON passed to native commands, so `--payload-json` arrives
+malformed there; both verifier scripts now refuse to start under 5.1.
+
 Use the packaged worker with `verify-power-policy.ps1`. The default mode is a
 read-only preflight:
 
