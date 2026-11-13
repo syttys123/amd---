@@ -21,6 +21,31 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-13 (public sanitization + rename): the repository went public as
+`syttys123/amd-mobile-power`. Before publication every tracked blob and commit
+was scrubbed with `git filter-repo` (two passes):
+
+- Author/committer on all 343 commits rewritten from `Codex <codex@local>` to
+  `syttys123 <syttys123@users.noreply.github.com>` via mailmap.
+- Local paths scrubbed: `C:\Users\SYT` -> `<USER_HOME>` (plain and
+  JSON-escaped forms), `C:\Users\SYT\.codex` -> `<local-design-library>`, one
+  research-note sentence in `docs/UI_DESIGN_DATABASE.md` generalized.
+- Repo URLs rewritten `amd---` -> `amd-mobile-power` (full URL, host path, and
+  bare-name forms).
+- Branch references `codex/rust-cpp-migration` -> `main`; the `|codex:` URI
+  allowlist entry removed from `native/verify-docs.ps1`.
+- Post-rewrite verification: `git grep -i "codex"` / `Users\SYT` / `amd---`
+  return zero hits on every branch; commit messages clean; no tokens, keys,
+  serials, or real names ever present (verified before rewrite).
+- Branch layout: old .NET `main` preserved as `legacy-dotnet`; the native line
+  is now `main` and the GitHub default branch. Description and topics set via
+  API. Pre-sanitization backup kept locally at
+  `D:\amd-mobile-power-backup-presanitize-20261113` (never pushed).
+- Push note: the flaky proxy rejects large packs with HTTP 408; full-history
+  pushes must go in ~20-commit increments (`git push origin <sha>:refs/heads/main`).
+- Evidence JSONs inside history may reference pre-rewrite commit hashes; those
+  references are historical and no longer resolve.
+
 2026-11-13 (media 1.0.23 v2 live-demo): the presets scene no longer overlays
 an animated counter on a static capture; it now plays a real recorded GUI
 clip filling the screenshot card edge to edge (`25 -> 12 -> 45 W` preset
