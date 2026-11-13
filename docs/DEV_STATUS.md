@@ -38,6 +38,15 @@ on the UI capture. Video SHA256
 `0ac11c87377ba296ea0c56c4bd1c360810bec305e29abeb4a06eb6adcabaedcb`,
 `23,769,552` bytes, `109.2 s`. `verify-media.ps1` PASS.
 
+2026-11-13 (media 1.0.23 v3 candidate): rendered an alternate voice draft with
+`Microsoft Yaoyao` at rate 2 so the owner can compare narration quality before
+choosing the public take: `111 s`, `24,044,748` bytes, SHA256
+`d6ad307c3633fb0b04b7361192f5793cd71b8a93b8385cf342257da6e9661ca6`.
+Path: `artifacts/media/amd-mobile-power-promo-1.0.23-v3-yaoyao-2026-11-13/`.
+Isolated voice samples (same sentence, rate 3 vs 1/2) live under
+`artifacts/media/voice-samples/`. The `v2` Huihui draft stays the default
+candidate until the owner picks.
+
 2026-11-13 (visual QA): deployed `1.0.23-native` was captured in simple and
 advanced modes at 100% and 125% logical scaling with the worker-offline
 fixture. No truncated labels, overlapping controls, or clipped footers were
