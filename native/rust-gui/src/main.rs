@@ -5456,11 +5456,10 @@ unsafe extern "system" fn window_proc(
                         PRESET_45 => 2,
                         _ => 0,
                     };
-                    if app.view_mode == state::UiMode::Simple {
-                        start_preset_apply(app, hwnd, preset_index);
-                    } else {
-                        select_preset(app, preset_index);
-                    }
+                    // Presets are one-click in both modes: apply immediately
+                    // like the simple-mode hero row instead of only staging
+                    // the target field.
+                    start_preset_apply(app, hwnd, preset_index);
                 }
                 PRESET_SAVE if app.write_enabled => {
                     let result = save_preset_edits(app);
