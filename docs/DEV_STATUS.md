@@ -53,10 +53,17 @@ not authoritative.
   `LocalReadiness=PASS`, `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`,
   empty `BlockersFromLocalChecks`. Evidence:
   `docs/evidence/release/native-publication-readiness-2026-11-14.json`.
-- Open human/external gates unchanged: second AMD device, real system DPI
-  sessions at 100/150%, hosted Windows CI, clean Windows WinRing0 baseline,
-  human video/claim review, explicit public-release approval, and the
-  authenticated Bilibili upload.
+- Hosted Windows CI is green on the native-only workflow: run `43508260731`
+  (commit `d667566`) passed PowerShell syntax, documentation links, Rust
+  fmt/clippy, RyzenAdj build, native build/tests, byte-reproducible package,
+  headless probe self-test, and artifact upload. Evidence:
+  `docs/evidence/build/hosted-ci-2026-11-14.json`. The readiness gate now
+  reports `HostedCi=Verification PASS` when that evidence's commit is an
+  ancestor of HEAD and no `native/`, `.github/`, Cargo, or build-script change
+  landed since it.
+- Open human/external gates: second AMD device, real system DPI sessions at
+  100/150%, clean Windows WinRing0 baseline, human video/claim review,
+  explicit public-release approval, and the authenticated Bilibili upload.
 
 2026-11-14 (1.0.28-native shipped to the stable-local deployment):
 

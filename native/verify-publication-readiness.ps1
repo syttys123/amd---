@@ -506,11 +506,44 @@ if (Test-Path -LiteralPath $dpiEvidencePath -PathType Leaf) {
     }
 }
 
+$hostedCiEvidencePath = Join-Path `
+    $repositoryRoot `
+    "docs\evidence\build\hosted-ci-$(Get-Date -Format 'yyyy-MM-dd').json"
+$hostedCiGate = "PENDING"
+$hostedCiEvidence = $null
+if (Test-Path -LiteralPath $hostedCiEvidencePath -PathType Leaf) {
+    $hostedCiEvidence = Get-Content -LiteralPath $hostedCiEvidencePath -Raw -Encoding UTF8 |
+        ConvertFrom-Json
+    if ($hostedCiEvidence.conclusion -eq "success" -and
+        $hostedCiEvidence.workflow -eq "build" -and
+        $hostedCiEvidence.commit) {
+        $hostedCiCommit = [string]$hostedCiEvidence.commit
+        & git -C $repositoryRoot cat-file -e "$hostedCiCommit^{commit}" 2>$null
+        $commitKnown = ($LASTEXITCODE -eq 0)
+        if ($commitKnown) {
+            & git -C $repositoryRoot merge-base --is-ancestor $hostedCiCommit HEAD 2>$null
+            $isAncestor = ($LASTEXITCODE -eq 0)
+            $changedSince = @(
+                & git -C $repositoryRoot diff --name-only "$hostedCiCommit..HEAD" 2>$null
+            )
+            $nativeChangedSince = @(
+                $changedSince | Where-Object {
+                    $_ -match '^(native/|\.github/|build-ryzenadj\.ps1$|build\.ps1$)' -or
+                    $_ -match '(^|/)Cargo\.(toml|lock)$'
+                }
+            ).Count -gt 0
+            if ($isAncestor -and -not $nativeChangedSince) {
+                $hostedCiGate = "PASS"
+            }
+        }
+    }
+}
+
 $openGates = [ordered]@{
     SecondAmdDevice = "PENDING"
     DpiLayoutFixtures100And150 = $dpiGate
     Dpi100And150SystemSessions = "PENDING"
-    HostedWindowsCi = "PENDING"
+    HostedWindowsCi = $hostedCiGate
     CleanWindowsWinRing0Baseline = "PENDING"
     HumanVideoAndClaimReview = "PENDING"
     ExplicitPublicReleaseApproval = "PENDING"
@@ -545,6 +578,14 @@ $result = [ordered]@{
             $dpiEvidencePath).Replace("\", "/")
         Verification = $dpiGate
         Scales = if ($null -ne $dpiEvidence) { $dpiEvidence.Scales } else { @() }
+    }
+    HostedCi = [ordered]@{
+        Evidence = [System.IO.Path]::GetRelativePath(
+            $repositoryRoot,
+            $hostedCiEvidencePath).Replace("\", "/")
+        Verification = $hostedCiGate
+        RunId = if ($null -ne $hostedCiEvidence) { $hostedCiEvidence.runId } else { $null }
+        Commit = if ($null -ne $hostedCiEvidence) { $hostedCiEvidence.commit } else { $null }
     }
     BlockersFromLocalChecks = @($blockers)
     Note = "No GitHub login, Bilibili login, upload, publication, or power write was performed by this check. The shortcut launch audit runs the deployed GUI with an isolated LOCALAPPDATA and a unique worker pipe, then stops it."
