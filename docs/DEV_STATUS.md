@@ -21,6 +21,38 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (auto-policy fix, shipped as 1.0.27-native): user reported that
+after enabling the auto power policy, unplugging/replugging never wrote the
+10 W battery target. Root cause: `start_worker` only added
+`--enable-write-controls` for the CLI flag, not for the persisted
+`writeUnlocked` state. Launching normally (shortcut without the flag) with a
+previously unlocked UI therefore spawned a read-only worker: the UI showed
+"写入已解锁" while every write was rejected and the worker never started its
+policy ticker (`if (enable_write_controls && hardware)`), so auto switching
+silently did nothing. Fixes:
+
+- `start_worker` now passes the write flag when either the CLI flag or
+  `state::load_write_unlocked()` is set.
+- New `policy_synced` flag: the saved policy is re-sent to the worker on the
+  first healthy snapshot after any worker (re)start (toggle-unlock, crash
+  restart, force restart), instead of relying on the old
+  `policy_profile_applied` path alone.
+- Verified end to end on hardware: a fresh launch with persisted unlock and
+  no flags applied the policy target automatically (limits changed to
+  12/12/12 for the probe run, then back to 10/10/10 after restoring the
+  saved targets). Deployed instance now reports 10.00/10.00/10.00 W with
+  the auto policy armed.
+
+- Package: `1.0.27`, 767,549 bytes, SHA256
+  `8721c6ddfc25f430d19337ad122149eb7f78da51d288fd6ea83a3e642070fbcb`,
+  source commit `7813335`; release gate PASS (shell integration, hardware
+  no-change 10/10/10, DPI 100/125/150 fixtures, small viewport, maximize
+  scroll); reproducibility PASS. Deployed to `C:\RyzenAdj`; rollback
+  `C:\RyzenAdj.before-20261113-224640` remains the 1.0.26 backup.
+- Note: one gate run timed out in the DPI capture's mode-switch wait; a
+  direct rerun of the same step passed at 100/125/150%, so it was a
+  transient timing hiccup, not a layout regression.
+
 2026-11-13 (in-app write unlock, shipped as 1.0.26-native): the read-only
 default was previously only liftable via the `--enable-write-controls`
 launch flag, which normal shortcuts never pass. The header now has a lock

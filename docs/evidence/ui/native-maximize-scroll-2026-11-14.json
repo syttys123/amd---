@@ -1,0 +1,14 @@
+{
+  "SchemaVersion": 1,
+  "Verification": "PASS",
+  "Expectation": "FIX_APPLIED",
+  "GuiExecutable": "D:\\amd-mobile-power\\artifacts\\native-packages\\amd-mobile-power-v1.0.27-win-x64-native-preview\\amd-mobile-power-gui.exe",
+  "ShortClient": "956x546",
+  "ScrolledPosition": 243,
+  "MaximizedClient": "2560x1571",
+  "PositionAfterMaximize": 0,
+  "HeaderTopAfterMaximize": 15,
+  "ShortImage": "D:\\amd-mobile-power\\artifacts\\verify\\maximize-scroll\\advanced-scrolled-short.png",
+  "MaximizedImage": "D:\\amd-mobile-power\\artifacts\\verify\\maximize-scroll\\advanced-maximized.png",
+  "RecordedAt": "2026-11-14T00:12:28.8654811+08:00"
+}

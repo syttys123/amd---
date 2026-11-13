@@ -1,0 +1,14 @@
+{
+  "SchemaVersion": 1,
+  "Verification": "PASS",
+  "WorkAreaFixture": "1366x728",
+  "DpiFixture": 200,
+  "SimpleClient": "1179x681",
+  "SimpleScrollPosition": 19,
+  "AdvancedClient": "1327x660",
+  "AdvancedVerticalRange": "330/680",
+  "AdvancedHorizontalRange": "664/760",
+  "SimpleImage": "D:\\amd-mobile-power\\artifacts\\verify\\small-viewport-200\\simple-200-1366x728.png",
+  "AdvancedImage": "D:\\amd-mobile-power\\artifacts\\verify\\small-viewport-200\\advanced-200-1366x728.png",
+  "RecordedAt": "2026-11-14T00:12:21.8505297+08:00"
+}
