@@ -67,6 +67,9 @@ not authoritative.
   local branch renamed to `release/1.0.31`, personal home paths removed,
   internal agent markers removed from tracked files, and the hosted-CI
   evidence now records the sanitized branch alias.
+- The previous remote branch name is still visible on GitHub. It must be
+  deleted after `release/1.0.31` is merged, and deletion requires explicit
+  owner approval because it is a remote-data operation.
 
 2026-11-14 (unreleased branch hardening: atomic UI state writes):
 

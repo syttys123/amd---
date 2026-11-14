@@ -94,3 +94,5 @@ Status: `SOFTWARE_GATES_PASS_HARDWARE_GATE_PENDING`
 - [ ] Publication readiness refreshed to `LocalReadiness=PASS` with no local
       blockers.
 - [ ] Branch fast-forwarded into `main`.
+- [ ] Old automation-named remote branch removed after `release/1.0.31` is
+      merged; deletion requires explicit owner approval.
