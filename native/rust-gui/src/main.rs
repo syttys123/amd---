@@ -39,9 +39,9 @@ use windows_sys::Win32::Foundation::{
 use windows_sys::Win32::Graphics::Gdi::{
     BeginPaint, BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, CreateFontW, CreatePen,
     CreateSolidBrush, DeleteDC, DeleteObject, DrawTextW, EndPaint, FillRect, GetMonitorInfoW,
-    GetStockObject, InvalidateRect, MonitorFromWindow, RoundRect, ScreenToClient, SelectObject,
-    RedrawWindow, SetBkColor, SetBkMode, SetTextColor, SetViewportOrgEx, UpdateWindow, BLACK_BRUSH,
-    DT_CENTER, DT_END_ELLIPSIS, DT_LEFT, DT_NOPREFIX, DT_RIGHT, DT_SINGLELINE, DT_VCENTER, FW_BOLD,
+    GetStockObject, InvalidateRect, MonitorFromWindow, RedrawWindow, RoundRect, ScreenToClient,
+    SelectObject, SetBkColor, SetBkMode, SetTextColor, SetViewportOrgEx, UpdateWindow, BLACK_BRUSH,
+    DT_CENTER, DT_END_ELLIPSIS, DT_LEFT, DT_NOPREFIX, DT_SINGLELINE, DT_VCENTER, FW_BOLD,
     FW_NORMAL, HBRUSH, HGDIOBJ, MONITORINFO, MONITOR_DEFAULTTONEAREST, NULL_BRUSH, PAINTSTRUCT,
     PS_SOLID, RDW_ALLCHILDREN, RDW_ERASE, RDW_INVALIDATE, SRCCOPY, TRANSPARENT, WHITE_BRUSH,
 };
@@ -53,8 +53,8 @@ use windows_sys::Win32::System::Threading::{
 };
 use windows_sys::Win32::UI::Accessibility::{HCF_HIGHCONTRASTON, HIGHCONTRASTW};
 use windows_sys::Win32::UI::Controls::{
-    SetScrollInfo, DRAWITEMSTRUCT, NMHDR, NMTTDISPINFOW, ODS_DISABLED, ODS_SELECTED, ODT_BUTTON,
-    TOOLTIPS_CLASSW, TTF_IDISHWND, TTF_SUBCLASS, TTM_ADDTOOLW, TTM_NEWTOOLRECTW,
+    SetScrollInfo, ShowScrollBar, DRAWITEMSTRUCT, NMHDR, NMTTDISPINFOW, ODS_DISABLED, ODS_SELECTED,
+    ODT_BUTTON, TOOLTIPS_CLASSW, TTF_IDISHWND, TTF_SUBCLASS, TTM_ADDTOOLW, TTM_NEWTOOLRECTW,
     TTM_SETMAXTIPWIDTH, TTN_GETDISPINFOW, TTS_ALWAYSTIP, TTTOOLINFOW, WM_MOUSELEAVE,
 };
 use windows_sys::Win32::UI::HiDpi::{
@@ -74,23 +74,21 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     DefWindowProcW, DestroyIcon, DestroyMenu, DestroyWindow, DispatchMessageW, FindWindowW,
     GetClientRect, GetCursorPos, GetDlgCtrlID, GetDlgItem, GetMessageW, GetParent, GetScrollInfo,
     GetWindowLongPtrW, GetWindowRect, IsDialogMessageW, IsWindowVisible, LoadCursorW, LoadIconW,
-    PostMessageW,
-    PostQuitMessage, RegisterClassExW, SetCursor, SetForegroundWindow, SetWindowLongPtrW,
-    SetWindowPos, SetWindowTextW, ShowWindow, SystemParametersInfoW, TrackPopupMenu,
-    TranslateMessage, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, HICON, HMENU,
-    HWND_NOTOPMOST, HWND_TOPMOST, ICON_BIG, ICON_SMALL, IDC_ARROW, IDC_HAND, IDI_APPLICATION,
-    LR_DEFAULTCOLOR, MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED, MINMAXINFO, MSG, SB_BOTTOM,
-    SB_HORZ, SB_LEFT, SB_LINEDOWN, SB_LINELEFT, SB_LINERIGHT, SB_LINEUP, SB_PAGEDOWN, SB_PAGELEFT,
-    SB_PAGERIGHT, SB_PAGEUP, SB_RIGHT, SB_THUMBPOSITION, SB_THUMBTRACK, SB_TOP, SB_VERT,
-    SCROLLINFO, SIF_PAGE, SIF_POS, SIF_RANGE, SIF_TRACKPOS, SIZE_MAXIMIZED, SIZE_MINIMIZED,
-    SIZE_RESTORED, SM_CXVSCROLL, SM_CYHSCROLL, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE,
-    SWP_NOSIZE, SWP_NOZORDER, SWP_NOREDRAW, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL,
-    TPM_RIGHTBUTTON,
-    WM_APP, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION,
-    WM_ERASEBKGND, WM_GETICON, WM_GETMINMAXINFO, WM_HSCROLL, WM_LBUTTONUP, WM_MOUSEMOVE,
-    WM_MOUSEWHEEL, WM_NOTIFY, WM_SETREDRAW,
-    WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SETCURSOR, WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW,
-    WM_SIZE, WM_SYSCOLORCHANGE, WM_SYSCOMMAND, WM_VSCROLL, WNDCLASSEXW, WS_CAPTION, WS_CHILD,
+    PostMessageW, PostQuitMessage, RegisterClassExW, SetCursor, SetForegroundWindow,
+    SetWindowLongPtrW, SetWindowPos, SetWindowTextW, ShowWindow, SystemParametersInfoW,
+    TrackPopupMenu, TranslateMessage, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, HICON,
+    HMENU, HWND_NOTOPMOST, HWND_TOPMOST, ICON_BIG, ICON_SMALL, IDC_ARROW, IDC_HAND,
+    IDI_APPLICATION, LR_DEFAULTCOLOR, MF_CHECKED, MF_SEPARATOR, MF_STRING, MF_UNCHECKED,
+    MINMAXINFO, MSG, SB_BOTTOM, SB_HORZ, SB_LEFT, SB_LINEDOWN, SB_LINELEFT, SB_LINERIGHT,
+    SB_LINEUP, SB_PAGEDOWN, SB_PAGELEFT, SB_PAGERIGHT, SB_PAGEUP, SB_RIGHT, SB_THUMBPOSITION,
+    SB_THUMBTRACK, SB_TOP, SB_VERT, SCROLLINFO, SIF_PAGE, SIF_POS, SIF_RANGE, SIF_TRACKPOS,
+    SIZE_MAXIMIZED, SIZE_MINIMIZED, SIZE_RESTORED, SM_CXVSCROLL, SM_CYHSCROLL, SPI_GETHIGHCONTRAST,
+    SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOREDRAW, SWP_NOSIZE, SWP_NOZORDER, SW_HIDE, SW_MINIMIZE,
+    SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU,
+    WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION, WM_ERASEBKGND, WM_GETICON, WM_GETMINMAXINFO,
+    WM_HSCROLL, WM_LBUTTONUP, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_NOTIFY, WM_QUERYENDSESSION,
+    WM_RBUTTONUP, WM_SETCURSOR, WM_SETICON, WM_SETREDRAW, WM_SETTINGCHANGE, WM_SHOWWINDOW, WM_SIZE,
+    WM_SYSCOLORCHANGE, WM_SYSCOMMAND, WM_VSCROLL, WNDCLASSEXW, WS_CAPTION, WS_CHILD,
     WS_CLIPCHILDREN, WS_EX_APPWINDOW, WS_HSCROLL, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_POPUP,
     WS_SYSMENU, WS_THICKFRAME, WS_VISIBLE, WS_VSCROLL,
 };
@@ -1087,29 +1085,34 @@ unsafe fn paint_header(
         },
         palette().hero_button,
     );
+    let title = "AMD Mobile Power";
+    // The header controls start at width - 232; keep a 12 px gutter so a long
+    // device or worker-error line ellipsizes instead of running under them.
+    let text_right = (width - 244).max(160);
     draw_text_in(
         hdc,
-        "AMD Mobile Power",
+        title,
         fonts.title,
         palette().white,
         RECT {
             left: 24,
-            top: 6,
-            right: width - 212,
-            bottom: 31,
+            top: 8,
+            right: text_right,
+            bottom: 42,
         },
         DT_LEFT,
     );
+    let subtitle_left = 24 + text_width(hdc, title, fonts.title) + 14;
     draw_text_in(
         hdc,
         &platform_subtitle(app),
         fonts.caption,
         palette().header_muted,
         RECT {
-            left: 24,
-            top: 29,
-            right: width - 212,
-            bottom: 50,
+            left: subtitle_left.max(24),
+            top: 8,
+            right: text_right,
+            bottom: 42,
         },
         DT_LEFT,
     );
@@ -1138,18 +1141,19 @@ unsafe fn paint_target_region(
         },
         DT_LEFT,
     );
+    let label_width = text_width(hdc, "目标功耗", fonts.body);
     draw_text_in(
         hdc,
         &format!("{minimum}-{maximum} W"),
         fonts.caption,
         palette().header_muted,
         RECT {
-            left: label_left + layout.target_width - 96,
+            left: label_left + label_width + 10,
             top: 73,
-            right: label_left + layout.target_width,
+            right: label_left + label_width + 116,
             bottom: 94,
         },
-        DT_RIGHT,
+        DT_LEFT,
     );
     paint_surface(
         hdc,
@@ -2249,7 +2253,7 @@ unsafe fn draw_owner_button(app: &GuiApp, draw: &DRAWITEMSTRUCT) {
     }
 
     let icon = match id {
-        TOPMOST_TOGGLE => Some("\u{e718}"),
+        TOPMOST_TOGGLE => Some(if app.top_most { "\u{e842}" } else { "\u{e840}" }),
         WRITE_UNLOCK => Some(if app.write_enabled {
             "\u{e785}"
         } else {
@@ -4493,6 +4497,17 @@ unsafe fn layout_mode_controls_depth(app: &mut GuiApp, hwnd: HWND, depth: u32) {
         };
         SetScrollInfo(hwnd, SB_VERT, &vscroll, 1);
         SetScrollInfo(hwnd, SB_HORZ, &hscroll, 1);
+        // SetScrollInfo alone leaves a scrollbar visible whenever max >= page,
+        // which shows a phantom bar when the content exactly fills the
+        // viewport. Drive visibility explicitly from the real overflow.
+        let needs_vertical = content_height(mode) > viewport_height;
+        // A 1-2 px shortfall is just the vertical scrollbar eating the client
+        // edge; scrolling horizontally for that would hide the right margin
+        // behind a bar. Only scroll when the window is really narrower than
+        // the advanced content.
+        let needs_horizontal = advanced && viewport_width + 20 < ADVANCED_CONTENT_WIDTH;
+        ShowScrollBar(hwnd, SB_VERT, i32::from(needs_vertical));
+        ShowScrollBar(hwnd, SB_HORZ, i32::from(needs_horizontal));
 
         let mut next_client = RECT::default();
         GetClientRect(hwnd, &mut next_client);
@@ -5290,6 +5305,22 @@ unsafe extern "system" fn window_proc(
         WM_CTLCOLORSTATIC => {
             let hdc = wparam as windows_sys::Win32::Graphics::Gdi::HDC;
             let control_id = GetDlgCtrlID(lparam as HWND);
+            // Disabled edits are routed through WM_CTLCOLORSTATIC. They still
+            // need an opaque surface: with WS_CLIPCHILDREN the parent never
+            // paints under them, so a transparent brush would leave the
+            // pre-scroll pixels (dark header) visible inside the field.
+            let field_id = control_id as usize;
+            let is_edit_field = (PRESET_EDIT_START..=PRESET_EDIT_START + 2).contains(&field_id)
+                || matches!(
+                    field_id,
+                    POLICY_BATTERY_EDIT | POLICY_AC_EDIT | SIMPLE_TARGET_EDIT
+                );
+            if is_edit_field {
+                SetBkMode(hdc, 1);
+                SetBkColor(hdc, palette().surface);
+                SetTextColor(hdc, palette().text_muted);
+                return surface_brush() as LRESULT;
+            }
             SetBkMode(hdc, TRANSPARENT as i32);
             SetTextColor(hdc, static_text_color(control_id));
             GetStockObject(NULL_BRUSH) as LRESULT
