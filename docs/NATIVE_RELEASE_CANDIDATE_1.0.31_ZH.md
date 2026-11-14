@@ -55,7 +55,7 @@ worker 候选 `1.0.31-native` 的可复核资产、可靠性修复、已通过�
 - 可复现构建：GUI、probe、worker、portable ZIP 两次构建逐字节一致。
 - 安装器进程范围回归：PASS；稳定 GUI/worker PID 集合保持不变，
   隔离目标目录已清理。
-- 当前分支 HEAD 的托管 Windows CI：run `43537439992`（commit `fe8dcd7`）
+- 当前分支 HEAD 的托管 Windows CI：run `43541221116`（commit `10b8e8f`）
   全部步骤 success。
 - 打包 GUI 完整交互回归：托盘图标、简洁/高级模式、顶部置顶、写入控件、
   预设编辑、策略开关、焦点通知、最小尺寸、滚动、关闭到托盘、单实例唤醒

@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "evidenceType": "hosted-windows-ci-run",
   "workflow": "build",
-  "runId": 43537439992,
-  "jobId": 132269745855,
+  "runId": 43541221116,
+  "jobId": 132281982780,
   "jobName": "windows-native",
-  "commit": "fe8dcd70f56f6da2c48bdf6a7c39c7609ae9957a",
+  "commit": "10b8e8fa864442329c051672b7931bf73c51694d",
   "branch": "release/1.0.31",
   "conclusion": "success",
-  "url": "https://github.com/syttys123/amd-mobile-power/actions/runs/43537439992",
+  "url": "https://github.com/syttys123/amd-mobile-power/actions/runs/43541221116",
   "steps": [
     { "name": "Set up job", "conclusion": "success" },
     { "name": "Run actions/checkout@v4", "conclusion": "success" },
@@ -19,9 +19,10 @@
     { "name": "Build RyzenAdj runtime", "conclusion": "success" },
     { "name": "Build native runtime and run all tests", "conclusion": "success" },
     { "name": "Verify reproducible binaries and portable package", "conclusion": "success" },
+    { "name": "Verify public sanitization", "conclusion": "success" },
     { "name": "Headless probe self-test", "conclusion": "success" },
     { "name": "Upload native portable package", "conclusion": "success" }
   ],
   "note": "Observed through the public workflow/job pages; no GitHub login or token was used. The branch was renamed after this run; run ID and commit are authoritative. The readiness gate requires a successful run whose commit is an ancestor of HEAD and no native/, .github/, Cargo, or build-script changes since that commit.",
-  "observedAt": "2026-11-14T09:10:00+08:00"
+  "observedAt": "2026-11-14T09:36:00+08:00"
 }
