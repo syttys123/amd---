@@ -67,6 +67,10 @@ not authoritative.
   gate passes; the v9 video and 1.0.28 capture set remain valid because the
   UI is unchanged. Rechecked the video with `ffprobe` and a full `ffmpeg`
   decode: 42.5 s, 1920x1080, 30 fps, H.264/AAC, hash and size match.
+- Updated `docs/RELEASE_RUNBOOK.md` to the 1.0.31 pending-gate flow: hardware
+  gate, dry-run promotion, readiness refresh, fast-forward merge, tag,
+  GitHub Release draft, Bilibili upload, post-download verification, and
+  reversible rollback.
 - Recovery after the earlier unintended stop: the persisted policy was restored
   to `8/8/8 W`, the deployed GUI/worker were restarted, and live AC read-back
   is `8.00 W` again. No high-risk power value was written.
