@@ -1,9 +1,18 @@
-param([string]$EvidencePath)
+param([string]$EvidencePath, [string]$WorkerExecutable)
 $ErrorActionPreference = 'Stop'
 $repository = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
 $workerPath = Join-Path $repository 'artifacts\native-build\cpp-worker\Release\amdmobilepower_native_worker.exe'
+if ($WorkerExecutable) { $workerPath = (Resolve-Path -LiteralPath $WorkerExecutable).Path }
 $pipeName = "AmdMobilePower.RequestBounds.$([Guid]::NewGuid().ToString('N'))"
 $worker = $null
+function Test-PipeDisconnect($Exception) {
+    while ($Exception) {
+        if ($Exception -is [System.IO.IOException] -and
+            (($Exception.HResult -band 0xFFFF) -in @(109, 232, 233))) { return $true }
+        $Exception = $Exception.InnerException
+    }
+    return $false
+}
 function Send-Request([string]$Text, [switch]$ExpectDisconnect) {
     $pipe = [System.IO.Pipes.NamedPipeClientStream]::new('.', $pipeName, [System.IO.Pipes.PipeDirection]::InOut,
         [System.IO.Pipes.PipeOptions]::Asynchronous)
@@ -12,7 +21,7 @@ function Send-Request([string]$Text, [switch]$ExpectDisconnect) {
         $bytes = [System.Text.Encoding]::UTF8.GetBytes($Text)
         $write = $pipe.WriteAsync($bytes, 0, $bytes.Length)
         try { if (-not $write.Wait(5000)) { throw 'Write timed out.' } }
-        catch { if ($ExpectDisconnect) { return }; throw }
+        catch { if ($ExpectDisconnect -and (Test-PipeDisconnect $_.Exception)) { return }; throw }
         if ($ExpectDisconnect) {
             $buffer = [byte[]]::new(1)
             try {
@@ -21,7 +30,7 @@ function Send-Request([string]$Text, [switch]$ExpectDisconnect) {
                 if ($read.Result -ne 0) { throw 'Oversized request received unexpected data.' }
             }
             catch {
-                if ($_.Exception.ToString() -notmatch 'broken|closed|ended|断开|结束|关闭') { throw }
+                if (-not (Test-PipeDisconnect $_.Exception)) { throw }
             }
             return
         }
@@ -68,7 +77,7 @@ try {
                 if ($pending.Result -ne 0) { throw 'Incomplete request unexpectedly received data.' }
             }
             catch {
-                if ($_.Exception.ToString() -notmatch 'broken|closed|ended|断开|结束|关闭') { throw }
+                if (-not (Test-PipeDisconnect $_.Exception)) { throw }
             }
             if ($timer.Elapsed.TotalSeconds -lt 4 -or $timer.Elapsed.TotalSeconds -gt 8) {
                 throw "Unexpected read deadline duration: $($timer.Elapsed.TotalSeconds)"

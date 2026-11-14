@@ -108,6 +108,9 @@ try {
         throw "C++ power-policy tests failed."
     }
 
+    & (Join-Path $root "test-worker-request-bounds.ps1") `
+        -WorkerExecutable (Join-Path $cppBuild "$Configuration\amdmobilepower_native_worker.exe")
+
     $rustGuiTestArguments = @(
         "test",
         "--manifest-path", $rustGuiManifest,

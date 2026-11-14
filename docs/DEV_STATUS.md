@@ -21,6 +21,21 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (transport regression included in native build):
+
+- `native/build.ps1` now runs the no-hardware request-bound/deadline/resource
+  suite against the worker built for the selected configuration, before Rust
+  checks. Standard native builds therefore exercise fragmented/oversized
+  requests, slow clients, unread responses and 100-request handle/thread
+  stability instead of leaving those as optional manual tests.
+- Tightened disconnect expectations to IOException Win32 codes 109/232/233
+  through the exception chain. A write timeout or unrelated exception is no
+  longer accepted as an expected oversized-request disconnect.
+- Full `native/build.ps1 -Offline` PASS: transport regression (handles 54/54,
+  threads 4/4), both C++ policy suites, Rust GUI 54 tests, probe 7 tests,
+  Release binaries and embedded icon checks. No hardware flags in transport
+  tests. Stable deployment remains unchanged.
+
 2026-11-14 (unreleased: response-side synchronous I/O cancellation):
 
 - Response delivery now supervises WriteFile and FlushFileBuffers with a
