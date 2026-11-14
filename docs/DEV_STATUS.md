@@ -21,6 +21,20 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (pipe-busy connection regression verified):
+
+- Extracted the busy-open retry helper and added coverage for busy-then-open,
+  persistent-busy deadline, and immediate return on non-231 errors.
+- Added a real Windows named-pipe test: occupy its only instance, assert
+  ERROR_PIPE_BUSY, start the retry, disconnect and re-arm the server, then
+  assert successful connection after at least two attempts. File handles are
+  RAII-owned and the retry thread is joined. No hardware worker is involved.
+- The first fixture omitted re-arming the disconnected server and failed;
+  corrected it to use PIPE_NOWAIT and ConnectNamedPipe so the fixture itself
+  does not hang if the retry regresses. Added required Windows pipe/IO features.
+- All 58 Rust GUI tests and Clippy warnings-denied PASS. Latest source differs
+  from packaged GUI; rebuild/revalidate before promotion. C:\RyzenAdj unchanged.
+
 2026-11-14 (GUI pipe-busy retry and latest read-only integration):
 
 - Latest integrated package initially failed GUI worker connection with

@@ -7,6 +7,22 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 pub const DEFAULT_PIPE_NAME: &str = r"\\.\pipe\AmdMobilePower.RustGui.Worker.v1";
 
+fn retry_busy_connection<T>(
+    timeout: Duration,
+    mut connect: impl FnMut() -> std::io::Result<T>,
+) -> std::io::Result<T> {
+    let deadline = Instant::now() + timeout;
+    loop {
+        match connect() {
+            Ok(stream) => return Ok(stream),
+            Err(error) if error.raw_os_error() == Some(231) && Instant::now() < deadline => {
+                std::thread::sleep(Duration::from_millis(20).min(deadline.saturating_duration_since(Instant::now())));
+            }
+            Err(error) => return Err(error),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PowerLimitTarget {
@@ -231,16 +247,9 @@ impl WorkerClient {
             "payload": payload
         });
 
-        let connect_deadline = Instant::now() + Duration::from_secs(2);
-        let stream = loop {
-            match OpenOptions::new().read(true).write(true).open(&self.pipe_name) {
-                Ok(stream) => break stream,
-                Err(error) if error.raw_os_error() == Some(231) && Instant::now() < connect_deadline => {
-                    std::thread::sleep(Duration::from_millis(20));
-                }
-                Err(error) => return Err(format!("unable to open {}: {error}", self.pipe_name)),
-            }
-        };
+        let stream = retry_busy_connection(Duration::from_secs(2), || {
+            OpenOptions::new().read(true).write(true).open(&self.pipe_name)
+        }).map_err(|error| format!("unable to open {}: {error}", self.pipe_name))?;
         let mut writer = stream
             .try_clone()
             .map_err(|error| format!("unable to clone worker stream: {error}"))?;
@@ -299,6 +308,81 @@ fn normalize_pipe_name(value: String) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn real_busy_pipe_connects_after_owner_disconnects() {
+        use std::os::windows::io::FromRawHandle;
+        use windows_sys::Win32::Foundation::INVALID_HANDLE_VALUE;
+        use windows_sys::Win32::Storage::FileSystem::PIPE_ACCESS_DUPLEX;
+        use windows_sys::Win32::System::Pipes::{ConnectNamedPipe, CreateNamedPipeW, DisconnectNamedPipe};
+        let name = format!(r"\\.\pipe\AmdMobilePower.RetryTest.{}", std::process::id());
+        let wide: Vec<u16> = name.encode_utf16().chain(Some(0)).collect();
+        let handle = unsafe {
+            CreateNamedPipeW(wide.as_ptr(), PIPE_ACCESS_DUPLEX, 1, 1, 1024, 1024, 0, std::ptr::null())
+        };
+        assert_ne!(handle, INVALID_HANDLE_VALUE);
+        let server = unsafe { std::fs::File::from_raw_handle(handle) };
+        let occupied = std::fs::OpenOptions::new().read(true).write(true).open(&name).unwrap();
+        assert_eq!(std::fs::OpenOptions::new().read(true).write(true).open(&name).unwrap_err().raw_os_error(), Some(231));
+        let (started, ready) = std::sync::mpsc::channel();
+        let retry = std::thread::spawn(move || {
+            let mut attempts = 0;
+            let result = super::retry_busy_connection(std::time::Duration::from_secs(2), || {
+                attempts += 1;
+                let result = std::fs::OpenOptions::new().read(true).write(true).open(&name);
+                if attempts == 1 { started.send(()).unwrap(); }
+                result
+            });
+            (result, attempts)
+        });
+        ready.recv_timeout(std::time::Duration::from_secs(1)).unwrap();
+        unsafe { assert_ne!(DisconnectNamedPipe(handle), 0); }
+        unsafe { ConnectNamedPipe(handle, std::ptr::null_mut()); }
+        let (connected, attempts) = retry.join().unwrap();
+        assert!(connected.is_ok());
+        assert!(attempts >= 2);
+        drop(connected);
+        drop(occupied);
+        drop(server);
+    }
+
+    #[test]
+    fn busy_connection_retries_until_available() {
+        let mut attempts = 0;
+        let result = super::retry_busy_connection(std::time::Duration::from_secs(1), || {
+            attempts += 1;
+            if attempts < 3 { Err(std::io::Error::from_raw_os_error(231)) } else { Ok(42) }
+        });
+        assert_eq!(result.unwrap(), 42);
+        assert_eq!(attempts, 3);
+    }
+
+    #[test]
+    fn connection_errors_other_than_busy_are_not_retried() {
+        for code in [2, 5, 109] {
+            let mut attempts = 0;
+            let result: std::io::Result<()> = super::retry_busy_connection(std::time::Duration::from_secs(1), || {
+                attempts += 1;
+                Err(std::io::Error::from_raw_os_error(code))
+            });
+            assert_eq!(result.unwrap_err().raw_os_error(), Some(code));
+            assert_eq!(attempts, 1);
+        }
+    }
+
+    #[test]
+    fn persistent_busy_connection_has_a_deadline() {
+        let start = std::time::Instant::now();
+        let mut attempts = 0;
+        let result: std::io::Result<()> = super::retry_busy_connection(std::time::Duration::from_millis(40), || {
+            attempts += 1;
+            Err(std::io::Error::from_raw_os_error(231))
+        });
+        assert_eq!(result.unwrap_err().raw_os_error(), Some(231));
+        assert!(attempts >= 2);
+        assert!(start.elapsed() >= std::time::Duration::from_millis(40));
+        assert!(start.elapsed() < std::time::Duration::from_secs(2));
+    }
+
     use super::{normalize_pipe_name, PowerLimitTarget, PowerPolicySettings, WorkerClient};
 
     #[test]
