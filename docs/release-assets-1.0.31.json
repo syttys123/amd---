@@ -47,6 +47,7 @@
     "releaseNotes": "docs/release-notes-1.0.31-zh.md",
     "launchCopy": "docs/NATIVE_LAUNCH_COPY_1.0.31_ZH.md",
     "candidateReview": "docs/NATIVE_RELEASE_CANDIDATE_1.0.31_ZH.md",
+    "releaseChecklist": "docs/RELEASE_CHECKLIST.md",
     "runbook": "docs/RELEASE_RUNBOOK.md"
   }
 }

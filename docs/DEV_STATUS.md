@@ -71,6 +71,9 @@ not authoritative.
   gate, dry-run promotion, readiness refresh, fast-forward merge, tag,
   GitHub Release draft, Bilibili upload, post-download verification, and
   reversible rollback.
+- Rewrote `docs/RELEASE_CHECKLIST.md` for 1.0.31 so completed software gates
+  are checked while hardware, real-DPI, human-review, public-approval, and
+  promotion items remain explicitly pending.
 - Recovery after the earlier unintended stop: the persisted policy was restored
   to `8/8/8 W`, the deployed GUI/worker were restarted, and live AC read-back
   is `8.00 W` again. No high-risk power value was written.
