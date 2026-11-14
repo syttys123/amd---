@@ -1,5 +1,36 @@
 # Release Checklist
 
+## Current Candidate Override (2026-11-14)
+
+Current target: **1.0.34**, status **SOURCE_AHEAD_OF_CANDIDATE**.
+The checklist below is historical and mixes 1.0.31-1.0.33 evidence. Its
+checked boxes must not be used as current release approval.
+
+The existing clean 1.0.34 ZIP comes from `c028cc4`, SHA256
+`a4a731c53aa7ee9b0ed70d7be55d4ad8d55066aac49674e681cd2a73c5fe0cda`.
+Worker cleanup changed afterward in `cc3e464`; current source is ahead.
+C:\RyzenAdj remains 1.0.33. Current readiness is:
+
+- [x] Native source build: GUI 59 tests, probe 7 tests, C++ policy tests.
+- [x] No-driver destructor cleanup and transport resource regression pass.
+- [x] Existing c028cc4 ZIP read-only runtime, diagnostics and install flow pass.
+- [x] Existing ZIP binaries match independent rebuilds; deterministic repack passes.
+- [ ] New clean candidate built after worker cleanup changes.
+- [ ] Final candidate formatting, Clippy and hosted CI refreshed.
+- [ ] Final source-to-package reproducibility and sanitization refreshed.
+- [ ] Final current-value write/read-back and worker-hang recovery gates pass.
+- [ ] Final package battery/AC transition and driver lifecycle evidence recorded.
+- [ ] Final packaged DPI/work-area/resize/resource and regional visual review pass.
+- [ ] Real OS DPI transitions, second AMD device and clean Windows baseline recorded.
+- [ ] Exact gated ZIP promoted with rollback and deployed hashes/read-back verified.
+- [ ] Media refreshed to final UI; 30-40+ second video reviewed with licensed audio.
+- [ ] Owner approves final GitHub Release and Bilibili publication.
+
+Older PASS records establish historical behavior only. Missing current gates
+remain pending even when an earlier binary passed the same test.
+
+## Historical Checklist
+
 Release under review: `1.0.33-native`
 
 Branch: `release/1.0.33`

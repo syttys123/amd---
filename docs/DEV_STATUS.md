@@ -21,6 +21,17 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (release checklist evidence drift corrected):
+
+- Checklist/runbook headers claimed 1.0.33 while checked items and executable
+  commands referenced 1.0.31. Added current 1.0.34 override sections and
+  explicitly marked the previous material historical, not current approval.
+- Current summary separates source tests, existing c028cc4 ZIP evidence and
+  missing final candidate/hardware/UI/media/deployment/publication gates.
+  Worker source changes after candidate build remain clearly outstanding.
+- Documentation verification PASS (53 Markdown files, 39 relative links),
+  diff whitespace check PASS. No build, hardware or deployment changes.
+
 2026-11-14 (driver cleanup destructor branch regression PASS):
 
 - Added a no-driver C++ test using a narrow friend accessor and counting
