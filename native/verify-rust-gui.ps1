@@ -67,6 +67,9 @@ public static class AmdMobilePowerRustGuiNative {
     public delegate bool EnumChildProc(IntPtr hwnd, IntPtr lparam);
 
     [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
+
+    [DllImport("user32.dll", SetLastError = true)]
     public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 
     [DllImport("user32.dll")]
@@ -187,6 +190,13 @@ public static class AmdMobilePowerRustGuiNative {
     }
 }
 "@
+
+# The checks compare window and client rectangles against the app's own
+# logical coordinates. Without per-monitor awareness this process sees
+# virtualized rectangles on a scaled display, so every DPI-dependent
+# expectation (minimum window size, scroll range) drifts by the display scale.
+[AmdMobilePowerRustGuiNative]::SetProcessDpiAwarenessContext([IntPtr](-4)) |
+    Out-Null
 
 $wmCommand = 0x0111
 $wmClose = 0x0010
@@ -791,17 +801,31 @@ try {
             }
         }
 
-        Wait-Until `
-            -Description "battery-only policy toggle to become usable" `
-            -Condition {
-                $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
-                    $window,
-                    318)
-                $control -ne [IntPtr]::Zero -and
-                    [AmdMobilePowerRustGuiNative]::IsWindowVisible($control) -and
-                    [AmdMobilePowerRustGuiNative]::IsWindowEnabled($control) -and
-                    (Get-ControlText -Window $window -ControlId 318) -eq "仅电池"
-            }
+        try {
+            Wait-Until `
+                -Description "battery-only policy toggle to become usable" `
+                -Condition {
+                    $control = [AmdMobilePowerRustGuiNative]::GetDlgItem(
+                        $window,
+                        318)
+                    $control -ne [IntPtr]::Zero -and
+                        [AmdMobilePowerRustGuiNative]::IsWindowVisible($control) -and
+                        [AmdMobilePowerRustGuiNative]::IsWindowEnabled($control) -and
+                        (Get-ControlText -Window $window -ControlId 318) -eq "仅电池"
+                }
+        }
+        catch {
+            $probeControl = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, 318)
+            throw ("battery-only policy toggle stayed unusable: " +
+                "handle=$probeControl visible=" +
+                "$([AmdMobilePowerRustGuiNative]::IsWindowVisible($probeControl)) " +
+                "enabled=$([AmdMobilePowerRustGuiNative]::IsWindowEnabled($probeControl)) " +
+                "text='$(Get-ControlText -Window $window -ControlId 318)' " +
+                "mode='$(Get-ControlText -Window $window -ControlId 109)' " +
+                "device='$(Get-ControlText -Window $window -ControlId 370)' " +
+                "workers=$((Get-Process amdmobilepower_native_worker -ErrorAction SilentlyContinue |
+                    Measure-Object).Count).")
+        }
         $batteryOnlyButton = [AmdMobilePowerRustGuiNative]::GetDlgItem(
             $window,
             318)
@@ -927,16 +951,32 @@ try {
         $scroll = New-Object AmdMobilePowerRustGuiNative+SCROLLINFO
         $scroll.Size = [System.Runtime.InteropServices.Marshal]::SizeOf($scroll)
         $scroll.Mask = 0x0017
+        # The GUI may still be finishing a worker round-trip from the earlier
+        # policy checks, so wait for the resize layout instead of assuming the
+        # synchronous SetWindowPos was already handled.
+        Wait-Until `
+            -Description "short advanced viewport scroll range" `
+            -Condition {
+                $probeScroll = New-Object AmdMobilePowerRustGuiNative+SCROLLINFO
+                $probeScroll.Size = [System.Runtime.InteropServices.Marshal]::SizeOf($probeScroll)
+                $probeScroll.Mask = 0x0017
+                [AmdMobilePowerRustGuiNative]::GetScrollInfo(
+                    $window, 1, [ref]$probeScroll) | Out-Null
+                $probeScroll.Max -ge $probeScroll.Page -and $probeScroll.Position -eq 0
+            }
         [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null
         if ($scroll.Max -lt $scroll.Page -or $scroll.Position -ne 0) {
-            throw "Short advanced viewport did not expose its scroll range."
+            throw ("Short advanced viewport did not expose its scroll range: " +
+                "max=$($scroll.Max) page=$($scroll.Page) position=$($scroll.Position).")
         }
         $hscroll = New-Object AmdMobilePowerRustGuiNative+SCROLLINFO
         $hscroll.Size = [System.Runtime.InteropServices.Marshal]::SizeOf($hscroll)
         $hscroll.Mask = 0x0017
         [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 0, [ref]$hscroll) | Out-Null
         if ($hscroll.Max -lt $hscroll.Page -or $hscroll.Position -ne 0) {
-            throw "Narrow advanced viewport did not expose its horizontal scroll range."
+            throw ("Narrow advanced viewport did not expose its horizontal " +
+                "scroll range: max=$($hscroll.Max) page=$($hscroll.Page) " +
+                "position=$($hscroll.Position).")
         }
         $windowStyle = [AmdMobilePowerRustGuiNative]::GetWindowLongPtr($window, -16).ToInt64()
         if (($windowStyle -band 0x00200000) -eq 0 -or
