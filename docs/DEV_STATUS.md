@@ -21,6 +21,27 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (latest payload integration and restoration confirmation):
+
+- Clean source `e43669e` passed the complete read-only package flow with
+  58 GUI tests, 7 probe tests and native transport/policy regression.
+  Original clean ZIP SHA256:
+  `5c8230a8aa019c02bbe2c4f34f0befef2f6067c9b45055b980f49a78a7763271`.
+- Fresh isolated rebuilds reproduce current GUI `ae62f152`, probe `9750418f`
+  and worker `e8ed63d3` hashes; evidence refreshed in
+  `evidence/build/reproducibility-ui-root-fixes-2026-11-14.json`.
+- Post-build inspection found no stable GUI/worker despite a completed
+  verification command. Relaunched stable 1.0.33 and confirmed its GUI and
+  child worker. The exact cause of the missing restoration is not proven.
+- Package finally now waits two seconds after restoration and requires a
+  live matching GUI if the launched process exits. Diagnostic read-only
+  flow with this assertion PASS; local evidence
+  `artifacts/ui-root-review/restore-confirmation.json`.
+- That diagnostic run overwrote the local 1.0.34 ZIP with a dirty-tree build;
+  the tracked clean-package evidence describes the earlier hash, not the
+  current ZIP. Clean rebuild required before further package/release claims.
+  C:\RyzenAdj still 1.0.33; no deployment replacement performed.
+
 2026-11-14 (pipe-busy connection regression verified):
 
 - Extracted the busy-open retry helper and added coverage for busy-then-open,

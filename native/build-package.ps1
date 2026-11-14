@@ -540,8 +540,20 @@ public static class PackageGuiSession {
     finally {
         foreach ($session in $savedGuiSessions) {
             if (-not (Get-Process -Id $session.Id -ErrorAction SilentlyContinue)) {
-                Start-Process -FilePath $session.Path -ArgumentList $session.Arguments `
-                    -WorkingDirectory (Split-Path -Parent $session.Path) -WindowStyle Hidden
+                $restored = Start-Process -FilePath $session.Path -ArgumentList $session.Arguments `
+                    -WorkingDirectory (Split-Path -Parent $session.Path) -WindowStyle Hidden -PassThru
+                try {
+                    Start-Sleep -Seconds 2
+                    $restored.Refresh()
+                    if ($restored.HasExited) {
+                        $liveSession = @(Get-CimInstance Win32_Process -Filter "Name = 'amd-mobile-power-gui.exe'" |
+                            Where-Object { $_.ExecutablePath -eq $session.Path })
+                        if ($liveSession.Count -eq 0) {
+                            throw "Stable GUI restoration exited without a live matching session."
+                        }
+                    }
+                }
+                finally { $restored.Dispose() }
             }
         }
     }
