@@ -52,6 +52,11 @@ not authoritative.
   desktop shortcut `功耗设置 5-60W.lnk` with
   `--simple-mode --max-target-watts 45`. The final dry run must be repeated
   for the rebuilt post-hardware-gate package because its ZIP hash changes.
+- Ran the real shell-integration gate against the 1.0.31 package:
+  install directory and marker, Start menu shortcut, startup shortcut, and
+  uninstall registry entry were created and then removed completely.
+  Evidence: `docs/evidence/packaging/v1.0.31-shell-integration-2026-11-14.json`;
+  the deployed `C:\RyzenAdj` tree was not touched.
 
 2026-11-14 (unreleased branch hardening: atomic UI state writes):
 

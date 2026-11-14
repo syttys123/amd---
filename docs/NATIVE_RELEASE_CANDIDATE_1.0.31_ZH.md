@@ -62,6 +62,8 @@ worker 候选 `1.0.31-native` 的可复核资产、可靠性修复、已通过�
   全部 PASS；实时 worker 保持 `8/8/8 W`，未触发功耗写入。
 - 逻辑 DPI 夹具：100% / 125% / 150% PASS；1366x768/200% 工作区
   PASS；最大化/滚动回归 PASS。
+- shell integration：真实安装/启动项/开始菜单/卸载登记创建并完整清理
+  PASS，无残留目录、快捷方式或注册表项。
 
 ## 尚未执行的硬件门禁
 
@@ -71,7 +73,7 @@ worker 或改变功耗：
 - [ ] `verify-release.ps1 -Version 1.0.31` 完整硬件门禁。
 - [ ] 当前值同值策略写入/回读。
 - [ ] worker 卡死替换与策略恢复。
-- [ ] shell integration 与部署版 GUI 交互回归。
+- [ ] 部署版 GUI 交互回归。
 - [ ] 晋升到 `C:\RyzenAdj`，并保留新的时间戳回滚目录。
 
 ## 硬件边界
@@ -90,6 +92,7 @@ worker 或改变功耗：
 - `docs/evidence/ui/native-dpi-100-125-150-2026-11-14.json`
 - `docs/evidence/ui/native-workarea-200-1366x768-2026-11-14.json`
 - `docs/evidence/ui/native-maximize-scroll-2026-11-14.json`
+- `docs/evidence/packaging/v1.0.31-shell-integration-2026-11-14.json`
 - `docs/evidence/build/hosted-ci-2026-11-14.json`
 - `docs/evidence/build/reproducibility-1.0.31-2026-11-14.json`
 - `docs/evidence/media/native-promo-1.0.31-draft-2026-11-14.json`

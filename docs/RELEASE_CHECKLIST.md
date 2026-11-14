@@ -22,6 +22,8 @@ Status: `SOFTWARE_GATES_PASS_HARDWARE_GATE_PENDING`
 - [x] Isolated install/overwrite/uninstall flow passes.
 - [x] Installer process-scope regression passes while the deployed
       GUI/worker are running.
+- [x] Real shell-integration install/startup/Start-menu/uninstall flow passes
+      for 1.0.31 and cleans up without residual state.
 - [x] Hosted Windows CI passes for the native commit
       (run `43534100849`, commit `92c1821`).
 - [x] Hosted Windows CI passes for the release-material commit
