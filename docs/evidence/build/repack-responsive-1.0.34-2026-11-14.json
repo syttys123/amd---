@@ -1,0 +1,9 @@
+{
+  "Verification": "PASS",
+  "Scope": "Existing package contents and deterministic ZIP serialization; not a source rebuild",
+  "Package": "amd-mobile-power-v1.0.34-win-x64-native-preview.zip",
+  "OriginalSHA256": "a4a731c53aa7ee9b0ed70d7be55d4ad8d55066aac49674e681cd2a73c5fe0cda",
+  "RepackedSHA256": "a4a731c53aa7ee9b0ed70d7be55d4ad8d55066aac49674e681cd2a73c5fe0cda",
+  "OriginalUnchanged": true,
+  "RecordedAt": "2026-11-14T21:33:07.7740550+08:00"
+}

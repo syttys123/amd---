@@ -21,6 +21,21 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (existing responsive candidate deterministic repack PASS):
+
+- Added `native/test-existing-package-repack.ps1` to extract the existing ZIP
+  into a unique checked artifacts directory and independently serialize its
+  entries with sorted paths/fixed timestamps. It never replaces the candidate
+  and removes scratch files in finally.
+- Exact existing candidate SHA256 `a4a731c5...` reproduced byte-for-byte;
+  original package remained unchanged. Evidence:
+  `evidence/build/repack-responsive-1.0.34-2026-11-14.json`.
+- Scope is package-content serialization, not a source rebuild. The separate
+  fresh binary rebuild/ZIP-entry comparison supplies binary evidence; this
+  test alone does not establish source-to-package reproducibility for every
+  text/config file. Full release/write/hang gates remain outstanding.
+- No GUI interruption, hardware access or deployment change in this check.
+
 2026-11-14 (responsive candidate binaries reproduced and matched inside ZIP):
 
 - Fresh unique-target Rust rebuilds and clean-first C++ rebuild PASS for
