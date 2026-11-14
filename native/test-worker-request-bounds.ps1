@@ -40,6 +40,17 @@ try {
     $worker = Start-Process -FilePath $workerPath -ArgumentList @('--pipe-name', $pipeName) -WindowStyle Hidden -PassThru
     $request = '{"protocolVersion":1,"requestId":"bounds","command":"getHealth","payload":null}'
     Send-Request ($request + "`n")
+    $unread = [System.IO.Pipes.NamedPipeClientStream]::new('.', $pipeName,
+        [System.IO.Pipes.PipeDirection]::InOut)
+    try {
+        $unread.Connect(3000)
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($request + "`n")
+        $unread.Write($bytes, 0, $bytes.Length)
+        Start-Sleep -Seconds 6
+        # Keep the first client open and unread while verifying server recovery.
+        Send-Request ($request + "`n")
+    }
+    finally { $unread.Dispose() }
     foreach ($partial in @('', '{"command":')) {
         $slow = [System.IO.Pipes.NamedPipeClientStream]::new('.', $pipeName,
             [System.IO.Pipes.PipeDirection]::InOut, [System.IO.Pipes.PipeOptions]::Asynchronous)
@@ -71,7 +82,20 @@ try {
     Send-Request ($request + "`n")
     $record = @{ Verification='PASS'; FragmentedRequestBytes=5000; OversizedRequestBytes=70000;
         HealthAfterOversize='PASS'; SlowClientDeadline='PASS'; SlowClientCases=2;
-        HardwareEnabled=$false; RecordedAt=(Get-Date).ToString('o') }
+        UnreadResponseRecovery='PASS'; HardwareEnabled=$false; RecordedAt=(Get-Date).ToString('o') }
+    $worker.Refresh()
+    $beforeHandles = $worker.HandleCount
+    $beforeThreads = $worker.Threads.Count
+    for ($index = 0; $index -lt 100; $index++) { Send-Request ($request + "`n") }
+    Start-Sleep -Milliseconds 200
+    $worker.Refresh()
+    $record.HandlesBefore = $beforeHandles
+    $record.HandlesAfter = $worker.HandleCount
+    $record.ThreadsBefore = $beforeThreads
+    $record.ThreadsAfter = $worker.Threads.Count
+    if ($worker.HandleCount -gt ($beforeHandles + 2) -or $worker.Threads.Count -gt ($beforeThreads + 1)) {
+        throw 'Response watchdog resources accumulated across normal requests.'
+    }
 }
 finally {
     if ($worker) {

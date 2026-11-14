@@ -1,0 +1,15 @@
+{
+  "HealthAfterOversize": "PASS",
+  "RecordedAt": "2026-11-14T20:49:48.6849451+08:00",
+  "ThreadsAfter": 4,
+  "ThreadsBefore": 4,
+  "HardwareEnabled": false,
+  "HandlesBefore": 54,
+  "OversizedRequestBytes": 70000,
+  "FragmentedRequestBytes": 5000,
+  "SlowClientDeadline": "PASS",
+  "UnreadResponseRecovery": "PASS",
+  "Verification": "PASS",
+  "SlowClientCases": 2,
+  "HandlesAfter": 54
+}

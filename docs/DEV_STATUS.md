@@ -21,6 +21,25 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (unreleased: response-side synchronous I/O cancellation):
+
+- Response delivery now supervises WriteFile and FlushFileBuffers with a
+  five-second watchdog. Normal completion wakes and joins it immediately;
+  expiry repeatedly calls CancelSynchronousIo until sender acknowledgement,
+  covering the gap between write and flush. The watchdog joins before the
+  next connection; its duplicated thread handle is closed.
+- No-hardware runtime regression PASS: a client kept its connection open
+  without reading its response, then another client successfully queried
+  health after six seconds. Read deadlines, fragmented/oversized requests
+  also passed. After 100 additional health requests, process handles stayed
+  54 and threads stayed 4. Both C++ policy suites PASS.
+- Evidence: `evidence/ui/native-worker-response-deadline-2026-11-14.json`.
+  Test worker exited; no deployment replacement or power write requested.
+- This relies on Windows synchronous pipe cancellation and is not a hard
+  process-level termination guarantee. Hardware/driver calls are outside
+  this communication timeout. Rebuild package and refresh all affected
+  reproducibility/runtime evidence before promotion.
+
 2026-11-14 (unreleased: worker request-read deadline):
 
 - Added a fixed five-second request-read deadline after pipe connection.

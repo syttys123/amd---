@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <cctype>
 #include <cmath>
 #include <cstdint>
@@ -765,6 +766,39 @@ bool WriteAll(HANDLE pipe, std::string_view value) {
     return true;
 }
 
+bool SendResponse(HANDLE pipe, std::string_view response) {
+    HANDLE io_thread = nullptr;
+    if (!DuplicateHandle(GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(),
+            &io_thread, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
+        return false;
+    }
+    std::mutex mutex;
+    std::condition_variable completed;
+    bool done = false;
+    bool expired = false;
+    std::jthread deadline([&] {
+        std::unique_lock lock(mutex);
+        if (!completed.wait_for(lock, std::chrono::seconds(5), [&] { return done; })) {
+            expired = true;
+            // Repeat until the sender acknowledges cancellation: the deadline
+            // may land between WriteFile and FlushFileBuffers.
+            while (!done) {
+                CancelSynchronousIo(io_thread);
+                completed.wait_for(lock, std::chrono::milliseconds(10), [&] { return done; });
+            }
+        }
+    });
+    const bool sent = WriteAll(pipe, response) && FlushFileBuffers(pipe) != FALSE;
+    {
+        std::lock_guard lock(mutex);
+        done = true;
+    }
+    completed.notify_one();
+    deadline.join();
+    CloseHandle(io_thread);
+    return sent && !expired;
+}
+
 Request ParseRequest(std::string_view line) {
     Request request;
     request.request_id =
@@ -1126,10 +1160,9 @@ int wmain(int argc, wchar_t* argv[]) {
                     "unsupported_command",
                     "Native worker implements getHealth, getProfiles, getCapabilities, getSnapshot, applyTarget, getPowerPolicy, setPowerPolicy, and shutdown.");
             }
-            if (!WriteAll(pipe.value, response)) {
+            if (!SendResponse(pipe.value, response)) {
                 std::wcerr << L"WriteFile failed: " << GetLastError() << L"\n";
             }
-            FlushFileBuffers(pipe.value);
         }
 
         DisconnectNamedPipe(pipe.value);
