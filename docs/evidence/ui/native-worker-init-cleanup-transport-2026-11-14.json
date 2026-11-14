@@ -1,0 +1,15 @@
+{
+  "SlowClientCases": 2,
+  "Verification": "PASS",
+  "ThreadsBefore": 4,
+  "RecordedAt": "2026-11-14T21:35:39.2577468+08:00",
+  "OversizedRequestBytes": 70000,
+  "HandlesBefore": 54,
+  "UnreadResponseRecovery": "PASS",
+  "ThreadsAfter": 4,
+  "FragmentedRequestBytes": 5000,
+  "HandlesAfter": 54,
+  "SlowClientDeadline": "PASS",
+  "HealthAfterOversize": "PASS",
+  "HardwareEnabled": false
+}

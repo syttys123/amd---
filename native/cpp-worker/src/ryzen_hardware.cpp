@@ -164,7 +164,7 @@ RyzenHardware::~RyzenHardware() {
         cleanup_ryzenadj_(ryzen_access_);
         ryzen_access_ = nullptr;
     }
-    if (deinitialize_ols_ != nullptr) {
+    if (ols_initialization_attempted_ && deinitialize_ols_ != nullptr) {
         deinitialize_ols_();
     }
     if (hardware_owner_mutex_ != nullptr) {
@@ -281,6 +281,9 @@ bool RyzenHardware::Initialize(std::string& error) {
         return false;
     }
 
+    // Failed initialization may still allocate driver resources. Clean up
+    // after an attempt, but never when ownership checks returned before it.
+    ols_initialization_attempted_ = true;
     const int ols_initialized = initialize_ols_();
     const std::uint32_t dll_status = get_dll_status_();
     if (!ols_initialized || dll_status != 0) {

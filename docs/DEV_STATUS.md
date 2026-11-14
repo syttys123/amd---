@@ -21,6 +21,21 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (unreleased: driver cleanup requires initialization attempt):
+
+- Static inspection found RyzenHardware destructor called DeinitializeOls
+  whenever the export was loaded, including ownership-conflict returns before
+  InitializeOls was called. Added an attempt flag set immediately before
+  InitializeOls; destructor cleans up after successful or failed attempts but
+  not paths that never entered driver initialization.
+- C++ Release build, both policy suites and no-hardware transport regression
+  PASS (handles 54/54, threads 4/4). Evidence:
+  `evidence/ui/native-worker-init-cleanup-transport-2026-11-14.json`.
+- These tests do not load the real driver and do not exercise the new cleanup
+  branch. A counting fake DLL/backend regression remains required; do not
+  claim the branch runtime-proven yet. Stable deployment unchanged, no power
+  write requested. Worker/package hashes must be refreshed before promotion.
+
 2026-11-14 (existing responsive candidate deterministic repack PASS):
 
 - Added `native/test-existing-package-repack.ps1` to extract the existing ZIP

@@ -84,6 +84,7 @@ private:
     void* hardware_owner_mutex_ = nullptr;
     void* ryzen_access_ = nullptr;
     bool initialized_ = false;
+    bool ols_initialization_attempted_ = false;
 
     using GetDllStatusFn = std::uint32_t(__stdcall*)();
     using InitializeOlsFn = int(__stdcall*)();
