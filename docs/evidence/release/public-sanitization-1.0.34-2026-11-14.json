@@ -1,7 +1,7 @@
 {
   "SchemaVersion": 1,
   "Verification": "PASS",
-  "TrackedFilesScanned": 623,
+  "TrackedFilesScanned": 638,
   "PackageEntriesScanned": 13,
   "Patterns": [
     "personal_windows_home",
@@ -13,5 +13,5 @@
     "private_key_header"
   ],
   "PackagePath": "D:\\amd-mobile-power\\artifacts\\native-packages\\amd-mobile-power-v1.0.34-win-x64-native-preview.zip",
-  "RecordedAt": "2026-11-14T20:31:42.7323670+08:00"
+  "RecordedAt": "2026-11-14T21:28:17.0124919+08:00"
 }

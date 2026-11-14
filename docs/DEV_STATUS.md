@@ -21,6 +21,25 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (responsive GUI integrated clean package PASS):
+
+- Clean source `c028cc4` built 1.0.34 with the viewport-aligned command area
+  and latest transport fixes. ZIP SHA256
+  `a4a731c53aa7ee9b0ed70d7be55d4ad8d55066aac49674e681cd2a73c5fe0cda`,
+  778,167 bytes, 19 checksums. This supersedes earlier local 1.0.34 payloads.
+- Complete build and read-only package checks PASS: Rust GUI 59, probe 7,
+  C++ policy/transport tests, extracted GUI, collectors, headless probe,
+  isolated install/overwrite/uninstall. PolicyWriteVerification=Skipped.
+- Same ZIP public sanitization PASS (638 tracked files, 13 package text
+  entries; configured patterns only). Evidence refreshed in
+  `evidence/packaging/v1.0.34-readonly-clean-2026-11-14.json` and
+  `evidence/release/public-sanitization-1.0.34-2026-11-14.json`.
+- Post-test process inspection: one C:\RyzenAdj GUI and its child worker,
+  no observed AMD compiler/test leftovers. Stable deployment remains 1.0.33.
+- Remaining: current-payload reproducibility refresh, full write/worker-hang
+  release gates, deployed verification and refreshed media. No promotion or
+  public release performed.
+
 2026-11-14 (responsive command boundary coverage):
 
 - Geometry regression now covers every command viewport width from 520 to
