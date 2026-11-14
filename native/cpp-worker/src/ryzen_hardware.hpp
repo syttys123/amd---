@@ -77,6 +77,7 @@ public:
         const PlatformCapability& capability);
 
 private:
+    friend struct RyzenHardwareTestAccess;
     std::wstring runtime_directory_;
     void* winring_handle_ = nullptr;
     void* inpout_handle_ = nullptr;

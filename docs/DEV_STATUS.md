@@ -21,6 +21,20 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (driver cleanup destructor branch regression PASS):
+
+- Added a no-driver C++ test using a narrow friend accessor and counting
+  callback against the actual RyzenHardware destructor: no initialization
+  attempt gives zero cleanup calls; attempted initialization gives one;
+  missing cleanup callback exits normally. No DLL or hardware loaded.
+- Registered the executable in CMake and standard native build. Full
+  `native/build.ps1 -Offline` PASS: cleanup regression, transport resource
+  checks (54 handles/4 threads unchanged), both policy suites, GUI 59 tests,
+  probe 7 tests, Release binaries and icon verification.
+- This proves the destructor conditional, not InitializeOls behavior or every
+  partial DLL initialization failure. Real driver lifecycle coverage remains
+  separate. C:\RyzenAdj unchanged; no power write requested.
+
 2026-11-14 (unreleased: driver cleanup requires initialization attempt):
 
 - Static inspection found RyzenHardware destructor called DeinitializeOls

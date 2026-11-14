@@ -111,6 +111,11 @@ try {
     & (Join-Path $root "test-worker-request-bounds.ps1") `
         -WorkerExecutable (Join-Path $cppBuild "$Configuration\amdmobilepower_native_worker.exe")
 
+    & (Join-Path $cppBuild "$Configuration\amdmobilepower_hardware_cleanup_tests.exe")
+    if ($LASTEXITCODE -ne 0) {
+        throw "C++ hardware cleanup tests failed."
+    }
+
     $rustGuiTestArguments = @(
         "test",
         "--manifest-path", $rustGuiManifest,

@@ -57,3 +57,13 @@ target_compile_options(amdmobilepower_power_policy_tests PRIVATE
 target_link_libraries(amdmobilepower_native_worker PRIVATE
     advapi32
 )
+
+add_executable(amdmobilepower_hardware_cleanup_tests
+    tests/hardware_cleanup_tests.cpp
+    src/ryzen_hardware.cpp
+    src/power_limit_policy.cpp
+    src/profile_catalog.cpp
+)
+target_compile_definitions(amdmobilepower_hardware_cleanup_tests PRIVATE UNICODE _UNICODE)
+target_compile_options(amdmobilepower_hardware_cleanup_tests PRIVATE /W4 /permissive- /utf-8)
+target_link_libraries(amdmobilepower_hardware_cleanup_tests PRIVATE advapi32)
