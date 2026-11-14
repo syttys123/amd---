@@ -132,6 +132,19 @@ mod tests {
     }
 
     #[test]
+    fn command_controls_fit_viewport_after_scrollbar_reservation() {
+        for width in 520..=780 {
+            let layout = CommandLayout::new(width);
+            assert!(layout.apply_width >= 100);
+            assert!(layout.preset_width >= 100);
+            assert!(layout.target_left >= 272);
+            assert!(layout.preset_x(2) + layout.preset_width + 8 <= layout.edit_left);
+            assert_eq!(layout.edit_left + 44, width - 24);
+            assert_eq!(layout.apply_left + layout.apply_width, width - 24);
+        }
+    }
+
+    #[test]
     fn advanced_content_can_scroll_in_a_short_viewport() {
         assert_eq!(minimum_client_size(UiMode::Advanced), (760, 420));
         assert_eq!(minimum_window_client_size(UiMode::Advanced), (560, 420));

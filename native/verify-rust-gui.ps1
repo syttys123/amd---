@@ -1051,7 +1051,7 @@ try {
         if ($hscroll.Position -le 0) {
             throw "Horizontal scrollbar did not move to the right edge."
         }
-        foreach ($id in @(108, 109, 110, 316, 317, 324)) {
+        foreach ($id in @(101, 102, 103, 108, 109, 110, 316, 317, 324)) {
             $pinned = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, $id)
             $pinnedRect = New-Object AmdMobilePowerRustGuiNative+RECT
             [AmdMobilePowerRustGuiNative]::GetWindowRect($pinned, [ref]$pinnedRect) | Out-Null

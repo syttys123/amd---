@@ -21,6 +21,20 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (responsive command boundary coverage):
+
+- Geometry regression now covers every command viewport width from 520 to
+  780 DIP, including scrollbar reservation, with minimum button widths,
+  preset separation and right-edge alignment assertions. Rust 59 tests PASS.
+- Runtime horizontal-bound checks now include all three presets as well as
+  mode/topmost/target/apply/edit controls after detail scrolling. Isolated
+  125% and 200% interaction checks PASS. Evidence:
+  `evidence/ui/native-responsive-command-125-2026-11-14.json` and
+  `evidence/ui/native-responsive-command-200-2026-11-14.json`.
+- This change adds tests only; runtime checks use the Release GUI from the
+  preceding responsive-layout milestone. No package rebuild, deployment or
+  hardware write requested during this check.
+
 2026-11-14 (unreleased: viewport-aligned advanced command region):
 
 - Advanced header and command controls now use the visible viewport width,
