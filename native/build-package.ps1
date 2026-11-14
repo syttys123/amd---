@@ -293,6 +293,81 @@ $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerIn
 "$zipHash  $stageName.zip" | Set-Content -LiteralPath "$zipPath.sha256" -Encoding ascii
 
 if (-not $NoVerify) {
+    $savedGuiSessions = @()
+    try {
+    if (-not $SkipRuntimeVerification) {
+        Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public static class PackageGuiSession {
+    public delegate bool EnumProc(IntPtr hwnd, IntPtr parameter);
+    [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc callback, IntPtr parameter);
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
+    [DllImport("user32.dll")] public static extern bool PostMessageW(IntPtr hwnd, uint message, UIntPtr value, IntPtr parameter);
+}
+"@
+        $savedGuiSessions = @(
+            Get-CimInstance Win32_Process -Filter "Name = 'amd-mobile-power-gui.exe'" |
+                ForEach-Object {
+                    $arguments = $null
+                    if ([string]$_.CommandLine -match '^\s*"[^"]+"\s*(.*)$') {
+                        $arguments = $Matches[1]
+                    }
+                    elseif ([string]$_.CommandLine -match '^\s*\S+\s*(.*)$') {
+                        $arguments = $Matches[1]
+                    }
+                    if ($_.ExecutablePath -and $null -ne $arguments) {
+                        [pscustomobject]@{
+                            Id = [int]$_.ProcessId
+                            Path = $_.ExecutablePath
+                            Arguments = $arguments.Trim()
+                        }
+                    }
+                    else {
+                        throw "Cannot preserve the active GUI launch context; stop verification before interrupting it."
+                    }
+                }
+        )
+        foreach ($session in $savedGuiSessions) {
+            $sessionId = $session.Id
+            $callback = [PackageGuiSession+EnumProc] {
+                param($window, $parameter)
+                $owner = 0
+                [PackageGuiSession]::GetWindowThreadProcessId($window, [ref]$owner) | Out-Null
+                if ($owner -eq $sessionId) {
+                    [PackageGuiSession]::PostMessageW($window, 0x0111, [UIntPtr]2, [IntPtr]::Zero) | Out-Null
+                }
+                return $true
+            }
+            [PackageGuiSession]::EnumWindows($callback, [IntPtr]::Zero) | Out-Null
+            $process = Get-Process -Id $session.Id -ErrorAction SilentlyContinue
+            if ($process) {
+                try {
+                    if (-not $process.WaitForExit(15000)) {
+                        throw "Active GUI did not exit gracefully; package verification stopped."
+                    }
+                }
+                finally { $process.Dispose() }
+            }
+            # Older GUI verifiers can leave the original stable worker alive.
+            # Restrict cleanup to the exact sibling executable of a saved GUI.
+            $workerPath = Join-Path (Split-Path -Parent $session.Path) "amdmobilepower_native_worker.exe"
+            foreach ($worker in @(Get-CimInstance Win32_Process -Filter "Name = 'amdmobilepower_native_worker.exe'")) {
+                if ($worker.ExecutablePath -and $worker.ExecutablePath -eq $workerPath) {
+                    $process = Get-Process -Id $worker.ProcessId -ErrorAction SilentlyContinue
+                    if ($process) {
+                        try {
+                            Stop-Process -InputObject $process -Force
+                            if (-not $process.WaitForExit(10000)) {
+                                throw "Stable worker did not release hardware ownership."
+                            }
+                        }
+                        finally { $process.Dispose() }
+                    }
+                }
+            }
+        }
+    }
     Reset-ArtifactDirectory $verifyRoot
     Expand-Archive -LiteralPath $zipPath -DestinationPath $verifyRoot -Force
     $verifyGui = Join-Path $verifyRoot "$stageName\amd-mobile-power-gui.exe"
@@ -460,6 +535,15 @@ if (-not $NoVerify) {
     $shellAfter = Get-ShellIntegrationSnapshot | ConvertTo-Json -Compress
     if ($shellBefore -ne $shellAfter) {
         throw "Isolated native preview install/uninstall touched real shell or registry integration."
+    }
+    }
+    finally {
+        foreach ($session in $savedGuiSessions) {
+            if (-not (Get-Process -Id $session.Id -ErrorAction SilentlyContinue)) {
+                Start-Process -FilePath $session.Path -ArgumentList $session.Arguments `
+                    -WorkingDirectory (Split-Path -Parent $session.Path) -WindowStyle Hidden
+            }
+        }
     }
 }
 

@@ -86,6 +86,20 @@ try {
     while ([DateTime]::UtcNow -lt $deadline) {
         $workerProcess.Refresh()
         if ($workerProcess.HasExited) {
+            if ($workerProcess.ExitCode -eq 3) {
+                $owner = $null
+                try {
+                    $owner = [System.Threading.Mutex]::OpenExisting(
+                        'Local\AmdMobilePower.HardwareOwner.v1')
+                }
+                catch [System.Threading.WaitHandleCannotBeOpenedException] {
+                    # No active hardware-owner lock; retain the initialization error.
+                }
+                if ($null -ne $owner) {
+                    $owner.Dispose()
+                    throw "Hardware is already owned by another AMD Mobile Power session. Exit that session before standalone collection; no power settings were changed."
+                }
+            }
             throw "Native worker exited before collection: $($workerProcess.ExitCode)"
         }
         try {

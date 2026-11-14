@@ -21,6 +21,47 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (package verification session lifetime fixed):
+
+- `build-package.ps1` now preserves active GUI launch contexts, requests
+  graceful exit, scopes any leftover-worker cleanup to the saved GUI's exact
+  sibling executable, and restores sessions in one outer finally after GUI,
+  collectors, probe and isolated install/uninstall complete.
+- Re-ran the 1.0.34 diagnostic package flow with `-NoBuild
+  -ReadOnlyRuntimeVerification`: extracted GUI, hardware read-only,
+  compatibility JSON/Markdown, headless probe and isolated install/overwrite/
+  uninstall all PASS. Policy write verification explicitly Skipped.
+- This diagnostic ZIP records WorkingTree=Dirty and is NOT a release
+  candidate suitable for promotion. Local evidence:
+  `artifacts/ui-root-review/package-flow.json`. A clean-source rebuild and
+  full release gates remain required.
+- After finally restoration there is one stable GUI and its own worker under
+  C:\RyzenAdj. Probe read-back: AC, Fast/Slow 45 W, STAPM 25 W. No deployment
+  replacement was performed. Stable automatic policy may resume on restart.
+
+2026-11-14 (1.0.34 candidate build; collector conflict correctly blocked):
+
+- Ran `build-package.ps1 -Version 1.0.34 -ReadOnlyRuntimeVerification`
+  from clean source `ffe344b`. C++ build/policy tests, Rust GUI 53 tests,
+  probe 7 tests, Release binaries and embedded icons passed. Extracted GUI
+  lifecycle, hardware read-only snapshot, diagnostics, sizing and scroll
+  checks passed. No policy-save/write test was requested.
+- The overall package gate FAILED at standalone compatibility collection:
+  the GUI verifier had already restored the stable session, whose worker
+  held the hardware-owner mutex. Exit code 3 also covers initialization
+  failures, so it must not alone be labeled an owner conflict.
+- Collector now checks the existing hardware-owner mutex after exit code 3
+  and reports the active-session conflict explicitly. Reproduced against an
+  isolated extracted runtime: FAILED with the intended explanation, own
+  worker cleaned up, stable session left running. Local reproduction output
+  is under `artifacts/ui-root-review/collector-conflict.*`.
+- The candidate ZIP is NOT release-gated and must not be promoted. The
+  extracted verification directory contains a diagnostic-only collector copy
+  newer than that ZIP; do not treat it as byte-identical package evidence.
+- Next packaging task: keep the stable session restoration outside the full
+  sequence of GUI, standalone collector and headless-probe checks, with a
+  single finally restoration path. Do not bypass hardware ownership.
+
 2026-11-14 (unreleased: native layout/paint root-cause pass):
 
 - Unified the paint canvas and child-control content width. Previously narrow
