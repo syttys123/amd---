@@ -1,0 +1,7 @@
+{
+  "Verification": "PASS",
+  "ConcurrentWorkerStartedAfterGui": true,
+  "ConcurrentWorkerSurvivedCleanup": true,
+  "HardwareEnabled": false,
+  "RecordedAt": "2026-11-14T20:39:52.9016253+08:00"
+}

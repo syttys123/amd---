@@ -21,6 +21,38 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (concurrent worker cleanup regression PASS):
+
+- Added `native/test-verifier-worker-scope.ps1`. It observes the isolated
+  verification GUI, starts an independent worker after the verifier's initial
+  worker snapshot, waits for verifier completion, and asserts that the
+  independent worker survives. No hardware or write flags are supplied.
+- Runtime test PASS; the test's finally path then removed its sentinel
+  worker and disposed process handles. Evidence:
+  `evidence/ui/native-verifier-worker-scope-2026-11-14.json`.
+- This proves unrelated concurrent-worker survival, not the separate owned
+  worker crash-cleanup branch or long-duration hardware memory behavior.
+
+2026-11-14 (verification worker cleanup scope narrowed):
+
+- GUI verifier cleanup previously killed every newly observed worker by
+  process name. It now requires all three facts: absent from the initial
+  worker set, parent PID belongs to this verification's GUI instances, and
+  executable path matches the expected worker. Concurrent unrelated workers
+  are not cleanup targets merely because they appeared during verification.
+- Isolated firmware-clamp GUI interaction and 480 synchronous repaint/mode
+  switches PASS with the updated cleanup path:
+  `evidence/ui/native-resource-scoped-cleanup-2026-11-14.json`.
+  This fixture creates no hardware worker, so concurrent-worker survival and
+  owned-worker cleanup require a separate executable regression; not yet
+  claimed as runtime-proven. No power write requested.
+- Also replaced pre-verification force-kill of the stable GUI with its
+  explicit Exit command and a bounded 15-second wait. Abort rather than
+  force-kill if graceful shutdown stalls; finally avoids a duplicate relaunch
+  when the original PID remains alive. Simulated GUI interaction passed:
+  `evidence/ui/native-graceful-session-2026-11-14.json`. Existing workers
+  inherited from older force-kill runs are not silently claimed as cleaned.
+
 2026-11-14 (unreleased: outward-rounded keyboard focus reveal):
 
 - Focus reveal now rounds device-to-logical displacement outward rather than

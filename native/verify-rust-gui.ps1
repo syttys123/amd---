@@ -67,6 +67,8 @@ using System.Runtime.InteropServices;
 
 public static class AmdMobilePowerRustGuiNative {
     [DllImport("user32.dll")]
+    public static extern bool EnumWindows(EnumChildProc callback, IntPtr parameter);
+    [DllImport("user32.dll")]
     public static extern bool RedrawWindow(IntPtr hwnd, IntPtr rect, IntPtr region, uint flags);
     [DllImport("user32.dll")]
     public static extern uint GetGuiResources(IntPtr process, uint flags);
@@ -459,16 +461,36 @@ try {
                     $arguments = $Matches[2]
                 }
                 [pscustomobject]@{
+                    Id = [int]$_.ProcessId
                     ExecutablePath = $_.ExecutablePath
                     Arguments = $arguments.Trim()
                 }
             } |
             Where-Object { $_.ExecutablePath }
     )
-    Get-Process `
-        -Name "amd-mobile-power-gui" `
-        -ErrorAction SilentlyContinue |
-        Stop-Process -Force
+    foreach ($session in $backgroundGuiSessions) {
+        $sessionId = $session.Id
+        $exitCallback = [AmdMobilePowerRustGuiNative+EnumChildProc] {
+            param($handle, $parameter)
+            $owner = 0
+            [AmdMobilePowerRustGuiNative]::GetWindowThreadProcessId($handle, [ref]$owner) | Out-Null
+            if ($owner -eq $sessionId) {
+                [AmdMobilePowerRustGuiNative]::PostMessage(
+                    $handle, 0x0111, [UIntPtr]2, [IntPtr]::Zero) | Out-Null
+            }
+            return $true
+        }
+        [AmdMobilePowerRustGuiNative]::EnumWindows($exitCallback, [IntPtr]::Zero) | Out-Null
+        $running = Get-Process -Id $session.Id -ErrorAction SilentlyContinue
+        if ($running) {
+            try {
+                if (-not $running.WaitForExit(15000)) {
+                    throw "Background GUI did not exit gracefully; verification aborted."
+                }
+            }
+            finally { $running.Dispose() }
+        }
+    }
 
     $startArguments = @()
     if ($PipeName) {
@@ -1562,14 +1584,24 @@ try {
 }
 finally {
     try {
+        $ownedParentIds = @(
+            foreach ($guiProcess in @($firstProcess, $secondProcess)) {
+                if ($null -ne $guiProcess) { $guiProcess.Id }
+            }
+        )
+        $expectedWorkerPath = if ($WorkerExecutable) {
+            [System.IO.Path]::GetFullPath($WorkerExecutable)
+        } else {
+            Join-Path (Split-Path -Parent $executable) "amdmobilepower_native_worker.exe"
+        }
         $currentWorkerProcesses = @(
-            Get-Process `
-                -Name "amdmobilepower_native_worker" `
-                -ErrorAction SilentlyContinue
+            Get-CimInstance Win32_Process -Filter "Name = 'amdmobilepower_native_worker.exe'"
         )
         foreach ($workerProcess in $currentWorkerProcesses) {
-            if ($existingWorkerIds -notcontains $workerProcess.Id) {
-                Stop-Process -Id $workerProcess.Id -Force -ErrorAction SilentlyContinue
+            if ($existingWorkerIds -notcontains $workerProcess.ProcessId -and
+                $ownedParentIds -contains [int]$workerProcess.ParentProcessId -and
+                $workerProcess.ExecutablePath -eq $expectedWorkerPath) {
+                Stop-Process -Id $workerProcess.ProcessId -Force -ErrorAction SilentlyContinue
             }
         }
     }
@@ -1594,11 +1626,13 @@ finally {
         Remove-Item -LiteralPath $isolatedLocalAppData -Recurse -Force
     }
     foreach ($session in $backgroundGuiSessions) {
+        if (Get-Process -Id $session.Id -ErrorAction SilentlyContinue) { continue }
         try {
             Start-Process `
                 -FilePath $session.ExecutablePath `
                 -ArgumentList $session.Arguments `
                 -WorkingDirectory (Split-Path -Parent $session.ExecutablePath) `
+                -WindowStyle Hidden `
                 -ErrorAction Stop
         }
         catch {
