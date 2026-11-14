@@ -1,8 +1,8 @@
 # Release Checklist
 
-Release under review: `1.0.32-native`
+Release under review: `1.0.33-native`
 
-Branch: `release/1.0.32`
+Branch: `release/1.0.33`
 
 Status: `HARDWARE_GATE_PASS_PROMOTED_PENDING_HUMAN_REVIEW`
 
@@ -15,8 +15,12 @@ Status: `HARDWARE_GATE_PASS_PROMOTED_PENDING_HUMAN_REVIEW`
 - [x] C++ power-limit and power-policy tests pass.
 - [x] Release build completes with the packaged icon present.
 - [x] Package source commit and SHA256 match the clean evidence.
-      SHA256 `97f9a09d3d3943645a3fbc58b527f90a4af51a14e07c264918cd4e14565a8102`,
-      source commit `43c2fb1e2bb43dd0d0eb5a6e0854c76898f73bcb`.
+      SHA256 `17fef8f89445a0c13436ffaca04334d4ed58d17aeff34515ecf5c50c2620aaa9`,
+      source commit `6ca4d19b9221fc18918d977219af879a0e296b28`.
+- [x] 1.0.33 UI polish is covered by the packaged runtime verification:
+      `MinimumResizeBounds`, `AdvancedScroll`, and `PolicySave` pass against the
+      extracted 1.0.33 package, and the scrolled advanced view no longer shows
+      dark field backgrounds or stale text.
 - [x] The layout/redraw fix is covered by the packaged runtime verification:
       `MinimumResizeBounds`, `AdvancedScroll`, and `PolicySave` all pass against
       the extracted 1.0.32 package.

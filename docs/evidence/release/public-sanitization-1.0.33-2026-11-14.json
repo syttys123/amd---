@@ -1,0 +1,17 @@
+{
+  "SchemaVersion": 1,
+  "Verification": "PASS",
+  "TrackedFilesScanned": 608,
+  "PackageEntriesScanned": 13,
+  "Patterns": [
+    "personal_windows_home",
+    "internal_agent_marker",
+    "openai_key",
+    "github_personal_token",
+    "github_fine_grained_token",
+    "aws_access_key",
+    "private_key_header"
+  ],
+  "PackagePath": "D:\\amd-mobile-power\\artifacts\\native-packages\\amd-mobile-power-v1.0.33-win-x64-native-preview.zip",
+  "RecordedAt": "2026-11-14T14:28:17.4254949+08:00"
+}

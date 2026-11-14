@@ -21,6 +21,32 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (1.0.33：界面细节打磨，并修掉一处滚动重绘遗漏):
+
+- 标题行合并：应用名与设备/worker 状态放在同一行（原来标题与副标题上下两行，
+  视觉上重复窗口标题栏且浪费高度），并给右侧按钮预留 12 px 间距，长文案改为
+  省略号而不是压到按钮下面。
+- 目标功耗范围提示（`5-45 W`）从动作行最右侧移到「目标功耗」标签右侧，读作
+  「目标功耗 5-45 W」，不再像是输入框的右对齐内容。
+- 置顶按钮改用真正的图钉图标：未置顶用空心钉（E840），置顶后用实心钉（E842）；
+  原来的 E718 在 16 px 下看起来像一个横向箭头。
+- 滚动条改为按真实溢出显隐（`ShowScrollBar` + 20 px 容差），默认高级窗口宽度下
+  不再出现「只差 1 px」的横向滚动条。
+- 修掉一处重绘遗漏：禁用状态的输入框走 `WM_CTLCOLORSTATIC`，之前返回透明画刷；
+  因为父窗口带 `WS_CLIPCHILDREN`，滚动后这些区域会残留上一帧的深色像素（表现为
+  输入框变黑、旧文字浮在字段上）。现在这些字段返回不透明表面画刷，滚动后的
+  高级视图不再出现深色方块与残影。
+- 验证：Rust 51/51、Clippy `-D warnings`；`build-package.ps1 -Version 1.0.33`
+  全绿（提取包运行验证 `MinimumResizeBounds/AdvancedScroll/PolicySave` = PASS）；
+  `verify-release.ps1 -Version 1.0.33 -VerifyReproducibility
+  -VerifyShellIntegration -ExecuteNoChangePolicy -VerifyWorkerHang
+  -AllowBatteryWriteGuard` 全绿。
+- 包：`artifacts/native-packages/amd-mobile-power-v1.0.33-win-x64-native-preview.zip`，
+  `775,202` 字节，SHA256
+  `17fef8f89445a0c13436ffaca04334d4ed58d17aeff34515ecf5c50c2620aaa9`，
+  源提交 `6ca4d19b9221fc18918d977219af879a0e296b28`；已部署到 `C:\RyzenAdj`
+  （回滚目录 `C:\RyzenAdj.before-20261114-143351`）。
+
 2026-11-14 (1.0.32: 消除模式切换白闪与错位帧，门禁脚本按 Per-Monitor V2 取几何):
 
 - 用户截图显示高级模式出现白块、控件与文字错位的混合帧。根因有两条：窗口类
