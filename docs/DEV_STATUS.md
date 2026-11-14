@@ -46,6 +46,12 @@ not authoritative.
   instead of assigning into an older partial object. A 07:05 run had failed
   with a missing `batteryTarget` property and needed a manual retry; the
   rewritten path keeps that from recurring during the scheduled restore.
+- Reviewed the promotion flow without touching the stable deployment:
+  `promote-stable-deployment.ps1` dry-run recognizes the 1.0.31 ZIP, target
+  `C:\RyzenAdj`, a timestamped `C:\RyzenAdj.before-*` backup path, and the
+  desktop shortcut `功耗设置 5-60W.lnk` with
+  `--simple-mode --max-target-watts 45`. The final dry run must be repeated
+  for the rebuilt post-hardware-gate package because its ZIP hash changes.
 
 2026-11-14 (unreleased branch hardening: atomic UI state writes):
 
