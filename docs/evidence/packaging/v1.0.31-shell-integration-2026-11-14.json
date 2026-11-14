@@ -1,6 +1,6 @@
 {
   "Version": "1.0.31",
-  "SourcePackageCommit": "92c18216e610607a3139af5e4f4335e78a9f9129",
+  "SourcePackageCommit": "28092ea483fa614d5668a4f720b6869ddd6d6401",
   "Verification": "PASS",
   "InstallDirectoryCreated": true,
   "InstallMarkerCreated": true,
@@ -13,5 +13,5 @@
   "ResidualStartMenuShortcut": false,
   "ResidualStartupShortcut": false,
   "ResidualUninstallEntry": false,
-  "RecordedAt": "2026-11-14T09:23:04.0721264+08:00"
+  "RecordedAt": "2026-11-14T10:52:55.1841106+08:00"
 }

@@ -4,7 +4,7 @@ Release under review: `1.0.31-native`
 
 Branch: `release/1.0.31`
 
-Status: `SOFTWARE_GATES_PASS_HARDWARE_GATE_PENDING`
+Status: `HARDWARE_GATE_PASS_PENDING_HUMAN_REVIEW`
 
 ## Source And Build
 
@@ -15,10 +15,10 @@ Status: `SOFTWARE_GATES_PASS_HARDWARE_GATE_PENDING`
 - [x] C++ power-limit and power-policy tests pass.
 - [x] Release build completes with the packaged icon present.
 - [x] Package source commit and SHA256 match the clean evidence.
-      SHA256 `ccb0ed9a91cc27ab068f117d8174c605c84fb4ab8f6202faecfdce2058326de5`,
-      source commit `92c18216e610607a3139af5e4f4335e78a9f9129`.
+      SHA256 `33486b2dfcbb1e61471fc9d58b14d31c02802eb532c674a0c4ea28d7a9366a68`,
+      source commit `28092ea483fa614d5668a4f720b6869ddd6d6401`.
 - [x] Rebuild from the same tree is byte-identical: GUI `18f82690`, worker
-      `67af1d41`, probe `9750418f`, ZIP `ccb0ed9a`.
+      `67af1d41`, probe `9750418f`, ZIP `33486b2d`.
 - [x] Isolated install/overwrite/uninstall flow passes.
 - [x] Installer process-scope regression passes while the deployed
       GUI/worker are running.
@@ -29,16 +29,17 @@ Status: `SOFTWARE_GATES_PASS_HARDWARE_GATE_PENDING`
 - [x] Hosted Windows CI passes for the release-material commit
       (run `43535933200`, commit `fd45c21`).
 - [x] Hosted Windows CI passes for the current branch HEAD
-      (run `43546592447`, commit `2b6dcd2`).
-- [ ] Full `verify-release.ps1 -Version 1.0.31` hardware gate.
+      (run `43547898436`, commit `28092ea`).
+- [x] Full `verify-release.ps1 -Version 1.0.31` hardware gate.
 
 ## Hardware Evidence
 
-- [ ] Read-only capability and telemetry are re-run for this exact package.
-- [ ] Controlled current-value policy probe passes at the current safe limits.
-- [ ] Worker-hang replacement and policy restore pass for this package.
-- [ ] The worker disables policy and shuts down cleanly after the probe.
-- [ ] No second hardware owner remains after verification.
+- [x] Read-only capability and telemetry are re-run for this exact package.
+- [x] Controlled current-value policy probe passes at the current safe limits
+      (`41/45/45 W`, firmware-dynamic STAPM).
+- [x] Worker-hang replacement and policy restore pass for this package.
+- [x] The worker disables policy and shuts down cleanly after the probe.
+- [x] No second hardware owner remains after verification.
 - [ ] A fresh battery-to-AC-to-battery transition is re-run for this revision.
 - [ ] A second physical AMD laptop has read-only evidence.
 - [ ] Clean Windows WinRing0 baseline evidence is recorded.

@@ -1,10 +1,10 @@
 # Release Runbook
 
-状态：`DRAFT_PENDING_HARDWARE_GATE`
+状态：`HARDWARE_GATE_PASS_PENDING_PROMOTION`
 
 执行前必须由项目所有者明确批准公开发布，并具备可用的 GitHub / B 站
-登录会话。本手册覆盖 `1.0.31-native`；未完成硬件门禁和人工审片前不要
-创建公开 Release 或上传视频。
+登录会话。本手册覆盖 `1.0.31-native`；硬件门禁已通过，但未完成人工审片
+前不要创建公开 Release 或上传视频。
 
 候选版本：`1.0.31-native`。发布物料清单见
 `docs/release-assets-1.0.31.json`。
@@ -20,7 +20,7 @@ Get-Command gh -ErrorAction SilentlyContinue
 - 工作树干净，分支 `release/1.0.31` 已推送。
 - 确认临时 8 W 窗口已结束；当前按用户要求为 45 W，且临时 19:00
   恢复任务已删除。
-- 先执行完整硬件门禁：
+- 硬件门禁已通过；如需复现，执行：
 
 ```powershell
 .\native\verify-release.ps1 `
@@ -33,7 +33,7 @@ Get-Command gh -ErrorAction SilentlyContinue
 ```
 
 - 只有门禁 PASS 后才能晋升、合并 `main` 和创建 tag。
-- 项目所有者已审片并批准文案；视频、封面和音乐署名均已完成人工复核。
+- 项目所有者仍需审片并批准文案；视频、封面和音乐署名均需人工复核。
 
 ## 1. 晋升与发布线
 
@@ -123,7 +123,7 @@ Expand-Archive $env:USERPROFILE\Downloads\amd-mobile-power-v1.0.31-win-x64-nativ
 ```
 
 - 下载到的 ZIP SHA256 必须等于
-  `ccb0ed9a91cc27ab068f117d8174c605c84fb4ab8f6202faecfdce2058326de5`。
+  `33486b2dfcbb1e61471fc9d58b14d31c02802eb532c674a0c4ea28d7a9366a68`。
 - 探针 `--self-test` 必须返回 `selfTest=PASS`，且不触发任何硬件写入。
 - B 站稿件公开可访问后，把链接补进 GitHub Release 正文和 README。
 

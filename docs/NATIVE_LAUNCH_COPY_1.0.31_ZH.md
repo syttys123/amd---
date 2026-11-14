@@ -1,21 +1,21 @@
 # Native Launch Copy 1.0.31
 
-状态：`DRAFT_PENDING_HARDWARE_GATE`
+状态：`DRAFT_READY_FOR_HUMAN_REVIEW`
 
 本文准备 `1.0.31-native` 的 GitHub 与 B 站文案，不代表已批准公开。
 完整实机门禁、最终 Release、视频审核、账号登录和上传仍需项目所有者确认。
 
 ## 事实口径
 
-- 当前候选包：`1.0.31-native`，portable ZIP，775,091 bytes。
+- 当前候选包：`1.0.31-native`，portable ZIP，775,090 bytes。
 - SHA256：
-  `ccb0ed9a91cc27ab068f117d8174c605c84fb4ab8f6202faecfdce2058326de5`。
+  `33486b2dfcbb1e61471fc9d58b14d31c02802eb532c674a0c4ea28d7a9366a68`。
 - 唯一完整实机证据：MECHREVO WUJIE15 PRO / AMD Ryzen 7 8845HS。
 - 默认只读；右上角锁或托盘“写入解锁…”进入免责声明、操作须知和勾选确认。
 - 解锁状态持久化，再次点锁立即恢复只读。
 - 自动策略支持电池/外接分别设置目标，worker 重启后自动重发策略。
 - 1.0.31 重点是状态持久化和安装器进程隔离修复，界面与 1.0.30 相同。
-- 当前稳定部署仍是 1.0.30；1.0.31 尚未完成实机门禁和晋升。
+- 当前稳定部署仍是 1.0.30；1.0.31 已完成实机门禁，等待晋升。
 - 其他 AMD 世代仍是保守实验配置，不声明全型号通用。
 - Windows 无法区分 USB-C 充电宝和墙插，两者统一按外接电源处理。
 - 宣传片 v9：42.5 秒、1920x1080、30 fps、字幕、无配音。

@@ -1,15 +1,15 @@
 {
   "version": "1.0.31-native",
-  "generatedAt": "2026-11-14T08:45:00+08:00",
-  "status": "DRAFT_PENDING_HARDWARE_GATE",
+  "generatedAt": "2026-11-14T10:55:00+08:00",
+  "status": "DRAFT_READY_FOR_HUMAN_REVIEW",
   "githubRelease": {
     "tag": "v1.0.31",
     "draftFirst": true,
     "assets": [
       {
         "path": "artifacts/native-packages/amd-mobile-power-v1.0.31-win-x64-native-preview.zip",
-        "sizeBytes": 775091,
-        "sha256": "ccb0ed9a91cc27ab068f117d8174c605c84fb4ab8f6202faecfdce2058326de5"
+        "sizeBytes": 775090,
+        "sha256": "33486b2dfcbb1e61471fc9d58b14d31c02802eb532c674a0c4ea28d7a9366a68"
       },
       {
         "path": "artifacts/native-packages/amd-mobile-power-v1.0.31-win-x64-native-preview.zip.sha256",

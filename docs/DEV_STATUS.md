@@ -21,6 +21,27 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (1.0.31 full hardware gate PASS):
+
+- Ran the complete `verify-release.ps1 -Version 1.0.31` gate with the deployed
+  GUI/worker stopped: hardware read-only, write-guard, same-value
+  `41/45/45 W` policy write, worker-hang replacement, shell integration,
+  DPI/work-area/maximize fixtures, isolated install/uninstall, public
+  sanitization, and reproducibility all passed.
+- Rebuilt package:
+  `artifacts/native-packages/amd-mobile-power-v1.0.31-win-x64-native-preview.zip`,
+  `775,090` bytes, SHA256
+  `33486b2dfcbb1e61471fc9d58b14d31c02802eb532c674a0c4ea28d7a9366a68`,
+  source commit `28092ea483fa614d5668a4f720b6869ddd6d6401`.
+  This supersedes the earlier pre-sanitization candidate hash `ccb0ed9a`.
+- Evidence:
+  `docs/evidence/packaging/v1.0.31-release-gate-2026-11-14.json`,
+  `docs/evidence/hardware/v1.0.31-power-policy-no-change-2026-11-14.json`,
+  `docs/evidence/hardware/v1.0.31-worker-hang-2026-11-14.json`.
+- The deployed tray app was restored after the gate and re-applied the 45 W
+  policy. Promotion to `C:\RyzenAdj` and the human media/release approvals
+  remain pending.
+
 2026-11-14 (public history sanitation and 45 W switch):
 
 - Rewrote the public commit history to remove the internal author/committer
@@ -108,6 +129,9 @@ not authoritative.
   `ccb0ed9a91cc27ab068f117d8174c605c84fb4ab8f6202faecfdce2058326de5`.
   The packaged GUI lifecycle/install checks pass; runtime compatibility and
   policy verification are intentionally skipped until the hardware gate.
+  Historical only: this pre-hardware-gate, pre-sanitization candidate was
+  rebuilt during the full gate; the current package is the `33486b2d…`
+  artifact recorded in the latest milestone above.
 - Reproducibility PASS for GUI `18f82690`, probe `9750418f`, worker `67af1d41`,
   and the ZIP. Evidence:
   `docs/evidence/build/reproducibility-1.0.31-2026-11-14.json` and
