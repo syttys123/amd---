@@ -41,6 +41,11 @@ not authoritative.
 - The temporary 8 W window remains active on AC and battery. The scheduled
   restore is still `Ready` for 19:00 today; the hardware release gate remains
   deferred until after that restore.
+- Hardened the local 19:00 maintenance helper before it runs:
+  `revert-night-8w-to-10w.ps1` now rebuilds the complete `powerPolicy` object
+  instead of assigning into an older partial object. A 07:05 run had failed
+  with a missing `batteryTarget` property and needed a manual retry; the
+  rewritten path keeps that from recurring during the scheduled restore.
 
 2026-11-14 (unreleased branch hardening: atomic UI state writes):
 
