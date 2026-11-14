@@ -21,6 +21,23 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (unreleased: viewport-aligned advanced command region):
+
+- Advanced header and command controls now use the visible viewport width,
+  independently of the horizontally scrollable 760-DIP detail canvas.
+  Target/apply, presets/edit and mode/write/topmost controls no longer move
+  horizontally with the detail section. Header tooltip uses the same basis.
+- Reviewed the right-side 200% narrow capture: Apply and header controls are
+  completely visible. Detail columns still scroll horizontally; this is not
+  a complete responsive reflow of the lower advanced view.
+- Added runtime horizontal-bound assertions for pinned controls after scrolling
+  right, and changed header-focus expectation to no horizontal movement.
+  Isolated 200% interaction/focus/scroll PASS; Rust 58 tests, Clippy and
+  Release build PASS. Evidence:
+  `evidence/ui/native-responsive-command-200-2026-11-14.json`.
+- No hardware write requested; stable 1.0.33 unchanged. New GUI source is
+  ahead of packaged 1.0.34 and requires fresh package gates before promotion.
+
 2026-11-14 (clean candidate and packaged 200% resource check):
 
 - Clean `00db7e2` package build/read-only runtime PASS, ZIP SHA256

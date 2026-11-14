@@ -1051,6 +1051,21 @@ try {
         if ($hscroll.Position -le 0) {
             throw "Horizontal scrollbar did not move to the right edge."
         }
+        foreach ($id in @(108, 109, 110, 316, 317, 324)) {
+            $pinned = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, $id)
+            $pinnedRect = New-Object AmdMobilePowerRustGuiNative+RECT
+            [AmdMobilePowerRustGuiNative]::GetWindowRect($pinned, [ref]$pinnedRect) | Out-Null
+            $leftEdge = New-Object AmdMobilePowerRustGuiNative+POINT
+            $leftEdge.X = $pinnedRect.Left
+            $rightEdge = New-Object AmdMobilePowerRustGuiNative+POINT
+            $rightEdge.X = $pinnedRect.Right
+            [AmdMobilePowerRustGuiNative]::ScreenToClient($window, [ref]$leftEdge) | Out-Null
+            [AmdMobilePowerRustGuiNative]::ScreenToClient($window, [ref]$rightEdge) | Out-Null
+            [AmdMobilePowerRustGuiNative]::GetClientRect($window, [ref]$client) | Out-Null
+            if ($leftEdge.X -lt 0 -or $rightEdge.X -gt $client.Right) {
+                throw "Pinned command $id escapes the horizontal viewport after scrolling."
+            }
+        }
         $exportButton = [AmdMobilePowerRustGuiNative]::GetDlgItem($window, 107)
         $exportRect = New-Object AmdMobilePowerRustGuiNative+RECT
         [AmdMobilePowerRustGuiNative]::GetWindowRect($exportButton, [ref]$exportRect) | Out-Null
@@ -1087,8 +1102,8 @@ try {
         }
         [AmdMobilePowerRustGuiNative]::GetScrollInfo(
             $window, 0, [ref]$hscroll) | Out-Null
-        if ($hscroll.Position -le 0) {
-            throw "Narrow header focus did not scroll horizontally to the topmost button."
+        if ($hscroll.Position -ne 0) {
+            throw "Pinned header focus unexpectedly scrolled the content horizontally."
         }
         Set-GuiControlFocus -Window $window -Control $exportButton
         [AmdMobilePowerRustGuiNative]::GetScrollInfo($window, 1, [ref]$scroll) | Out-Null

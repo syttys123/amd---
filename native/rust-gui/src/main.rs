@@ -1462,10 +1462,12 @@ unsafe fn paint_advanced_window(
     app: &GuiApp,
     fonts: &UiFonts,
     width: i32,
+    viewport_width: i32,
 ) {
-    let layout = command_layout(app, width);
+    let layout = CommandLayout::new(viewport_width.max(520));
     let side_left = width - 296;
     let side_right = width - 24;
+    SetViewportOrgEx(hdc, 0, -scaled(app.scroll_offset, app.dpi_percent), std::ptr::null_mut());
     fill_rect_color(
         hdc,
         &RECT {
@@ -1515,6 +1517,9 @@ unsafe fn paint_advanced_window(
         },
         DT_LEFT,
     );
+
+    SetViewportOrgEx(hdc, -scaled(app.scroll_offset_x, app.dpi_percent),
+        -scaled(app.scroll_offset, app.dpi_percent), std::ptr::null_mut());
 
     draw_rule(hdc, side_left - 20, 240, side_left - 19, 598);
 
@@ -2087,14 +2092,16 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
     if let Some(fonts) = app.fonts.as_ref() {
         SetViewportOrgEx(
             target_dc,
-            -scaled(app.scroll_offset_x, percent),
+            0,
             -scaled(app.scroll_offset, percent),
             std::ptr::null_mut(),
         );
-        paint_header(target_dc, app, fonts, width);
+        paint_header(target_dc, app, fonts, viewport_width.max(520));
+        SetViewportOrgEx(target_dc, -scaled(app.scroll_offset_x, percent),
+            -scaled(app.scroll_offset, percent), std::ptr::null_mut());
         match app.view_mode {
             state::UiMode::Simple => paint_simple_window(target_dc, app, fonts, width),
-            state::UiMode::Advanced => paint_advanced_window(target_dc, app, fonts, width),
+            state::UiMode::Advanced => paint_advanced_window(target_dc, app, fonts, width, viewport_width),
         }
         SetViewportOrgEx(target_dc, 0, 0, std::ptr::null_mut());
     }
@@ -4055,7 +4062,11 @@ unsafe fn move_control(hwnd: HWND, id: usize, x: i32, y: i32, width: i32, height
             (0, 0)
         } else {
             (
-                scaled((*app).scroll_offset_x, (*app).dpi_percent),
+                if matches!(id, SIMPLE_TARGET_EDIT | SIMPLE_APPLY | PRESET_12 | PRESET_25 | PRESET_45 | PRESET_EDIT_OPEN) {
+                    0
+                } else {
+                    scaled((*app).scroll_offset_x, (*app).dpi_percent)
+                },
                 scaled((*app).scroll_offset, (*app).dpi_percent),
             )
         };
@@ -4303,9 +4314,12 @@ unsafe fn layout_text_tooltips(app: &GuiApp, hwnd: HWND, width: i32) {
     }
     let advanced = app.view_mode == state::UiMode::Advanced;
     let side_left = width - 296;
+    let mut client = RECT::default();
+    GetClientRect(hwnd, &mut client);
+    let header_width = unscaled(client.right, app.dpi_percent).max(520);
     let status_top = if advanced { 628 } else { 312 };
     for (id, bounds) in [
-        (9001, (24, 6, width - 212, 52)),
+        (9001, (24, 6, header_width - 244, 52)),
         (9002, (24, status_top, width - 76, status_top + 40)),
         (9003, (side_left, 274, width - 24, 322)),
         (9004, (side_left, 394, width - 24, 440)),
@@ -4316,8 +4330,9 @@ unsafe fn layout_text_tooltips(app: &GuiApp, hwnd: HWND, width: i32) {
         } else {
             bounds
         };
-        let left = left - app.scroll_offset_x;
-        let right = right - app.scroll_offset_x;
+        let horizontal_offset = if id == 9001 { 0 } else { app.scroll_offset_x };
+        let left = left - horizontal_offset;
+        let right = right - horizontal_offset;
         let top = top - app.scroll_offset;
         let bottom = bottom - app.scroll_offset;
         let s = |value| scaled(value, app.dpi_percent);
@@ -4539,13 +4554,14 @@ unsafe fn layout_mode_controls_pass(app: &mut GuiApp, hwnd: HWND) {
     }
     let viewport_width = unscaled(client.right.max(1), percent);
     let width = amd_mobile_power_gui::layout::content_width(mode, viewport_width);
-    let layout = CommandLayout::new(width);
+    let command_width = viewport_width.max(520);
+    let layout = CommandLayout::new(command_width);
 
     if let Some(controls) = app.header_controls {
-        let topmost_left = width - 60;
-        let write_left = width - 104;
-        let advanced_left = width - 172;
-        let simple_left = width - 232;
+        let topmost_left = command_width - 60;
+        let write_left = command_width - 104;
+        let advanced_left = command_width - 172;
+        let simple_left = command_width - 232;
         for (control, left, control_width, checked) in [
             (
                 controls.simple,
@@ -4560,7 +4576,7 @@ unsafe fn layout_mode_controls_pass(app: &mut GuiApp, hwnd: HWND) {
             SetWindowPos(
                 control,
                 std::ptr::null_mut(),
-                s(left) - scaled(app.scroll_offset_x, percent),
+                s(left),
                 s(12) - scaled(app.scroll_offset, percent),
                 s(control_width),
                 s(32),
