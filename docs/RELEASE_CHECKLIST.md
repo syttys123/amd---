@@ -45,6 +45,9 @@ Status: `SOFTWARE_GATES_PASS_HARDWARE_GATE_PENDING`
       editing, target draft retention, focus notifications, minimum bounds,
       advanced scrolling, close-to-tray, tray restore, and single-instance
       wake.
+- [x] Packaged UI evidence is recorded:
+      `docs/evidence/ui/native-packaged-1.0.31-ui-2026-11-14.json`
+      (`BackgroundGuiRelaunched=1`, `WriteControls=PASS`).
 - [ ] Logical 100/125/150% DPI fixtures are re-run for the 1.0.31 package.
 - [ ] The 1366x768/200% work-area fixture is re-run.
 - [ ] Real OS-level 100%/150% sessions and monitor transitions are recorded.

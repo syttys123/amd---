@@ -74,6 +74,11 @@ not authoritative.
 - Rewrote `docs/RELEASE_CHECKLIST.md` for 1.0.31 so completed software gates
   are checked while hardware, real-DPI, human-review, public-approval, and
   promotion items remain explicitly pending.
+- Ran the packaged 1.0.31 GUI interaction suite without starting a hardware
+  worker: modes, topmost, write controls, preset editing, target draft
+  retention, focus notifications, minimum bounds, advanced scroll,
+  close-to-tray, tray restore, and single-instance wake all passed. Evidence:
+  `docs/evidence/ui/native-packaged-1.0.31-ui-2026-11-14.json`.
 - Recovery after the earlier unintended stop: the persisted policy was restored
   to `8/8/8 W`, the deployed GUI/worker were restarted, and live AC read-back
   is `8.00 W` again. No high-risk power value was written.

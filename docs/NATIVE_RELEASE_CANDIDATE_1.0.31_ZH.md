@@ -82,6 +82,7 @@ worker 或改变功耗：
 
 - `docs/evidence/packaging/v1.0.31-clean-2026-11-14.json`
 - `docs/evidence/packaging/v1.0.31-install-process-scope-2026-11-14.json`
+- `docs/evidence/ui/native-packaged-1.0.31-ui-2026-11-14.json`
 - `docs/evidence/build/reproducibility-1.0.31-2026-11-14.json`
 - `docs/evidence/media/native-promo-1.0.31-draft-2026-11-14.json`
 - `docs/evidence/packaging/v1.0.30-release-gate-2026-11-14.json`
