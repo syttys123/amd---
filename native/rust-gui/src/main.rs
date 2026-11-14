@@ -4164,8 +4164,10 @@ unsafe fn reveal_control(app: &mut GuiApp, hwnd: HWND, control: HWND) {
         set_scroll_offsets(
             app,
             hwnd,
-            app.scroll_offset_x + unscaled(delta_x, app.dpi_percent),
-            app.scroll_offset + unscaled(delta_y, app.dpi_percent),
+            app.scroll_offset_x
+                + amd_mobile_power_gui::layout::reveal_delta(delta_x, app.dpi_percent),
+            app.scroll_offset
+                + amd_mobile_power_gui::layout::reveal_delta(delta_y, app.dpi_percent),
         );
     }
 }

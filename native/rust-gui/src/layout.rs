@@ -9,6 +9,15 @@ pub fn content_width(mode: UiMode, viewport_width: i32) -> i32 {
     minimum_client_size(mode).0.max(viewport_width)
 }
 
+/// A reveal displacement must cover every device pixel, including at
+/// fractional DPI. Nearest rounding can leave the focused edge clipped.
+pub fn reveal_delta(device_pixels: i32, percent: i32) -> i32 {
+    let divisor = i64::from(percent.max(1));
+    let numerator = i64::from(device_pixels) * 100;
+    let magnitude = (numerator.abs() + divisor - 1) / divisor;
+    (magnitude * numerator.signum()).clamp(i64::from(i32::MIN), i64::from(i32::MAX)) as i32
+}
+
 pub fn minimum_client_size(mode: UiMode) -> (i32, i32) {
     match mode {
         UiMode::Simple => (560, 360),
@@ -80,6 +89,21 @@ impl CommandLayout {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn focus_reveal_rounds_outward_at_fractional_dpi() {
+        for percent in [100, 125, 150, 175, 200] {
+            for pixels in 1..=400 {
+                let logical = reveal_delta(pixels, percent);
+                assert!(logical * percent >= pixels * 100);
+                assert!((logical - 1) * percent < pixels * 100);
+                assert_eq!(reveal_delta(-pixels, percent), -logical);
+            }
+            assert_eq!(reveal_delta(0, percent), 0);
+        }
+        assert_eq!(reveal_delta(i32::MIN, 100), i32::MIN);
+        assert_eq!(reveal_delta(i32::MAX, 100), i32::MAX);
+    }
 
     #[test]
     fn scrollable_canvas_preserves_geometry_in_narrow_viewports() {

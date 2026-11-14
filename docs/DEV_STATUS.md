@@ -21,6 +21,21 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (unreleased: outward-rounded keyboard focus reveal):
+
+- Focus reveal now rounds device-to-logical displacement outward rather than
+  to nearest. At fractional DPI, nearest rounding could leave a focused
+  control edge clipped by a physical pixel. The helper uses i64 intermediates
+  and bounds the result to i32.
+- Regression coverage checks positive/negative displacements 1-400 at
+  100/125/150/175/200%, zero, and i32 boundary inputs. Rust GUI 54 tests,
+  Clippy warnings-denied and Release build PASS. Isolated 150% GUI lifecycle,
+  keyboard reveal, minimum bounds and scrolling PASS:
+  `evidence/ui/native-focus-reveal-150-2026-11-14.json`.
+- No power write requested. Source GUI now differs from the previously
+  verified 1.0.34 ZIP; rebuild and rerun relevant package gates before any
+  promotion. C:\RyzenAdj remains 1.0.33.
+
 2026-11-14 (1.0.34 ZIP reproducibility and read-only revalidation PASS):
 
 - At clean source `5a92fb7`, two deterministic ZIP builds produced identical
