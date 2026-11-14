@@ -18,7 +18,8 @@ Get-Command gh -ErrorAction SilentlyContinue
 ```
 
 - 工作树干净，分支 `release/1.0.31` 已推送。
-- 确认临时 8 W 窗口已结束，19:00 恢复任务已把策略恢复为 10 W。
+- 确认临时 8 W 窗口已结束；当前按用户要求为 45 W，且临时 19:00
+  恢复任务已删除。
 - 先执行完整硬件门禁：
 
 ```powershell

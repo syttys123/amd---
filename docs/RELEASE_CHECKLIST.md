@@ -29,7 +29,7 @@ Status: `SOFTWARE_GATES_PASS_HARDWARE_GATE_PENDING`
 - [x] Hosted Windows CI passes for the release-material commit
       (run `43535933200`, commit `fd45c21`).
 - [x] Hosted Windows CI passes for the current branch HEAD
-      (run `43541221116`, commit `10b8e8f`).
+      (run `43546592447`, commit `2b6dcd2`).
 - [ ] Full `verify-release.ps1 -Version 1.0.31` hardware gate.
 
 ## Hardware Evidence

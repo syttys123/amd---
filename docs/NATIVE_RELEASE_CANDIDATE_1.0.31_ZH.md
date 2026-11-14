@@ -4,7 +4,7 @@
 
 这不是公开 Release，也不是 B 站上传授权。本文汇总原生 Rust GUI + C++
 worker 候选 `1.0.31-native` 的可复核资产、可靠性修复、已通过的软件门禁，
-以及仍需在 19:00 后执行的实机门禁。
+以及仍需在可安全中断 worker 的窗口执行的实机门禁。
 
 ## 包与来源
 
@@ -16,7 +16,14 @@ worker 候选 `1.0.31-native` 的可复核资产、可靠性修复、已通过�
 - Size: `775,091` bytes
 - SHA256:
   `ccb0ed9a91cc27ab068f117d8174c605c84fb4ab8f6202faecfdce2058326de5`
-- Package source commit: `92c18216e610607a3139af5e4f4335e78a9f9129`
+- Package source commit (pre-sanitization ZIP):
+  `92c18216e610607a3139af5e4f4335e78a9f9129`
+- Current sanitized branch HEAD:
+  `2b6dcd2996b3e99dad948ffce2c365a72691ed03`
+- The ZIP predates the public-history rewrite; its `BUILD-INFO.txt` still
+  records the pre-rewrite commit. The final package will be rebuilt from the
+  sanitized HEAD after the hardware gate, so its hash and source commit will
+  change.
 - Working tree at build time: clean
 - GUI SHA256:
   `18f82690f768f10d0e27379859a01b8f1f837642e9982d380cf8eb022f70e03b`
@@ -55,7 +62,7 @@ worker 候选 `1.0.31-native` 的可复核资产、可靠性修复、已通过�
 - 可复现构建：GUI、probe、worker、portable ZIP 两次构建逐字节一致。
 - 安装器进程范围回归：PASS；稳定 GUI/worker PID 集合保持不变，
   隔离目标目录已清理。
-- 当前分支 HEAD 的托管 Windows CI：run `43541221116`（commit `10b8e8f`）
+- 当前净化分支 HEAD 的托管 Windows CI：run `43546592447`（commit `2b6dcd2`）
   全部步骤 success。
 - 打包 GUI 完整交互回归：托盘图标、简洁/高级模式、顶部置顶、写入控件、
   预设编辑、策略开关、焦点通知、最小尺寸、滚动、关闭到托盘、单实例唤醒
@@ -64,14 +71,14 @@ worker 候选 `1.0.31-native` 的可复核资产、可靠性修复、已通过�
   PASS；最大化/滚动回归 PASS。
 - shell integration：真实安装/启动项/开始菜单/卸载登记创建并完整清理
   PASS，无残留目录、快捷方式或注册表项。
-- 公开发布隐私门禁：593 个已跟踪文本文件和 1.0.31 ZIP 内 13 个文本条目
+- 公开发布隐私门禁：594 个已跟踪文本文件和 1.0.31 ZIP 内 13 个文本条目
   扫描 PASS，没有个人 Windows 用户目录、内部代理标记、常见 API
   key/token 或私钥头。
 
 ## 尚未执行的硬件门禁
 
-以下项目故意留到临时 8 W 窗口结束后执行，避免在用户策略有效期间中断
-worker 或改变功耗：
+以下项目仍需在可安全中断 worker 的窗口执行，避免打断用户当前的
+45 W 会话：
 
 - [ ] `verify-release.ps1 -Version 1.0.31` 完整硬件门禁。
 - [ ] 当前值同值策略写入/回读。
@@ -131,7 +138,7 @@ worker 或改变功耗：
   -EvidencePath .\docs\evidence\packaging\v1.0.31-install-process-scope-2026-11-14.json
 ```
 
-19:00 后的完整硬件门禁：
+当前 45 W 会话结束后的完整硬件门禁：
 
 ```powershell
 .\native\verify-release.ps1 `

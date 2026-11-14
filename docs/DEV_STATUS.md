@@ -21,9 +21,27 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (public history sanitation and 45 W switch):
+
+- Rewrote the public commit history to remove the internal author/committer
+  identity. Remote `main` and `release/1.0.31` now point at sanitized heads
+  `664bc59c` and `2b6dcd2`; the old automation-named remote branch was deleted.
+  Content trees are unchanged, `git fsck` and the public-sanitization gate
+  pass, and only the public repository identity remains in history.
+- The new sanitized HEAD passed hosted Windows CI run `43546592447`; all
+  native, documentation, reproducibility, public-sanitization, and probe steps
+  are green.
+- At 10:39 the user ended the temporary 8 W window and requested 45 W. The
+  persisted policy and live AC read-back are now `45/45/45 W`; the temporary
+  19:00 restore task was removed. The tray GUI was restarted after stopping the
+  old process so its in-memory 8 W policy could not overwrite the new state.
+- The final hardware gate remains pending; it should not be run while the
+  user's 45 W session is active.
+
 2026-11-14 (1.0.31 packaged UI, DPI, and CI evidence refreshed):
 
-- The public hosted-windows workflow for the current branch HEAD is green:
+- At the pre-sanitation branch head, the public hosted-windows workflow was
+  green:
   run `43537439992` (`fe8dcd7`) completed every native step successfully.
   `docs/evidence/build/hosted-ci-2026-11-14.json` now records that exact
   commit, so the publication-readiness hosted-CI gate can resolve against
@@ -38,10 +56,9 @@ not authoritative.
   1366x768/200% work-area fixture, and the maximize/scroll regression.
   All three evidence sets are `PASS`; the deployed tray GUI was restored
   with its original `--tray --simple-mode --max-target-watts 45` arguments.
-- The temporary 8 W window remains active on AC and battery. The scheduled
-  restore is still `Ready` for 19:00 today; the hardware release gate remains
-  deferred until after that restore.
-- Hardened the local 19:00 maintenance helper before it runs:
+- At that point the temporary 8 W window was active on AC and battery. It was
+  later ended by the 45 W switch recorded above.
+- Hardened the local 19:00 maintenance helper before the window ended:
   `revert-night-8w-to-10w.ps1` now rebuilds the complete `powerPolicy` object
   instead of assigning into an older partial object. A 07:05 run had failed
   with a missing `batteryTarget` property and needed a manual retry; the
