@@ -1,0 +1,32 @@
+{
+  "Verification": "PASS",
+  "RecordedAt": "2026-11-14T08:13:32.9605406+08:00",
+  "Results": {
+    "Gui": {
+      "First": "18f82690f768f10d0e27379859a01b8f1f837642e9982d380cf8eb022f70e03b",
+      "Second": "18f82690f768f10d0e27379859a01b8f1f837642e9982d380cf8eb022f70e03b",
+      "Reproducible": true,
+      "Size": 878080
+    },
+    "Probe": {
+      "First": "9750418f15ebce2d70e750e845cfa5408751a96b178d60bbaa168155322a615e",
+      "Second": "9750418f15ebce2d70e750e845cfa5408751a96b178d60bbaa168155322a615e",
+      "Reproducible": true,
+      "Size": 334848
+    },
+    "Worker": {
+      "First": "67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1",
+      "Second": "67af1d41c9a054d9522e4f81521c4d9db1803bd8156199fe119e38470fd0efb1",
+      "Reproducible": true,
+      "Size": 140800
+    },
+    "Package": {
+      "Version": "1.0.31",
+      "First": "19aed2ae67f26a8e7c62b348198cf1157c70a3e65f7ba42139bc09d1322c02f9",
+      "Second": "19aed2ae67f26a8e7c62b348198cf1157c70a3e65f7ba42139bc09d1322c02f9",
+      "Reproducible": true,
+      "Size": 774589
+    }
+  },
+  "Failures": []
+}

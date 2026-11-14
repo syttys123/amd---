@@ -35,6 +35,16 @@ not authoritative.
   probe `7/7`, C++ policy tests `PASS`, Clippy `-D warnings`, Release build,
   and embedded icon check all pass. No hardware write or deployment was
   performed.
+- Candidate package:
+  `artifacts/native-packages/amd-mobile-power-v1.0.31-win-x64-native-preview.zip`,
+  `774,589` bytes, 19 checksum entries, SHA256
+  `19aed2ae67f26a8e7c62b348198cf1157c70a3e65f7ba42139bc09d1322c02f9`.
+  The packaged GUI lifecycle/install checks pass; runtime compatibility and
+  policy verification are intentionally skipped until the hardware gate.
+- Reproducibility PASS for GUI `18f82690`, probe `9750418f`, worker `67af1d41`,
+  and the ZIP. Evidence:
+  `docs/evidence/build/reproducibility-1.0.31-2026-11-14.json` and
+  `docs/evidence/packaging/v1.0.31-clean-2026-11-14.json`.
 - Branch: `codex/atomic-state-persistence`. The reviewed hardware release gate
   is deferred until after the temporary 8 W window ends at 19:00; `main`
   remains the 1.0.30 release-ready line.
