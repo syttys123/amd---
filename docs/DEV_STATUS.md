@@ -21,6 +21,20 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (clean OLS-fix candidate read-only integration PASS):
+
+- Clean `df3c776` produced current 1.0.34 ZIP SHA256
+  `a78c663b55b9ac9254fd4fb727333efd6fa425d3ea1c17d852c51d0da1085c32`,
+  778,150 bytes, 19 checksum entries. Includes the OLS cleanup correction.
+- Build and package read-only gates PASS: GUI 59, probe 7, policy/cleanup/
+  transport regression, extracted GUI, compatibility collector/probe and
+  isolated install flow. PolicyWriteVerification explicitly Skipped.
+  Evidence: `evidence/packaging/v1.0.34-clean-ols-2026-11-14.json`.
+- Updated current checklist hash/status. Earlier reproducibility and scan
+  evidence covers previous payloads and must be refreshed for this ZIP.
+- Final process check: stable C:\RyzenAdj GUI and its child worker only,
+  no observed AMD build/test leftovers. Stable version remains 1.0.33.
+
 2026-11-14 (release checklist evidence drift corrected):
 
 - Checklist/runbook headers claimed 1.0.33 while checked items and executable

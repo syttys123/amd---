@@ -1,0 +1,17 @@
+{
+  "Version": "1.0.34",
+  "Package": "amd-mobile-power-v1.0.34-win-x64-native-preview.zip",
+  "SHA256": "a78c663b55b9ac9254fd4fb727333efd6fa425d3ea1c17d852c51d0da1085c32",
+  "Size": 778150,
+  "SourceCommit": "df3c776bbd62136c1352e5a83e92ab48b9becd0f",
+  "WorkingTree": "Clean",
+  "Verification": "PASS",
+  "ChecksumEntries": 19,
+  "RuntimeVerification": "PASS",
+  "CompatibilityCollector": "PASS",
+  "CompatibilityMarkdown": "PASS",
+  "HeadlessProbe": "PASS",
+  "PolicyWriteVerification": "Skipped",
+  "InstallFlow": "PASS",
+  "RecordedAt": "2026-11-14T21:42:37.7433204+08:00"
+}

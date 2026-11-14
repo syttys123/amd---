@@ -2,20 +2,20 @@
 
 ## Current Candidate Override (2026-11-14)
 
-Current target: **1.0.34**, status **SOURCE_AHEAD_OF_CANDIDATE**.
+Current target: **1.0.34**, status **READ_ONLY_CANDIDATE_PASS_PENDING_FULL_GATES**.
 The checklist below is historical and mixes 1.0.31-1.0.33 evidence. Its
 checked boxes must not be used as current release approval.
 
-The existing clean 1.0.34 ZIP comes from `c028cc4`, SHA256
-`a4a731c53aa7ee9b0ed70d7be55d4ad8d55066aac49674e681cd2a73c5fe0cda`.
-Worker cleanup changed afterward in `cc3e464`; current source is ahead.
+The current clean 1.0.34 ZIP comes from `df3c776`, SHA256
+`a78c663b55b9ac9254fd4fb727333efd6fa425d3ea1c17d852c51d0da1085c32`.
+It includes the driver-cleanup correction; earlier hashes are historical.
 C:\RyzenAdj remains 1.0.33. Current readiness is:
 
 - [x] Native source build: GUI 59 tests, probe 7 tests, C++ policy tests.
 - [x] No-driver destructor cleanup and transport resource regression pass.
-- [x] Existing c028cc4 ZIP read-only runtime, diagnostics and install flow pass.
-- [x] Existing ZIP binaries match independent rebuilds; deterministic repack passes.
-- [ ] New clean candidate built after worker cleanup changes.
+- [x] Current ZIP read-only runtime, diagnostics and install flow pass.
+- [ ] Current ZIP binaries match independent rebuilds; deterministic repack passes.
+- [x] New clean candidate built after worker cleanup changes.
 - [ ] Final candidate formatting, Clippy and hosted CI refreshed.
 - [ ] Final source-to-package reproducibility and sanitization refreshed.
 - [ ] Final current-value write/read-back and worker-hang recovery gates pass.
