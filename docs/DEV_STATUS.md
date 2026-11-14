@@ -21,6 +21,16 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (CI failure propagation hardened):
+
+- GitHub anonymous REST API was rate-limited. Public Actions HTML confirmed
+  run `43601426593`, job `132466794100`, for `3888e1a`; last observation was
+  in progress, not a completed PASS.
+- Workflow lint step now checks LASTEXITCODE after every cargo fmt/clippy
+  command. An earlier failure can no longer be hidden by a later successful
+  command in the same PowerShell step. Local GUI/probe formatting checks and
+  diff whitespace check PASS. No binary/hardware/deployment change.
+
 2026-11-14 (candidate scan/repack refreshed; CI formatting corrected):
 
 - Current `a78c663b...` OLS-fix ZIP passed configured public sanitization

@@ -45,17 +45,21 @@ jobs:
         shell: pwsh
         run: |
           cargo fmt --manifest-path native\rust-gui\Cargo.toml -- --check
+          if ($LASTEXITCODE -ne 0) { throw "GUI formatting failed." }
           cargo clippy `
             --manifest-path native\rust-gui\Cargo.toml `
             --all-targets `
             --locked `
             -- -D warnings
+          if ($LASTEXITCODE -ne 0) { throw "GUI lint failed." }
           cargo fmt --manifest-path native\rust-probe\Cargo.toml -- --check
+          if ($LASTEXITCODE -ne 0) { throw "Probe formatting failed." }
           cargo clippy `
             --manifest-path native\rust-probe\Cargo.toml `
             --all-targets `
             --locked `
             -- -D warnings
+          if ($LASTEXITCODE -ne 0) { throw "Probe lint failed." }
 
       - name: Build RyzenAdj runtime
         shell: pwsh
