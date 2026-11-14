@@ -21,6 +21,21 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (candidate scan/repack refreshed; CI formatting corrected):
+
+- Current `a78c663b...` OLS-fix ZIP passed configured public sanitization
+  (644 tracked files, 13 package text entries) and independent deterministic
+  repack without modifying the candidate. Evidence:
+  `evidence/release/public-sanitization-1.0.34-ols-2026-11-14.json` and
+  `evidence/build/repack-ols-1.0.34-2026-11-14.json`.
+- Found GUI rustfmt drift that would fail hosted CI. Applied rustfmt to
+  main/worker source; 59 Rust tests and warnings-denied Clippy PASS afterward.
+  Formatting changes require source/build identity refresh before final gates;
+  no claim is made that existing binary hashes represent the formatted tree.
+- Local branch had 24 commits ahead of its tracked remote before this session.
+  Repository synchronization is separate from public Release approval. Hosted
+  CI remains unverified until a current remote run is inspected.
+
 2026-11-14 (clean OLS-fix candidate read-only integration PASS):
 
 - Clean `df3c776` produced current 1.0.34 ZIP SHA256

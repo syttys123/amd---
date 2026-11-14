@@ -43,7 +43,8 @@ use windows_sys::Win32::Graphics::Gdi::{
     SelectObject, SetBkColor, SetBkMode, SetTextColor, SetViewportOrgEx, UpdateWindow, BLACK_BRUSH,
     DT_CENTER, DT_END_ELLIPSIS, DT_LEFT, DT_NOPREFIX, DT_SINGLELINE, DT_VCENTER, FW_BOLD,
     FW_NORMAL, HBRUSH, HGDIOBJ, MONITORINFO, MONITOR_DEFAULTTONEAREST, NULL_BRUSH, PAINTSTRUCT,
-    PS_SOLID, RDW_ALLCHILDREN, RDW_ERASE, RDW_FRAME, RDW_INVALIDATE, SRCCOPY, TRANSPARENT, WHITE_BRUSH,
+    PS_SOLID, RDW_ALLCHILDREN, RDW_ERASE, RDW_FRAME, RDW_INVALIDATE, SRCCOPY, TRANSPARENT,
+    WHITE_BRUSH,
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::SystemServices::SS_LEFT;
@@ -311,7 +312,11 @@ fn scaled(value: i32, percent: i32) -> i32 {
 fn unscaled(value: i32, percent: i32) -> i32 {
     let divisor = i64::from(percent.max(1));
     let product = i64::from(value) * 100;
-    let rounding = if product >= 0 { divisor / 2 } else { -divisor / 2 };
+    let rounding = if product >= 0 {
+        divisor / 2
+    } else {
+        -divisor / 2
+    };
     ((product + rounding) / divisor) as i32
 }
 
@@ -1467,7 +1472,12 @@ unsafe fn paint_advanced_window(
     let layout = CommandLayout::new(viewport_width.max(520));
     let side_left = width - 296;
     let side_right = width - 24;
-    SetViewportOrgEx(hdc, 0, -scaled(app.scroll_offset, app.dpi_percent), std::ptr::null_mut());
+    SetViewportOrgEx(
+        hdc,
+        0,
+        -scaled(app.scroll_offset, app.dpi_percent),
+        std::ptr::null_mut(),
+    );
     fill_rect_color(
         hdc,
         &RECT {
@@ -1518,8 +1528,12 @@ unsafe fn paint_advanced_window(
         DT_LEFT,
     );
 
-    SetViewportOrgEx(hdc, -scaled(app.scroll_offset_x, app.dpi_percent),
-        -scaled(app.scroll_offset, app.dpi_percent), std::ptr::null_mut());
+    SetViewportOrgEx(
+        hdc,
+        -scaled(app.scroll_offset_x, app.dpi_percent),
+        -scaled(app.scroll_offset, app.dpi_percent),
+        std::ptr::null_mut(),
+    );
 
     draw_rule(hdc, side_left - 20, 240, side_left - 19, 598);
 
@@ -2097,11 +2111,17 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
             std::ptr::null_mut(),
         );
         paint_header(target_dc, app, fonts, viewport_width.max(520));
-        SetViewportOrgEx(target_dc, -scaled(app.scroll_offset_x, percent),
-            -scaled(app.scroll_offset, percent), std::ptr::null_mut());
+        SetViewportOrgEx(
+            target_dc,
+            -scaled(app.scroll_offset_x, percent),
+            -scaled(app.scroll_offset, percent),
+            std::ptr::null_mut(),
+        );
         match app.view_mode {
             state::UiMode::Simple => paint_simple_window(target_dc, app, fonts, width),
-            state::UiMode::Advanced => paint_advanced_window(target_dc, app, fonts, width, viewport_width),
+            state::UiMode::Advanced => {
+                paint_advanced_window(target_dc, app, fonts, width, viewport_width)
+            }
         }
         SetViewportOrgEx(target_dc, 0, 0, std::ptr::null_mut());
     }
@@ -4062,7 +4082,15 @@ unsafe fn move_control(hwnd: HWND, id: usize, x: i32, y: i32, width: i32, height
             (0, 0)
         } else {
             (
-                if matches!(id, SIMPLE_TARGET_EDIT | SIMPLE_APPLY | PRESET_12 | PRESET_25 | PRESET_45 | PRESET_EDIT_OPEN) {
+                if matches!(
+                    id,
+                    SIMPLE_TARGET_EDIT
+                        | SIMPLE_APPLY
+                        | PRESET_12
+                        | PRESET_25
+                        | PRESET_45
+                        | PRESET_EDIT_OPEN
+                ) {
                     0
                 } else {
                     scaled((*app).scroll_offset_x, (*app).dpi_percent)
@@ -6211,7 +6239,10 @@ mod tests {
             assert_eq!(super::unscaled(value, 100), value);
             assert_eq!(super::unscaled(-value, 100), -value);
             for percent in [100, 125, 150, 175, 200] {
-                assert_eq!(super::unscaled(-value, percent), -super::unscaled(value, percent));
+                assert_eq!(
+                    super::unscaled(-value, percent),
+                    -super::unscaled(value, percent)
+                );
             }
         }
     }
