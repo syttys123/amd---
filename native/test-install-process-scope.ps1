@@ -4,7 +4,8 @@ param(
             (Split-Path -Parent $PSScriptRoot) `
             "artifacts\native-packages\amd-mobile-power-v1.0.31-win-x64-native-preview"
     ),
-    [string]$StableInstallDirectory = "C:\RyzenAdj"
+    [string]$StableInstallDirectory = "C:\RyzenAdj",
+    [string]$EvidencePath
 )
 
 $ErrorActionPreference = "Stop"
@@ -113,13 +114,24 @@ try {
         throw "Stable process set changed. Before=$beforeText After=$afterText"
     }
 
-    [pscustomobject]@{
+    $result = [pscustomobject]@{
         Verification = "PASS"
         StableInstallDirectory = $StableInstallDirectory
         StableProcessIds = $beforeText
         IsolatedTargetLeftBehind = Test-Path -LiteralPath $testTarget
         RecordedAt = (Get-Date).ToString("o")
-    } | Format-List
+    }
+    if ($EvidencePath) {
+        $evidenceDirectory = Split-Path -Parent $EvidencePath
+        if ($evidenceDirectory) {
+            New-Item -ItemType Directory -Path $evidenceDirectory -Force | Out-Null
+        }
+        [System.IO.File]::WriteAllText(
+            $EvidencePath,
+            ($result | ConvertTo-Json -Depth 5),
+            (New-Object System.Text.UTF8Encoding($false)))
+    }
+    $result | Format-List
 }
 finally {
     foreach ($path in @($testPackage, $testTarget)) {

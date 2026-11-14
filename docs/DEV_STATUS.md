@@ -55,6 +55,12 @@ not authoritative.
   installs and uninstalls an isolated copy while the deployed GUI/worker are
   running and requires the stable process set to remain unchanged; the test
   passed with the deployed worker PID `39516` still alive.
+- The regression guard now writes
+  `docs/evidence/packaging/v1.0.31-install-process-scope-2026-11-14.json`;
+  the final run recorded stable PIDs `32288,39516` and
+  `IsolatedTargetLeftBehind=false`.
+- Added `docs/NATIVE_RELEASE_CANDIDATE_1.0.31_ZH.md` with the candidate hash,
+  software-gate evidence, deferred hardware gate, and reproduction commands.
 - Recovery after the earlier unintended stop: the persisted policy was restored
   to `8/8/8 W`, the deployed GUI/worker were restarted, and live AC read-back
   is `8.00 W` again. No high-risk power value was written.

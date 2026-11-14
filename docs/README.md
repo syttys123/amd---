@@ -63,7 +63,8 @@ Markdown document records the decisions that apply to AMD Mobile Power.
 | `release-notes-1.0.30-zh.md` | Current public GitHub Release body draft |
 | `release-assets-1.0.30.json` | Current package, video, cover, and copy manifest |
 | `RELEASE_CANDIDATE_ZH.md` | Legacy .NET 1.0.4 package and historical review |
-| `NATIVE_RELEASE_CANDIDATE_1.0.30_ZH.md` | Current native 1.0.30 package, evidence, and open-gate review |
+| `NATIVE_RELEASE_CANDIDATE_1.0.31_ZH.md` | Current native 1.0.31 candidate and hardware-gate review |
+| `NATIVE_RELEASE_CANDIDATE_1.0.30_ZH.md` | Stable-local native 1.0.30 package and evidence review |
 | `NATIVE_RELEASE_CANDIDATE_1.0.29_ZH.md` | Historical native 1.0.29 review snapshot |
 | `NATIVE_RELEASE_CANDIDATE_1.0.28_ZH.md` | Historical native 1.0.28 review snapshot |
 | `NATIVE_RELEASE_CANDIDATE_ZH.md` | Historical native 1.0.23 review snapshot |
