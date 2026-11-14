@@ -78,15 +78,27 @@ function Rebuild-RustBinary {
         [Parameter(Mandatory = $true)][string]$Executable
     )
 
-    if (Test-Path -LiteralPath $Executable) {
-        Remove-Item -LiteralPath $Executable -Force
+    $freshTarget = [System.IO.Path]::GetFullPath(
+        (Join-Path $artifacts "native-build\repro-$([Guid]::NewGuid().ToString('N'))"))
+    $allowedRoot = [System.IO.Path]::GetFullPath($artifacts) + [System.IO.Path]::DirectorySeparatorChar
+    if (-not $freshTarget.StartsWith($allowedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Fresh Rust target directory must stay under artifacts."
     }
-    & cargo build --manifest-path $Manifest --release --locked --offline
-    if ($LASTEXITCODE -ne 0) {
-        throw "Rust rebuild failed for $Manifest"
+    try {
+        & cargo build --manifest-path $Manifest --target-dir $freshTarget --release --locked --offline
+        if ($LASTEXITCODE -ne 0) {
+            throw "Fresh Rust rebuild failed for $Manifest"
+        }
+        $rebuilt = Join-Path $freshTarget ("release\" + (Split-Path -Leaf $Executable))
+        if (-not (Test-Path -LiteralPath $rebuilt)) {
+            throw "Fresh Rust rebuild did not produce $rebuilt"
+        }
+        Copy-Item -LiteralPath $rebuilt -Destination $Executable -Force
     }
-    if (-not (Test-Path -LiteralPath $Executable)) {
-        throw "Rust rebuild did not produce $Executable"
+    finally {
+        if (Test-Path -LiteralPath $freshTarget) {
+            Remove-Item -LiteralPath $freshTarget -Recurse -Force
+        }
     }
 }
 
@@ -189,6 +201,7 @@ if ($PackageVersion) {
 $status = if ($failures.Count -eq 0) { "PASS" } else { "FAILED" }
 $record = [ordered]@{
     Verification = $status
+    RustBuildIsolation = "Fresh unique target directory; removed in finally"
     RecordedAt = (Get-Date).ToString("o")
     Results = $results
     Failures = @($failures)

@@ -21,6 +21,33 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (fresh-target binary reproducibility PASS):
+
+- Found a verification weakness: deleting only the final Rust EXE allowed
+  Cargo to reuse cached build artifacts. The reproducibility verifier now
+  builds GUI/probe into unique empty target directories under artifacts,
+  validates the output and removes those directories in finally.
+- Fresh Rust builds and C++ clean-first rebuild reproduce all three binary
+  hashes exactly: GUI `2fdff350`, probe `9750418f`, worker `67af1d41`.
+  Full hashes are recorded in
+  `evidence/build/reproducibility-ui-root-fixes-2026-11-14.json`.
+- Verified no temporary repro target directories or C++ compiler/build
+  processes remained after completion. This proves local binary
+  reproducibility; ZIP reproducibility and full release gates remain pending.
+
+2026-11-14 (1.0.34 clean read-only package PASS):
+
+- Rebuilt from clean commit `d9b3951` with the full native build and
+  `-ReadOnlyRuntimeVerification`. All 19 checksums, extracted GUI lifecycle,
+  hardware snapshot, compatibility JSON/Markdown, headless probe and isolated
+  install/overwrite/uninstall passed. PolicyWriteVerification=Skipped.
+- ZIP: `artifacts/native-packages/amd-mobile-power-v1.0.34-win-x64-native-preview.zip`,
+  775,945 bytes, SHA256
+  `bf9410fa58b9401f91e269b975ede5cb5bee7d94e8991452ac64edef8a3a2003`.
+- Evidence: `evidence/packaging/v1.0.34-readonly-clean-2026-11-14.json`.
+  This supersedes the dirty diagnostic ZIP, not the deployed 1.0.33.
+  Reproducibility, full release gates and promotion remain pending.
+
 2026-11-14 (package verification session lifetime fixed):
 
 - `build-package.ps1` now preserves active GUI launch contexts, requests
