@@ -460,6 +460,7 @@ struct GuiApp {
     scroll_offset: i32,
     scroll_offset_x: i32,
     layout_in_progress: bool,
+    layout_pending: bool,
     redraw_suspended: bool,
     max_target_watts: Option<i32>,
 }
@@ -521,6 +522,7 @@ impl GuiApp {
             scroll_offset: 0,
             scroll_offset_x: 0,
             layout_in_progress: false,
+            layout_pending: false,
             redraw_suspended: false,
             max_target_watts,
         }
@@ -4427,7 +4429,14 @@ unsafe fn resume_redraw(app: &mut GuiApp, hwnd: HWND, suspended: bool) {
 /// Places the child controls for the current mode using the live client width,
 /// so a user-resized window keeps its right-aligned controls in place.
 unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
+    layout_mode_controls_depth(app, hwnd, 0);
+}
+
+unsafe fn layout_mode_controls_depth(app: &mut GuiApp, hwnd: HWND, depth: u32) {
     if app.layout_in_progress {
+        // A resize or scrollbar toggle can land while the previous pass is
+        // still running; remember it instead of dropping the new geometry.
+        app.layout_pending = true;
         return;
     }
     app.layout_in_progress = true;
@@ -4692,6 +4701,10 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
     InvalidateRect(hwnd, std::ptr::null(), 0);
     app.layout_in_progress = false;
     resume_redraw(app, hwnd, suspended);
+    while app.layout_pending && depth < 3 {
+        app.layout_pending = false;
+        layout_mode_controls_depth(app, hwnd, depth + 1);
+    }
 }
 
 /// Rebuilds the device-sized fonts used by native child controls after a DPI
