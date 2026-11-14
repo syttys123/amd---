@@ -37,14 +37,27 @@ not authoritative.
   performed.
 - Candidate package:
   `artifacts/native-packages/amd-mobile-power-v1.0.31-win-x64-native-preview.zip`,
-  `774,589` bytes, 19 checksum entries, SHA256
-  `19aed2ae67f26a8e7c62b348198cf1157c70a3e65f7ba42139bc09d1322c02f9`.
+  `775,091` bytes, 19 checksum entries, SHA256
+  `ccb0ed9a91cc27ab068f117d8174c605c84fb4ab8f6202faecfdce2058326de5`.
   The packaged GUI lifecycle/install checks pass; runtime compatibility and
   policy verification are intentionally skipped until the hardware gate.
 - Reproducibility PASS for GUI `18f82690`, probe `9750418f`, worker `67af1d41`,
   and the ZIP. Evidence:
   `docs/evidence/build/reproducibility-1.0.31-2026-11-14.json` and
   `docs/evidence/packaging/v1.0.31-clean-2026-11-14.json`.
+- Found and fixed a package-verification side effect: `install-preview.ps1`
+  and `uninstall-preview.ps1` stopped every process named
+  `amd-mobile-power-gui.exe` / `amdmobilepower_native_worker.exe`, so an
+  isolated install/uninstall could kill the deployed stable worker. Both now
+  stop only processes whose executable path is inside the requested install
+  directory.
+- Added `native/test-install-process-scope.ps1` as the regression guard. It
+  installs and uninstalls an isolated copy while the deployed GUI/worker are
+  running and requires the stable process set to remain unchanged; the test
+  passed with the deployed worker PID `39516` still alive.
+- Recovery after the earlier unintended stop: the persisted policy was restored
+  to `8/8/8 W`, the deployed GUI/worker were restarted, and live AC read-back
+  is `8.00 W` again. No high-risk power value was written.
 - Branch: `codex/atomic-state-persistence`. The reviewed hardware release gate
   is deferred until after the temporary 8 W window ends at 19:00; `main`
   remains the 1.0.30 release-ready line.
