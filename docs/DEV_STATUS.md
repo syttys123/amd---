@@ -21,6 +21,27 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (1.0.31 promoted to the stable-local deployment):
+
+- Committed and pushed the hardware-gate documentation refresh
+  (`e2f4ade`); `verify-docs.ps1` scans 53 Markdown files and 39 relative links
+  as `PASS`, and `verify-public-sanitization.ps1` scans 594 tracked files plus
+  the 13-entry package as `PASS`.
+- Promoted the gated package to `C:\RyzenAdj` through the reversible helper:
+  rollback `C:\RyzenAdj.before-20261114-110034`, evidence
+  `docs/evidence/packaging/v1.0.31-native-deployment-2026-11-14.json`.
+  `BUILD-INFO.txt` reports `1.0.31`, commit `28092ea`.
+- Relaunched the deployed tray GUI with `--simple-mode --max-target-watts 45`
+  and re-verified by probe read-back: `STAPM/Fast/Slow = 45/45/45 W`, power
+  line `ac`, policy enabled, presets `10/25/45`, write controls unlocked.
+- `verify-publication-readiness.ps1 -Version 1.0.31` now reports
+  `LocalReadiness=PASS` with `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`.
+  Remaining open gates are external: second AMD device, real OS DPI sessions,
+  clean-Windows WinRing0 baseline, human media review, and explicit public
+  release approval.
+- Corrected the stale pre-gate ZIP hash in `docs/RELEASE_RUNBOOK.md` and
+  marked the older `ccb0ed9a…` record in this file as historical.
+
 2026-11-14 (1.0.31 full hardware gate PASS):
 
 - Ran the complete `verify-release.ps1 -Version 1.0.31` gate with the deployed

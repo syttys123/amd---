@@ -1,10 +1,11 @@
 # Release Runbook
 
-状态：`HARDWARE_GATE_PASS_PENDING_PROMOTION`
+状态：`HARDWARE_GATE_PASS_PROMOTED_PENDING_PUBLIC_RELEASE`
 
 执行前必须由项目所有者明确批准公开发布，并具备可用的 GitHub / B 站
-登录会话。本手册覆盖 `1.0.31-native`；硬件门禁已通过，但未完成人工审片
-前不要创建公开 Release 或上传视频。
+登录会话。本手册覆盖 `1.0.31-native`；硬件门禁已通过，且已部署到
+`C:\RyzenAdj`（回滚目录 `C:\RyzenAdj.before-20261114-110034`）。未完成
+人工审片前不要创建公开 Release 或上传视频。
 
 候选版本：`1.0.31-native`。发布物料清单见
 `docs/release-assets-1.0.31.json`。

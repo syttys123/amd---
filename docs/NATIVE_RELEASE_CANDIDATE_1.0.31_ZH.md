@@ -1,6 +1,6 @@
 # Native Release Candidate 1.0.31
 
-状态：`CANDIDATE_HARDWARE_GATE_PASS_PENDING_HUMAN_REVIEW`
+状态：`CANDIDATE_PROMOTED_STABLE_LOCAL_PENDING_HUMAN_REVIEW`
 
 这不是公开 Release，也不是 B 站上传授权。本文汇总原生 Rust GUI + C++
 worker 候选 `1.0.31-native` 的可复核资产、可靠性修复、已通过的软件门禁，

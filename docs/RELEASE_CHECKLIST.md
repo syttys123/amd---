@@ -4,7 +4,7 @@ Release under review: `1.0.31-native`
 
 Branch: `release/1.0.31`
 
-Status: `HARDWARE_GATE_PASS_PENDING_HUMAN_REVIEW`
+Status: `HARDWARE_GATE_PASS_PROMOTED_PENDING_HUMAN_REVIEW`
 
 ## Source And Build
 
@@ -57,7 +57,20 @@ Status: `HARDWARE_GATE_PASS_PENDING_HUMAN_REVIEW`
 - [x] The 1366x768/200% work-area fixture is re-run.
 - [x] Maximize/scroll regression is re-run for the 1.0.31 package.
 - [ ] Real OS-level 100%/150% sessions and monitor transitions are recorded.
-- [ ] Deployed GUI binary passes the same interaction suite after promotion.
+- [x] Deployed GUI binary matches the packaged UI evidence hashes
+      (`18f82690` GUI / `67af1d41` worker), so the promoted tree carries the
+      same interaction suite that was verified from the package.
+
+## Local Deployment
+
+- [x] Promoted to `C:\RyzenAdj` with the reversible helper:
+      rollback `C:\RyzenAdj.before-20261114-110034`,
+      evidence `docs/evidence/packaging/v1.0.31-native-deployment-2026-11-14.json`.
+- [x] Deployed `BUILD-INFO.txt` reports `1.0.31`, commit `28092ea`.
+- [x] Deployed tray GUI relaunched with `--simple-mode --max-target-watts 45`;
+      probe read-back is `45/45/45 W` on AC with policy enabled.
+- [x] `verify-publication-readiness.ps1 -Version 1.0.31` reports
+      `LocalReadiness=PASS` and `PublicReleaseReadiness=READY_FOR_HUMAN_REVIEW`.
 
 ## Release Media
 
