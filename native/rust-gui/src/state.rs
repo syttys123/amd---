@@ -1,6 +1,8 @@
 use crate::worker::PowerPolicySettings;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::fs::OpenOptions;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -67,15 +69,37 @@ fn state_path() -> Option<PathBuf> {
     )
 }
 
-fn decode_state(contents: &str) -> Option<PersistedUiState> {
+fn decode_state(contents: &str) -> Result<PersistedUiState, serde_json::Error> {
     // Notepad and PowerShell 5.1 write UTF-8 with a BOM; serde_json rejects it.
-    serde_json::from_str::<PersistedUiState>(contents.trim_start_matches('\u{feff}')).ok()
+    serde_json::from_str::<PersistedUiState>(contents.trim_start_matches('\u{feff}'))
 }
 
 fn load_state() -> Option<PersistedUiState> {
     let path = state_path()?;
+    load_state_from(&path)
+}
+
+fn load_state_from(path: &Path) -> Option<PersistedUiState> {
     let contents = std::fs::read_to_string(path).ok()?;
-    decode_state(&contents)
+    match decode_state(&contents) {
+        Ok(state) => Some(state),
+        Err(_) => {
+            // Keep the bad file for support and diagnostics. The next save
+            // replaces it with a valid atomic snapshot.
+            backup_corrupt_state(path);
+            None
+        }
+    }
+}
+
+fn backup_corrupt_state(path: &Path) {
+    let backup = path.with_file_name(format!(
+        "{}.corrupt.bak",
+        path.file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("rust-ui-state.json")
+    ));
+    let _ = std::fs::copy(path, backup);
 }
 
 pub fn load_power_policy() -> Option<PowerPolicySettings> {
@@ -154,14 +178,91 @@ fn update_state(update: impl FnOnce(&mut PersistedUiState)) -> Result<(), String
     update(&mut state);
     let contents = serde_json::to_string_pretty(&state)
         .map_err(|error| format!("unable to serialize UI state: {error}"))?;
-    std::fs::write(&path, contents)
-        .map_err(|error| format!("unable to write {}: {error}", path.display()))
+    write_state_atomic(&path, contents.as_bytes())
+}
+
+fn write_state_atomic(path: &Path, contents: &[u8]) -> Result<(), String> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| format!("state path has no parent: {}", path.display()))?;
+    let file_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("rust-ui-state.json");
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_nanos())
+        .unwrap_or(0);
+    let temp_path = parent.join(format!(".{file_name}.tmp-{}-{stamp}", std::process::id()));
+
+    let write_result = (|| -> Result<(), String> {
+        let mut file = OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(&temp_path)
+            .map_err(|error| format!("unable to create {}: {error}", temp_path.display()))?;
+        file.write_all(contents)
+            .map_err(|error| format!("unable to write {}: {error}", temp_path.display()))?;
+        file.sync_all()
+            .map_err(|error| format!("unable to flush {}: {error}", temp_path.display()))?;
+        Ok(())
+    })();
+    if let Err(error) = write_result {
+        let _ = std::fs::remove_file(&temp_path);
+        return Err(error);
+    }
+
+    if let Err(error) = replace_file(&temp_path, path) {
+        let _ = std::fs::remove_file(&temp_path);
+        return Err(format!("unable to replace {}: {error}", path.display()));
+    }
+    Ok(())
+}
+
+#[cfg(windows)]
+fn replace_file(source: &Path, destination: &Path) -> std::io::Result<()> {
+    use std::os::windows::ffi::OsStrExt;
+    use windows_sys::Win32::Storage::FileSystem::{
+        MoveFileExW, MOVEFILE_REPLACE_EXISTING, MOVEFILE_WRITE_THROUGH,
+    };
+
+    let source_wide: Vec<u16> = source
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+    let destination_wide: Vec<u16> = destination
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+    let result = unsafe {
+        MoveFileExW(
+            source_wide.as_ptr(),
+            destination_wide.as_ptr(),
+            MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH,
+        )
+    };
+    if result == 0 {
+        Err(std::io::Error::last_os_error())
+    } else {
+        Ok(())
+    }
+}
+
+#[cfg(not(windows))]
+fn replace_file(source: &Path, destination: &Path) -> std::io::Result<()> {
+    std::fs::rename(source, destination)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{default_presets, sanitize_presets, PersistedUiState, UiMode, WindowPreferences};
+    use super::{
+        default_presets, load_state_from, sanitize_presets, write_state_atomic, PersistedUiState,
+        UiMode, WindowPreferences,
+    };
     use crate::worker::{PowerLimitTarget, PowerPolicySettings};
+    use std::path::PathBuf;
 
     #[test]
     fn state_with_utf8_bom_is_accepted() {
@@ -169,6 +270,51 @@ mod tests {
             .expect("BOM-prefixed state must parse");
 
         assert_eq!(decoded.presets, [10, 25, 45]);
+    }
+
+    #[test]
+    fn malformed_state_is_rejected() {
+        assert!(super::decode_state("{\"presets\":[10,25").is_err());
+    }
+
+    #[test]
+    fn atomic_state_write_replaces_an_existing_file() {
+        let directory = test_directory("atomic-state");
+        let path = directory.join("rust-ui-state.json");
+        std::fs::create_dir_all(&directory).unwrap();
+        std::fs::write(&path, b"old").unwrap();
+
+        write_state_atomic(&path, br#"{"presets":[10,25,45]}"#).unwrap();
+
+        assert_eq!(
+            std::fs::read_to_string(&path).unwrap(),
+            r#"{"presets":[10,25,45]}"#
+        );
+        let _ = std::fs::remove_dir_all(&directory);
+    }
+
+    #[test]
+    fn corrupt_state_is_preserved_for_recovery() {
+        let directory = test_directory("corrupt-state");
+        let path = directory.join("rust-ui-state.json");
+        std::fs::create_dir_all(&directory).unwrap();
+        std::fs::write(&path, b"{not-json").unwrap();
+
+        assert!(load_state_from(&path).is_none());
+        let backup = directory.join("rust-ui-state.json.corrupt.bak");
+        assert_eq!(std::fs::read(&backup).unwrap(), b"{not-json");
+        let _ = std::fs::remove_dir_all(&directory);
+    }
+
+    fn test_directory(label: &str) -> PathBuf {
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|duration| duration.as_nanos())
+            .unwrap_or(0);
+        std::env::temp_dir().join(format!(
+            "amd-mobile-power-{label}-{}-{stamp}",
+            std::process::id()
+        ))
     }
 
     #[test]

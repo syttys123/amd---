@@ -21,6 +21,24 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (unreleased branch hardening: atomic UI state writes):
+
+- `save_*` persistence now writes a same-directory temporary file, calls
+  `sync_all`, then replaces the destination with `MoveFileExW` using
+  `MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH`. A crash or power loss
+  during a normal settings save can no longer leave a truncated
+  `rust-ui-state.json`.
+- If the existing state file fails to parse, the loader preserves it as
+  `rust-ui-state.json.corrupt.bak` before the next save replaces it. BOM
+  tolerance remains in place.
+- Verification on the branch: Rust GUI `28` library + `23` main = `51/51`,
+  probe `7/7`, C++ policy tests `PASS`, Clippy `-D warnings`, Release build,
+  and embedded icon check all pass. No hardware write or deployment was
+  performed.
+- Branch: `codex/atomic-state-persistence`. The reviewed hardware release gate
+  is deferred until after the temporary 8 W window ends at 19:00; `main`
+  remains the 1.0.30 release-ready line.
+
 2026-11-14 (release documentation and publication gate reconciled):
 
 - Re-ran `native/verify-publication-readiness.ps1 -Version 1.0.30`:
