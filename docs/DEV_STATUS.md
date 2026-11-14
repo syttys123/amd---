@@ -21,6 +21,23 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (GUI pipe-busy retry and latest read-only integration):
+
+- Latest integrated package initially failed GUI worker connection with
+  Windows ERROR_PIPE_BUSY (231). GUI client now retries only pipe opening
+  for up to two seconds at 20 ms intervals on that exact error. It never
+  retries a request after sending bytes, avoiding duplicate hardware writes.
+- Rebuilt full diagnostic package with current GUI/worker: native transport,
+  Rust 54+7 tests, C++ policy tests, extracted GUI, live read-only snapshot,
+  diagnostics collectors, headless probe and isolated install flow PASS.
+  Evidence is local `artifacts/ui-root-review/latest-integration.json`.
+- Diagnostic package WorkingTree=Dirty; not valid release/promotion evidence.
+  Existing tracked clean-package evidence refers to older source and does
+  not cover this latest payload. Stable deployment remains 1.0.33.
+- A deterministic occupied-pipe-then-release client regression is still
+  required; one passing integrated run does not prove the retry path or
+  eliminate every possible cause of pipe contention.
+
 2026-11-14 (transport regression included in native build):
 
 - `native/build.ps1` now runs the no-hardware request-bound/deadline/resource

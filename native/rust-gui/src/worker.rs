@@ -3,7 +3,7 @@ use serde_json::Value;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 pub const DEFAULT_PIPE_NAME: &str = r"\\.\pipe\AmdMobilePower.RustGui.Worker.v1";
 
@@ -231,11 +231,16 @@ impl WorkerClient {
             "payload": payload
         });
 
-        let stream = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .open(&self.pipe_name)
-            .map_err(|error| format!("unable to open {}: {error}", self.pipe_name))?;
+        let connect_deadline = Instant::now() + Duration::from_secs(2);
+        let stream = loop {
+            match OpenOptions::new().read(true).write(true).open(&self.pipe_name) {
+                Ok(stream) => break stream,
+                Err(error) if error.raw_os_error() == Some(231) && Instant::now() < connect_deadline => {
+                    std::thread::sleep(Duration::from_millis(20));
+                }
+                Err(error) => return Err(format!("unable to open {}: {error}", self.pipe_name)),
+            }
+        };
         let mut writer = stream
             .try_clone()
             .map_err(|error| format!("unable to clone worker stream: {error}"))?;
