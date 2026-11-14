@@ -1,0 +1,86 @@
+{
+  "SourceCommit": "00db7e2a480c89ee88205cb73408818770a40f53",
+  "SourceDirty": true,
+  "Verification": "PASS",
+  "ResourceStability": {
+    "Verification": "PASS",
+    "ModeSwitches": 480,
+    "SynchronousRepaints": 480,
+    "Samples": [
+      {
+        "Batch": 0,
+        "GdiObjects": 27,
+        "UserObjects": 61,
+        "Handles": 189,
+        "PrivateBytes": 2568192
+      },
+      {
+        "Batch": 1,
+        "GdiObjects": 27,
+        "UserObjects": 61,
+        "Handles": 189,
+        "PrivateBytes": 2568192
+      },
+      {
+        "Batch": 2,
+        "GdiObjects": 27,
+        "UserObjects": 61,
+        "Handles": 189,
+        "PrivateBytes": 2568192
+      },
+      {
+        "Batch": 3,
+        "GdiObjects": 27,
+        "UserObjects": 61,
+        "Handles": 189,
+        "PrivateBytes": 2568192
+      },
+      {
+        "Batch": 4,
+        "GdiObjects": 27,
+        "UserObjects": 61,
+        "Handles": 189,
+        "PrivateBytes": 2568192
+      },
+      {
+        "Batch": 5,
+        "GdiObjects": 27,
+        "UserObjects": 61,
+        "Handles": 189,
+        "PrivateBytes": 2568192
+      }
+    ]
+  },
+  "Path": "Rust GUI -> C++ worker -> RyzenAdj",
+  "Processor": null,
+  "WorkerStatus": "",
+  "GuiExecutable": "amd-mobile-power-gui.exe",
+  "GuiSHA256": "ae62f152eee7e2cb6069748194716f94da825b47c7982593dd2038d135c0eb6f",
+  "WorkerExecutable": null,
+  "WorkerSHA256": null,
+  "MinimizeRestoreCycles": 3,
+  "CloseToTray": "PASS",
+  "TrayRestore": "PASS",
+  "SingleInstanceWake": "PASS",
+  "TaskbarIconAvailable": null,
+  "TrayIconId": null,
+  "InitialUiMode": null,
+  "FinalUiMode": "advanced",
+  "DiagnosticsExport": "Not requested",
+  "ViewModes": "PASS",
+  "TopMost": "PASS",
+  "TargetWatts": null,
+  "ReadBackWatts": null,
+  "WriteControls": "PASS",
+  "PresetEditing": "PASS",
+  "BatteryOnlyToggle": "PASS",
+  "FocusNotifications": "PASS",
+  "TargetDraftRetention": "PASS",
+  "MinimumResizeBounds": "PASS",
+  "AdvancedScroll": "PASS",
+  "DpiFixture": "200",
+  "WritePreset": "Not requested",
+  "PolicySave": "Not requested",
+  "BackgroundGuiRelaunched": 1,
+  "RecordedAt": "2026-11-14T21:18:01.6302366+08:00"
+}

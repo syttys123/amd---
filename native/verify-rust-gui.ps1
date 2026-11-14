@@ -952,9 +952,19 @@ try {
         $defaultHScroll.Mask = 0x0017
         [AmdMobilePowerRustGuiNative]::GetScrollInfo(
             $window, 0, [ref]$defaultHScroll) | Out-Null
-        if ($defaultVScroll.Max -ge $defaultVScroll.Page -or
-            $defaultHScroll.Max -ge $defaultHScroll.Page) {
-            throw "Default advanced viewport retained a phantom scrollbar."
+        [AmdMobilePowerRustGuiNative]::GetClientRect($window, [ref]$client) | Out-Null
+        $defaultPercent = if ($DpiFixture) { [int]$DpiFixture } else {
+            [int][Math]::Round([AmdMobilePowerRustGuiNative]::GetDpiForWindow($window) * 100.0 / 96.0)
+        }
+        $logicalWidth = [int][Math]::Floor(($client.Right * 100.0 + $defaultPercent / 2) / $defaultPercent)
+        $logicalHeight = [int][Math]::Floor(($client.Bottom * 100.0 + $defaultPercent / 2) / $defaultPercent)
+        $defaultStyle = [AmdMobilePowerRustGuiNative]::GetWindowLongPtr($window, -16).ToInt64()
+        $verticalVisible = ($defaultStyle -band 0x00200000) -ne 0
+        $horizontalVisible = ($defaultStyle -band 0x00100000) -ne 0
+        if ($verticalVisible -ne ($logicalHeight -lt 680) -or
+            $horizontalVisible -ne ($logicalWidth -lt 760)) {
+            throw ("Default advanced viewport retained a scrollbar: client=$($client.Right)x$($client.Bottom), " +
+                "vertical=$($defaultVScroll.Max)/$($defaultVScroll.Page), horizontal=$($defaultHScroll.Max)/$($defaultHScroll.Page), fixture=$DpiFixture.")
         }
 
         $minimum = New-Object AmdMobilePowerRustGuiNative+MINMAXINFO

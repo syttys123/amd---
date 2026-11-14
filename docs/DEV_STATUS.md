@@ -21,6 +21,27 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (clean candidate and packaged 200% resource check):
+
+- Clean `00db7e2` package build/read-only runtime PASS, ZIP SHA256
+  `96364325117f20ff85f9948764367024c0c1f48a688e5d54dc4007f3bcf81cf4`,
+  777,916 bytes and 19 checksums. Write verification explicitly Skipped.
+- Packaged GUI passed 200% fixture/minimum bounds/scroll/focus and 480
+  synchronous repaints/mode switches. All six resource samples: GDI 27,
+  USER 61, handles 189, private bytes 2,568,192. Evidence:
+  `evidence/ui/native-packaged-1.0.34-200-resource-2026-11-14.json`.
+- Corrected verifier assumption that default advanced mode never scrolls:
+  actual 200% client 1543x1061 is only 531 logical pixels high, so vertical
+  scrolling is necessary. Assertions now compare scrollbar styles against
+  actual logical viewport overflow; diagnostic dimensions retained on failure.
+- SourceDirty in UI evidence refers to this verifier edit, not a rebuilt GUI;
+  the GUI hash identifies the clean package payload. Stable GUI/child worker
+  confirmed running after checks. No power write requested.
+- Split capture review still shows target/apply clipped at the right in a
+  narrow advanced viewport until horizontal scrolling. Existing geometry is
+  coherent but UX remains incomplete. Responsive command/header layout is
+  the next UI task; do not claim visual readiness from the PASS alone.
+
 2026-11-14 (diagnostic package overwrite protection):
 
 - Package entry now rejects a dirty source tree unless the version contains
