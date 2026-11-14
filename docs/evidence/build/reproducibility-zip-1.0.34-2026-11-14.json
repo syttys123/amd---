@@ -1,0 +1,15 @@
+{
+  "Verification": "PASS",
+  "RustBuildIsolation": "Fresh unique target directory; removed in finally",
+  "RecordedAt": "2026-11-14T20:30:54.3662093+08:00",
+  "Results": {
+    "Package": {
+      "Version": "1.0.34",
+      "First": "c87f5b62e3e01188fa35f0e96063f29b8f9006b1a59f881f9a629c6ac45bf8fc",
+      "Second": "c87f5b62e3e01188fa35f0e96063f29b8f9006b1a59f881f9a629c6ac45bf8fc",
+      "Reproducible": true,
+      "Size": 775945
+    }
+  },
+  "Failures": []
+}

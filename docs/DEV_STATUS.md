@@ -21,6 +21,25 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (1.0.34 ZIP reproducibility and read-only revalidation PASS):
+
+- At clean source `5a92fb7`, two deterministic ZIP builds produced identical
+  SHA256 `c87f5b62e3e01188fa35f0e96063f29b8f9006b1a59f881f9a629c6ac45bf8fc`
+  (775,945 bytes). This supersedes the earlier `d9b3951` package hash because
+  BUILD-INFO source metadata changed, not because GUI/worker binaries changed.
+- Re-ran extracted-package read-only runtime, collector, headless probe and
+  isolated install flow against that exact ZIP: PASS, WorkingTree=Clean,
+  19 checksum entries. Write verification remains explicitly Skipped.
+- Public sanitization scanned 623 tracked files and 13 package text entries:
+  PASS for the configured home-path, internal-marker and credential patterns.
+  This is pattern-based evidence, not a proof that every possible secret
+  format or personal datum has been excluded.
+- Evidence: `evidence/build/reproducibility-zip-1.0.34-2026-11-14.json`,
+  `evidence/packaging/v1.0.34-readonly-clean-2026-11-14.json`, and
+  `evidence/release/public-sanitization-1.0.34-2026-11-14.json`.
+- C:\RyzenAdj remains 1.0.33. Complete write/worker-hang/release gates,
+  refreshed UI/media evidence and promotion remain outstanding.
+
 2026-11-14 (fresh-target binary reproducibility PASS):
 
 - Found a verification weakness: deleting only the final Rust EXE allowed
