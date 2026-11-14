@@ -40,10 +40,10 @@ use windows_sys::Win32::Graphics::Gdi::{
     BeginPaint, BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, CreateFontW, CreatePen,
     CreateSolidBrush, DeleteDC, DeleteObject, DrawTextW, EndPaint, FillRect, GetMonitorInfoW,
     GetStockObject, InvalidateRect, MonitorFromWindow, RoundRect, ScreenToClient, SelectObject,
-    SetBkColor, SetBkMode, SetTextColor, SetViewportOrgEx, UpdateWindow, BLACK_BRUSH, COLOR_WINDOW,
+    RedrawWindow, SetBkColor, SetBkMode, SetTextColor, SetViewportOrgEx, UpdateWindow, BLACK_BRUSH,
     DT_CENTER, DT_END_ELLIPSIS, DT_LEFT, DT_NOPREFIX, DT_RIGHT, DT_SINGLELINE, DT_VCENTER, FW_BOLD,
     FW_NORMAL, HBRUSH, HGDIOBJ, MONITORINFO, MONITOR_DEFAULTTONEAREST, NULL_BRUSH, PAINTSTRUCT,
-    PS_SOLID, SRCCOPY, TRANSPARENT, WHITE_BRUSH,
+    PS_SOLID, RDW_ALLCHILDREN, RDW_ERASE, RDW_INVALIDATE, SRCCOPY, TRANSPARENT, WHITE_BRUSH,
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::SystemServices::SS_LEFT;
@@ -73,7 +73,8 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     AppendMenuW, CheckMenuItem, CreateIconFromResourceEx, CreatePopupMenu, CreateWindowExW,
     DefWindowProcW, DestroyIcon, DestroyMenu, DestroyWindow, DispatchMessageW, FindWindowW,
     GetClientRect, GetCursorPos, GetDlgCtrlID, GetDlgItem, GetMessageW, GetParent, GetScrollInfo,
-    GetWindowLongPtrW, GetWindowRect, IsDialogMessageW, LoadCursorW, LoadIconW, PostMessageW,
+    GetWindowLongPtrW, GetWindowRect, IsDialogMessageW, IsWindowVisible, LoadCursorW, LoadIconW,
+    PostMessageW,
     PostQuitMessage, RegisterClassExW, SetCursor, SetForegroundWindow, SetWindowLongPtrW,
     SetWindowPos, SetWindowTextW, ShowWindow, SystemParametersInfoW, TrackPopupMenu,
     TranslateMessage, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, GWLP_USERDATA, HICON, HMENU,
@@ -83,9 +84,11 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     SB_PAGERIGHT, SB_PAGEUP, SB_RIGHT, SB_THUMBPOSITION, SB_THUMBTRACK, SB_TOP, SB_VERT,
     SCROLLINFO, SIF_PAGE, SIF_POS, SIF_RANGE, SIF_TRACKPOS, SIZE_MAXIMIZED, SIZE_MINIMIZED,
     SIZE_RESTORED, SM_CXVSCROLL, SM_CYHSCROLL, SPI_GETHIGHCONTRAST, SWP_NOACTIVATE, SWP_NOMOVE,
-    SWP_NOSIZE, SWP_NOZORDER, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL, TPM_RIGHTBUTTON,
+    SWP_NOSIZE, SWP_NOZORDER, SWP_NOREDRAW, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOWNORMAL,
+    TPM_RIGHTBUTTON,
     WM_APP, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_DPICHANGED, WM_ENDSESSION,
-    WM_GETICON, WM_GETMINMAXINFO, WM_HSCROLL, WM_LBUTTONUP, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_NOTIFY,
+    WM_ERASEBKGND, WM_GETICON, WM_GETMINMAXINFO, WM_HSCROLL, WM_LBUTTONUP, WM_MOUSEMOVE,
+    WM_MOUSEWHEEL, WM_NOTIFY, WM_SETREDRAW,
     WM_QUERYENDSESSION, WM_RBUTTONUP, WM_SETCURSOR, WM_SETICON, WM_SETTINGCHANGE, WM_SHOWWINDOW,
     WM_SIZE, WM_SYSCOLORCHANGE, WM_SYSCOMMAND, WM_VSCROLL, WNDCLASSEXW, WS_CAPTION, WS_CHILD,
     WS_CLIPCHILDREN, WS_EX_APPWINDOW, WS_HSCROLL, WS_MINIMIZEBOX, WS_OVERLAPPED, WS_POPUP,
@@ -457,6 +460,7 @@ struct GuiApp {
     scroll_offset: i32,
     scroll_offset_x: i32,
     layout_in_progress: bool,
+    redraw_suspended: bool,
     max_target_watts: Option<i32>,
 }
 
@@ -517,6 +521,7 @@ impl GuiApp {
             scroll_offset: 0,
             scroll_offset_x: 0,
             layout_in_progress: false,
+            redraw_suspended: false,
             max_target_watts,
         }
     }
@@ -4046,7 +4051,7 @@ unsafe fn move_control(hwnd: HWND, id: usize, x: i32, y: i32, width: i32, height
             y - offset_y,
             width,
             height,
-            SWP_NOZORDER | SWP_NOACTIVATE,
+            SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOREDRAW,
         );
     }
 }
@@ -4368,6 +4373,7 @@ unsafe fn apply_view_mode_inner(
                 .clamp(work.top, (work.bottom - outer_height).max(work.top));
         }
     }
+    let suspended = suspend_redraw(app, hwnd);
     SetWindowPos(
         hwnd,
         std::ptr::null_mut(),
@@ -4375,7 +4381,7 @@ unsafe fn apply_view_mode_inner(
         position.y,
         outer_width,
         outer_height,
-        SWP_NOZORDER | SWP_NOACTIVATE,
+        SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOREDRAW,
     );
     layout_mode_controls(app, hwnd);
 
@@ -4390,6 +4396,32 @@ unsafe fn apply_view_mode_inner(
             SetWindowTextW(app.status_label, text.as_ptr());
         }
     }
+    resume_redraw(app, hwnd, suspended);
+}
+
+/// Freezes the window for one layout pass so the resize, the child moves and
+/// the final frame reach the screen together. Nested calls are no-ops.
+unsafe fn suspend_redraw(app: &mut GuiApp, hwnd: HWND) -> bool {
+    if app.redraw_suspended || IsWindowVisible(hwnd) == 0 {
+        return false;
+    }
+    SendMessageW(hwnd, WM_SETREDRAW, 0, 0);
+    app.redraw_suspended = true;
+    true
+}
+
+unsafe fn resume_redraw(app: &mut GuiApp, hwnd: HWND, suspended: bool) {
+    if !suspended || !app.redraw_suspended {
+        return;
+    }
+    app.redraw_suspended = false;
+    SendMessageW(hwnd, WM_SETREDRAW, 1, 0);
+    RedrawWindow(
+        hwnd,
+        std::ptr::null(),
+        std::ptr::null_mut(),
+        RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN,
+    );
 }
 
 /// Places the child controls for the current mode using the live client width,
@@ -4399,6 +4431,7 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
         return;
     }
     app.layout_in_progress = true;
+    let suspended = suspend_redraw(app, hwnd);
     let mode = app.view_mode;
     let advanced = mode == state::UiMode::Advanced;
     let percent = app.dpi_percent.max(1);
@@ -4655,10 +4688,10 @@ unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
         }
     }
 
-    InvalidateRect(hwnd, std::ptr::null(), 0);
-    UpdateWindow(hwnd);
     update_simple_view(app);
+    InvalidateRect(hwnd, std::ptr::null(), 0);
     app.layout_in_progress = false;
+    resume_redraw(app, hwnd, suspended);
 }
 
 /// Rebuilds the device-sized fonts used by native child controls after a DPI
@@ -5198,6 +5231,9 @@ unsafe extern "system" fn window_proc(
             paint_window(app, hwnd);
             0
         }
+        // The double-buffered WM_PAINT covers the whole client, so erasing to
+        // the class brush would only flash a white frame between layouts.
+        WM_ERASEBKGND => 1,
         WM_DRAWITEM => {
             let draw = lparam as *const DRAWITEMSTRUCT;
             if !draw.is_null() {
@@ -5826,7 +5862,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         lpfnWndProc: Some(window_proc),
         hInstance: instance,
         hCursor: unsafe { LoadCursorW(std::ptr::null_mut(), IDC_ARROW) },
-        hbrBackground: (COLOR_WINDOW + 1) as HBRUSH,
+        hbrBackground: std::ptr::null_mut(),
         lpszClassName: class_name.as_ptr(),
         ..Default::default()
     };
