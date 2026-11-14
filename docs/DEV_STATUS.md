@@ -61,6 +61,12 @@ not authoritative.
   `IsolatedTargetLeftBehind=false`.
 - Added `docs/NATIVE_RELEASE_CANDIDATE_1.0.31_ZH.md` with the candidate hash,
   software-gate evidence, deferred hardware gate, and reproduction commands.
+- Prepared the 1.0.31 release materials: `release-notes-1.0.31-zh.md`,
+  `NATIVE_LAUNCH_COPY_1.0.31_ZH.md`, `release-assets-1.0.31.json`, and a
+  1.0.31 media evidence record. They remain draft/pending until the hardware
+  gate passes; the v9 video and 1.0.28 capture set remain valid because the
+  UI is unchanged. Rechecked the video with `ffprobe` and a full `ffmpeg`
+  decode: 42.5 s, 1920x1080, 30 fps, H.264/AAC, hash and size match.
 - Recovery after the earlier unintended stop: the persisted policy was restored
   to `8/8/8 W`, the deployed GUI/worker were restarted, and live AC read-back
   is `8.00 W` again. No high-risk power value was written.

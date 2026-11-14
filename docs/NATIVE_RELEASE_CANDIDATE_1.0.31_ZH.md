@@ -83,9 +83,13 @@ worker 或改变功耗：
 - `docs/evidence/packaging/v1.0.31-clean-2026-11-14.json`
 - `docs/evidence/packaging/v1.0.31-install-process-scope-2026-11-14.json`
 - `docs/evidence/build/reproducibility-1.0.31-2026-11-14.json`
+- `docs/evidence/media/native-promo-1.0.31-draft-2026-11-14.json`
 - `docs/evidence/packaging/v1.0.30-release-gate-2026-11-14.json`
 - `docs/evidence/packaging/v1.0.30-native-deployment-2026-11-14.json`
 - `docs/evidence/release/native-publication-readiness-2026-11-14.json`
+- `docs/release-assets-1.0.31.json`
+- `docs/release-notes-1.0.31-zh.md`
+- `docs/NATIVE_LAUNCH_COPY_1.0.31_ZH.md`
 
 ## 仍需人工或外部条件
 

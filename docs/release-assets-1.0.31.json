@@ -1,0 +1,52 @@
+{
+  "version": "1.0.31-native",
+  "generatedAt": "2026-11-14T08:45:00+08:00",
+  "status": "DRAFT_PENDING_HARDWARE_GATE",
+  "githubRelease": {
+    "tag": "v1.0.31",
+    "draftFirst": true,
+    "assets": [
+      {
+        "path": "artifacts/native-packages/amd-mobile-power-v1.0.31-win-x64-native-preview.zip",
+        "sizeBytes": 775091,
+        "sha256": "ccb0ed9a91cc27ab068f117d8174c605c84fb4ab8f6202faecfdce2058326de5"
+      },
+      {
+        "path": "artifacts/native-packages/amd-mobile-power-v1.0.31-win-x64-native-preview.zip.sha256",
+        "note": "Generated next to the ZIP by native/build-package.ps1."
+      }
+    ]
+  },
+  "bilibili": {
+    "video": {
+      "path": "artifacts/media/promo-html-v1/amd-mobile-power-promo-2026-11-14-v9.mp4",
+      "durationSeconds": 42.5,
+      "width": 1920,
+      "height": 1080,
+      "frameRate": "30/1",
+      "sizeBytes": 4426857,
+      "sha256": "ca887aa5ec3b55157e91206781d15f502e3fdede7c3c7e3907621ac331863023"
+    },
+    "cover": {
+      "path": "docs/assets/bilibili-cover-1.0.28-2026-11-14.png",
+      "width": 1146,
+      "height": 717,
+      "sizeBytes": 143241,
+      "sha256": "89ea363925d947cc1bede51440a6dc9f7e61cf3f302494e738da1a9b62be45ad"
+    },
+    "contactSheet": {
+      "path": "docs/assets/native-promo-1.0.28-contact-sheet-2026-11-14.png",
+      "width": 1920,
+      "height": 540,
+      "sizeBytes": 312135,
+      "sha256": "7fd4a0303ae8d2c4ad40cfcf8e18fd641196c1a869daf0c5fbb1c78221fb8997"
+    },
+    "note": "1.0.31 keeps the same GUI as 1.0.30, so the v9 video, cover, and contact sheet remain valid. Music attribution: Deliberate Thought by Kevin MacLeod, CC BY 4.0."
+  },
+  "copy": {
+    "releaseNotes": "docs/release-notes-1.0.31-zh.md",
+    "launchCopy": "docs/NATIVE_LAUNCH_COPY_1.0.31_ZH.md",
+    "candidateReview": "docs/NATIVE_RELEASE_CANDIDATE_1.0.31_ZH.md",
+    "runbook": "docs/RELEASE_RUNBOOK.md"
+  }
+}
