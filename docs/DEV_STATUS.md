@@ -21,6 +21,27 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (1.0.31 packaged UI, DPI, and CI evidence refreshed):
+
+- The public hosted-windows workflow for the current branch HEAD is green:
+  run `43537439992` (`fe8dcd7`) completed every native step successfully.
+  `docs/evidence/build/hosted-ci-2026-11-14.json` now records that exact
+  commit, so the publication-readiness hosted-CI gate can resolve against
+  HEAD.
+- Re-ran the extracted 1.0.31 GUI with the live worker and write-control UI
+  checks instead of the earlier reduced lifecycle-only pass. The refreshed
+  evidence now records `TaskbarIconAvailable=true`, `TrayIconId=1`,
+  `InitialUiMode=simple`, `FinalUiMode=advanced`, diagnostics export, tray
+  restore, single-instance wake, preset editing, and policy controls as
+  `PASS`. The live worker stayed at `8/8/8 W` and was not asked to write.
+- Re-ran the packaged 1.0.31 logical DPI fixtures at 100/125/150%, the
+  1366x768/200% work-area fixture, and the maximize/scroll regression.
+  All three evidence sets are `PASS`; the deployed tray GUI was restored
+  with its original `--tray --simple-mode --max-target-watts 45` arguments.
+- The temporary 8 W window remains active on AC and battery. The scheduled
+  restore is still `Ready` for 19:00 today; the hardware release gate remains
+  deferred until after that restore.
+
 2026-11-14 (unreleased branch hardening: atomic UI state writes):
 
 - `save_*` persistence now writes a same-directory temporary file, calls

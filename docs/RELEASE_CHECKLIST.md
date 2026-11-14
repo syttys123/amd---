@@ -48,8 +48,9 @@ Status: `SOFTWARE_GATES_PASS_HARDWARE_GATE_PENDING`
 - [x] Packaged UI evidence is recorded:
       `docs/evidence/ui/native-packaged-1.0.31-ui-2026-11-14.json`
       (`BackgroundGuiRelaunched=1`, `WriteControls=PASS`).
-- [ ] Logical 100/125/150% DPI fixtures are re-run for the 1.0.31 package.
-- [ ] The 1366x768/200% work-area fixture is re-run.
+- [x] Logical 100/125/150% DPI fixtures are re-run for the 1.0.31 package.
+- [x] The 1366x768/200% work-area fixture is re-run.
+- [x] Maximize/scroll regression is re-run for the 1.0.31 package.
 - [ ] Real OS-level 100%/150% sessions and monitor transitions are recorded.
 - [ ] Deployed GUI binary passes the same interaction suite after promotion.
 
