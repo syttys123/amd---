@@ -29,6 +29,7 @@ constexpr wchar_t kDefaultPipeName[] =
     L"\\\\.\\pipe\\AmdMobilePower.NativeWorker.v1";
 constexpr std::string_view kWorkerVersion = "0.6.0-native";
 constexpr auto kShutdownDelay = std::chrono::milliseconds(150);
+constexpr std::size_t kMaximumRequestBytes = 64 * 1024;
 
 struct Request {
     std::string request_id;
@@ -904,18 +905,22 @@ int wmain(int argc, wchar_t* argv[]) {
         bool complete_line = false;
         while (!complete_line) {
             DWORD bytes_read = 0;
-            if (!ReadFile(
+            const BOOL read_ok = ReadFile(
                     pipe.value,
                     buffer,
                     sizeof(buffer),
                     &bytes_read,
-                    nullptr)) {
-                if (GetLastError() == ERROR_MORE_DATA) {
-                    continue;
-                }
+                    nullptr);
+            const DWORD read_error = read_ok ? ERROR_SUCCESS : GetLastError();
+            if (!read_ok && read_error != ERROR_MORE_DATA) {
                 break;
             }
             if (bytes_read == 0) {
+                break;
+            }
+            // ERROR_MORE_DATA still returns a valid fragment of a message.
+            // Bound accumulation before appending, including unterminated input.
+            if (bytes_read > kMaximumRequestBytes - request_line.size()) {
                 break;
             }
             request_line.append(buffer, bytes_read);

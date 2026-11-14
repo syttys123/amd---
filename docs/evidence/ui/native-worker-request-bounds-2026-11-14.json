@@ -1,0 +1,8 @@
+{
+  "HardwareEnabled": false,
+  "FragmentedRequestBytes": 5000,
+  "OversizedRequestBytes": 70000,
+  "Verification": "PASS",
+  "RecordedAt": "2026-11-14T20:44:10.9252365+08:00",
+  "HealthAfterOversize": "PASS"
+}

@@ -21,6 +21,23 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (unreleased: bounded worker request accumulation):
+
+- Fixed the message-mode pipe reader: ERROR_MORE_DATA returns valid bytes
+  that were previously discarded. Accumulated requests are now bounded to
+  64 KiB before append; oversized requests disconnect without parsing.
+- Added `native/test-worker-request-bounds.ps1`. A no-hardware worker
+  answered a padded fragmented request, disconnected a 70,000-byte request,
+  and answered a subsequent health request. Release C++ build and both
+  existing policy test executables PASS. Evidence:
+  `evidence/ui/native-worker-request-bounds-2026-11-14.json`.
+- Test worker exited and process handle was disposed. C:\RyzenAdj unchanged.
+  Worker source now differs from the previous candidate ZIP: regenerate
+  binaries/package and reproducibility evidence before promotion.
+- Remaining transport risk: synchronous reads and FlushFileBuffers can still
+  be held by a slow client. The size bound does not establish a connection
+  deadline or eliminate that availability risk.
+
 2026-11-14 (concurrent worker cleanup regression PASS):
 
 - Added `native/test-verifier-worker-scope.ps1`. It observes the isolated
