@@ -11,6 +11,8 @@ param(
     [string]$GuiExecutable,
     [string]$WorkerExecutable,
     [string]$PipeName,
+    [string]$CaptureDirectory,
+    [switch]$VerifyResourceStability,
     [string]$EvidencePath
 )
 
@@ -64,6 +66,12 @@ using System.Text;
 using System.Runtime.InteropServices;
 
 public static class AmdMobilePowerRustGuiNative {
+    [DllImport("user32.dll")]
+    public static extern bool RedrawWindow(IntPtr hwnd, IntPtr rect, IntPtr region, uint flags);
+    [DllImport("user32.dll")]
+    public static extern uint GetGuiResources(IntPtr process, uint flags);
+    [DllImport("user32.dll")]
+    public static extern bool PrintWindow(IntPtr hwnd, IntPtr dc, uint flags);
     public delegate bool EnumChildProc(IntPtr hwnd, IntPtr lparam);
 
     [DllImport("user32.dll", SetLastError = true)]
@@ -1056,6 +1064,65 @@ try {
             throw "Keyboard focus did not reveal the advanced footer."
         }
         $advancedScrollResult = "PASS"
+        # Exercise the old scrollbar visibility disagreement around 760 DIP.
+        foreach ($logicalWidth in @(739, 740, 741, 759, 760, 761, 780)) {
+            [AmdMobilePowerRustGuiNative]::GetClientRect($window, [ref]$client) | Out-Null
+            [AmdMobilePowerRustGuiNative]::GetWindowRect($window, [ref]$outer) | Out-Null
+            $frameWidth = ($outer.Right - $outer.Left) - $client.Right
+            $physicalWidth = [int][Math]::Round($logicalWidth * $scalePercent / 100.0)
+            [AmdMobilePowerRustGuiNative]::SetWindowPos(
+                $window, [IntPtr]::Zero, 0, 0,
+                ($physicalWidth + $frameWidth), $minimum.MinTrackSize.Y, 0x0016) | Out-Null
+            Start-Sleep -Milliseconds 100
+            $firstProcess.Refresh()
+            if (-not $firstProcess.Responding) {
+                throw "GUI stopped responding at scrollbar boundary $logicalWidth DIP."
+            }
+            [AmdMobilePowerRustGuiNative]::GetClientRect($window, [ref]$client) | Out-Null
+            $viewportWidth = [int][Math]::Round($client.Right * 100.0 / $scalePercent)
+            $windowStyle = [AmdMobilePowerRustGuiNative]::GetWindowLongPtr($window, -16).ToInt64()
+            $horizontalVisible = ($windowStyle -band 0x00100000) -ne 0
+            if ($horizontalVisible -ne ($viewportWidth -lt 760)) {
+                throw "Horizontal scrollbar disagrees with canvas width at $viewportWidth DIP."
+            }
+        }
+        if ($CaptureDirectory) {
+            [AmdMobilePowerRustGuiNative]::SetWindowPos(
+                $window, [IntPtr]::Zero, 0, 0,
+                $minimum.MinTrackSize.X, $minimum.MinTrackSize.Y, 0x0016) | Out-Null
+            [AmdMobilePowerRustGuiNative]::SendMessage(
+                $window, 0x0114, [UIntPtr]6, [IntPtr]::Zero) | Out-Null
+            [AmdMobilePowerRustGuiNative]::SendMessage(
+                $window, 0x0115, [UIntPtr]6, [IntPtr]::Zero) | Out-Null
+            Start-Sleep -Milliseconds 200
+            $captureRoot = [System.IO.Path]::GetFullPath($CaptureDirectory)
+            New-Item -ItemType Directory -Path $captureRoot -Force | Out-Null
+            Add-Type -AssemblyName System.Drawing
+            [AmdMobilePowerRustGuiNative]::GetWindowRect($window, [ref]$outer) | Out-Null
+            $image = [System.Drawing.Bitmap]::new(
+                ($outer.Right - $outer.Left), ($outer.Bottom - $outer.Top))
+            $graphics = [System.Drawing.Graphics]::FromImage($image)
+            $dc = $graphics.GetHdc()
+            try {
+                [AmdMobilePowerRustGuiNative]::PrintWindow($window, $dc, 2) | Out-Null
+            }
+            finally {
+                $graphics.ReleaseHdc($dc)
+                $graphics.Dispose()
+            }
+            try {
+                $image.Save((Join-Path $captureRoot "advanced-boundary.png"))
+                $halfWidth = [int][Math]::Floor($image.Width / 2.0)
+                foreach ($part in @(@("left", 0), @("right", $halfWidth))) {
+                    $rect = [System.Drawing.Rectangle]::new(
+                        [int]$part[1], 0, $halfWidth, $image.Height)
+                    $crop = $image.Clone($rect, $image.PixelFormat)
+                    try { $crop.Save((Join-Path $captureRoot "$($part[0]).png")) }
+                    finally { $crop.Dispose() }
+                }
+            }
+            finally { $image.Dispose() }
+        }
         [AmdMobilePowerRustGuiNative]::SendMessage(
             $advancedButton, 0x00F5, [UIntPtr]109, [IntPtr]::Zero) | Out-Null
 
@@ -1352,6 +1419,45 @@ try {
             [AmdMobilePowerRustGuiNative]::IsWindowVisible($window)
         }
 
+    $resourceStability = $null
+    if ($VerifyResourceStability) {
+        $samples = @()
+        for ($batch = 0; $batch -lt 6; $batch++) {
+            for ($iteration = 0; $iteration -lt 40; $iteration++) {
+                foreach ($modeId in @(108, 109)) {
+                    [AmdMobilePowerRustGuiNative]::SendMessage(
+                        $window, 0x0111, [UIntPtr]$modeId, [IntPtr]::Zero) | Out-Null
+                    # Force real parent/child painting, not just coalesced layouts.
+                    [AmdMobilePowerRustGuiNative]::RedrawWindow(
+                        $window, [IntPtr]::Zero, [IntPtr]::Zero, 0x0181) | Out-Null
+                }
+            }
+            Start-Sleep -Milliseconds 200
+            $firstProcess.Refresh()
+            $samples += [pscustomobject]@{
+                Batch = $batch
+                GdiObjects = [AmdMobilePowerRustGuiNative]::GetGuiResources($firstProcess.Handle, 0)
+                UserObjects = [AmdMobilePowerRustGuiNative]::GetGuiResources($firstProcess.Handle, 1)
+                Handles = $firstProcess.HandleCount
+                PrivateBytes = $firstProcess.PrivateMemorySize64
+            }
+        }
+        $baseline = $samples[1]
+        foreach ($sample in $samples | Select-Object -Skip 2) {
+            if ($sample.GdiObjects -gt ($baseline.GdiObjects + 2) -or
+                $sample.UserObjects -gt ($baseline.UserObjects + 2) -or
+                $sample.Handles -gt ($baseline.Handles + 8) -or
+                $sample.PrivateBytes -gt ($baseline.PrivateBytes + 8MB)) {
+                throw "GUI resource growth exceeded the warm-state stress budget: $($samples | ConvertTo-Json -Compress)"
+            }
+        }
+        $resourceStability = [pscustomobject]@{
+            Verification = "PASS"
+            ModeSwitches = 480
+            SynchronousRepaints = 480
+            Samples = $samples
+        }
+    }
     Post-GuiMessage `
         -Window $window `
         -Message $wmCommand `
@@ -1370,7 +1476,9 @@ try {
         }
         [pscustomobject]@{
             SourceCommit = (git -C $repositoryRoot rev-parse HEAD).Trim()
+            SourceDirty = [bool]((& git -C $repositoryRoot status --porcelain --untracked-files=no | Out-String).Trim())
             Verification = "PASS"
+            ResourceStability = $resourceStability
             Path = "Rust GUI -> C++ worker -> RyzenAdj"
             Processor = if ($workerStatus -match "worker · [^\r\n]+\r?\n([^\r\n]+)") {
                 $Matches[1].Trim()

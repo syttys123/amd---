@@ -43,7 +43,7 @@ use windows_sys::Win32::Graphics::Gdi::{
     SelectObject, SetBkColor, SetBkMode, SetTextColor, SetViewportOrgEx, UpdateWindow, BLACK_BRUSH,
     DT_CENTER, DT_END_ELLIPSIS, DT_LEFT, DT_NOPREFIX, DT_SINGLELINE, DT_VCENTER, FW_BOLD,
     FW_NORMAL, HBRUSH, HGDIOBJ, MONITORINFO, MONITOR_DEFAULTTONEAREST, NULL_BRUSH, PAINTSTRUCT,
-    PS_SOLID, RDW_ALLCHILDREN, RDW_ERASE, RDW_INVALIDATE, SRCCOPY, TRANSPARENT, WHITE_BRUSH,
+    PS_SOLID, RDW_ALLCHILDREN, RDW_ERASE, RDW_FRAME, RDW_INVALIDATE, SRCCOPY, TRANSPARENT, WHITE_BRUSH,
 };
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::System::SystemServices::SS_LEFT;
@@ -309,8 +309,10 @@ fn scaled(value: i32, percent: i32) -> i32 {
 
 /// Device pixels to logical units.
 fn unscaled(value: i32, percent: i32) -> i32 {
-    let percent = percent.max(1);
-    (value * 100 + percent / 2) / percent
+    let divisor = i64::from(percent.max(1));
+    let product = i64::from(value) * 100;
+    let rounding = if product >= 0 { divisor / 2 } else { -divisor / 2 };
+    ((product + rounding) / divisor) as i32
 }
 
 fn content_height(mode: state::UiMode) -> i32 {
@@ -2059,7 +2061,8 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
     let physical_height = client.bottom.max(1);
     // The paint code below keeps working in 96-DPI logical units; the drawing
     // helpers convert those to device pixels.
-    let width = unscaled(physical_width, percent).max(1);
+    let viewport_width = unscaled(physical_width, percent).max(1);
+    let width = amd_mobile_power_gui::layout::content_width(app.view_mode, viewport_width);
     let height = unscaled(physical_height, percent).max(1);
     let memory_dc = CreateCompatibleDC(hdc);
     let bitmap = CreateCompatibleBitmap(hdc, physical_width, physical_height);
@@ -2068,14 +2071,15 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
     } else {
         std::ptr::null_mut()
     };
-    let target_dc = if memory_dc.is_null() { hdc } else { memory_dc };
+    let buffered = !memory_dc.is_null() && !bitmap.is_null() && !old_bitmap.is_null();
+    let target_dc = if buffered { memory_dc } else { hdc };
 
     fill_rect_color(
         target_dc,
         &RECT {
             left: 0,
             top: 0,
-            right: width,
+            right: viewport_width,
             bottom: height,
         },
         palette().canvas,
@@ -2095,7 +2099,7 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
         SetViewportOrgEx(target_dc, 0, 0, std::ptr::null_mut());
     }
 
-    if !memory_dc.is_null() && !bitmap.is_null() {
+    if buffered {
         BitBlt(
             hdc,
             0,
@@ -2108,7 +2112,11 @@ unsafe fn paint_window(app: &GuiApp, hwnd: HWND) {
             SRCCOPY,
         );
         SelectObject(memory_dc, old_bitmap);
+    }
+    if !bitmap.is_null() {
         DeleteObject(bitmap);
+    }
+    if !memory_dc.is_null() {
         DeleteDC(memory_dc);
     }
     EndPaint(hwnd, &paint);
@@ -3310,7 +3318,8 @@ unsafe fn create_header_controls(
 
 unsafe fn set_control_font(control: HWND, font: HGDIOBJ) {
     if !control.is_null() && !font.is_null() {
-        SendMessageW(control, 0x0030, font as usize, 1);
+        // Creation/layout owns the final redraw, including DPI transitions.
+        SendMessageW(control, 0x0030, font as usize, 0);
     }
 }
 
@@ -4426,17 +4435,13 @@ unsafe fn resume_redraw(app: &mut GuiApp, hwnd: HWND, suspended: bool) {
         hwnd,
         std::ptr::null(),
         std::ptr::null_mut(),
-        RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN,
+        RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN,
     );
 }
 
 /// Places the child controls for the current mode using the live client width,
 /// so a user-resized window keeps its right-aligned controls in place.
 unsafe fn layout_mode_controls(app: &mut GuiApp, hwnd: HWND) {
-    layout_mode_controls_depth(app, hwnd, 0);
-}
-
-unsafe fn layout_mode_controls_depth(app: &mut GuiApp, hwnd: HWND, depth: u32) {
     if app.layout_in_progress {
         // A resize or scrollbar toggle can land while the previous pass is
         // still running; remember it instead of dropping the new geometry.
@@ -4445,6 +4450,20 @@ unsafe fn layout_mode_controls_depth(app: &mut GuiApp, hwnd: HWND, depth: u32) {
     }
     app.layout_in_progress = true;
     let suspended = suspend_redraw(app, hwnd);
+    // One shared budget bounds all synchronous scrollbar/size re-entry.
+    for _ in 0..4 {
+        app.layout_pending = false;
+        layout_mode_controls_pass(app, hwnd);
+        if !app.layout_pending {
+            break;
+        }
+    }
+    app.layout_pending = false;
+    app.layout_in_progress = false;
+    resume_redraw(app, hwnd, suspended);
+}
+
+unsafe fn layout_mode_controls_pass(app: &mut GuiApp, hwnd: HWND) {
     let mode = app.view_mode;
     let advanced = mode == state::UiMode::Advanced;
     let percent = app.dpi_percent.max(1);
@@ -4501,11 +4520,9 @@ unsafe fn layout_mode_controls_depth(app: &mut GuiApp, hwnd: HWND, depth: u32) {
         // which shows a phantom bar when the content exactly fills the
         // viewport. Drive visibility explicitly from the real overflow.
         let needs_vertical = content_height(mode) > viewport_height;
-        // A 1-2 px shortfall is just the vertical scrollbar eating the client
-        // edge; scrolling horizontally for that would hide the right margin
-        // behind a bar. Only scroll when the window is really narrower than
-        // the advanced content.
-        let needs_horizontal = advanced && viewport_width + 20 < ADVANCED_CONTENT_WIDTH;
+        // Match the scroll range exactly; a separate visibility tolerance
+        // makes SetScrollInfo and ShowScrollBar fight at boundary widths.
+        let needs_horizontal = advanced && viewport_width < ADVANCED_CONTENT_WIDTH;
         ShowScrollBar(hwnd, SB_VERT, i32::from(needs_vertical));
         ShowScrollBar(hwnd, SB_HORZ, i32::from(needs_horizontal));
 
@@ -4519,11 +4536,7 @@ unsafe fn layout_mode_controls_depth(app: &mut GuiApp, hwnd: HWND, depth: u32) {
         viewport_height = unscaled(client.bottom.max(1), percent);
     }
     let viewport_width = unscaled(client.right.max(1), percent);
-    let width = if advanced {
-        ADVANCED_CONTENT_WIDTH.max(viewport_width)
-    } else {
-        minimum_client_size(mode).0.max(viewport_width)
-    };
+    let width = amd_mobile_power_gui::layout::content_width(mode, viewport_width);
     let layout = CommandLayout::new(width);
 
     if let Some(controls) = app.header_controls {
@@ -4714,12 +4727,6 @@ unsafe fn layout_mode_controls_depth(app: &mut GuiApp, hwnd: HWND, depth: u32) {
 
     update_simple_view(app);
     InvalidateRect(hwnd, std::ptr::null(), 0);
-    app.layout_in_progress = false;
-    resume_redraw(app, hwnd, suspended);
-    while app.layout_pending && depth < 3 {
-        app.layout_pending = false;
-        layout_mode_controls_depth(app, hwnd, depth + 1);
-    }
 }
 
 /// Rebuilds the device-sized fonts used by native child controls after a DPI
@@ -5425,11 +5432,13 @@ unsafe extern "system" fn window_proc(
             0
         }
         WM_DPICHANGED => {
+            let suspended = suspend_redraw(app, hwnd);
             let fixture = DPI_FIXTURE_PERCENT.load(Ordering::Relaxed);
             if fixture > 0 {
                 app.dpi_percent = fixture;
                 refresh_control_fonts(app);
                 layout_mode_controls(app, hwnd);
+                resume_redraw(app, hwnd, suspended);
                 return 0;
             }
             let new_dpi = (wparam & 0xFFFF) as u32;
@@ -5449,10 +5458,11 @@ unsafe extern "system" fn window_proc(
                     suggested.top,
                     suggested.right - suggested.left,
                     suggested.bottom - suggested.top,
-                    SWP_NOZORDER | SWP_NOACTIVATE,
+                    SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOREDRAW,
                 );
             }
             layout_mode_controls(app, hwnd);
+            resume_redraw(app, hwnd, suspended);
             0
         }
         WM_SIZE => {
@@ -6177,6 +6187,17 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn dpi_unscale_is_symmetric_and_identity_at_100_percent() {
+        for value in [1, 8, 12, 31, 560] {
+            assert_eq!(super::unscaled(value, 100), value);
+            assert_eq!(super::unscaled(-value, 100), -value);
+            for percent in [100, 125, 150, 175, 200] {
+                assert_eq!(super::unscaled(-value, percent), -super::unscaled(value, percent));
+            }
+        }
+    }
+
     use super::{
         clamp_preset_values, clamp_to_ceiling, diagnostics_document, fixture_snapshot,
         fixture_worker_error, format_policy_state, format_snapshot, format_snapshot_simple,

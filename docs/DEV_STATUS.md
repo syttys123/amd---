@@ -21,6 +21,45 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (unreleased: native layout/paint root-cause pass):
+
+- Unified the paint canvas and child-control content width. Previously narrow
+  advanced windows positioned children on a 760-DIP canvas but painted header,
+  sections and device details against the smaller viewport, causing drift.
+- Replaced recursive pending-layout replay with a shared four-pass budget.
+  Removed the independent 20-DIP horizontal-scrollbar visibility tolerance so
+  SetScrollInfo and ShowScrollBar agree at boundary widths.
+- Corrected negative device-to-logical coordinate rounding. DPI font/rectangle
+  updates now participate in redraw suspension; final redraw includes the
+  non-client frame. Failed double-buffer allocations now fall back to the
+  paint DC and release any partial GDI allocations.
+- Added canvas/rounding regression tests and runtime boundary sweeps at
+  739/740/741/759/760/761/780 DIP. Optional verifier captures are split into
+  left/right images for review.
+- Verification: Rust 53/53, Clippy with warnings denied, native GUI Release
+  build, .NET Release build (0 warnings/errors), .NET 72/72. Isolated simulated
+  GUI checks passed at live DPI and the 200% fixture, including tray lifecycle,
+  focus reveal, minimum sizing, scrolling and target draft retention.
+- Evidence: `evidence/ui/native-layout-root-fixes-2026-11-14.json` and
+  `evidence/ui/native-layout-root-fixes-200-2026-11-14.json`; local visual
+  captures under `artifacts/ui-root-review*`. Capture data is simulated, not
+  hardware evidence. No power write was requested during this milestone.
+- C:\RyzenAdj remains the verified 1.0.33 deployment. These changes are not yet
+  packaged/promoted. Full package/hardware gates and real cross-monitor DPI
+  transitions remain pending; fixed DPI fixtures do not prove those paths.
+- Next: responsive advanced-mode reflow that keeps target/apply visible at
+  narrow widths instead of requiring horizontal scrolling, then package gates.
+- Resource regression: `verify-rust-gui.ps1 -VerifyResourceStability` now runs
+  480 mode switches and samples GDI/USER objects, handles and private bytes.
+  Each switch also forces synchronous parent/child repaint. Six warm-state
+  samples kept GDI=27, USER=61, handles=189-190 and private
+  bytes=2,523,136-2,703,360. Every post-warmup sample is checked, not just
+  the final sample. Evidence records SourceDirty explicitly. Evidence:
+  `evidence/ui/native-resource-stability-2026-11-14.json`. This bounded fixture
+  checks UI churn, not an all-night live-worker memory soak. Verification GUI
+  exited normally and the stable tray session was restored. No AMD build/test
+  process remained; unrelated engine build processes were left untouched.
+
 2026-11-14 (1.0.33：界面细节打磨，并修掉一处滚动重绘遗漏):
 
 - 标题行合并：应用名与设备/worker 状态放在同一行（原来标题与副标题上下两行，

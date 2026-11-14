@@ -4,6 +4,11 @@ pub const SIMPLE_CLIENT_SIZE: (i32, i32) = (600, 360);
 pub const ADVANCED_CLIENT_SIZE: (i32, i32) = (780, 680);
 pub const ADVANCED_CONTENT_WIDTH: i32 = 760;
 
+/// Painting and child placement must share the same scrollable canvas.
+pub fn content_width(mode: UiMode, viewport_width: i32) -> i32 {
+    minimum_client_size(mode).0.max(viewport_width)
+}
+
 pub fn minimum_client_size(mode: UiMode) -> (i32, i32) {
     match mode {
         UiMode::Simple => (560, 360),
@@ -75,6 +80,19 @@ impl CommandLayout {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn scrollable_canvas_preserves_geometry_in_narrow_viewports() {
+        for viewport in [480, 560, 600, 740, 759, 760, 780, 1200] {
+            let width = content_width(UiMode::Advanced, viewport);
+            assert_eq!(width, viewport.max(ADVANCED_CONTENT_WIDTH));
+            let layout = CommandLayout::new(width);
+            assert_eq!(layout.edit_left + 44, width - 24);
+            assert_eq!(layout.apply_left + layout.apply_width, width - 24);
+        }
+        assert_eq!(content_width(UiMode::Simple, 480), 560);
+        assert_eq!(content_width(UiMode::Simple, 600), 600);
+    }
 
     #[test]
     fn command_controls_fit_at_minimum_and_expanded_widths() {
