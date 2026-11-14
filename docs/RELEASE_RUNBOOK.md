@@ -17,7 +17,7 @@ git -C D:\amd-mobile-power log --oneline -8
 Get-Command gh -ErrorAction SilentlyContinue
 ```
 
-- 工作树干净，分支 `codex/atomic-state-persistence` 已推送。
+- 工作树干净，分支 `release/1.0.31` 已推送。
 - 确认临时 8 W 窗口已结束，19:00 恢复任务已把策略恢复为 10 W。
 - 先执行完整硬件门禁：
 
@@ -61,7 +61,7 @@ Get-Command gh -ErrorAction SilentlyContinue
 
 ```powershell
 git -C D:\amd-mobile-power switch main
-git -C D:\amd-mobile-power merge --ff-only codex/atomic-state-persistence
+git -C D:\amd-mobile-power merge --ff-only release/1.0.31
 git -C D:\amd-mobile-power push origin main
 ```
 

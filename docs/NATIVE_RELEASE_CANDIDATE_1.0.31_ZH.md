@@ -9,7 +9,7 @@ worker 候选 `1.0.31-native` 的可复核资产、可靠性修复、已通过�
 ## 包与来源
 
 - Repository: `https://github.com/syttys123/amd-mobile-power`
-- Branch: `codex/atomic-state-persistence`
+- Branch: `release/1.0.31`
 - Candidate: `1.0.31-native`
 - Package:
   `artifacts/native-packages/amd-mobile-power-v1.0.31-win-x64-native-preview.zip`

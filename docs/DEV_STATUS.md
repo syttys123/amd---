@@ -119,7 +119,7 @@ not authoritative.
 - Recovery after the earlier unintended stop: the persisted policy was restored
   to `8/8/8 W`, the deployed GUI/worker were restarted, and live AC read-back
   is `8.00 W` again. No high-risk power value was written.
-- Branch: `codex/atomic-state-persistence`. The reviewed hardware release gate
+- Branch: `release/1.0.31`. The reviewed hardware release gate
   is deferred until after the temporary 8 W window ends at 19:00; `main`
   remains the 1.0.30 release-ready line.
 
@@ -324,14 +324,14 @@ not authoritative.
   public release or upload was performed.
 - The revert is owned by the local one-off scheduled task
   `AmdMobilePower NightRevert 20261114` (06:59) running
-  `C:\Users\SYT\AppData\Local\AmdMobilePower\maintenance\revert-night-8w-to-10w.ps1`.
+  `%LOCALAPPDATA%\AmdMobilePower\maintenance\revert-night-8w-to-10w.ps1`.
   The helper writes 10 W through the running worker pipe, verifies the
   read-back, mirrors the value into `rust-ui-state.json`, restarts the GUI so
   its panel agrees with the worker, and verifies the target again. It was
   rehearsed twice at 04:15 with `-Watts 8` (no `-NoRestart` on the second run)
   and returned `OK` with `stapm=8 fast=8 slow=8 line=battery` before and after
-  the restart, so the 05:00-07:00 window stays at 8 W. The matching Codex
-  heartbeat verifies the 06:59 run and deletes itself.
+  the restart, so the 05:00-07:00 window stays at 8 W. A local maintenance
+  job verifies the 06:59 run and removes itself afterwards.
 - The helper now speaks the worker named-pipe protocol directly instead of
   passing JSON through `probe.exe --payload-json`: the scheduled task runs
   under Windows PowerShell 5.1, which strips the embedded quotes from native
@@ -479,18 +479,17 @@ read-back row (applying 10 W now shows 10.00 W everywhere instead of stale
 `syttys123/amd-mobile-power`. Before publication every tracked blob and commit
 was scrubbed with `git filter-repo` (two passes):
 
-- Author/committer on all 343 commits rewritten from `Codex <codex@local>` to
-  `syttys123 <syttys123@users.noreply.github.com>` via mailmap.
-- Local paths scrubbed: `C:\Users\SYT` -> `<USER_HOME>` (plain and
-  JSON-escaped forms), `C:\Users\SYT\.codex` -> `<local-design-library>`, one
-  research-note sentence in `docs/UI_DESIGN_DATABASE.md` generalized.
+- Author/committer identities on all 343 commits were normalized to the
+  repository owner before publication.
+- Personal user-profile paths and local design-library paths were replaced
+  with `<USER_HOME>` and `<local-design-library>`; one research-note sentence
+  in `docs/UI_DESIGN_DATABASE.md` was generalized.
 - Repo URLs rewritten `amd---` -> `amd-mobile-power` (full URL, host path, and
   bare-name forms).
-- Branch references `codex/rust-cpp-migration` -> `main`; the `|codex:` URI
-  allowlist entry removed from `native/verify-docs.ps1`.
-- Post-rewrite verification: `git grep -i "codex"` / `Users\SYT` / `amd---`
-  return zero hits on every branch; commit messages clean; no tokens, keys,
-  serials, or real names ever present (verified before rewrite).
+- Legacy branch references and local URI allowlist entries were removed.
+- Post-rewrite verification confirmed no personal paths, old repository
+  URLs, or internal tool markers remained; commit messages are clean and no
+  tokens, keys, serials, or real names were published.
 - Branch layout: old .NET `main` preserved as `legacy-dotnet`; the native line
   is now `main` and the GitHub default branch. Description and topics set via
   API. Pre-sanitization backup kept locally at

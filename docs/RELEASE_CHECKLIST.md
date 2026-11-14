@@ -2,7 +2,7 @@
 
 Release under review: `1.0.31-native`
 
-Branch: `codex/atomic-state-persistence`
+Branch: `release/1.0.31`
 
 Status: `SOFTWARE_GATES_PASS_HARDWARE_GATE_PENDING`
 

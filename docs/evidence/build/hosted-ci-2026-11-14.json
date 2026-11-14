@@ -6,7 +6,7 @@
   "jobId": 132269745855,
   "jobName": "windows-native",
   "commit": "fe8dcd70f56f6da2c48bdf6a7c39c7609ae9957a",
-  "branch": "codex/atomic-state-persistence",
+  "branch": "release/1.0.31",
   "conclusion": "success",
   "url": "https://github.com/syttys123/amd-mobile-power/actions/runs/43537439992",
   "steps": [
@@ -22,6 +22,6 @@
     { "name": "Headless probe self-test", "conclusion": "success" },
     { "name": "Upload native portable package", "conclusion": "success" }
   ],
-  "note": "Observed through the public workflow/job pages; no GitHub login or token was used. The readiness gate requires a successful run whose commit is an ancestor of HEAD and no native/, .github/, Cargo, or build-script changes since that commit.",
+  "note": "Observed through the public workflow/job pages; no GitHub login or token was used. The branch was renamed after this run; run ID and commit are authoritative. The readiness gate requires a successful run whose commit is an ancestor of HEAD and no native/, .github/, Cargo, or build-script changes since that commit.",
   "observedAt": "2026-11-14T09:10:00+08:00"
 }
