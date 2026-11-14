@@ -1,0 +1,26 @@
+{
+  "Verification": "PASS",
+  "RustBuildIsolation": "Fresh unique target directory; removed in finally",
+  "RecordedAt": "2026-11-14T21:31:02.2264206+08:00",
+  "Results": {
+    "Gui": {
+      "First": "f04afe7efb46ae991ae0e4fe23a569945edb6b320a5471536412125a08b5177d",
+      "Second": "f04afe7efb46ae991ae0e4fe23a569945edb6b320a5471536412125a08b5177d",
+      "Reproducible": true,
+      "Size": 881664
+    },
+    "Probe": {
+      "First": "9750418f15ebce2d70e750e845cfa5408751a96b178d60bbaa168155322a615e",
+      "Second": "9750418f15ebce2d70e750e845cfa5408751a96b178d60bbaa168155322a615e",
+      "Reproducible": true,
+      "Size": 334848
+    },
+    "Worker": {
+      "First": "e8ed63d3284b042025c14ec60af52147d3bb4b343b307a31c27c330a05c811cc",
+      "Second": "e8ed63d3284b042025c14ec60af52147d3bb4b343b307a31c27c330a05c811cc",
+      "Reproducible": true,
+      "Size": 142848
+    }
+  },
+  "Failures": []
+}

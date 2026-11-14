@@ -21,6 +21,19 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (responsive candidate binaries reproduced and matched inside ZIP):
+
+- Fresh unique-target Rust rebuilds and clean-first C++ rebuild PASS for
+  current GUI `f04afe7e`, probe `9750418f`, worker `e8ed63d3`; full hashes in
+  `evidence/build/reproducibility-responsive-1.0.34-2026-11-14.json`.
+- Opened the existing candidate ZIP read-only and hashed each EXE entry:
+  all three exactly match the fresh rebuilds. ZIP was not regenerated.
+  This ties binary reproducibility to the previously runtime-verified
+  `a4a731c5...` package instead of only comparing local build outputs.
+- Remaining release work is unchanged: full write/worker-hang gates,
+  current ZIP reproducibility, deployment verification and updated media.
+  No hardware or deployment operation performed in this milestone.
+
 2026-11-14 (responsive GUI integrated clean package PASS):
 
 - Clean source `c028cc4` built 1.0.34 with the viewport-aligned command area
