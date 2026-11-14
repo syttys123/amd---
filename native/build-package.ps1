@@ -19,6 +19,13 @@ $zipPath = Join-Path $nativePackages "$stageName.zip"
 $guiRuntime = Join-Path $artifacts "native-build\gui-runtime"
 $verifyRoot = Join-Path $artifacts "native-build\package-verify"
 
+# Reject diagnostic writes before builds or staging can replace a release ZIP.
+$initialStatus = (& git -C $repositoryRoot status --porcelain --ignore-submodules=dirty |
+    Where-Object { $_ -notmatch '^.. docs/evidence/' } | Out-String).Trim()
+if ($initialStatus -and $Version -notmatch '-diagnostic(?:\.|$)') {
+    throw "Dirty worktree requires a separate -diagnostic version suffix; existing release artifacts were left untouched."
+}
+
 function Reset-ArtifactDirectory {
     param([string]$Path)
 

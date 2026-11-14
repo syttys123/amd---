@@ -21,6 +21,18 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (diagnostic package overwrite protection):
+
+- Package entry now rejects a dirty source tree unless the version contains
+  a separate `-diagnostic` suffix, before builds or staging replacement.
+  Evidence-only changes retain the existing clean-source exception.
+- Dirty `1.0.34` invocation was blocked and the existing ZIP hash stayed
+  unchanged. `1.0.34-diagnostic.guard` generated separately with all runtime
+  verification explicitly Skipped. No hardware or deployment operation ran.
+- Added `native/test-package-dirty-guard.ps1` to repeat the negative check
+  without modifying source to fabricate a dirty tree. Diagnostic packages
+  remain unverified outputs, not release candidates.
+
 2026-11-14 (latest payload integration and restoration confirmation):
 
 - Clean source `e43669e` passed the complete read-only package flow with
