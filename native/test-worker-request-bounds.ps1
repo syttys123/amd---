@@ -40,11 +40,38 @@ try {
     $worker = Start-Process -FilePath $workerPath -ArgumentList @('--pipe-name', $pipeName) -WindowStyle Hidden -PassThru
     $request = '{"protocolVersion":1,"requestId":"bounds","command":"getHealth","payload":null}'
     Send-Request ($request + "`n")
+    foreach ($partial in @('', '{"command":')) {
+        $slow = [System.IO.Pipes.NamedPipeClientStream]::new('.', $pipeName,
+            [System.IO.Pipes.PipeDirection]::InOut, [System.IO.Pipes.PipeOptions]::Asynchronous)
+        try {
+            $slow.Connect(3000)
+            if ($partial) {
+                $bytes = [System.Text.Encoding]::UTF8.GetBytes($partial)
+                $slow.Write($bytes, 0, $bytes.Length)
+            }
+            $timer = [System.Diagnostics.Stopwatch]::StartNew()
+            $buffer = [byte[]]::new(1)
+            $pending = $slow.ReadAsync($buffer, 0, 1)
+            try {
+                if (-not $pending.Wait(8000)) { throw 'Slow client exceeded the read deadline.' }
+                if ($pending.Result -ne 0) { throw 'Incomplete request unexpectedly received data.' }
+            }
+            catch {
+                if ($_.Exception.ToString() -notmatch 'broken|closed|ended|断开|结束|关闭') { throw }
+            }
+            if ($timer.Elapsed.TotalSeconds -lt 4 -or $timer.Elapsed.TotalSeconds -gt 8) {
+                throw "Unexpected read deadline duration: $($timer.Elapsed.TotalSeconds)"
+            }
+        }
+        finally { $slow.Dispose() }
+        Send-Request ($request + "`n")
+    }
     Send-Request (($request.TrimEnd('}') + ',"padding":"' + ('x' * 5000) + '"}') + "`n")
     Send-Request (('x' * 70000) + "`n") -ExpectDisconnect
     Send-Request ($request + "`n")
     $record = @{ Verification='PASS'; FragmentedRequestBytes=5000; OversizedRequestBytes=70000;
-        HealthAfterOversize='PASS'; HardwareEnabled=$false; RecordedAt=(Get-Date).ToString('o') }
+        HealthAfterOversize='PASS'; SlowClientDeadline='PASS'; SlowClientCases=2;
+        HardwareEnabled=$false; RecordedAt=(Get-Date).ToString('o') }
 }
 finally {
     if ($worker) {

@@ -1,0 +1,10 @@
+{
+  "SlowClientDeadline": "PASS",
+  "HealthAfterOversize": "PASS",
+  "RecordedAt": "2026-11-14T20:46:13.8647953+08:00",
+  "Verification": "PASS",
+  "HardwareEnabled": false,
+  "OversizedRequestBytes": 70000,
+  "FragmentedRequestBytes": 5000,
+  "SlowClientCases": 2
+}

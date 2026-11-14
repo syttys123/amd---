@@ -30,6 +30,7 @@ constexpr wchar_t kDefaultPipeName[] =
 constexpr std::string_view kWorkerVersion = "0.6.0-native";
 constexpr auto kShutdownDelay = std::chrono::milliseconds(150);
 constexpr std::size_t kMaximumRequestBytes = 64 * 1024;
+constexpr auto kRequestReadTimeout = std::chrono::seconds(5);
 
 struct Request {
     std::string request_id;
@@ -903,12 +904,25 @@ int wmain(int argc, wchar_t* argv[]) {
         std::string request_line;
         char buffer[1024];
         bool complete_line = false;
+        const auto request_deadline =
+            std::chrono::steady_clock::now() + kRequestReadTimeout;
         while (!complete_line) {
+            if (std::chrono::steady_clock::now() >= request_deadline) {
+                break;
+            }
+            DWORD available = 0;
+            if (!PeekNamedPipe(pipe.value, nullptr, 0, nullptr, &available, nullptr)) {
+                break;
+            }
+            if (available == 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                continue;
+            }
             DWORD bytes_read = 0;
             const BOOL read_ok = ReadFile(
                     pipe.value,
                     buffer,
-                    sizeof(buffer),
+                    std::min<DWORD>(available, static_cast<DWORD>(sizeof(buffer))),
                     &bytes_read,
                     nullptr);
             const DWORD read_error = read_ok ? ERROR_SUCCESS : GetLastError();

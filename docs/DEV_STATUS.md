@@ -21,6 +21,22 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (unreleased: worker request-read deadline):
+
+- Added a fixed five-second request-read deadline after pipe connection.
+  PeekNamedPipe gates synchronous reads to available bytes, polling only
+  while a client is connected without a complete request. The deadline is
+  absolute, not renewed by partial data; idle unconnected server remains
+  blocked in ConnectNamedPipe without a polling loop.
+- No-hardware regression PASS: idle connected client and incomplete JSON
+  client both disconnected within the 4-8 second acceptance window, with a
+  successful health query after each. Fragmented 5 KB and oversized 70 KB
+  request cases still PASS; both C++ policy suites PASS. Evidence:
+  `evidence/ui/native-worker-request-deadline-2026-11-14.json`.
+- Test worker exited. WriteFile/FlushFileBuffers response-side blocking is
+  still outstanding; the read deadline does not bound those operations.
+  No hardware settings changed and no stable deployment replaced.
+
 2026-11-14 (unreleased: bounded worker request accumulation):
 
 - Fixed the message-mode pipe reader: ERROR_MORE_DATA returns valid bytes
