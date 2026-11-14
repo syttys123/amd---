@@ -139,4 +139,7 @@ Do not publish or promote write-capable builds until:
 - Process cleanup and conflict behavior are verified.
 - The driver redistribution review is complete for the package contents
   recorded in `LICENSING_REVIEW.md`.
+- The public-sanitization scan passes for tracked files and the portable ZIP:
+  no personal Windows home paths, internal agent markers, common API keys or
+  tokens, or private-key headers.
 - A recovery procedure has been tested on the target device.

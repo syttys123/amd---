@@ -75,6 +75,17 @@ jobs:
             -PackageVersion $version `
             -EvidencePath artifacts\ci\reproducibility.json
 
+      - name: Verify public sanitization
+        shell: pwsh
+        run: |
+          $version = "$env:CI_VERSION." + $env:GITHUB_SHA.Substring(0, 7)
+          $package = Join-Path `
+            "artifacts\native-packages" `
+            "amd-mobile-power-v$version-win-x64-native-preview.zip"
+          .\native\verify-public-sanitization.ps1 `
+            -PackagePath $package `
+            -EvidencePath artifacts\ci\public-sanitization.json
+
       - name: Headless probe self-test
         shell: pwsh
         run: |

@@ -64,6 +64,9 @@ worker 候选 `1.0.31-native` 的可复核资产、可靠性修复、已通过�
   PASS；最大化/滚动回归 PASS。
 - shell integration：真实安装/启动项/开始菜单/卸载登记创建并完整清理
   PASS，无残留目录、快捷方式或注册表项。
+- 公开发布隐私门禁：593 个已跟踪文本文件和 1.0.31 ZIP 内 13 个文本条目
+  扫描 PASS，没有个人 Windows 用户目录、内部代理标记、常见 API
+  key/token 或私钥头。
 
 ## 尚未执行的硬件门禁
 
@@ -93,6 +96,7 @@ worker 或改变功耗：
 - `docs/evidence/ui/native-workarea-200-1366x768-2026-11-14.json`
 - `docs/evidence/ui/native-maximize-scroll-2026-11-14.json`
 - `docs/evidence/packaging/v1.0.31-shell-integration-2026-11-14.json`
+- `docs/evidence/release/public-sanitization-1.0.31-2026-11-14.json`
 - `docs/evidence/build/hosted-ci-2026-11-14.json`
 - `docs/evidence/build/reproducibility-1.0.31-2026-11-14.json`
 - `docs/evidence/media/native-promo-1.0.31-draft-2026-11-14.json`

@@ -90,6 +90,16 @@ $packageArguments = @{
 }
 $null = & (Join-Path $root "build-package.ps1") @packageArguments
 
+$sanitizationEvidencePath = Join-Path `
+    $repositoryRoot `
+    "docs\evidence\release\public-sanitization-$Version-$(Get-Date -Format 'yyyy-MM-dd').json"
+$null = & (Join-Path $root "verify-public-sanitization.ps1") `
+    -RepositoryRoot $repositoryRoot `
+    -PackagePath (Join-Path `
+        $repositoryRoot `
+        "artifacts\native-packages\amd-mobile-power-v$Version-win-x64-native-preview.zip") `
+    -EvidencePath $sanitizationEvidencePath
+
 $packageDirectory = Join-Path `
     (Join-Path $repositoryRoot "artifacts\native-packages") `
     "amd-mobile-power-v$Version-win-x64-native-preview"

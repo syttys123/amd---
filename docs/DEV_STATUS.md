@@ -57,6 +57,16 @@ not authoritative.
   uninstall registry entry were created and then removed completely.
   Evidence: `docs/evidence/packaging/v1.0.31-shell-integration-2026-11-14.json`;
   the deployed `C:\RyzenAdj` tree was not touched.
+- Added `native/verify-public-sanitization.ps1` and wired it into hosted CI
+  and the release gate. It scans tracked text files and the portable ZIP for
+  personal Windows home paths, internal agent markers, common API keys or
+  tokens, and private-key headers. The 1.0.31 run scanned 593 tracked files
+  and 13 package text entries with zero hits:
+  `docs/evidence/release/public-sanitization-1.0.31-2026-11-14.json`.
+- Sanitized the public branch and documentation before the final package:
+  local branch renamed to `release/1.0.31`, personal home paths removed,
+  internal agent markers removed from tracked files, and the hosted-CI
+  evidence now records the sanitized branch alias.
 
 2026-11-14 (unreleased branch hardening: atomic UI state writes):
 

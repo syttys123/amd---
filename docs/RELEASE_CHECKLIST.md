@@ -81,6 +81,9 @@ Status: `SOFTWARE_GATES_PASS_HARDWARE_GATE_PENDING`
 - [x] The driver uninstaller removes only this installation's driver path.
 - [x] RyzenAdj, InpOut32, and WinRing0 notices are present in the ZIP.
 - [x] Driver security behavior and unsigned-driver risks are documented.
+- [x] Public-sanitization scan passes for tracked files and the 1.0.31 ZIP
+      (no personal home paths, internal agent markers, common secrets, or
+      private-key headers).
 
 ## Promotion
 
