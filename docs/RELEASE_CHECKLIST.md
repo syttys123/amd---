@@ -1,8 +1,8 @@
 # Release Checklist
 
-Release under review: `1.0.31-native`
+Release under review: `1.0.32-native`
 
-Branch: `release/1.0.31`
+Branch: `release/1.0.32`
 
 Status: `HARDWARE_GATE_PASS_PROMOTED_PENDING_HUMAN_REVIEW`
 
@@ -15,8 +15,11 @@ Status: `HARDWARE_GATE_PASS_PROMOTED_PENDING_HUMAN_REVIEW`
 - [x] C++ power-limit and power-policy tests pass.
 - [x] Release build completes with the packaged icon present.
 - [x] Package source commit and SHA256 match the clean evidence.
-      SHA256 `33486b2dfcbb1e61471fc9d58b14d31c02802eb532c674a0c4ea28d7a9366a68`,
-      source commit `28092ea483fa614d5668a4f720b6869ddd6d6401`.
+      SHA256 `97f9a09d3d3943645a3fbc58b527f90a4af51a14e07c264918cd4e14565a8102`,
+      source commit `43c2fb1e2bb43dd0d0eb5a6e0854c76898f73bcb`.
+- [x] The layout/redraw fix is covered by the packaged runtime verification:
+      `MinimumResizeBounds`, `AdvancedScroll`, and `PolicySave` all pass against
+      the extracted 1.0.32 package.
 - [x] Rebuild from the same tree is byte-identical: GUI `18f82690`, worker
       `67af1d41`, probe `9750418f`, ZIP `33486b2d`.
 - [x] Isolated install/overwrite/uninstall flow passes.

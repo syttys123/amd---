@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "evidenceType": "hosted-windows-ci-run",
   "workflow": "build",
-  "runId": 43547898436,
-  "jobId": 132303373138,
+  "runId": 43558946163,
+  "jobId": 132338067940,
   "jobName": "windows-native",
-  "commit": "28092ea483fa614d5668a4f720b6869ddd6d6401",
-  "branch": "release/1.0.31",
+  "commit": "43c2fb1e2bb43dd0d0eb5a6e0854c76898f73bcb",
+  "branch": "release/1.0.32",
   "conclusion": "success",
-  "url": "https://github.com/syttys123/amd-mobile-power/actions/runs/43547898436",
+  "url": "https://github.com/syttys123/amd-mobile-power/actions/runs/43558946163",
   "steps": [
     { "name": "Set up job", "conclusion": "success" },
     { "name": "Run actions/checkout@v4", "conclusion": "success" },
@@ -23,6 +23,6 @@
     { "name": "Headless probe self-test", "conclusion": "success" },
     { "name": "Upload native portable package", "conclusion": "success" }
   ],
-  "note": "Observed through the public workflow/job pages; no GitHub login or token was used. The run is on the sanitized release branch; run ID and commit are authoritative. The readiness gate requires a successful run whose commit is an ancestor of HEAD and no native/, .github/, Cargo, or build-script changes since that commit.",
-  "observedAt": "2026-11-14T10:55:00+08:00"
+  "note": "Observed through the public workflow/job pages; no GitHub login or token was used. The run covers the 1.0.32 layout/redraw fix and the Per-Monitor V2 verify-script change. The readiness gate requires a successful run whose commit is an ancestor of HEAD and no native/, .github/, Cargo, or build-script changes since that commit.",
+  "observedAt": "2026-11-14T13:05:00+08:00"
 }

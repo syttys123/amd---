@@ -21,6 +21,37 @@ not authoritative.
 
 ## Latest Maintenance Milestone
 
+2026-11-14 (1.0.32: 消除模式切换白闪与错位帧，门禁脚本按 Per-Monitor V2 取几何):
+
+- 用户截图显示高级模式出现白块、控件与文字错位的混合帧。根因有两条：窗口类
+  使用白色系统背景刷（`COLOR_WINDOW`），且布局过程中窗口仍在重绘（窗口
+  `SetWindowPos` 先触发一次 WM_PAINT，随后逐个移动子控件并 `UpdateWindow`），
+  模式切换或尺寸变化时会露出“半成品帧”。
+- 修复：窗口类背景刷置空、`WM_ERASEBKGND` 直接返回（`WM_PAINT` 已整帧双缓冲
+  覆盖）；模式切换与布局期间用 `WM_SETREDRAW` 冻结重绘，子控件统一以
+  `SWP_NOREDRAW` 移动，收尾一次性 `RedrawWindow(RDW_ALLCHILDREN)`；布局进行
+  中到达的尺寸变化记入 `layout_pending` 并在收尾补做（最多 3 层），不再丢失。
+- `native/verify-rust-gui.ps1` 现在把自身进程设为 Per-Monitor V2：此前在 175%
+  缩放下脚本读到的是虚拟化矩形，最小窗口与滚动条断言会随显示缩放漂移（同一个
+  检查在旧二进制上也失败）。滚动范围检查改为 Wait-Until，超时时打印
+  `Max/Page/Position` 与 worker 连接状态，便于定位。
+- 门禁：`build-package.ps1 -Version 1.0.32` 全绿（含提取包运行验证
+  `MinimumResizeBounds/AdvancedScroll/PolicySave` = PASS）；
+  `verify-release.ps1 -Version 1.0.32 -VerifyReproducibility
+  -VerifyShellIntegration -ExecuteNoChangePolicy -VerifyWorkerHang
+  -AllowBatteryWriteGuard` 全绿（shell 集成、no-change 策略写回、worker 挂起
+  替换、DPI 100/125/150 夹具、1366x768/200% 工作区、最大化滚动、可复现构建）。
+- 包：`artifacts/native-packages/amd-mobile-power-v1.0.32-win-x64-native-preview.zip`，
+  `775,002` 字节，SHA256
+  `97f9a09d3d3943645a3fbc58b527f90a4af51a14e07c264918cd4e14565a8102`，
+  源提交 `43c2fb1e2bb43dd0d0eb5a6e0854c76898f73bcb`。
+- 已部署到 `C:\RyzenAdj`（回滚目录 `C:\RyzenAdj.before-20261114-125104`）。
+  托盘以 `--tray --simple-mode --max-target-watts 45` 运行；电池回读 Fast/Slow
+  45 W，STAPM 由固件动态决定（27.0 W 上限、约 24 W 实测）。
+- 过程记录：为定位滚动条断言，本地探测脚本一度在未隔离 `LOCALAPPDATA` 的情况下
+  启动 GUI，真实状态里的电池目标被写成 25 W；已复原为 45/45 并与硬件回读核对。
+  后续本地探测一律使用隔离状态目录。
+
 2026-11-14 (1.0.31 promoted to the stable-local deployment):
 
 - Committed and pushed the hardware-gate documentation refresh

@@ -3,11 +3,13 @@
 状态：`HARDWARE_GATE_PASS_PROMOTED_PENDING_PUBLIC_RELEASE`
 
 执行前必须由项目所有者明确批准公开发布，并具备可用的 GitHub / B 站
-登录会话。本手册覆盖 `1.0.31-native`；硬件门禁已通过，且已部署到
-`C:\RyzenAdj`（回滚目录 `C:\RyzenAdj.before-20261114-110034`）。未完成
+登录会话。本手册覆盖 `1.0.32-native`；硬件门禁已通过，且已部署到
+`C:\RyzenAdj`（回滚目录 `C:\RyzenAdj.before-20261114-125104`）。未完成
 人工审片前不要创建公开 Release 或上传视频。
 
-候选版本：`1.0.31-native`。发布物料清单见
+候选版本：`1.0.32-native`。1.0.32 修复了模式切换时的白闪与错位帧，并让
+验证脚本按 Per-Monitor V2 读取窗口几何；发布物料沿用 1.0.31 的媒体资产。
+发布物料清单见
 `docs/release-assets-1.0.31.json`。
 
 ## 0. 前置检查
@@ -124,7 +126,7 @@ Expand-Archive $env:USERPROFILE\Downloads\amd-mobile-power-v1.0.31-win-x64-nativ
 ```
 
 - 下载到的 ZIP SHA256 必须等于
-  `33486b2dfcbb1e61471fc9d58b14d31c02802eb532c674a0c4ea28d7a9366a68`。
+  `97f9a09d3d3943645a3fbc58b527f90a4af51a14e07c264918cd4e14565a8102`。
 - 探针 `--self-test` 必须返回 `selfTest=PASS`，且不触发任何硬件写入。
 - B 站稿件公开可访问后，把链接补进 GitHub Release 正文和 README。
 
